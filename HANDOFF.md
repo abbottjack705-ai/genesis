@@ -1,110 +1,126 @@
-# Project Genesis V0.4 foundation handoff
+# Project Genesis V0.4 remediation handoff
 
-Date: 2026-09-18  
-Status: approved foundation migration implemented offline/paper-only
+Date: 2026-09-21
+Status: **R0–R10 locally green; ready for independent hostile re-audit; adapter NO-GO**
 
-## Completed
+## Review decision requested
 
-- V0.4 policy/config contracts with normal 1.50–3.00 odds, exceptional
-  1.40–1.49 policy, provisional versioned approximately -2pp near-fair
-  tolerance, non-quota daily search aims, 1u = 2.5%, tiered stakes, 60%
-  liability, and correlation controls.
-- Controlled synthetic source capability and bitemporal PIT interfaces.
-- Immutable evidence packs, append-only pack manifests, candidate decision
-  hashes, reproducibility manifests, and expanded canonical records.
-- Market capabilities, candidate-run retention, coverage telemetry, exact V0.4
-  PASS taxonomy, fail-closed V0.4 gates, and tier/region ordering.
-- Selected-set/PASS aggregate evaluation interfaces and protected campaign
-  attempt/suppression controls.
-- Offline risk reservations, single-use approvals, rebase policy, unknown
-  exposure blocking, correlation/liability checks, and risk audit events.
-- Paper-only order state machine, idempotency, critical refresh recertification,
-  UNKNOWN reconciliation state, mode authority, and kill switch.
-- Append-only fill/settlement/correction ledger using existing Decimal payoff
-  arithmetic.
-- Offline quota/cache and provider-neutral runtime/cost ports.
+Run the frozen Astra hostile implementation audit against the exact final R10
+snapshot. Determine whether any unresolved CRITICAL/HIGH enforcement weakness
+remains relevant to the first read-only sport/source adapter gate. Do not approve
+later strategy, provider, cloud, venue or live work through this review.
 
-## Remaining
+The task performing this remediation has not self-certified that independent
+audit. Until the external review and explicit checkpoint approval are complete,
+the adapter decision remains NO-GO.
 
-- Separate trusted-process protected evaluator with full side-channel controls.
-- Durable risk/exposure/order services with restart rehydration and venue
-  reconciliation.
-- Integration of all evidence-store supersession metadata into pack creation.
-- Real source capability verification and any read-only source adapter.
-- Sport models, strategy cards, outcome research, cloud deployment, provider
-  selection, credentials, venue adapters, and live execution.
-- Market-family and venue-specific settlement rules.
+## Authority and exact identity
 
-## Tests
+- Authority ZIP SHA-256:
+  `a3a8e191be2176551e6ae99367f601eddd08b93fd7434432c2e84ca4b4d448e0`.
+- Inner foundation snapshot SHA-256:
+  `1015cf7507f5aebce87f812367df3c77eebe58da15a0fa478acfb8d168201585`.
+- Manifest: 156/156 entries verified.
+- Audited baseline: `ae9cfa11128a476b2ec7f598df3d68e30b91f156`, tag
+  `v0.4-audited-v2.1-baseline`.
+- Last production remediation commit before R10: `128d392`.
+- The final R10 commit, tree and bundle digests are in the generated external
+  handoff manifest, created after the green commit to avoid a self-referential
+  identity claim.
+
+## Green batch chain
+
+| Batch | Green commit | Closure |
+|---|---|---|
+| R0 | `8625e7b` | frozen baseline and separate F01–F15 RED evidence |
+| R1 | `afc56b7` | serialized append-only persistence |
+| R2 | `f8f91ff` | causal PIT/evidence/provenance identity |
+| R3 | `f42bd8d` | authority-derived qualification and strict tiers |
+| R4 | `169ef9d` | unbiased comparable-group ranking |
+| R5 | `28d5013` | durable authority-derived exact risk |
+| R6 | `8bb86f3` | candidate-unique orders and exact approval binding |
+| R7 | `b1f22e5` | one-head settlement/correction lineage |
+| R8 | `d486297` | approved A quota policy and atomic authority |
+| R9 | `128d392` | separately spawned protected evaluator boundary |
+| R10 | final manifest | integrated replay, stress, recovery, docs and re-audit bundle |
+
+## Verification summary
 
 ```text
 python -m unittest discover -s tests -t . -v
-Ran 28 tests
+Ran 110 tests
 OK
 
 python -m compileall -q src tests
 PASSED
 ```
 
-The tests are deterministic, synthetic, and offline. They are not evidence of
-profitability, calibration on real sport data, provider availability, or live
-readiness.
+Additional gates:
 
-## Material files added or changed
+- F12: 20/20 runs, each 8 processes × 10 appends, zero forks/corruption.
+- Cross-component concurrency/fault: 3/3 campaigns; 24/24 executions.
+- Restart: 17/17 order states and 7/7 risk exposure states.
+- Process death inside append transaction: prior head preserved; subsequent
+  append and replay passed.
+- Legacy unsafe-route source scan: no use outside defining modules; behavioral
+  guards passed.
+- Full details: `TEST_EVIDENCE.md` and `remediation_evidence/R10/`.
 
-Added modules:
+## Reviewer entrypoints
 
-- `src/genesis/policy.py`
-- `src/genesis/pit.py`
-- `src/genesis/capabilities.py`
-- `src/genesis/evidence_pack.py`
-- `src/genesis/decision.py`
-- `src/genesis/candidate_runs.py`
-- `src/genesis/selection_evaluation.py`
-- `src/genesis/protected.py`
-- `src/genesis/risk.py`
-- `src/genesis/execution.py`
-- `src/genesis/ledger.py`
-- `src/genesis/quota.py`
-- `src/genesis/runtime.py`
-- `tests/test_v04_foundation.py`
+Read in this order:
 
-Changed modules/docs:
+1. the frozen V2.1 `00_START_HERE_CODEX.md` and `04_GO_NO_GO_TEST_GATE.md`;
+2. `PROJECT_STATE.md`, `ARCHITECTURE.md`, `TEST_EVIDENCE.md` and this handoff;
+3. `remediation_evidence/R10/FINDING_TRACEABILITY.md` and
+   `HOSTILE_REAUDIT_HANDOFF.md`;
+4. each R0–R9 checkpoint and RED/GREEN artifact;
+5. production modules and primary remediation tests named by the traceability map;
+6. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle.
 
-- `src/genesis/config.py`, `canonical.py`, `registry.py`, `reasons.py`,
-  `selection.py`
-- `config/defaults.json`
-- `PROJECT_STATE.md`, `ARCHITECTURE.md`, `TEST_EVIDENCE.md`,
-  `V03_TO_V04_GAP_ANALYSIS.md`, `V04_MIGRATION_PLAN.md`
+Re-run:
 
-No legacy repository was modified.
+```text
+python -m unittest discover -s tests -t . -v
+python -m compileall -q src tests
+git diff --check
+git status --short --branch
+```
 
-## Unresolved design questions
+## Migration/compatibility decisions
 
-1. What independent trusted-process mechanism will host protected evaluation,
-   and what controlled summary/error protocol will it expose?
-2. Which durable storage/runtime is affordable under the <=£10/month target?
-3. Which source/provider can prove point-in-time availability, entitlement,
-   revision semantics, and current quota terms?
-4. Which sport/market adapter should be first after the foundation audit, and
-   what exact strategy-card tier/support/settlement rules will it declare?
-5. Which officially supported paper/live venue, if any, satisfies cost,
-   liquidity, API, and credential-isolation requirements?
-6. What simulation or prospective evidence will set the downward bankroll
-   trigger and exact correlated-cluster cap within the approved starting range?
+- JSONL is the business/audit authority; SQLite coordinates only serialization.
+- Explicit legacy migrations never infer missing identity or intent.
+- Pre-audit incomplete candidates/packs/approvals/orders are audit-only.
+- Ambiguous duplicate settlement history fails closed.
+- Legacy quota migration requires an explicitly named interpretation.
+- Active quota policy is approved Interpretation A; B is test-only.
+- Registered V2 protected campaigns cannot enter the unsafe in-process harness.
+- Real protected activation remains disabled pending this independent review.
 
-## Blocked items
+## Scope attestation
 
-The following are blocked by intentionally unavailable or unverified external
-state, not by a code failure: provider terms/entitlements, external data,
-venue credentials, cloud pricing/deployment, sport semantics, and
-market-specific settlement rules. No network call or credential work was
-attempted.
+No source/sport adapter, acquisition path, model or strategy search, outcome
+backtest, external provider call, credential, dashboard/PWA, cloud/VPS deploy,
+exchange/venue integration, live execution, chaos-certification system or £100
+canary was implemented or run. The objective and V0.4 risk laws were not changed.
 
-## Recommended next step
+## Residual external questions
 
-Run an independent hostile audit of the new PIT/evidence-pack, protected
-evaluation, risk, and paper-state contracts. If accepted, implement durable
-restart/reconciliation boundaries in offline/paper fixtures first; only then
-begin a read-only sport/source capability study. Do not begin strategy search
-or live execution.
+These are deliberately unresolved external or later-phase facts, not hidden
+implementation claims:
+
+1. Does the independent hostile audit find a CRITICAL/HIGH adapter-gating gap?
+2. Which real provider/source can prove entitlement, PIT availability, revisions
+   and current quota terms? The 250 OddsPapi allowance is unverified.
+3. What separately reviewed deployment boundary will host real protected labels?
+4. Which first read-only adapter, sport semantics and market settlement rules will
+   later receive separate authority?
+5. What later prospective evidence establishes calibration/profitability and
+   operating/cloud costs?
+
+## Stop point
+
+R0–R10 implementation and evidence preparation stop here. The only next action
+authorized by this handoff is the independent hostile audit and checkpoint
+decision. Do not begin the next Genesis phase from this task.

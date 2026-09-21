@@ -454,28 +454,32 @@ partial or deliberately deferred.
 
 ## 6. First safe implementation slice after approval
 
-The first coherent slice—Stages 1–3—has been implemented: policy/config
-versioning, controlled synthetic PIT/source records, and frozen evidence-pack
-plus decision-hash contracts. Stages 4–5 were also implemented to make those
-identities useful to gates and deterministic policy ordering. Stages 6–10 now
-have offline foundation interfaces and tests, with the partial boundaries below.
+Stages 1–10 are now implemented as remediated generic offline/PAPER foundation
+contracts. R0–R10 hostile-audit remediation closed the authority, identity,
+ranking, persistence, risk, execution, settlement, quota, protected-process and
+restart gaps recorded by the V2.1 audit pack. This does not activate Stage 11:
+the first read-only adapter remains NO-GO pending fresh independent hostile audit
+and explicit checkpoint approval.
 
 ## 7. Implementation ledger
 
 | Stage | Status | Implemented evidence | Remaining boundary |
 |---|---|---|---|
-| 0. Baseline freeze | **COMPLETE** | Existing V0.3 suite retained; legacy repositories unchanged. | No repository commit was created because the workspace began without a committed baseline and the host's Git index permissions remain restricted. |
+| 0. Baseline freeze | **COMPLETE** | Exact V2.1 manifest/snapshot verified; 28-test baseline retained at Git `ae9cfa1`, tag `v0.4-audited-v2.1-baseline`; legacy repositories unchanged. | None inside the frozen-baseline gate. |
 | 1. Policy/config | **COMPLETE** | `policy.py`, extended config, non-quota daily aims, provisional price tolerance, deterministic tests. | Empirical validation and strategy cards are intentionally absent. |
-| 2. PIT/source capability | **COMPLETE as synthetic interface** | `pit.py`, market/source capability registries, fail-closed tests. | No real source is active; provider terms remain unverified. |
-| 3. Evidence identity | **COMPLETE as foundation interface** | `evidence_pack.py`, `decision.py`, candidate identity fields, immutable/replay tests. | Automatic integration of all source-store supersession metadata remains future work. |
-| 4. Canonical/gates/retention | **COMPLETE as foundation interface** | extended canonical records, V0.4 reasons, `qualify_v04`, candidate-run store, coverage telemetry. | No active sport candidate generator exists. |
-| 5. Price/portfolio policy | **COMPLETE as foundation interface** | break-even/price-sanity, tier/region ordering, unit policy and tests. | No strategy-defined tier card or empirical policy validation. |
-| 6. Selection/protected evaluation | **PARTIAL** | aggregate selected-set/PASS evaluation interfaces and protected attempt/suppression boundary. | Separate trusted process/service and full campaign governance are required before protected campaigns. |
-| 7. Risk | **PARTIAL** | units, reservations, liability/correlation/UNKNOWN checks, rebase, single-use approvals, audit log. | Durable exposure lifecycle and restart rehydration are not implemented. |
-| 8. Paper execution | **PARTIAL** | provider-neutral paper state machine, idempotency, recertification, mode authority, kill switch. | Persistent order rehydration and venue reconciliation are not implemented. |
-| 9. Settlement ledger | **COMPLETE as generic foundation** | append-only fills/settlements/corrections and deterministic P/L tests. | Market/venue-specific settlement rules and activation remain deferred. |
-| 10. Quota/runtime ports | **PARTIAL** | quota/reserve/cache and cost/scheduler ports with deterministic tests. | No provider/cloud deployment, monitoring, or external call. |
+| 2. PIT/source capability | **COMPLETE as remediated synthetic interface** | mandatory append-only source authority, as-of readiness, retrieval cutoff, supersession and fail-closed tests. | No real source is active; provider terms remain unverified. |
+| 3. Evidence identity | **COMPLETE as remediated foundation interface** | separate content/observation/source-contract identity, structured evidence, frozen packs and end-to-end decision-hash replay. | Real-source evidence remains future adapter work. |
+| 4. Canonical/gates/retention | **COMPLETE as remediated foundation interface** | authoritative `QualificationAuthority`, strategy decision contract, immutable qualification record, strict PASS/tier semantics, candidate-run retention and coverage telemetry. | No active sport candidate generator exists. |
+| 5. Price/portfolio policy | **COMPLETE as remediated foundation interface** | price gates plus comparable-group-only ranking and deterministic cross-group diversification, with no odds/label/global-probability bias. | No empirical policy validation or real strategy card exists. |
+| 6. Selection/protected evaluation | **COMPLETE for local checkpoint mechanics** | sealed frames, frozen predictions, separately spawned label-owner, bytes-only IPC, registered campaigns and durable non-refundable attempts. | Real protected activation is disabled; deployment/side-channel boundary requires independent review before any real campaign. |
+| 7. Risk | **COMPLETE as remediated generic PAPER authority** | durable bankroll/qualification/safety/exposure ownership, exact stake/BACK-LAY liability, <=3u law, single-use approvals and restart replay. | Real venue exposure integration and empirical risk calibration remain future work. |
+| 8. Paper execution | **COMPLETE as remediated generic PAPER authority** | candidate-unique durable intents, exact risk binding, recertification owners, mode/kill replay and ambiguous-restart block. | No venue adapter; venue reconciliation semantics remain future work. |
+| 9. Settlement ledger | **COMPLETE as remediated generic foundation** | one-head same-fill correction/void lineage, exact delta/effective P/L, atomic concurrency and deterministic migration/replay. | Market/venue-specific settlement rules and activation remain deferred. |
+| 10. Quota/runtime ports | **COMPLETE as remediated offline contract** | approved digest-pinned Interpretation A, test-only B, durable reserve authority, atomic daily/monthly/restart races and verified cache proof. | Provider ceiling/terms are unverified; no provider/cloud deployment, monitoring or external call exists. |
 | 11. Sport/live | **NOT STARTED / NOT YET APPLICABLE** | Deliberately no adapter, strategy, credential, or live path. | Requires separate research, provider verification, paper evidence, and human approval. |
 
-The authoritative current status is also recorded in `PROJECT_STATE.md`,
-`TEST_EVIDENCE.md`, and `HANDOFF.md`.
+R10 verification passed 110 tests, compileall, 20 repeated F12 campaigns,
+cross-component concurrency/fault stress, and complete order/risk restart-state
+matrices. The authoritative current status and remaining independent-review gate
+are recorded in `PROJECT_STATE.md`, `TEST_EVIDENCE.md`, `HANDOFF.md`, and
+`remediation_evidence/R10/`.

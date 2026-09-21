@@ -1,130 +1,155 @@
 # Project Genesis architecture
 
-## Current V0.4 foundation flow
+## Remediated V0.4 foundation flow
 
 ```text
-source capability + PIT records
-              |
-              v
-immutable evidence objects
-              |
-              v
-frozen evidence pack + reproducibility manifest
-              |
-              v
-canonical candidate + decision hash
-              |
-              +--> append-only candidate-run / coverage retention
-              |
-              v
-ordered fail-closed V0.4 gates
-              |
-              +--> PASS reason / selection evaluation aggregates
-              |
-              v
-strategy-tier portfolio ordering
-              |
-              v
-risk reservation + correlation / liability checks
-              |
-              v
-paper order state machine + UNKNOWN reconciliation
-              |
-              v
-fill / settlement ledger
+append-only SourceContract + source/market capability timelines
+                              |
+                              v
+content object -> immutable observations -> controlled PIT read
+                              |
+                              v
+structured ResearchEvidence -> frozen evidence pack
+                              |
+                              v
+StrategyDecisionContract + canonical candidate identity
+                              |
+                              v
+QualificationAuthority -> durable QualificationRecord or PASS
+                              |
+                              v
+explicit comparable-group ranking / deterministic diversification
+                              |
+                              v
+durable bankroll + risk derivation -> single-use RiskApproval
+                              |
+                              v
+candidate-unique PAPER intent -> exact binding -> state/reconciliation
+                              |
+                              v
+fill -> one-head settlement/correction/void lineage -> effective P/L
 ```
 
-The current repository stops at offline and paper contracts. There is no
-network call, live credential, venue adapter, browser automation, or real-
-money order path.
+The repository stops at generic offline/PAPER contracts. It has no network
+client, source or sport adapter, venue integration, browser automation,
+credential, cloud deployment, dashboard, or real-money order path.
+
+## Authority and persistence boundary
+
+All safety-critical histories use `AppendOnlyJsonl`. Before a mutation, the
+complete JSONL chain is verified inside a SQLite `BEGIN IMMEDIATE` critical
+section; the precondition and append are therefore one cross-process operation.
+The canonical JSONL row is flushed and fsynced. SQLite stores only a coordination
+generation and is never business truth.
+
+Truncated, hash-invalid, forked, semantically invalid, incomplete, or unsupported
+active state fails closed. Recovery replays JSONL; it does not silently heal,
+truncate, choose a branch, or infer missing identity.
 
 ## Trust boundaries
 
 ```text
-Research / extraction
-  may produce structured evidence and proposals
-  may not set probability, stake, risk, labels, or orders
-              |
-              v
-Evidence / PIT boundary
-  owns immutable artifacts, source capabilities, as-of queries, and packs
-              |
-              v
-Deterministic decision boundary
-  owns canonical candidates, hashes, gates, PASS, and portfolio ordering
-              |
-              v
-Risk boundary
-  owns units, exposure, correlation, kill checks, and single-use approvals
-              |
-              v
-Paper execution boundary
-  owns order states, idempotency, and reconciliation contracts
-              |
-              v
-Settlement boundary
-  owns fill/settlement/correction ledger events and P/L arithmetic
+Research process
+  receives sealed decision frames only
+  creates a frozen prediction artifact
+  never receives labels, label paths/handles, stake or order authority
+                 |
+                 | bounded canonical JSON bytes
+                 v
+Trusted local evaluator process (checkpoint-test mode only)
+  owns labels and fixed campaign/frame registration
+  reserves a durable non-refundable attempt first
+  executes no arbitrary research callback
+  returns only a certificate or fixed generic error
 ```
 
-Protected evaluation remains an in-process tested skeleton plus a
-fail-closed campaign/attempt interface. It must become a separately trusted
-process/service before protected campaigns. Future labels are stored and
-passed separately from decision frames.
+Real protected activation is disabled pending independent review. The legacy
+in-process callback path is explicitly named unsafe, requires a synthetic
+test-only opt-in, and rejects registered V2 campaigns.
 
-## Layout
+```text
+QualificationAuthority
+  resolves exact strategy contract, lifecycle-at-decision, market capability,
+  evidence/PIT identity, policy, risk view and execution view
+  persists one immutable qualification record only after all gates pass
+                 |
+                 v
+RiskEngine
+  owns current bankroll, hard unit law, derived stake/liability, exposures,
+  safety state, approval issuance and single-use consumption
+                 |
+                 v
+PaperExecutionAdapter
+  owns candidate uniqueness, exact approval binding, current market/refresh
+  recertification, state history and restart reconciliation
+                 |
+                 v
+SettlementLedger
+  owns fill identity, one current settlement head and economic P/L replay
+```
 
-- `src/genesis/repro.py`: canonical JSON, SHA-256, atomic immutable writes.
-- `src/genesis/evidence.py`: content-addressed evidence objects and existing
-  evidence manifest.
-- `src/genesis/evidence_pack.py`: frozen evidence packs and pack manifests.
-- `src/genesis/provenance.py`, `time.py`, and `pit.py`: source contracts,
-  capability readiness, bitemporal records, and controlled PIT queries.
-- `src/genesis/canonical.py`: participant, event, market, research-evidence,
-  and extended candidate schemas.
-- `src/genesis/decision.py`: candidate decision hashes and reproducibility
-  manifests.
-- `src/genesis/capabilities.py`: fail-closed market capability registry.
-- `src/genesis/labels.py`: separate decision-time facts and future labels.
-- `src/genesis/registry.py`: dataset, experiment, attempt, and strategy
-  registries with backward-compatible V0.4 experiment fields.
-- `src/genesis/candidate_runs.py`, `coverage.py`: full-run retention,
-  non-quota search telemetry, coverage, and exclusions.
-- `src/genesis/selection.py`, `reasons.py`, `policy.py`: V0.4 policy,
-  price-sanity, exact PASS taxonomy, gates, and tier/region ordering.
-- `src/genesis/selection_evaluation.py`, `evaluation.py`, `protected.py`:
-  selected-set aggregates, protected evaluator skeleton, campaign budgets,
-  suppression, and non-refundable attempts.
-- `src/genesis/risk.py`: bankroll units, reservations, exposure states,
-  correlation/liability limits, rebase decisions, and risk audit.
-- `src/genesis/execution.py`: paper-only order state machine, recertification,
-  idempotency, mode authority, and kill switch.
-- `src/genesis/accounting.py`, `ledger.py`: deterministic payoff primitives
-  and append-only fill/settlement/correction ledger.
-- `src/genesis/quota.py`, `runtime.py`: offline quota/cache contracts and
-  provider-neutral scheduler/cost/runtime ports.
-- `src/genesis/config.py`, `config/defaults.json`, `requirements.lock`:
-  dependency-pinned, live-disabled configuration.
-- `src/genesis/logging.py`: structured redacted JSONL audit events.
+## Identity and ranking rules
 
-## Persistence and identity rules
+- A raw object's intrinsic identity is hash plus byte length. Content type and
+  retrieval/source facts belong to immutable observation identity.
+- A post-audit provenance reference contains the exact observation ID.
+- Every material `ResearchEvidence` field contributes to its digest; frozen pack
+  and candidate identity consequently change when material evidence changes.
+- `StrategyDecisionContract` pins every non-candidate decision input, including
+  exact odds profile, adapter version, market capability and comparability group.
+- The post-audit qualifier recomputes candidate identity from authorities.
+- Tier is strict and strategy-approved. Invalid or missing tier never degrades to
+  a usable default.
+- Across equal-tier incomparable groups there is no quality comparison. A stable
+  identity-driven round-robin provides deterministic diversification; group or
+  market labels carry no quality meaning.
 
-Evidence objects, evidence packs, decision inputs, registries, candidate runs,
-risk events, order transitions, quota reservations, and ledger events are
-content-addressed or append-only. Corrections create new records and reference
-prior records; they do not rewrite history. V0.4 decision, risk, and order
-records are tied to a candidate decision hash and deterministic idempotency
-key.
+## Restart semantics
 
-## Deliberate non-inheritance
+- Risk replays bankroll, safety, approvals, consumption and reservations.
+- One candidate decision hash has one order-intent lineage across terminal state,
+  key changes, processes and restart.
+- `SUBMISSION_PENDING`, `SUBMISSION_SENT`, `UNKNOWN`, and
+  `RECONCILIATION_REQUIRED` restart as reconciliation-blocking; there is no blind
+  resend.
+- A crash after approval consumption but before order binding is detected as an
+  orphan consumption and blocks reconciliation.
+- Settlement replays exact current heads and checks that total event deltas equal
+  current effective fill outcomes.
+- Quota and protected-attempt ledgers replay their budgets and authorizations;
+  process failure never refunds protected attempts.
 
-The MLB legacy engine and `m9_repair` remain outside this repository. Their
-chronology and validation ideas are represented only through new generic
-contracts and tests. No legacy model assumptions, market definitions, source
-timestamps, or optimizer settings are imported.
+## Module map
 
-## Deferred architecture
+- `registry.py`: append transaction coordinator, datasets, experiments,
+  strategies, lifecycle timeline and `StrategyDecisionContract`.
+- `provenance.py`, `pit.py`, `capabilities.py`: source contracts, versioned
+  source/market capability, bitemporal records and mandatory as-of reads.
+- `evidence.py`, `evidence_pack.py`, `canonical.py`, `decision.py`: content,
+  observations, structured evidence, frozen packs and candidate identity.
+- `selection.py`, `policy.py`: authoritative qualification, immutable
+  qualification records, strict tiers, price gates and unbiased ranking.
+- `risk.py`: durable bankroll/safety/exposure ownership, exact derived risk and
+  approvals.
+- `execution.py`: provider-neutral PAPER order identity, binding, recertification,
+  state replay, mode and kill control.
+- `ledger.py`, `accounting.py`: authoritative fills, settlement lineages and
+  deterministic Decimal payoff primitives.
+- `quota.py`, `config/oddspapi_quota_policy_v2.json`: digest-pinned approved A
+  policy, test-only B, cache proof and atomic reserve authority.
+- `protected.py`, `evaluation.py`: sealed frames, frozen predictions, durable
+  attempt accounting, trusted evaluator IPC and explicit legacy test harness.
+- `candidate_runs.py`, `coverage.py`, `selection_evaluation.py`: complete
+  candidate retention, non-quota search telemetry and aggregate evaluation.
 
-The future runtime may add scheduled cloud jobs, durable storage, caches,
-monitoring, source adapters, sport models, and official venue adapters behind
-these interfaces. Provider selection, credentials, live authority, and
-market-specific settlement rules require separate verification and approval.
+## Legacy and deferred boundaries
+
+The caller-facts `qualify_v04` function and in-process protected harness remain
+only for deterministic legacy/synthetic audit replay. No production module imports
+or calls them. Pre-audit artifacts may be read only through explicit migrations;
+they are never silently promoted to post-audit authority.
+
+Future adapters, providers, sport models, strategy cards, real protected
+campaigns, venue reconciliation, cloud services and live activation require
+separate authority, implementation, tests and approval. Nothing in this
+remediation checkpoint authorizes that work.

@@ -102,6 +102,25 @@ class RiskPolicy:
         amount = _decimal(bankroll) * self.unit_fraction * unit
         return amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
+    @property
+    def digest(self) -> str:
+        value = asdict(self)
+        for key in (
+            "unit_fraction",
+            "max_single_units",
+            "max_open_liability_fraction",
+            "correlated_cluster_fraction",
+        ):
+            value[key] = canonical_decimal(value[key])
+        value["stake_tiers"] = [canonical_decimal(item) for item in self.stake_tiers]
+        if value["daily_turnover_cap"] is not None:
+            value["daily_turnover_cap"] = canonical_decimal(value["daily_turnover_cap"])
+        if value["downward_rebase_trigger"] is not None:
+            value["downward_rebase_trigger"] = canonical_decimal(
+                value["downward_rebase_trigger"]
+            )
+        return sha256_bytes(canonical_json(value))
+
 
 _TIER_PATTERN = re.compile(r"^(1\.0|1\.5|2\.0|2\.5|3\.0)u$")
 

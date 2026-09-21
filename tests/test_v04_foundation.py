@@ -35,9 +35,26 @@ from genesis.selection_evaluation import SelectionObservation, evaluate_selectio
 from genesis.labels import DecisionFact, DecisionFrame, FutureOutcomeLabel
 from genesis.provenance import AvailabilityClass, ProvenanceRef
 from genesis.quota import QuotaLedger, QuotaPolicy
-from genesis.risk import Exposure, ExposureState, RiskAuditLog, RiskEngine
+from genesis.risk import (
+    BankrollSnapshot,
+    BankrollSnapshotStore,
+    Exposure,
+    ExposureState,
+    RiskAuditLog,
+    RiskEngine,
+    RiskRequest,
+    SafetyState,
+    SafetyStateStore,
+)
 from genesis.runtime import CostLedger, CostLedgerEntry
-from genesis.selection import QualificationFacts, SelectionDecision, qualify_v04, rank_qualified
+from genesis.selection import (
+    QualificationFacts,
+    QualificationRecord,
+    QualificationRecordStore,
+    SelectionDecision,
+    qualify_v04,
+    rank_qualified,
+)
 from ._support import scratch_directory
 
 
@@ -185,17 +202,39 @@ class V04CandidateRiskExecutionTests(unittest.TestCase):
     def test_risk_counts_pending_and_unknown_and_approvals_are_single_use(self):
         with scratch_directory() as tmp:
             audit = RiskAuditLog(tmp / "risk.jsonl")
-            engine = RiskEngine(audit_log=audit)
-            self.assertEqual(engine.rebase("100", "110", scheduled_weekly=True, drawdown_triggered=False).direction, "upward")
+            policy = PolicySet()
+            bankrolls = BankrollSnapshotStore(tmp / "bankroll.jsonl")
+            initial = BankrollSnapshot.create(bankroll="100", captured_at="2026-01-01T00:00:00Z", rebase_reason="initial")
+            bankrolls.append(initial)
+            safety = SafetyStateStore(tmp / "safety.jsonl")
+            safety.append(SafetyState.create(kill_switch_active=False, recorded_at="2026-01-01T00:00:00Z", reason="test"))
+            qualifications = QualificationRecordStore(tmp / "qualifications.jsonl")
             h1, h2 = digest("1"), digest("2")
-            decision = engine.approve(candidate_decision_hash=h1, bankroll="100", requested_liability="5", correlation_cluster_ids=("cluster-1",))
+            def qualification(candidate_hash, candidate_id):
+                return QualificationRecord.create(
+                    candidate_id=candidate_id, candidate_decision_hash=candidate_hash,
+                    strategy_id="strategy", strategy_version="v1",
+                    strategy_decision_contract_hash=digest("a"), approved_tier="2.0u",
+                    comparability_group_id="group", active_policy_digest=policy.digest,
+                    market_capability_id="cap", decision_at="2026-01-01T00:00:00Z",
+                    evaluated_at="2026-01-01T00:01:00Z", expires_at="2026-01-01T01:00:00Z",
+                    gate_results_digest=digest("b"),
+                )
+            q1 = qualifications.append(qualification(h1, "c1"))
+            q2 = qualifications.append(qualification(h2, "c2"))
+            engine = RiskEngine(policy=policy, bankrolls=bankrolls, qualifications=qualifications, safety=safety, audit_log=audit)
+            self.assertEqual(engine.rebase("110", captured_at="2026-01-01T00:02:00Z", scheduled_weekly=True, drawdown_triggered=False).direction, "upward")
+            h1, h2 = digest("1"), digest("2")
+            current = bankrolls.current()
+            decision = engine.approve(RiskRequest(h1, q1.qualification_record_id, current.snapshot_id, BetSide.BACK, "2.00", "2026-01-01T00:03:00Z", ("cluster-1",)))
             self.assertTrue(decision.passed)
-            self.assertEqual(engine.consume(decision.approval_id).status, "CONSUMED")
+            self.assertEqual(engine.consume_for_order(decision.approval_id, order_id="order-1", consumed_at="2026-01-01T00:04:00Z").status, "CONSUMED")
             with self.assertRaises(ValueError):
-                engine.consume(decision.approval_id)
-            blocked = engine.approve(candidate_decision_hash=h2, bankroll="100", requested_liability="1", existing=(Exposure("x", digest("3"), "1", ExposureState.UNKNOWN),))
+                engine.consume_for_order(decision.approval_id, order_id="order-2", consumed_at="2026-01-01T00:05:00Z")
+            engine.record_exposure(Exposure("x", digest("3"), "1", ExposureState.UNKNOWN), recorded_at="2026-01-01T00:05:00Z")
+            blocked = engine.approve(RiskRequest(h2, q2.qualification_record_id, current.snapshot_id, BetSide.BACK, "2.00", "2026-01-01T00:06:00Z"))
             self.assertFalse(blocked.passed)
-            self.assertEqual(audit.verify(), 2)
+            self.assertEqual(audit.verify(), 3)
 
     def test_paper_order_idempotency_and_unknown_reconciliation(self):
         adapter = PaperExecutionAdapter()

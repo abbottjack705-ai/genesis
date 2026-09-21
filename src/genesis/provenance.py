@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from enum import StrEnum
+from pathlib import Path
 from typing import Any
 
+from .registry import AppendOnlyJsonl, RegistryConflict
+from .repro import canonical_json, sha256_bytes
 from .time import AvailabilityWindow, iso_utc, parse_utc
 
 
@@ -55,6 +58,51 @@ class SourceContract:
             raise ValueError(f"source not ready by decision time: {self.contract_id}")
 
 
+class SourceContractRegistry:
+    """Append-only named authority for immutable source contracts."""
+
+    def __init__(self, path: str | Path):
+        self.log = AppendOnlyJsonl(path)
+
+    @staticmethod
+    def _from_row(row: dict[str, Any]) -> SourceContract:
+        fields = {key: row[key] for key in SourceContract.__dataclass_fields__}
+        fields["availability_class"] = AvailabilityClass(fields["availability_class"])
+        return SourceContract(**fields)
+
+    def get(self, contract_id: str) -> SourceContract:
+        matches = [
+            self._from_row(row)
+            for row in self.log.records()
+            if row.get("record_type") == "source_contract_registered"
+            and row.get("contract_id") == contract_id
+        ]
+        if not matches:
+            raise RegistryConflict(f"unknown source contract: {contract_id}")
+        if any(item != matches[0] for item in matches[1:]):
+            raise RegistryConflict(f"conflicting source contract history: {contract_id}")
+        return matches[0]
+
+    def register(self, contract: SourceContract) -> str:
+        record = {"record_type": "source_contract_registered", **contract.to_dict()}
+
+        def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
+            matches = [
+                self._from_row(row)
+                for row in rows
+                if row.get("record_type") == "source_contract_registered"
+                and row.get("contract_id") == contract.contract_id
+            ]
+            if not matches:
+                return record
+            if all(item == contract for item in matches):
+                return None
+            raise RegistryConflict(f"source contract already exists: {contract.contract_id}")
+
+        result = self.log.transaction(build)
+        return result or sha256_bytes(canonical_json(record))
+
+
 @dataclass(frozen=True)
 class ProvenanceRef:
     artifact_hash: str
@@ -65,13 +113,19 @@ class ProvenanceRef:
     availability_class: AvailabilityClass
     parser_version: str
     evidence_span: str | None = None
+    observation_id: str | None = None
 
     def __post_init__(self) -> None:
         if len(self.artifact_hash) != 64:
             raise ValueError("artifact_hash must be a full SHA-256 digest")
         parse_utc(self.retrieved_at)
         parse_utc(self.parse_ready_at)
+        if self.observation_id is not None and len(self.observation_id) != 64:
+            raise ValueError("observation_id must be a full SHA-256 digest")
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self) | {"availability_class": self.availability_class.value}
 
+    @property
+    def is_authoritative_v2(self) -> bool:
+        return self.observation_id is not None

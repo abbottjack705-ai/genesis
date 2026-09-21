@@ -128,6 +128,34 @@ class ResearchEvidence:
         if self.prompt_schema_hash and len(self.prompt_schema_hash) != 64:
             raise ValueError("prompt_schema_hash must be a SHA-256 digest")
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "evidence_id": self.evidence_id,
+            "event_id": self.event_id,
+            "category": self.category,
+            "normalized_claim": self.normalized_claim,
+            "source_ref": self.source_ref.to_dict(),
+            "source_timestamp": iso_utc(self.source_timestamp) if self.source_timestamp else None,
+            "retrieved_at": iso_utc(self.retrieved_at),
+            "status": self.status.value,
+            "freshness_expires_at": (
+                iso_utc(self.freshness_expires_at) if self.freshness_expires_at else None
+            ),
+            "extractor_version": self.extractor_version,
+            "contradiction_ids": list(self.contradiction_ids),
+            "ready_at": iso_utc(self.ready_at) if self.ready_at else None,
+            "evidence_span": self.evidence_span,
+            "prompt_schema_hash": self.prompt_schema_hash,
+        }
+
+    @property
+    def digest(self) -> str:
+        return sha256_bytes(canonical_json(self.to_dict()))
+
+    @property
+    def is_authoritative_v2(self) -> bool:
+        return self.source_ref.is_authoritative_v2
+
 
 @dataclass(frozen=True)
 class CandidateBet:

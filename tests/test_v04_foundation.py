@@ -82,13 +82,13 @@ class V04PolicyAndPITTests(unittest.TestCase):
         with scratch_directory() as tmp:
             capabilities = SourceCapabilityRegistry(tmp / "sources.jsonl")
             capabilities.register(SourceCapability("s1", "synthetic", "fixture", "free", "test", "prospective", "verified", "append", "fixture", "7/day", "v1", OperationalStatus.READY, "2026-01-01T00:00:00Z", "v1"))
-            store = PITStore(tmp / "pit.jsonl")
+            store = PITStore(tmp / "pit.jsonl", capabilities=capabilities)
             store.append(BitemporalRecord("r1", "e1", "s1", digest(), "2025-12-31T23:00:00Z", None, "2025-12-31T23:01:00Z", "2025-12-31T23:02:00Z", "2025-12-31T23:00:00Z"))
-            self.assertEqual(len(store.as_of_query("e1", "2026-01-01T00:00:00Z", capabilities=capabilities)), 1)
+            self.assertEqual(len(store.as_of_query("e1", "2026-01-01T00:00:00Z")), 1)
             store.append(BitemporalRecord("r2", "e2", "s1", digest("d"), "2026-01-01T00:00:00Z", None, "2026-01-01T00:01:00Z", "2026-01-01T00:02:00Z", "2026-01-01T00:00:00Z"))
-            self.assertEqual(store.as_of_query("e2", "2026-01-01T00:01:30Z", capabilities=capabilities), ())
+            self.assertEqual(store.as_of_query("e2", "2026-01-01T00:01:30Z"), ())
             with self.assertRaises(SourceUnavailable):
-                store.as_of_query("e1", "2026-01-01T00:00:00Z", source_id="unknown", capabilities=capabilities)
+                store.as_of_query("e1", "2026-01-01T00:00:00Z", source_id="unknown")
 
     def test_evidence_pack_and_decision_hash_are_immutable(self):
         pack = EvidencePack.freeze(
@@ -116,11 +116,14 @@ class V04PolicyAndPITTests(unittest.TestCase):
         self.assertEqual(len(manifest.digest), 64)
 
     def test_source_supersession_is_honoured_at_the_requested_time(self):
-        store = PITStore()
-        store.append(BitemporalRecord("old", "e1", "s1", digest("a"), "2025-12-31T23:00:00Z", None, "2025-12-31T23:01:00Z", "2025-12-31T23:02:00Z", "2025-12-31T23:00:00Z", superseded_by="new", superseded_at="2026-01-01T00:00:00Z"))
-        store.append(BitemporalRecord("new", "e1", "s1", digest("b"), "2026-01-01T00:00:00Z", None, "2026-01-01T00:01:00Z", "2026-01-01T00:02:00Z", "2026-01-01T00:00:00Z"))
-        self.assertEqual([row.record_id for row in store.as_of_query("e1", "2025-12-31T23:30:00Z")], ["old"])
-        self.assertEqual([row.record_id for row in store.as_of_query("e1", "2026-01-01T00:03:00Z")], ["new"])
+        with scratch_directory() as tmp:
+            capabilities = SourceCapabilityRegistry(tmp / "sources.jsonl")
+            capabilities.register(SourceCapability("s1", "synthetic", "fixture", "free", "test", "prospective", "verified", "append", "fixture", "7/day", "v1", OperationalStatus.READY, "2025-12-31T22:00:00Z", "v1"))
+            store = PITStore(None, capabilities=capabilities)
+            store.append(BitemporalRecord("old", "e1", "s1", digest("a"), "2025-12-31T23:00:00Z", None, "2025-12-31T23:01:00Z", "2025-12-31T23:02:00Z", "2025-12-31T23:00:00Z", superseded_by="new", superseded_at="2026-01-01T00:00:00Z"))
+            store.append(BitemporalRecord("new", "e1", "s1", digest("b"), "2026-01-01T00:00:00Z", None, "2026-01-01T00:01:00Z", "2026-01-01T00:02:00Z", "2026-01-01T00:00:00Z"))
+            self.assertEqual([row.record_id for row in store.as_of_query("e1", "2025-12-31T23:30:00Z")], ["old"])
+            self.assertEqual([row.record_id for row in store.as_of_query("e1", "2026-01-01T00:03:00Z")], ["new"])
 
     def test_market_capability_and_mode_authority_fail_closed(self):
         with scratch_directory() as tmp:

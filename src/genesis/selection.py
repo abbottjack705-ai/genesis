@@ -612,27 +612,43 @@ def rank_qualified(candidates: Iterable[tuple[CandidateBet, SelectionDecision]])
         if decision.qualification_record_id is None:
             raise ValueError("ranking requires an authoritative qualification record")
         parse_tier(candidate.strategy_tier)
+        if not candidate.comparability_group_id:
+            raise ValueError("ranking requires an approved comparability group")
         qualified.append(candidate)
 
-    def tier(candidate: CandidateBet) -> Decimal:
-        return parse_tier(candidate.strategy_tier)
+    def stable_identity(candidate: CandidateBet) -> str:
+        return candidate.candidate_decision_hash or candidate.candidate_id
 
-    def region(candidate: CandidateBet) -> tuple[int, str]:
-        odds = Decimal(candidate.observed_odds)
-        if Decimal("1.40") <= odds <= Decimal("1.49"):
-            return (0, "exceptional_short_price")
-        if Decimal("1.50") <= odds <= Decimal("3.00"):
-            return (1, "normal")
-        return (2, "outside")
-
-    return sorted(
-        qualified,
-        key=lambda candidate: (
-            -tier(candidate),
-            region(candidate),
-            candidate.market_family or candidate.market_id,
-            -Decimal(candidate.conservative_probability),
-            candidate.selection_dependency_group or "",
-            candidate.candidate_id,
-        ),
+    result: list[CandidateBet] = []
+    tiers = sorted(
+        {parse_tier(candidate.strategy_tier) for candidate in qualified}, reverse=True
     )
+    for tier_value in tiers:
+        tier_candidates = [
+            candidate
+            for candidate in qualified
+            if parse_tier(candidate.strategy_tier) == tier_value
+        ]
+        groups: dict[str, list[CandidateBet]] = {}
+        for candidate in tier_candidates:
+            assert candidate.comparability_group_id is not None
+            groups.setdefault(candidate.comparability_group_id, []).append(candidate)
+        queues = [
+            sorted(
+                members,
+                key=lambda candidate: (
+                    -Decimal(candidate.conservative_probability),
+                    stable_identity(candidate),
+                    candidate.candidate_id,
+                ),
+            )
+            for members in groups.values()
+        ]
+        # Group names carry no quality meaning.  The minimum stable candidate
+        # identity orders queues only to make diversification deterministic.
+        queues.sort(key=lambda queue: min(stable_identity(item) for item in queue))
+        while any(queues):
+            for queue in queues:
+                if queue:
+                    result.append(queue.pop(0))
+    return result

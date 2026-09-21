@@ -55,6 +55,7 @@ def candidate(candidate_id: str, *, odds: str = "2.00", probability: str = "0.55
         "1.50", "3.00", odds, probability, "0.52", "model-v1", "pack-1",
         "2026-01-01T00:00:00Z", "2026-01-01T01:00:00Z", True,
         strategy_tier=tier, market_family="match_winner", candidate_decision_hash=decision_hash,
+        comparability_group_id="default-comparability",
     )
 
 

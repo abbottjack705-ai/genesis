@@ -38,7 +38,7 @@ from genesis.evaluation import EvaluationRequest
 from genesis.selection_evaluation import SelectionObservation, evaluate_selection_policy
 from genesis.labels import DecisionFact, DecisionFrame, FutureOutcomeLabel
 from genesis.provenance import AvailabilityClass, ProvenanceRef
-from genesis.quota import QuotaLedger, QuotaPolicy
+from genesis.quota import CachedData, QuotaInterpretation, QuotaLedger, QuotaPolicy
 from genesis.risk import (
     BankrollSnapshot,
     BankrollSnapshotStore,
@@ -298,8 +298,33 @@ class V04ProtectedLedgerQuotaTests(unittest.TestCase):
             self.assertEqual(corrected.pnl, "-5.00")
             self.assertEqual(ledger.total_pnl(), "-2.50")
             self.assertEqual(ledger.verify(), 3)
-        quota = QuotaLedger(policy=QuotaPolicy(daily_billable_limit=2, monthly_billable_limit=5, monthly_reserve=1))
-        self.assertTrue(quota.request(request_id="1", occurred_at="2026-01-01T00:00:00Z").allowed)
-        self.assertTrue(quota.request(request_id="2", occurred_at="2026-01-01T00:01:00Z").allowed)
-        self.assertFalse(quota.request(request_id="3", occurred_at="2026-01-01T00:02:00Z").allowed)
-        self.assertTrue(quota.request(request_id="4", occurred_at="2026-01-01T00:03:00Z", cached=True).allowed)
+        with scratch_directory() as tmp:
+            policy = QuotaPolicy.test_fixture(
+                QuotaInterpretation.A,
+                provider_monthly_allowance=5,
+                normal_monthly_budget=4,
+                reserve_units=1,
+                daily_billable_budget=2,
+            )
+            quota = QuotaLedger(
+                tmp / "quota.jsonl", policy=policy, allow_test_policy=True
+            )
+            self.assertTrue(quota.request(request_id="1", occurred_at="2026-01-01T00:00:00Z").allowed)
+            self.assertTrue(quota.request(request_id="2", occurred_at="2026-01-01T00:01:00Z").allowed)
+            self.assertFalse(quota.request(request_id="3", occurred_at="2026-01-01T00:02:00Z").allowed)
+            cache = CachedData(
+                "event-current",
+                digest("9"),
+                policy.provider_id,
+                policy.policy_digest,
+                "2026-01-01T00:00:00Z",
+                "2026-01-01T01:00:00Z",
+                True,
+            )
+            self.assertTrue(
+                quota.request(
+                    request_id="4",
+                    occurred_at="2026-01-01T00:03:00Z",
+                    cache=cache,
+                ).allowed
+            )

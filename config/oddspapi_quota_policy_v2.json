@@ -1,0 +1,18 @@
+{
+  "schema_version": "quota-policy-v2",
+  "version": "genesis-oddspapi-quota-v2-a",
+  "provider_id": "oddspapi",
+  "policy_interpretation": "A",
+  "provider_monthly_allowance": 250,
+  "normal_monthly_budget": 220,
+  "reserve_units": 30,
+  "daily_billable_budget": 7,
+  "one_legitimate_allowance": true,
+  "approved_active": true,
+  "test_only": false,
+  "approval_reference": "D-REM-001",
+  "approved_at": "2026-09-19T00:00:00.000000Z",
+  "approval_revoked": false,
+  "provider_terms_reverification_required": true,
+  "policy_digest": "3cdf9e3e52ec49a6a645ed1f690fe03a2ff3605527c0fb14dd51fab42389a0f9"
+}

@@ -1,0 +1,21 @@
+{
+  "baseline_commit": "ae9cfa11128a476b2ec7f598df3d68e30b91f156",
+  "expected_unsafe_behaviours_reproduced": true,
+  "findings": {
+    "F01": {"caller_facts_produced_qualify": true},
+    "F02": {"same_candidate_distinct_intents_created": 2},
+    "F03": {"direct_risk_approved_transition_accepted": true},
+    "F04": {"duplicate_fill_total_pnl": "5.00"},
+    "F05": {"arbitrary_50_liability_approved": true},
+    "F06": {"capability_free_pit_read_returned_record": true},
+    "F07": {"short_region_ranked_first": "short"},
+    "F08": {"lexical_family_ranked_first": "alpha"},
+    "F09": {"missing_tier_qualified_and_ranked": true},
+    "F10": {"same_bytes_new_observation_error": "ImmutableConflict"},
+    "F11": {"changed_claim_preserved_pack_hash": "ef12449b72ee05d6ab615f9d2e2920fed9ee98c8e80fbcb105cd1da13fbaee13"},
+    "F12": {"stress_attempt": 1, "error": "RegistryConflict: registry hash chain is broken"},
+    "F13": {"introspected_label": 1},
+    "F14": {"normal_call_191_allowed": false, "monthly_used": 190},
+    "F15": {"risk_reservations_after_restart": 0, "order_missing_after_restart": true}
+  }
+}

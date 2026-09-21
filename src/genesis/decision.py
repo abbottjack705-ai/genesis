@@ -11,6 +11,7 @@ from .repro import canonical_json, sha256_bytes
 DECISION_HASH_FIELDS = (
     "strategy_version",
     "strategy_config_hash",
+    "strategy_decision_contract_hash",
     "odds_profile_hash",
     "sport_adapter_version",
     "event_id",
@@ -27,6 +28,7 @@ DECISION_HASH_FIELDS = (
 )
 DECISION_HASH_DIGEST_FIELDS = {
     "strategy_config_hash",
+    "strategy_decision_contract_hash",
     "odds_profile_hash",
     "evidence_pack_hash",
     "feature_manifest_hash",
@@ -65,6 +67,7 @@ def decision_hash_for_candidate(
         {
             "strategy_version": candidate.strategy_version,
             "strategy_config_hash": strategy_config_hash,
+            "strategy_decision_contract_hash": candidate.strategy_decision_contract_hash,
             "odds_profile_hash": odds_profile_hash,
             "sport_adapter_version": sport_adapter_version,
             "event_id": candidate.event_id,

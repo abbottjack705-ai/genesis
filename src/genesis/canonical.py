@@ -208,6 +208,8 @@ class CandidateBet:
     feature_manifest_hash: str | None = None
     gate_policy_hash: str | None = None
     config_digest: str | None = None
+    strategy_decision_contract_hash: str | None = None
+    comparability_group_id: str | None = None
     candidate_decision_hash: str | None = None
 
     def __post_init__(self) -> None:
@@ -237,6 +239,7 @@ class CandidateBet:
             "feature_manifest_hash",
             "gate_policy_hash",
             "config_digest",
+            "strategy_decision_contract_hash",
             "candidate_decision_hash",
         ):
             value = getattr(self, name)

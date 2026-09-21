@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
+import re
 from typing import Any
 
 from .accounting import BetSide
@@ -21,6 +22,11 @@ V04_POLICY_VERSION = "genesis-policy-v0.4-starting"
 
 def _decimal(value: Decimal | str | int | float) -> Decimal:
     return Decimal(str(value))
+
+
+def canonical_decimal(value: Decimal | str | int | float) -> str:
+    normalized = _decimal(value).normalize()
+    return format(normalized, "f")
 
 
 @dataclass(frozen=True)
@@ -73,10 +79,14 @@ class RiskPolicy:
     status: str = "STARTING_POLICY_NOT_EMPIRICALLY_VALIDATED"
 
     def __post_init__(self) -> None:
-        if not 0 < self.unit_fraction < 1:
-            raise ValueError("unit fraction must be in (0, 1)")
+        if self.unit_fraction != Decimal("0.025"):
+            raise ValueError("V0.4 hard law requires 1u = 0.025 bankroll")
         if not self.stake_tiers or tuple(sorted(self.stake_tiers)) != self.stake_tiers:
             raise ValueError("stake tiers must be sorted and non-empty")
+        if any(tier > Decimal("3.0") for tier in self.stake_tiers):
+            raise ValueError("V0.4 hard law forbids a tier above 3u")
+        if self.max_single_units > Decimal("3.0"):
+            raise ValueError("V0.4 hard law forbids a maximum above 3u")
         if self.max_single_units not in self.stake_tiers:
             raise ValueError("maximum single stake must be a declared tier")
         for fraction in (self.max_open_liability_fraction, self.correlated_cluster_fraction):
@@ -91,6 +101,45 @@ class RiskPolicy:
             raise ValueError("stake must use a declared unit tier")
         amount = _decimal(bankroll) * self.unit_fraction * unit
         return amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+_TIER_PATTERN = re.compile(r"^(1\.0|1\.5|2\.0|2\.5|3\.0)u$")
+
+
+def parse_tier(value: str | None, *, policy: RiskPolicy | None = None) -> Decimal:
+    """Parse one exact V0.4 tier; missing/malformed values never default."""
+
+    if value is None or _TIER_PATTERN.fullmatch(value) is None:
+        raise ValueError("invalid V0.4 strategy tier")
+    tier = Decimal(value[:-1])
+    active = policy or RiskPolicy()
+    if tier not in active.stake_tiers or tier > active.max_single_units:
+        raise ValueError("strategy tier is not allowed by the active risk policy")
+    return tier
+
+
+def odds_profile_hash(policy: "PolicySet", profile: OddsProfile) -> str:
+    return sha256_bytes(
+        canonical_json(
+            {
+                "policy_version": policy.version,
+                "profile": {
+                    "name": profile.name,
+                    "minimum": canonical_decimal(profile.minimum),
+                    "maximum": canonical_decimal(profile.maximum),
+                    "exceptional": profile.exceptional,
+                },
+            }
+        )
+    )
+
+
+def matched_odds_profile(policy: "PolicySet", odds: Decimal | str | int | float) -> OddsProfile:
+    if policy.normal_odds.contains(odds):
+        return policy.normal_odds
+    if policy.exceptional_odds.contains(odds):
+        return policy.exceptional_odds
+    raise ValueError("odds are outside every active profile")
 
 
 def default_daily_aims() -> tuple[DailySearchAim, ...]:
@@ -221,4 +270,3 @@ def assess_price_sanity(
         passed,
         "near_fair_tolerance" if passed else "negative_margin_without_strong_conditions",
     )
-

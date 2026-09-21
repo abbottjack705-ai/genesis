@@ -37,7 +37,7 @@ from genesis.provenance import AvailabilityClass, ProvenanceRef
 from genesis.quota import QuotaLedger, QuotaPolicy
 from genesis.risk import Exposure, ExposureState, RiskAuditLog, RiskEngine
 from genesis.runtime import CostLedger, CostLedgerEntry
-from genesis.selection import QualificationFacts, qualify_v04, rank_qualified
+from genesis.selection import QualificationFacts, SelectionDecision, qualify_v04, rank_qualified
 from ._support import scratch_directory
 
 
@@ -102,7 +102,7 @@ class V04PolicyAndPITTests(unittest.TestCase):
             self.assertEqual(store.get(pack.pack_hash), pack)
             self.assertEqual(store.verify_manifest(), 1)
         inputs = {field: digest(chr(100 + i)) if "hash" in field else field for i, field in enumerate((
-            "strategy_version", "strategy_config_hash", "odds_profile_hash", "sport_adapter_version", "event_id", "market_id", "selection_id", "side", "evidence_cutoff_ts", "candidate_decision_ts", "evidence_pack_hash", "feature_manifest_hash", "model_artifact_hash", "calibration_artifact_hash", "gate_policy_hash"))}
+            "strategy_version", "strategy_config_hash", "strategy_decision_contract_hash", "odds_profile_hash", "sport_adapter_version", "event_id", "market_id", "selection_id", "side", "evidence_cutoff_ts", "candidate_decision_ts", "evidence_pack_hash", "feature_manifest_hash", "model_artifact_hash", "calibration_artifact_hash", "gate_policy_hash"))}
         first = candidate_decision_hash(inputs)
         inputs["gate_policy_hash"] = digest("z")
         self.assertNotEqual(first, candidate_decision_hash(inputs))
@@ -152,10 +152,10 @@ class V04CandidateRiskExecutionTests(unittest.TestCase):
         unknown = qualify_v04(c, now="2026-01-01T00:10:00Z", facts=QualificationFacts())
         self.assertEqual(unknown.action, "PASS")
         facts = QualificationFacts(**{field: True for field in QualificationFacts.__dataclass_fields__})
-        self.assertEqual(qualify_v04(c, now="2026-01-01T00:10:00Z", facts=facts).action, "QUALIFY")
+        self.assertEqual(qualify_v04(c, now="2026-01-01T00:10:00Z", facts=facts).action, "PASS")
         low = candidate("c2", odds="2.80", probability="0.90", tier="1.0u")
         high = candidate("c3", odds="1.55", probability="0.60", tier="2.0u")
-        decision = lambda item: qualify_v04(item, now="2026-01-01T00:10:00Z", facts=facts)
+        decision = lambda item: SelectionDecision(item.candidate_id, "QUALIFY", (), digest("q"))
         ranked = rank_qualified([(low, decision(low)), (high, decision(high))])
         self.assertEqual([item.candidate_id for item in ranked], ["c3", "c2"])
 

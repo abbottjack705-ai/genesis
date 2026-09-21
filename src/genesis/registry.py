@@ -286,6 +286,90 @@ class StrategyArtifact:
                 raise ValueError(f"{name} must be a full SHA-256 digest")
 
 
+@dataclass(frozen=True)
+class StrategyDecisionContract:
+    schema_version: str
+    strategy_id: str
+    strategy_version: str
+    strategy_config_hash: str
+    odds_profile_hash: str
+    sport_adapter_version: str
+    market_capability_id: str
+    required_lifecycle: StrategyLifecycle
+    support_region: str
+    comparability_group_id: str
+    model_artifact_hash: str
+    calibration_artifact_hash: str
+    feature_manifest_hash: str
+    gate_policy_hash: str
+    approved_tier_policy_id: str
+    approved_tiers: tuple[str, ...]
+    created_at: str
+    contract_hash: str
+
+    def __post_init__(self) -> None:
+        if self.schema_version != "strategy-decision-contract-v2":
+            raise ValueError("unsupported strategy decision contract schema")
+        if not all(
+            (
+                self.strategy_id,
+                self.strategy_version,
+                self.sport_adapter_version,
+                self.market_capability_id,
+                self.support_region,
+                self.comparability_group_id,
+                self.approved_tier_policy_id,
+                self.approved_tiers,
+            )
+        ):
+            raise ValueError("strategy decision contract identity is incomplete")
+        if self.required_lifecycle != StrategyLifecycle.PAPER:
+            raise ValueError("V0.4 remediation requires exact PAPER lifecycle")
+        parse_utc(self.created_at)
+        for name in (
+            "strategy_config_hash",
+            "odds_profile_hash",
+            "model_artifact_hash",
+            "calibration_artifact_hash",
+            "feature_manifest_hash",
+            "gate_policy_hash",
+            "contract_hash",
+        ):
+            value = getattr(self, name)
+            if len(value) != 64:
+                raise ValueError(f"{name} must be a full SHA-256 digest")
+            int(value, 16)
+        if self.compute_hash() != self.contract_hash:
+            raise ValueError("strategy decision contract hash mismatch")
+
+    def unsigned_dict(self) -> dict[str, Any]:
+        value = asdict(self)
+        value.pop("contract_hash")
+        value["required_lifecycle"] = self.required_lifecycle.value
+        value["created_at"] = iso_utc(self.created_at)
+        return value
+
+    def compute_hash(self) -> str:
+        return sha256_bytes(canonical_json(self.unsigned_dict()))
+
+    def to_dict(self) -> dict[str, Any]:
+        return self.unsigned_dict() | {"contract_hash": self.contract_hash}
+
+    @classmethod
+    def create(cls, **fields: Any) -> "StrategyDecisionContract":
+        normalized = dict(fields)
+        normalized.setdefault("schema_version", "strategy-decision-contract-v2")
+        normalized["required_lifecycle"] = StrategyLifecycle(
+            normalized["required_lifecycle"]
+        )
+        normalized["approved_tiers"] = tuple(normalized["approved_tiers"])
+        unsigned = dict(normalized)
+        unsigned["required_lifecycle"] = normalized["required_lifecycle"].value
+        unsigned["approved_tiers"] = list(normalized["approved_tiers"])
+        unsigned["created_at"] = iso_utc(normalized["created_at"])
+        return cls(contract_hash=sha256_bytes(canonical_json(unsigned)), **normalized)
+
+
 class StrategyRegistry:
     _allowed = {
         StrategyLifecycle.IDEA: {StrategyLifecycle.EXPLORATION, StrategyLifecycle.RETIRED},
@@ -329,6 +413,84 @@ class StrategyRegistry:
         self._latest[key] = artifact
         self.log.append({"record_type": "strategy_registered", **asdict(artifact), "lifecycle": artifact.lifecycle.value})
 
+    def get(self, strategy_id: str, version: str) -> StrategyArtifact:
+        try:
+            return self._latest[(strategy_id, version)]
+        except KeyError as exc:
+            raise RegistryConflict(f"unknown strategy version: {(strategy_id, version)}") from exc
+
+    def register_decision_contract(self, contract: StrategyDecisionContract) -> str:
+        record = {"record_type": "strategy_decision_contract_registered", **contract.to_dict()}
+
+        def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
+            strategy_exists = any(
+                row.get("record_type") == "strategy_registered"
+                and row.get("strategy_id") == contract.strategy_id
+                and row.get("version") == contract.strategy_version
+                for row in rows
+            )
+            if not strategy_exists:
+                raise RegistryConflict("strategy decision contract has no registered strategy")
+            matches = [
+                row
+                for row in rows
+                if row.get("record_type") == "strategy_decision_contract_registered"
+                and row.get("contract_hash") == contract.contract_hash
+            ]
+            if not matches:
+                return record
+            expected = contract.to_dict()
+            if all({key: row.get(key) for key in expected} == expected for row in matches):
+                return None
+            raise RegistryConflict("strategy decision contract hash conflict")
+
+        result = self.log.transaction(build)
+        return result or contract.contract_hash
+
+    def get_decision_contract(self, contract_hash: str) -> StrategyDecisionContract:
+        matches = [
+            row
+            for row in self.log.records()
+            if row.get("record_type") == "strategy_decision_contract_registered"
+            and row.get("contract_hash") == contract_hash
+        ]
+        if len(matches) != 1:
+            raise RegistryConflict(f"unknown or ambiguous strategy contract: {contract_hash}")
+        row = matches[0]
+        fields = {key: row[key] for key in StrategyDecisionContract.__dataclass_fields__}
+        fields["required_lifecycle"] = StrategyLifecycle(fields["required_lifecycle"])
+        fields["approved_tiers"] = tuple(fields["approved_tiers"])
+        return StrategyDecisionContract(**fields)
+
+    def lifecycle_at(
+        self, strategy_id: str, version: str, at: str
+    ) -> StrategyLifecycle:
+        point = parse_utc(at)
+        rows = self.log.records()
+        registrations = [
+            row
+            for row in rows
+            if row.get("record_type") == "strategy_registered"
+            and row.get("strategy_id") == strategy_id
+            and row.get("version") == version
+        ]
+        if len(registrations) != 1:
+            raise RegistryConflict(f"unknown or ambiguous strategy version: {(strategy_id, version)}")
+        registration = registrations[0]
+        if parse_utc(registration["created_at"]) > point:
+            raise RegistryConflict("strategy did not exist at decision time")
+        lifecycle = StrategyLifecycle(registration["lifecycle"])
+        for row in rows:
+            if (
+                row.get("record_type") == "strategy_transition"
+                and row.get("strategy_id") == strategy_id
+                and row.get("version") == version
+                and row.get("occurred_at") is not None
+                and parse_utc(row["occurred_at"]) <= point
+            ):
+                lifecycle = StrategyLifecycle(row["to"])
+        return lifecycle
+
     def transition(
         self,
         strategy_id: str,
@@ -336,6 +498,7 @@ class StrategyRegistry:
         lifecycle: StrategyLifecycle,
         *,
         approval_ref: str | None = None,
+        occurred_at: str,
     ) -> StrategyArtifact:
         key = (strategy_id, version)
         current = self._latest[key]
@@ -343,6 +506,18 @@ class StrategyRegistry:
             raise RegistryConflict(f"invalid strategy transition {current.lifecycle} -> {lifecycle}")
         if lifecycle == StrategyLifecycle.APPROVED_LIVE and not approval_ref:
             raise RegistryConflict("live activation requires an external approval reference")
+        occurred = iso_utc(occurred_at)
+        event_times = [current.created_at]
+        for row in self.log.records():
+            if (
+                row.get("record_type") == "strategy_transition"
+                and row.get("strategy_id") == strategy_id
+                and row.get("version") == version
+                and row.get("occurred_at") is not None
+            ):
+                event_times.append(row["occurred_at"])
+        if parse_utc(occurred) <= max(parse_utc(value) for value in event_times):
+            raise RegistryConflict("strategy transition time must advance monotonically")
         updated = replace(current, lifecycle=lifecycle, approval_ref=approval_ref or current.approval_ref)
         self._latest[key] = updated
         self.log.append(
@@ -353,6 +528,7 @@ class StrategyRegistry:
                 "from": current.lifecycle.value,
                 "to": lifecycle.value,
                 "approval_ref": approval_ref,
+                "occurred_at": occurred,
             }
         )
         return updated

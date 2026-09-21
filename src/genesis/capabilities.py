@@ -67,26 +67,61 @@ class CapabilityUnavailable(RuntimeError):
 class MarketCapabilityRegistry:
     def __init__(self, path: str | Path):
         self.log = AppendOnlyJsonl(path)
-        self._latest: dict[str, MarketCapability] = {}
-        for row in self.log.records():
-            if row.get("record_type") == "market_capability_registered":
-                fields = {key: row[key] for key in MarketCapability.__dataclass_fields__}
-                self._latest[fields["capability_id"]] = MarketCapability(**fields)
+
+    @staticmethod
+    def _from_row(row: dict[str, Any]) -> MarketCapability:
+        fields = {key: row[key] for key in MarketCapability.__dataclass_fields__}
+        fields["evidence_hashes"] = tuple(fields["evidence_hashes"])
+        return MarketCapability(**fields)
 
     def register(self, capability: MarketCapability) -> str:
-        if capability.capability_id in self._latest:
-            raise RegistryConflict(f"market capability already exists: {capability.capability_id}")
-        self._latest[capability.capability_id] = capability
-        return self.log.append({"record_type": "market_capability_registered", **capability.to_dict()})
+        record = {"record_type": "market_capability_registered", **capability.to_dict()}
+
+        def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
+            matches = [
+                self._from_row(row)
+                for row in rows
+                if row.get("record_type") == "market_capability_registered"
+                and row.get("capability_id") == capability.capability_id
+            ]
+            if not matches:
+                return record
+            if all(item == capability for item in matches):
+                return None
+            raise RegistryConflict(
+                f"market capability already exists: {capability.capability_id}"
+            )
+
+        result = self.log.transaction(build)
+        return result or capability.digest
 
     def get(self, capability_id: str) -> MarketCapability:
-        try:
-            return self._latest[capability_id]
-        except KeyError as exc:
-            raise CapabilityUnavailable(f"unknown market capability: {capability_id}") from exc
+        matches = [
+            self._from_row(row)
+            for row in self.log.records()
+            if row.get("record_type") == "market_capability_registered"
+            and row.get("capability_id") == capability_id
+        ]
+        if not matches:
+            raise CapabilityUnavailable(f"unknown market capability: {capability_id}")
+        if any(item != matches[0] for item in matches[1:]):
+            raise CapabilityUnavailable(f"conflicting market capability: {capability_id}")
+        return matches[0]
 
     def require_ready(self, capability_id: str, *, live: bool = False) -> MarketCapability:
         capability = self.get(capability_id)
+        if not capability.is_ready(live=live):
+            raise CapabilityUnavailable(f"market capability is not ready: {capability_id}")
+        return capability
+
+    def require_ready_at(
+        self, capability_id: str, decision_at: str, *, live: bool = False
+    ) -> MarketCapability:
+        capability = self.get(capability_id)
+        if parse_utc(capability.recorded_at) > parse_utc(decision_at):
+            raise CapabilityUnavailable(
+                f"market capability was not recorded at decision time: {capability_id}"
+            )
         if not capability.is_ready(live=live):
             raise CapabilityUnavailable(f"market capability is not ready: {capability_id}")
         return capability

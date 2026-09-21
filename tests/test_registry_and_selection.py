@@ -38,7 +38,10 @@ class RegistryAndSelectionTests(unittest.TestCase):
 
             strategies = StrategyRegistry(tmp / "strategies.jsonl")
             strategies.register(StrategyArtifact("s", "v1", StrategyLifecycle.IDEA, "a" * 64, "b" * 64, "c" * 64, "test", "2026-01-01T00:00:00Z"))
-            strategies.transition("s", "v1", StrategyLifecycle.EXPLORATION)
+            strategies.transition(
+                "s", "v1", StrategyLifecycle.EXPLORATION,
+                occurred_at="2026-01-01T00:01:00Z",
+            )
             self.assertEqual(StrategyRegistry(tmp / "strategies.jsonl")._latest[("s", "v1")].lifecycle, StrategyLifecycle.EXPLORATION)
 
             exclusions = ExclusionLedger(tmp / "coverage.jsonl")

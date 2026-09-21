@@ -173,6 +173,7 @@ def decision_inputs(pack_hash: str) -> dict[str, str]:
     return {
         "strategy_version": "v1",
         "strategy_config_hash": digest("1"),
+        "strategy_decision_contract_hash": digest("0"),
         "odds_profile_hash": digest("2"),
         "sport_adapter_version": "synthetic-offline-v0.4",
         "event_id": "event-1",

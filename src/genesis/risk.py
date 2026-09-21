@@ -114,7 +114,8 @@ class BankrollSnapshotStore:
         return tuple(
             self._from_row(row)
             for row in self.log.records()
-            if row.get("record_type") == "bankroll_snapshot"
+            if row.get("record_type") == "bankroll_snapshot_recorded"
+            and row.get("schema_version") == "bankroll-snapshot-v2"
         )
 
     def current(self) -> BankrollSnapshot:
@@ -130,13 +131,18 @@ class BankrollSnapshotStore:
         return matches[0]
 
     def append(self, snapshot: BankrollSnapshot) -> BankrollSnapshot:
-        payload = {"record_type": "bankroll_snapshot", **snapshot.to_dict()}
+        payload = {
+            "record_type": "bankroll_snapshot_recorded",
+            "schema_version": "bankroll-snapshot-v2",
+            **snapshot.to_dict(),
+        }
 
         def build(rows: tuple[dict, ...]) -> dict | None:
             history = [
                 self._from_row(row)
                 for row in rows
-                if row.get("record_type") == "bankroll_snapshot"
+                if row.get("record_type") == "bankroll_snapshot_recorded"
+                and row.get("schema_version") == "bankroll-snapshot-v2"
             ]
             matches = [item for item in history if item.snapshot_id == snapshot.snapshot_id]
             if matches:
@@ -212,7 +218,8 @@ class SafetyStateStore:
         return tuple(
             self._from_row(row)
             for row in self.log.records()
-            if row.get("record_type") == "safety_state"
+            if row.get("record_type") == "safety_mode_transition"
+            and row.get("schema_version") == "safety-state-v2"
         )
 
     def current(self) -> SafetyState:
@@ -222,13 +229,18 @@ class SafetyStateStore:
         return history[-1]
 
     def append(self, state: SafetyState) -> SafetyState:
-        payload = {"record_type": "safety_state", **state.to_dict()}
+        payload = {
+            "record_type": "safety_mode_transition",
+            "schema_version": "safety-state-v2",
+            **state.to_dict(),
+        }
 
         def build(rows: tuple[dict, ...]) -> dict | None:
             history = [
                 self._from_row(row)
                 for row in rows
-                if row.get("record_type") == "safety_state"
+                if row.get("record_type") == "safety_mode_transition"
+                and row.get("schema_version") == "safety-state-v2"
             ]
             matches = [item for item in history if item.state_id == state.state_id]
             if matches:
@@ -432,6 +444,7 @@ class RiskEngine:
             self._exposure_from_row(row)
             for row in rows
             if row.get("record_type") == "risk_exposure_recorded"
+            and row.get("schema_version") == "risk-exposure-v2"
         ]
         result.extend(
             Exposure(
@@ -443,8 +456,22 @@ class RiskEngine:
                 affected_scope=row.get("affected_scope"),
             )
             for row in rows
-            if row.get("record_type") == "risk_approval"
+            if row.get("record_type") == "risk_approval_created"
+            and row.get("schema_version") == "risk-approval-v2"
         )
+        latest = {item.exposure_id: item for item in result}
+        for row in rows:
+            if row.get("record_type") == "risk_reservation_transition":
+                exposure_id = row["approval_id"]
+                if exposure_id not in latest:
+                    raise RegistryConflict("reservation transition has no approval")
+                current = latest[exposure_id]
+                if current.state != ExposureState(row["from_state"]):
+                    raise RegistryConflict("reservation transition prior state mismatch")
+                latest[exposure_id] = replace(
+                    current, state=ExposureState(row["to_state"])
+                )
+        result = list(latest.values())
         return result
 
     def stake_for_units(self, bankroll: str, units: str) -> str:
@@ -453,6 +480,7 @@ class RiskEngine:
     def record_exposure(self, exposure: Exposure, *, recorded_at: str) -> Exposure:
         payload = {
             "record_type": "risk_exposure_recorded",
+            "schema_version": "risk-exposure-v2",
             **exposure.to_dict(),
             "recorded_at": iso_utc(recorded_at),
         }
@@ -462,6 +490,7 @@ class RiskEngine:
                 row
                 for row in rows
                 if row.get("record_type") == "risk_exposure_recorded"
+                and row.get("schema_version") == "risk-exposure-v2"
                 and row.get("exposure_id") == exposure.exposure_id
             ]
             if not matches:
@@ -526,7 +555,8 @@ class RiskEngine:
 
         def build(rows: tuple[dict, ...]) -> dict | None:
             if any(
-                row.get("record_type") == "risk_approval"
+                row.get("record_type") == "risk_approval_created"
+                and row.get("schema_version") == "risk-approval-v2"
                 and row.get("candidate_decision_hash") == request.candidate_decision_hash
                 for row in rows
             ):
@@ -579,7 +609,8 @@ class RiskEngine:
                 approval.approved_liability,
             )
             return {
-                "record_type": "risk_approval",
+                "record_type": "risk_approval_created",
+                "schema_version": "risk-approval-v2",
                 **approval.to_dict(),
                 "correlation_cluster_ids": list(request.correlation_cluster_ids),
                 "affected_scope": request.affected_scope,
@@ -593,7 +624,8 @@ class RiskEngine:
         matches = [
             self._approval_from_row(row)
             for row in rows
-            if row.get("record_type") == "risk_approval"
+            if row.get("record_type") == "risk_approval_created"
+            and row.get("schema_version") == "risk-approval-v2"
             and row.get("approval_id") == approval_id
         ]
         if len(matches) != 1:
@@ -625,7 +657,8 @@ class RiskEngine:
             matches = [
                 self._approval_from_row(row)
                 for row in rows
-                if row.get("record_type") == "risk_approval"
+                if row.get("record_type") == "risk_approval_created"
+                and row.get("schema_version") == "risk-approval-v2"
                 and row.get("approval_id") == approval_id
             ]
             if len(matches) != 1:
@@ -651,6 +684,7 @@ class RiskEngine:
             )
             return {
                 "record_type": "risk_approval_consumed",
+                "schema_version": "risk-approval-v2",
                 "approval_id": approval_id,
                 "candidate_decision_hash": approval.candidate_decision_hash,
                 "order_id": order_id,
@@ -666,6 +700,58 @@ class RiskEngine:
             for item in self._exposures(self.audit_log.log.records())
             if self._open(item)
         )
+
+    def transition_reservation(
+        self,
+        approval_id: str,
+        state: ExposureState,
+        *,
+        occurred_at: str,
+    ) -> Exposure:
+        result: dict[str, Exposure] = {}
+
+        def build(rows: tuple[dict, ...]) -> dict:
+            exposures = {item.exposure_id: item for item in self._exposures(rows)}
+            if approval_id not in exposures:
+                raise RegistryConflict("unknown reservation")
+            current = exposures[approval_id]
+            if state not in {ExposureState.SETTLED, ExposureState.VOID, ExposureState.UNKNOWN}:
+                raise RegistryConflict("unsupported reservation transition")
+            if current.state in {ExposureState.SETTLED, ExposureState.VOID}:
+                raise RegistryConflict("terminal reservation cannot transition")
+            updated = replace(current, state=state)
+            result["value"] = updated
+            return {
+                "record_type": "risk_reservation_transition",
+                "schema_version": "risk-reservation-v2",
+                "approval_id": approval_id,
+                "from_state": current.state.value,
+                "to_state": state.value,
+                "occurred_at": iso_utc(occurred_at),
+            }
+
+        self.audit_log.log.transaction(build)
+        return result["value"]
+
+    def approval_still_valid(self, approval_id: str, *, at: str) -> bool:
+        try:
+            approval = self.get_approval(approval_id)
+            if parse_utc(at) >= parse_utc(approval.expires_at):
+                return False
+            if self.safety.current().kill_switch_active:
+                return False
+            if self.bankrolls.current().snapshot_id != approval.bankroll_snapshot_id:
+                return False
+            exposures = self._exposures(self.audit_log.log.records())
+            if any(
+                item.state == ExposureState.UNKNOWN
+                and item.exposure_id != approval.approval_id
+                for item in exposures
+            ):
+                return False
+            return approval.status in {"APPROVED_NOT_CONSUMED", "CONSUMED"}
+        except Exception:
+            return False
 
     def rebase(
         self,
@@ -711,7 +797,8 @@ class RiskEngine:
             if any(item.state == ExposureState.UNKNOWN for item in self._exposures(rows)):
                 return False
             if any(
-                row.get("record_type") == "risk_approval"
+                row.get("record_type") == "risk_approval_created"
+                and row.get("schema_version") == "risk-approval-v2"
                 and row.get("candidate_decision_hash") == candidate.candidate_decision_hash
                 for row in rows
             ):

@@ -13,11 +13,15 @@ from genesis.config import OperationalMode
 from genesis.execution import (
     AuthorizationArtifact,
     CriticalEvidenceRefresh,
+    CriticalEvidenceRefreshStore,
+    ExecutionMarketSnapshot,
+    ExecutionMarketStateStore,
     ModeController,
+    ModeState,
+    ModeStateStore,
     OrderIntent,
     OrderState,
     PaperExecutionAdapter,
-    recertify,
 )
 from genesis.ledger import FillRecord, SettlementLedger
 from genesis.policy import PolicySet, assess_price_sanity, break_even_probability
@@ -56,6 +60,7 @@ from genesis.selection import (
     rank_qualified,
 )
 from ._support import scratch_directory
+from .test_remediation_r5_risk import build_risk, request as risk_request
 
 
 def digest(char: str = "a") -> str:
@@ -150,13 +155,18 @@ class V04PolicyAndPITTests(unittest.TestCase):
             registry.register(capability)
             with self.assertRaises(Exception):
                 registry.require_ready("cap-1")
-        controller = ModeController()
-        with self.assertRaises(PermissionError):
-            controller.transition(OperationalMode.PAPER)
-        auth = AuthorizationArtifact("auth-1", "human", OperationalMode.PAPER, "2026-01-01T00:00:00Z", digest("p"))
-        self.assertEqual(controller.transition(auth.mode, auth), auth.mode)
-        with self.assertRaises(ValueError):
-            controller.transition(OperationalMode.LIVE, auth)
+        with scratch_directory() as tmp:
+            mode_states = ModeStateStore(tmp / "mode.jsonl")
+            mode_states.append(ModeState.create(mode=OperationalMode.OFFLINE_RESEARCH, occurred_at="2026-01-01T00:00:00Z", authorization_id=None, parent_state_id=None))
+            safety = SafetyStateStore(tmp / "safety.jsonl")
+            safety.append(SafetyState.create(kill_switch_active=False, recorded_at="2026-01-01T00:00:00Z", reason="initial"))
+            controller = ModeController(mode_states, safety)
+            with self.assertRaises(PermissionError):
+                controller.transition(OperationalMode.PAPER, occurred_at="2026-01-01T00:01:00Z")
+            auth = AuthorizationArtifact("auth-1", "human", OperationalMode.PAPER, "2026-01-01T00:00:00Z", digest("p"))
+            self.assertEqual(controller.transition(auth.mode, auth, occurred_at="2026-01-01T00:01:00Z"), auth.mode)
+            with self.assertRaises(ValueError):
+                controller.transition(OperationalMode.LIVE, auth, occurred_at="2026-01-01T00:02:00Z")
 
     def test_runtime_cost_budget_is_fail_closed(self):
         ledger = CostLedger()
@@ -237,17 +247,27 @@ class V04CandidateRiskExecutionTests(unittest.TestCase):
             self.assertEqual(audit.verify(), 3)
 
     def test_paper_order_idempotency_and_unknown_reconciliation(self):
-        adapter = PaperExecutionAdapter()
-        intent = OrderIntent(digest("1"), "idem-1", "2.50", "2.00", "2026-01-01T00:00:00Z")
-        adapter.create_intent(intent)
-        self.assertEqual(adapter.create_intent(intent).state, OrderState.ORDER_INTENT_CREATED)
-        adapter.transition("idem-1", OrderState.RISK_APPROVED)
-        adapter.transition("idem-1", OrderState.SUBMISSION_PENDING)
-        unknown = adapter.mark_submission_timeout("idem-1")
-        self.assertEqual(unknown.state, OrderState.RECONCILIATION_REQUIRED)
-        result = recertify(strategy_active=True, candidate_not_expired=True, refresh=CriticalEvidenceRefresh("2026-01-01T00:00:00Z", True, True), market_open=True, executable_price_ok=True, liquidity_ok=True, risk_ok=True, no_kill_condition=True, no_duplicate_intent=True, no_unknown_state=True)
-        self.assertFalse(result.passed)
-        self.assertTrue(result.requires_new_candidate)
+        with scratch_directory() as tmp:
+            fixture = build_risk(tmp / "risk")
+            approval = fixture["engine"].approve(risk_request(fixture))
+            markets = ExecutionMarketStateStore(tmp / "markets.jsonl")
+            markets.append(ExecutionMarketSnapshot.create(candidate_decision_hash=fixture["candidate_hash"], observed_at="2026-01-01T00:11:00Z", market_open=True, executable_odds="2.00", available_liquidity="100"))
+            refreshes = CriticalEvidenceRefreshStore(tmp / "refreshes.jsonl")
+            refreshes.append(CriticalEvidenceRefresh(fixture["candidate_hash"], "2026-01-01T00:11:00Z", True, True))
+            class Active:
+                def is_active(self, candidate_decision_hash, at):
+                    return True
+            adapter = PaperExecutionAdapter(tmp / "orders.jsonl", risk=fixture["engine"], markets=markets, refreshes=refreshes, strategy_view=Active())
+            intent = OrderIntent(fixture["candidate_hash"], "idem-1", BetSide.BACK, approval.approved_stake, "2.00", approval.approval_id, "2026-01-01T00:12:00Z")
+            adapter.create_intent(intent)
+            self.assertEqual(adapter.create_intent(intent).state, OrderState.ORDER_INTENT_CREATED)
+            adapter.bind_risk("idem-1", bound_at="2026-01-01T00:13:00Z")
+            adapter.transition("idem-1", OrderState.SUBMISSION_PENDING, occurred_at="2026-01-01T00:14:00Z")
+            unknown = adapter.mark_submission_timeout("idem-1", occurred_at="2026-01-01T00:15:00Z")
+            self.assertEqual(unknown.state, OrderState.RECONCILIATION_REQUIRED)
+            result = adapter.recertify("idem-1", at="2026-01-01T00:16:00Z")
+            self.assertFalse(result.passed)
+            self.assertTrue(result.requires_new_candidate)
 
 
 class V04ProtectedLedgerQuotaTests(unittest.TestCase):

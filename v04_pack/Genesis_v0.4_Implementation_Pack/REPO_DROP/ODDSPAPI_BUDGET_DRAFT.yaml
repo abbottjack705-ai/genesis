@@ -1,0 +1,26 @@
+policy_version: genesis-oddspapi-v0.4-draft
+status: PLANNING_ASSUMPTION_REVERIFY_PROVIDER_TERMS
+
+daily_billable_call_target_max: 7
+monthly_planning_target_max: 220
+monthly_reserve_min: 30
+
+principles:
+  one_legitimate_allowance: true
+  no_multi_account_quota_evasion: true
+  cache_static_metadata: true
+  batch_events_and_tournaments: true
+  bets_do_not_map_one_to_one_to_calls: true
+
+suggested_windows:
+  - asian_early
+  - global_morning_inventory
+  - europe_midday
+  - europe_pre_event
+  - late_europe
+  - north_america_evening
+  - flexible_retry_or_targeted_refresh
+
+hard_fail_behavior:
+  quota_exhausted: BLOCK_NEW_ODDS_DEPENDENT_DECISIONS
+  provider_error: FAIL_CLOSED_OR_USE_VERIFIED_FRESH_CACHE_ONLY

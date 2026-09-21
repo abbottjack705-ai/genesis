@@ -1,0 +1,57 @@
+policy_version: genesis-risk-v0.4-draft
+status: PROPOSED_NOT_LIVE
+
+bankroll:
+  unit_fraction: 0.025
+  upward_rebase: weekly
+  downward_rebase:
+    enabled: true
+    trigger: TBD_BY_SIMULATION
+
+stake_tiers_units:
+  - 1.0
+  - 1.5
+  - 2.0
+  - 2.5
+  - 3.0
+
+limits:
+  max_single_bet_units: 3.0
+  max_open_liability_fraction: 0.60
+  correlated_cluster_fraction_initial_target: 0.125
+  daily_turnover_cap: null
+
+odds:
+  normal_min: 1.50
+  normal_max: 3.00
+  exceptional_short_min: 1.40
+  exceptional_short_max: 1.49
+  standard_below_1_40_allowed: false
+  standard_above_3_00_allowed: false
+
+price_sanity:
+  normal_tolerance_probability_points: 0.02
+  normal_rule:
+    pass_if_margin_gte: 0.0
+    tolerance_if_margin_gte: -0.02
+    fail_if_margin_lt: -0.02
+  exceptional_short_requires_nonnegative_margin: true
+
+daily_search_targets:
+  monday: [2, 5]
+  tuesday: [2, 5]
+  wednesday: [2, 5]
+  thursday: [2, 5]
+  friday: [4, 10]
+  saturday: [7, 13]
+  sunday: [4, 10]
+  quota_enforced: false
+  upper_bound_is_hard_cap: false
+
+principles:
+  breadth_before_leniency: true
+  no_daily_turnover_cap: true
+  no_martingale: true
+  no_loss_chasing: true
+  no_llm_stake_override: true
+  hold_outcome_bets_to_settlement_by_default: true

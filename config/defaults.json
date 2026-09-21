@@ -1,0 +1,14 @@
+{
+  "config_version": "genesis-foundation-v0.4",
+  "mode": "offline_research",
+  "live_enabled": false,
+  "allowed_sports": [],
+  "odds_profile": "CORE",
+  "commission_rate": "0.00",
+  "max_daily_stake": "0.00",
+  "max_bets_per_day": 0,
+  "policy_version": "genesis-policy-v0.4-starting",
+  "daily_targets_are_quota": false,
+  "daily_targets_are_cap": false,
+  "dependencies_lock_digest": "AC0D3E07D68912C40A73B2F6DD07B02E77744861C9374B1407B706F95CDF5464"
+}

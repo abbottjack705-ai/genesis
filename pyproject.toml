@@ -1,0 +1,11 @@
+[project]
+name = "project-genesis"
+version = "0.1.0-foundation"
+description = "Foundational evidence and decision contracts for Project Genesis"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.genesis]
+runtime-dependencies = "requirements.lock"
+default-mode = "offline_research"
+live-order-placement = false

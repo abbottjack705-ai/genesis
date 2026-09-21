@@ -1,0 +1,4 @@
+# Project Genesis V0.3 foundation: intentionally stdlib-only.
+# Any future dependency must be added with an exact version and a documented
+# reason in ASSUMPTIONS.md before it enters a strategy or execution boundary.
+

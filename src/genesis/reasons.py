@@ -1,0 +1,61 @@
+"""Stable machine-readable reason codes shared by ledgers and decisions."""
+
+from __future__ import annotations
+
+from enum import StrEnum
+
+
+class ReasonCode(StrEnum):
+    ACCEPTED = "accepted"
+    PASS = "pass"
+    UNSUPPORTED_MARKET = "unsupported_market"
+    STRATEGY_NOT_APPROVED = "strategy_not_approved"
+    MODEL_UNSUPPORTED = "model_unsupported"
+    EXPIRED = "expired"
+    PRICE_SANITY_FAILED = "price_sanity_failed"
+    EXECUTION_UNAVAILABLE = "execution_unavailable"
+    RISK_REJECTED = "risk_rejected"
+    CRITICAL_UNCERTAINTY = "critical_uncertainty"
+    NOT_AVAILABLE_AT_DECISION = "not_available_at_decision"
+    NOT_READY_AT_DECISION = "not_ready_at_decision"
+    FUTURE_LABEL = "future_label"
+    UNKNOWN_SOURCE = "unknown_source"
+    SOURCE_CONTRACT_VIOLATION = "source_contract_violation"
+    AMBIGUOUS_IDENTITY = "ambiguous_identity"
+    SCHEMA_REJECTED = "schema_rejected"
+    CONTRADICTORY_EVIDENCE = "contradictory_evidence"
+    STALE_EVIDENCE = "stale_evidence"
+    MISSING_EVIDENCE = "missing_evidence"
+    OUTSIDE_SUPPORT_REGION = "outside_support_region"
+    PROTECTED_ACCESS_DENIED = "protected_access_denied"
+    ATTEMPT_BUDGET_EXHAUSTED = "attempt_budget_exhausted"
+    DUPLICATE_ORDER = "duplicate_order"
+    UNKNOWN_ORDER_STATE = "unknown_order_state"
+    ACCOUNTING_ERROR = "accounting_error"
+    CONFIGURATION_MISMATCH = "configuration_mismatch"
+    ARTIFACT_TAMPERED = "artifact_tampered"
+    NOT_IMPLEMENTED = "not_implemented"
+
+    # Versioned V0.4 externally-auditable PASS taxonomy.  The legacy values
+    # above remain readable for old records; new decision records use these
+    # exact codes.
+    PASS_MISSING_EVIDENCE = "PASS_MISSING_EVIDENCE"
+    PASS_STALE_EVIDENCE = "PASS_STALE_EVIDENCE"
+    PASS_CONTRADICTION = "PASS_CONTRADICTION"
+    PASS_CRITICAL_UNCERTAINTY = "PASS_CRITICAL_UNCERTAINTY"
+    PASS_IDENTITY_AMBIGUOUS = "PASS_IDENTITY_AMBIGUOUS"
+    PASS_MODEL_OUT_OF_SUPPORT = "PASS_MODEL_OUT_OF_SUPPORT"
+    PASS_CALIBRATION_UNSUPPORTED = "PASS_CALIBRATION_UNSUPPORTED"
+    PASS_ODDS_OUTSIDE_PROFILE = "PASS_ODDS_OUTSIDE_PROFILE"
+    PASS_PRICE_SANITY_FAIL = "PASS_PRICE_SANITY_FAIL"
+    PASS_LIQUIDITY_FAIL = "PASS_LIQUIDITY_FAIL"
+    PASS_RISK_LIMIT = "PASS_RISK_LIMIT"
+    PASS_CORRELATION_LIMIT = "PASS_CORRELATION_LIMIT"
+    PASS_EXPIRED_CANDIDATE = "PASS_EXPIRED_CANDIDATE"
+    PASS_EXECUTION_UNAVAILABLE = "PASS_EXECUTION_UNAVAILABLE"
+    PASS_CONFIG_MISMATCH = "PASS_CONFIG_MISMATCH"
+    PASS_GATE_ERROR = "PASS_GATE_ERROR"
+    PASS_UNKNOWN_STATE = "PASS_UNKNOWN_STATE"
+    PASS_DATA_CAPABILITY_NOT_READY = "PASS_DATA_CAPABILITY_NOT_READY"
+    PASS_STRATEGY_NOT_APPROVED = "PASS_STRATEGY_NOT_APPROVED"
+    QUALIFY_ALL_GATES_PASSED = "QUALIFY_ALL_GATES_PASSED"

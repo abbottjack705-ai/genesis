@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 from dataclasses import MISSING, asdict, dataclass, replace
 from enum import StrEnum
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from .repro import canonical_json, sha256_bytes
 from .time import iso_utc, parse_utc
@@ -34,46 +35,93 @@ class StrategyLifecycle(StrEnum):
 class AppendOnlyJsonl:
     def __init__(self, path: str | Path):
         self.path = Path(path)
+        self.coordinator_path = self.path.with_name(f"{self.path.name}.coordinator.sqlite3")
+
+    def _verified_records(self) -> list[dict[str, Any]]:
+        if not self.path.exists():
+            return []
+        raw = self.path.read_bytes()
+        if raw and not raw.endswith(b"\n"):
+            raise RegistryConflict("registry has a truncated final record")
+        previous = "0" * 64
+        records: list[dict[str, Any]] = []
+        for expected_sequence, raw_line in enumerate(raw.splitlines(), start=1):
+            try:
+                row = json.loads(raw_line)
+            except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+                raise RegistryConflict("registry contains an invalid record") from exc
+            if not isinstance(row, dict) or row.get("previous_hash") != previous:
+                raise RegistryConflict("registry hash chain is broken")
+            actual = row.get("record_hash")
+            body = {key: value for key, value in row.items() if key != "record_hash"}
+            if actual != sha256_bytes(canonical_json(body)):
+                raise RegistryConflict("registry record was tampered")
+            sequence = row.get("sequence")
+            if sequence is not None and sequence != expected_sequence:
+                raise RegistryConflict("registry sequence is not monotonic")
+            previous = actual
+            records.append(row)
+        return records
+
+    def transaction(
+        self,
+        build_record: Callable[[tuple[dict[str, Any], ...]], dict[str, Any] | None],
+    ) -> str | None:
+        """Serialize verified read/check/append/fsync across processes.
+
+        SQLite coordinates the critical section only.  The verified JSONL
+        remains the sole authoritative business and audit history.
+        """
+
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        connection = sqlite3.connect(self.coordinator_path, timeout=30, isolation_level=None)
+        try:
+            connection.execute("PRAGMA busy_timeout = 30000")
+            connection.execute("BEGIN IMMEDIATE")
+            connection.execute(
+                "CREATE TABLE IF NOT EXISTS coordination "
+                "(singleton INTEGER PRIMARY KEY CHECK (singleton = 1), generation INTEGER NOT NULL)"
+            )
+            connection.execute(
+                "INSERT OR IGNORE INTO coordination(singleton, generation) VALUES (1, 0)"
+            )
+            records = self._verified_records()
+            record = build_record(tuple(dict(row) for row in records))
+            if record is None:
+                connection.commit()
+                return None
+            if not isinstance(record, dict) or "record_hash" in record or "previous_hash" in record:
+                raise RegistryConflict("record payload contains reserved hash-chain fields")
+            previous = records[-1]["record_hash"] if records else "0" * 64
+            body = {"previous_hash": previous, "sequence": len(records) + 1, **record}
+            record_hash = sha256_bytes(canonical_json(body))
+            line = canonical_json({**body, "record_hash": record_hash})
+            with self.path.open("ab") as handle:
+                handle.write(line)
+                handle.flush()
+                os.fsync(handle.fileno())
+            connection.execute("UPDATE coordination SET generation = generation + 1 WHERE singleton = 1")
+            connection.commit()
+            return record_hash
+        except BaseException:
+            if connection.in_transaction:
+                connection.rollback()
+            raise
+        finally:
+            connection.close()
 
     def append(self, record: dict[str, Any]) -> str:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        previous = "0" * 64
-        if self.path.exists():
-            rows = self.path.read_text(encoding="utf-8").splitlines()
-            if rows:
-                previous = json.loads(rows[-1])["record_hash"]
-        body = {"previous_hash": previous, **record}
-        record_hash = sha256_bytes(canonical_json(body))
-        line = canonical_json({**body, "record_hash": record_hash})
-        with self.path.open("ab") as handle:
-            handle.write(line)
-            handle.flush()
-            os.fsync(handle.fileno())
-        return record_hash
+        result = self.transaction(lambda _records: record)
+        assert result is not None
+        return result
 
     def verify(self) -> int:
-        if not self.path.exists():
-            return 0
-        previous = "0" * 64
-        count = 0
-        for raw in self.path.read_text(encoding="utf-8").splitlines():
-            row = json.loads(raw)
-            if row["previous_hash"] != previous:
-                raise RegistryConflict("registry hash chain is broken")
-            actual = row.pop("record_hash")
-            if actual != sha256_bytes(canonical_json(row)):
-                raise RegistryConflict("registry record was tampered")
-            previous = actual
-            count += 1
-        return count
+        return len(self._verified_records())
 
     def records(self) -> list[dict[str, Any]]:
         """Replay verified records; callers never replay an unverified log."""
 
-        self.verify()
-        if not self.path.exists():
-            return []
-        return [json.loads(raw) for raw in self.path.read_text(encoding="utf-8").splitlines()]
+        return self._verified_records()
 
 
 @dataclass(frozen=True)

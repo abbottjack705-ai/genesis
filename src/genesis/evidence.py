@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import json
-import os
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
 from .provenance import AvailabilityClass
+from .registry import AppendOnlyJsonl
 from .repro import canonical_json, immutable_write, read_json, sha256_bytes
 from .time import iso_utc, parse_utc
 
@@ -69,6 +68,7 @@ class EvidenceStore:
         self.objects = self.root / "objects"
         self.metadata = self.root / "metadata"
         self.manifest = self.root / "manifests" / "evidence.jsonl"
+        self._manifest_log = AppendOnlyJsonl(self.manifest)
 
     def _object_path(self, digest: str) -> Path:
         return self.objects / digest[:2] / digest
@@ -141,33 +141,7 @@ class EvidenceStore:
     def append_manifest(self, record: dict[str, Any]) -> str:
         """Append one hash-chained record; never rewrite an earlier line."""
 
-        self.manifest.parent.mkdir(parents=True, exist_ok=True)
-        previous = "0" * 64
-        if self.manifest.exists():
-            lines = self.manifest.read_text(encoding="utf-8").splitlines()
-            if lines:
-                previous = json.loads(lines[-1])["record_hash"]
-        payload = {"previous_hash": previous, **record}
-        record_hash = sha256_bytes(canonical_json(payload))
-        line = canonical_json({**payload, "record_hash": record_hash})
-        with self.manifest.open("ab") as handle:
-            handle.write(line)
-            handle.flush()
-            os.fsync(handle.fileno())
-        return record_hash
+        return self._manifest_log.append(record)
 
     def verify_manifest(self) -> int:
-        if not self.manifest.exists():
-            return 0
-        previous = "0" * 64
-        count = 0
-        for raw_line in self.manifest.read_text(encoding="utf-8").splitlines():
-            row = json.loads(raw_line)
-            if row.get("previous_hash") != previous:
-                raise ValueError("evidence manifest chain is broken")
-            actual = row.pop("record_hash", None)
-            if actual != sha256_bytes(canonical_json(row)):
-                raise ValueError("evidence manifest record was tampered")
-            previous = actual
-            count += 1
-        return count
+        return self._manifest_log.verify()

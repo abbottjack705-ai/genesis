@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import json
-import os
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-from .registry import RegistryConflict
+from .registry import AppendOnlyJsonl, RegistryConflict
 from .repro import canonical_json, immutable_write, sha256_bytes
 from .time import iso_utc, parse_utc
 
@@ -99,6 +98,7 @@ class EvidencePackStore:
         self.root = Path(root)
         self.packs = self.root / "packs"
         self.manifest = self.root / "manifests" / "packs.jsonl"
+        self._manifest_log = AppendOnlyJsonl(self.manifest)
 
     def freeze(self, pack: EvidencePack) -> EvidencePack:
         path = self.packs / f"{pack.pack_hash}.json"
@@ -108,19 +108,7 @@ class EvidencePackStore:
                 raise RegistryConflict("evidence pack hash maps to different contents")
             return existing
         immutable_write(path, canonical_json(pack.to_dict()))
-        self.manifest.parent.mkdir(parents=True, exist_ok=True)
-        previous = "0" * 64
-        if self.manifest.exists():
-            lines = self.manifest.read_text(encoding="utf-8").splitlines()
-            if lines:
-                previous = json.loads(lines[-1])["record_hash"]
-        body = {"previous_hash": previous, "record_type": "evidence_pack_frozen", **pack.to_dict()}
-        record_hash = sha256_bytes(canonical_json(body))
-        line = canonical_json(body | {"record_hash": record_hash})
-        with self.manifest.open("ab") as handle:
-            handle.write(line)
-            handle.flush()
-            os.fsync(handle.fileno())
+        self._manifest_log.append({"record_type": "evidence_pack_frozen", **pack.to_dict()})
         return pack
 
     def get(self, pack_hash: str) -> EvidencePack:
@@ -133,17 +121,4 @@ class EvidencePackStore:
         return EvidencePack(**data)
 
     def verify_manifest(self) -> int:
-        if not self.manifest.exists():
-            return 0
-        previous = "0" * 64
-        count = 0
-        for line in self.manifest.read_text(encoding="utf-8").splitlines():
-            row = json.loads(line)
-            if row.get("previous_hash") != previous:
-                raise ValueError("evidence pack manifest chain is broken")
-            actual = row.pop("record_hash", None)
-            if actual != sha256_bytes(canonical_json(row)):
-                raise ValueError("evidence pack manifest was tampered")
-            previous = actual
-            count += 1
-        return count
+        return self._manifest_log.verify()

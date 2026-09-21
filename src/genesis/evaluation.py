@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Callable, Iterable, Protocol
@@ -25,6 +25,25 @@ class EvaluationRequest:
     dataset_version: str
     rules_digest: str
 
+    def __post_init__(self) -> None:
+        if not self.campaign_id or not self.strategy_id or not self.dataset_version:
+            raise ValueError("evaluation request identity is incomplete")
+        for name in ("strategy_digest", "rules_digest"):
+            value = getattr(self, name)
+            if len(value) != 64:
+                raise ValueError(f"{name} must be SHA-256")
+            int(value, 16)
+
+    def to_dict(self) -> dict[str, str]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, value: dict[str, object]) -> "EvaluationRequest":
+        required = {"campaign_id", "strategy_id", "strategy_digest", "dataset_version", "rules_digest"}
+        if set(value) != required or not all(isinstance(value[key], str) for key in required):
+            raise ValueError("evaluation request payload is invalid")
+        return cls(**value)  # type: ignore[arg-type]
+
 
 @dataclass(frozen=True)
 class EvaluationCertificate:
@@ -37,10 +56,34 @@ class EvaluationCertificate:
     n_observations: int
     issued_at: str
     raw_labels_exposed: bool = False
+    frame_manifest_hash: str | None = None
+    attempt_id: str | None = None
+    schema_version: str = "evaluation-certificate-v2"
+
+    def __post_init__(self) -> None:
+        parse_utc(self.issued_at)
+        if self.raw_labels_exposed:
+            raise ValueError("evaluation certificate cannot expose raw labels")
+        if self.frame_manifest_hash is not None and len(self.frame_manifest_hash) != 64:
+            raise ValueError("certificate frame manifest hash must be SHA-256")
+        if self.attempt_id is not None and len(self.attempt_id) != 64:
+            raise ValueError("certificate attempt ID must be SHA-256")
 
     @property
     def certificate_digest(self) -> str:
         return sha256_bytes(canonical_json(self.__dict__))
+
+    def to_dict(self) -> dict[str, object]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, value: dict[str, object]) -> "EvaluationCertificate":
+        required = set(cls.__dataclass_fields__)
+        if set(value) != required:
+            raise ValueError("evaluation certificate payload is invalid")
+        if not isinstance(value.get("metrics"), dict):
+            raise ValueError("evaluation certificate metrics are invalid")
+        return cls(**value)  # type: ignore[arg-type]
 
 
 class ResearchStrategy(Protocol):
@@ -48,12 +91,12 @@ class ResearchStrategy(Protocol):
         """Return a probability using only the supplied decision frame."""
 
 
-class ProtectedEvaluationService:
-    """In-process contract skeleton for a future isolated evaluator.
+class LegacyInProcessEvaluationHarness:
+    """Unsafe synthetic-only in-process harness.
 
-    The production implementation must run in a separate process/service with
-    a one-way result channel.  Even this skeleton keeps labels in a private
-    closure and passes only DecisionFrame objects to research code.
+    It intentionally owns labels and executes a callback in one process.  It
+    cannot be selected by the isolated protected-campaign API in
+    :mod:`genesis.protected` and exists only for retained arithmetic fixtures.
     """
 
     def __init__(

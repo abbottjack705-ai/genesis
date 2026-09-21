@@ -234,6 +234,12 @@ class ExperimentRegistry:
         self._latest[spec.experiment_id] = spec
         self.log.append({"record_type": "experiment_registered", **asdict(spec)})
 
+    def get(self, experiment_id: str) -> ExperimentSpec:
+        try:
+            return self._latest[experiment_id]
+        except KeyError as exc:
+            raise RegistryConflict(f"unknown experiment: {experiment_id}") from exc
+
     def record_attempt(self, experiment_id: str, *, note: str) -> ExperimentSpec:
         current = self._latest[experiment_id]
         if current.attempts_used >= current.search_budget:

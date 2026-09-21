@@ -4,7 +4,7 @@ import json
 import unittest
 from pathlib import Path
 
-from genesis.evaluation import EvaluationRequest, ProtectedEvaluationService
+from genesis.evaluation import EvaluationRequest, LegacyInProcessEvaluationHarness
 from genesis.labels import DecisionFact, DecisionFrame, FutureOutcomeLabel
 from genesis.logging import JsonlAuditLogger, LogEvent
 from genesis.provenance import AvailabilityClass, ProvenanceRef
@@ -22,7 +22,7 @@ class ProtectedEvaluationAndLoggingTests(unittest.TestCase):
             DecisionFrame("d2", "e2", "2026-01-01T00:00:00Z", (DecisionFact("signal", 0, "2025-12-31T23:00:00Z", "2025-12-31T23:01:00Z", ref()),), "d1", "c" * 64),
         ]
         labels = [FutureOutcomeLabel("l1", "e1", 1, "2026-01-01T01:00:00Z", ref(), "label-v1"), FutureOutcomeLabel("l2", "e2", 0, "2026-01-01T01:00:00Z", ref(), "label-v1")]
-        service = ProtectedEvaluationService(frames, labels)
+        service = LegacyInProcessEvaluationHarness(frames, labels)
         seen = []
 
         def strategy(frame):
@@ -31,7 +31,7 @@ class ProtectedEvaluationAndLoggingTests(unittest.TestCase):
             seen.append(values["signal"])
             return "0.9" if values["signal"] else "0.1"
 
-        certificate = service.run(EvaluationRequest("campaign", "s1", "a" * 64, "d1", "r" * 64), strategy)
+        certificate = service.run(EvaluationRequest("campaign", "s1", "a" * 64, "d1", "b" * 64), strategy)
         self.assertEqual(seen, [1, 0])
         self.assertEqual(certificate.metrics["brier"], "0.01")
         self.assertFalse(certificate.raw_labels_exposed)

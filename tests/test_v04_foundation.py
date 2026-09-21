@@ -33,7 +33,7 @@ from genesis.pit import (
     SourceCapabilityRegistry,
     SourceUnavailable,
 )
-from genesis.protected import ProtectedAttemptLedger, ProtectedCampaign, ProtectedEvaluationBoundary
+from genesis.protected import LegacyUnsafeProtectedEvaluationBoundary, ProtectedAttemptLedger, ProtectedCampaign
 from genesis.evaluation import EvaluationRequest
 from genesis.selection_evaluation import SelectionObservation, evaluate_selection_policy
 from genesis.labels import DecisionFact, DecisionFrame, FutureOutcomeLabel
@@ -276,11 +276,15 @@ class V04ProtectedLedgerQuotaTests(unittest.TestCase):
         label = FutureOutcomeLabel("l1", "e1", 1, "2026-01-01T01:00:00Z", ref(), "label-v1")
         campaign = ProtectedCampaign("camp", "family", 2, digest("e"), minimum_cell_size=2)
         attempts = ProtectedAttemptLedger()
-        boundary = ProtectedEvaluationBoundary(campaign, [frame], [label], attempts)
+        boundary = LegacyUnsafeProtectedEvaluationBoundary(
+            campaign, [frame], [label], attempts, legacy_test_only=True
+        )
         certificate = boundary.run(EvaluationRequest("camp", "strategy", digest("f"), "d1", digest("e")), lambda _: "0.5")
         self.assertEqual(certificate.metrics["suppressed"], "true")
         failing_campaign = ProtectedCampaign("camp-fail", "family", 1, digest("e"), minimum_cell_size=1)
-        failing_boundary = ProtectedEvaluationBoundary(failing_campaign, [frame], [label], attempts)
+        failing_boundary = LegacyUnsafeProtectedEvaluationBoundary(
+            failing_campaign, [frame], [label], attempts, legacy_test_only=True
+        )
         with self.assertRaises(Exception):
             failing_boundary.run(EvaluationRequest("camp-fail", "strategy", digest("f"), "d1", digest("e")), lambda _: 2)
         boundary.run(EvaluationRequest("camp", "strategy", digest("f"), "d1", digest("e")), lambda _: "0.5")

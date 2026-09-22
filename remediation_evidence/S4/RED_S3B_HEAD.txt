@@ -1,0 +1,187 @@
+BASE_SHA 42f75403945ababb096ff250bc15389c2529d989
+GENESIS_SOURCE C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s4-red-s3b\src\genesis\__init__.py
+test_cache_proof_is_part_of_idempotent_request_identity (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_cache_proof_is_part_of_idempotent_request_identity) ... FAIL
+test_caller_verified_flag_cannot_authorize_nonexistent_cache (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_caller_verified_flag_cannot_authorize_nonexistent_cache) ... FAIL
+test_expired_or_invalidated_observation_fails_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_expired_or_invalidated_observation_fails_closed) ... 
+  test_expired_or_invalidated_observation_fails_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_expired_or_invalidated_observation_fails_closed) (case='expired') ... FAIL
+  test_expired_or_invalidated_observation_fails_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_expired_or_invalidated_observation_fails_closed) (case='invalidated') ... FAIL
+test_genuine_resolved_object_is_fresh_nonbillable_and_restarts (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_genuine_resolved_object_is_fresh_nonbillable_and_restarts) ... FAIL
+test_hash_valid_unsupported_cache_history_fails_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_hash_valid_unsupported_cache_history_fails_closed) ... FAIL
+test_invalidation_at_quota_transaction_entry_is_observed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_invalidation_at_quota_transaction_entry_is_observed) ... FAIL
+test_invalidation_writer_is_ordered_after_durable_cache_decision (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_invalidation_writer_is_ordered_after_durable_cache_decision) ... FAIL
+test_missing_store_or_nonexistent_entry_never_becomes_cache_hit (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_missing_store_or_nonexistent_entry_never_becomes_cache_hit) ... FAIL
+test_provider_policy_and_request_mismatch_fail_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_provider_policy_and_request_mismatch_fail_closed) ... 
+  test_provider_policy_and_request_mismatch_fail_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_provider_policy_and_request_mismatch_fail_closed) (name='provider') ... FAIL
+  test_provider_policy_and_request_mismatch_fail_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_provider_policy_and_request_mismatch_fail_closed) (name='policy') ... FAIL
+  test_provider_policy_and_request_mismatch_fail_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_provider_policy_and_request_mismatch_fail_closed) (name='request') ... FAIL
+test_replay_requires_store_and_exact_persisted_proof (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_replay_requires_store_and_exact_persisted_proof) ... FAIL
+test_tampered_or_missing_actual_bytes_fail_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_tampered_or_missing_actual_bytes_fail_closed) ... 
+  test_tampered_or_missing_actual_bytes_fail_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_tampered_or_missing_actual_bytes_fail_closed) (case='tampered') ... FAIL
+  test_tampered_or_missing_actual_bytes_fail_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_tampered_or_missing_actual_bytes_fail_closed) (case='missing') ... FAIL
+
+======================================================================
+FAIL: test_cache_proof_is_part_of_idempotent_request_identity (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_cache_proof_is_part_of_idempotent_request_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 204, in test_cache_proof_is_part_of_idempotent_request_identity
+    store = self.authority(root, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_caller_verified_flag_cannot_authorize_nonexistent_cache (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_caller_verified_flag_cannot_authorize_nonexistent_cache)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 70, in test_caller_verified_flag_cannot_authorize_nonexistent_cache
+    self.assertFalse(decision.allowed, "caller verified=True bypassed quota")
+AssertionError: True is not false : caller verified=True bypassed quota
+
+======================================================================
+FAIL: test_expired_or_invalidated_observation_fails_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_expired_or_invalidated_observation_fails_closed) (case='expired')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 165, in test_expired_or_invalidated_observation_fails_closed
+    store = self.authority(root / case, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_expired_or_invalidated_observation_fails_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_expired_or_invalidated_observation_fails_closed) (case='invalidated')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 165, in test_expired_or_invalidated_observation_fails_closed
+    store = self.authority(root / case, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_genuine_resolved_object_is_fresh_nonbillable_and_restarts (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_genuine_resolved_object_is_fresh_nonbillable_and_restarts)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 77, in test_genuine_resolved_object_is_fresh_nonbillable_and_restarts
+    store = self.authority(root, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_hash_valid_unsupported_cache_history_fails_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_hash_valid_unsupported_cache_history_fails_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 190, in test_hash_valid_unsupported_cache_history_fails_closed
+    store = self.authority(root, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_invalidation_at_quota_transaction_entry_is_observed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_invalidation_at_quota_transaction_entry_is_observed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 227, in test_invalidation_at_quota_transaction_entry_is_observed
+    store = self.authority(root, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_invalidation_writer_is_ordered_after_durable_cache_decision (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_invalidation_writer_is_ordered_after_durable_cache_decision)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 253, in test_invalidation_writer_is_ordered_after_durable_cache_decision
+    store = self.authority(root, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_missing_store_or_nonexistent_entry_never_becomes_cache_hit (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_missing_store_or_nonexistent_entry_never_becomes_cache_hit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 101, in test_missing_store_or_nonexistent_entry_never_becomes_cache_hit
+    store = self.authority(root, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_provider_policy_and_request_mismatch_fail_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_provider_policy_and_request_mismatch_fail_closed) (name='provider')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 148, in test_provider_policy_and_request_mismatch_fail_closed
+    store = self.authority(root / name, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_provider_policy_and_request_mismatch_fail_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_provider_policy_and_request_mismatch_fail_closed) (name='policy')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 148, in test_provider_policy_and_request_mismatch_fail_closed
+    store = self.authority(root / name, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_provider_policy_and_request_mismatch_fail_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_provider_policy_and_request_mismatch_fail_closed) (name='request')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 148, in test_provider_policy_and_request_mismatch_fail_closed
+    store = self.authority(root / name, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_replay_requires_store_and_exact_persisted_proof (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_replay_requires_store_and_exact_persisted_proof)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 313, in test_replay_requires_store_and_exact_persisted_proof
+    store = self.authority(root, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_tampered_or_missing_actual_bytes_fail_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_tampered_or_missing_actual_bytes_fail_closed) (case='tampered')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 120, in test_tampered_or_missing_actual_bytes_fail_closed
+    store = self.authority(root / case, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+======================================================================
+FAIL: test_tampered_or_missing_actual_bytes_fail_closed (tests.test_astra_s4_cache.AstraCacheAuthorityTests.test_tampered_or_missing_actual_bytes_fail_closed) (case='missing')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 120, in test_tampered_or_missing_actual_bytes_fail_closed
+    store = self.authority(root / case, policy)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s4_cache.py", line 42, in authority
+    self.assertIsNotNone(VerifiedCacheStore, "no immutable cache authority exists")
+AssertionError: unexpectedly None : no immutable cache authority exists
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.252s
+
+FAILED (failures=15)

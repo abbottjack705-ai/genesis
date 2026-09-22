@@ -1,7 +1,7 @@
 # Project Genesis V0.4 remediation handoff
 
 Date: 2026-09-22
-Status: **Astra R10 HOLD; S1 A1+A2, S2a/S2b A3+A7 and S3a/S3b A5+A4 locally green; A6/A8 open; adapter NO-GO**
+Status: **Astra R10 HOLD; A1–A7 locally green through S4; A8 open; adapter NO-GO**
 
 ## S1 continuation notice
 
@@ -29,8 +29,12 @@ approved ADR. S3b's 23 tests are RED on sealed `166f923` and clean S3a
 `4f04c0a` (43 invariant failures on each); targeted 51/51, retained 81/81,
 full 173/173 and `compileall` are green. Exact logs and hashes are in
 `remediation_evidence/S3b/`. This is local A4 closure, not an independent
-re-audit or strategy-specific approval. A6 cache and A8 research process
-isolation remain open. Continue with A6 next;
+re-audit or strategy-specific approval. S4 then replaces caller cache claims
+with content-addressed bytes and an append-only cache authority. Its 11 tests
+are RED on `166f923` and clean S3b `42f7540` (15 invariant failures each),
+then targeted 39/39, full 184/184 and `compileall` green. Evidence is in
+`remediation_evidence/S4/`. A8 research process isolation remains open.
+Continue with A8 next;
 do not begin an adapter, substantive shadow
 research or live-money work.
 

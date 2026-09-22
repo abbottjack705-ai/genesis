@@ -6,7 +6,7 @@ Astra's independent audit of R10 commit `166f923` returned **HOLD / NOT
 APPROVED**. S1 locally closed A1/A2; S2a/S2b locally closed A3/A7; S3a
 locally closed A5's exact-input correspondence. S3b locally binds A4's trusted
 decision outputs to candidate-v3 and downstream new-risk/order lineage.
-A6 and A8 remain open; this diagram is a
+S4 locally closes A6's cache-authority defect. A8 remains open; this diagram is a
 foundation map, not an adapter, shadow-research or live-money GO.
 
 ## Remediated V0.4 foundation flow
@@ -59,8 +59,10 @@ risk, bankroll, safety and qualification-log coordinator locks while it reads
 their current heads, derives stake/liability, checks open exposure/correlation
 and fsyncs a new approval. Bankroll/safety writers are ordered against that
 admission; a pre-lock change is observed and a later change is ordered after
-the approval. S3a/S3b separately fence exact PIT/decision-output identity;
-A6 cache proof and A8 research process boundaries remain open. Recovery must not
+the approval. S3a/S3b separately fence exact PIT/decision-output identity.
+S4 resolves cache references through immutable bytes and an append-only
+provider/policy/request/freshness/invalidation authority under the quota
+transaction fence. A8's research process boundary remains open. Recovery must not
 silently heal, truncate, choose a branch, or infer missing identity.
 
 ## Trust boundaries
@@ -81,6 +83,12 @@ Spawned trusted evaluator process (checkpoint-test mode only)
 Real protected activation is disabled pending independent review. The legacy
 in-process callback path is explicitly named unsafe, requires a synthetic
 test-only opt-in, and rejects registered V2 campaigns.
+
+A quota cache hit resolves a content-addressed `VerifiedCacheEntry` from the
+configured cache authority. Its actual bytes, provider, active quota-policy
+digest, exact provider-request hash, capture/expiry and invalidation history
+must match at decision time. The cache authority log is fenced through the
+durable quota decision; a caller `verified` flag has no authority.
 
 ```text
 QualificationAuthority
@@ -166,7 +174,7 @@ SettlementLedger
 - `ledger.py`, `accounting.py`: authoritative fills, settlement lineages and
   deterministic Decimal payoff primitives.
 - `quota.py`, `config/oddspapi_quota_policy_v2.json`: digest-pinned approved A
-  policy, test-only B and atomic reserve authority; A6 cache proof remains open.
+  policy, test-only B, atomic reserve authority and immutable exact cache proof.
 - `protected.py`, `evaluation.py`: sealed frames, frozen predictions, durable
   attempt accounting, trusted evaluator IPC and explicit legacy test harness.
 - `candidate_runs.py`, `coverage.py`, `selection_evaluation.py`: complete

@@ -37,7 +37,12 @@ A same-worktree side/price mismatch test was RED before its fix. The final
 S3b targeted suite passed 51/51, retained S1/S2 and R5–R10 passed 81/81,
 the full suite passed 173/173, and `compileall` passed. Exact transcripts,
 commands and hashes: `remediation_evidence/S3b/`.
-**A6 and A8 remain open; no GO is granted.**
+S4 A6's 11 independent tests were RED on sealed `166f923` and clean S3b
+`42f7540` (15 invariant assertion failures each, no setup/import errors).
+The targeted cache/R8/foundation gate passed 39/39, the full suite passed
+184/184, and `compileall` passed. Exact evidence is under
+`remediation_evidence/S4/`.
+**A8 remains open; no GO is granted.**
 
 ## Deterministic gate
 
@@ -85,6 +90,7 @@ protected external dataset or historical outcome source.
 | Astra S2b cross-store risk admission | `test_astra_s2_admission.py` — 9 tests |
 | Astra S3a exact manifest and PIT | `test_astra_s3_manifest.py` — 11 tests |
 | Astra S3b trusted output and v3 adversaries | `test_astra_s3_output.py`, `test_astra_s3_v3_adversarial.py` — 23 tests |
+| Astra S4 immutable cache authority | `test_astra_s4_cache.py` — 11 tests |
 
 Individual test methods combine closely related rows of the binding T-F01
 through T-F15 matrix. Each batch checkpoint records the exact matrix rows it

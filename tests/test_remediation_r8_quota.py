@@ -10,11 +10,11 @@ from pathlib import Path
 from genesis.quota import (
     QUOTA_EVENT_SCHEMA,
     BudgetClass,
-    CachedData,
     QuotaInterpretation,
     QuotaLedger,
     QuotaPolicy,
     QuotaReserveAuthorization,
+    VerifiedCacheStore,
     load_quota_policy,
 )
 from genesis.registry import AppendOnlyJsonl, RegistryConflict
@@ -290,58 +290,62 @@ class R8QuotaPolicyTests(unittest.TestCase):
     def test_verified_fresh_cache_is_zero_billable_but_stale_is_not(self):
         with scratch_directory() as root:
             policy = load_quota_policy(ACTIVE_POLICY_PATH)
-            fresh = CachedData(
-                "market-1",
-                digest("a"),
-                policy.provider_id,
-                policy.policy_digest,
-                "2026-01-01T00:00:00Z",
-                "2026-01-01T01:00:00Z",
-                True,
+            request_hash = digest("c")
+            fresh_store = VerifiedCacheStore(root / "fresh-cache")
+            fresh = fresh_store.publish(
+                b"fresh-market-object", cache_key="market-1",
+                provider_request_hash=request_hash, provider_id=policy.provider_id,
+                quota_policy_digest=policy.policy_digest,
+                captured_at="2026-01-01T00:00:00Z",
+                expires_at="2026-01-01T01:00:00Z",
             )
-            ledger = QuotaLedger(root / "fresh.jsonl", policy=policy)
+            ledger = QuotaLedger(root / "fresh.jsonl", policy=policy,
+                                 cache_store=fresh_store)
             decision = ledger.request(
                 request_id="cache-hit",
                 occurred_at="2026-01-01T00:30:00Z",
                 cache=fresh,
+                provider_request_hash=request_hash,
             )
             self.assertTrue(decision.allowed)
             self.assertEqual(decision.billable_units, 0)
             self.assertEqual(ledger.usage("2026-01-01T00:30:00Z"), (0, 0))
 
-            stale = CachedData(
-                "market-1",
-                digest("a"),
-                policy.provider_id,
-                policy.policy_digest,
-                "2026-01-01T00:00:00Z",
-                "2026-01-01T00:15:00Z",
-                True,
+            stale_store = VerifiedCacheStore(root / "stale-cache")
+            stale = stale_store.publish(
+                b"stale-market-object", cache_key="market-1",
+                provider_request_hash=request_hash, provider_id=policy.provider_id,
+                quota_policy_digest=policy.policy_digest,
+                captured_at="2026-01-01T00:00:00Z",
+                expires_at="2026-01-01T00:15:00Z",
             )
-            stale_ledger = QuotaLedger(root / "stale.jsonl", policy=policy)
+            stale_ledger = QuotaLedger(root / "stale.jsonl", policy=policy,
+                                       cache_store=stale_store)
             stale_decision = stale_ledger.request(
                 request_id="stale",
                 occurred_at="2026-01-01T00:30:00Z",
                 cache=stale,
+                provider_request_hash=request_hash,
             )
             self.assertTrue(stale_decision.allowed)
             self.assertEqual(stale_decision.billable_units, 1)
             self.assertEqual(stale_ledger.usage("2026-01-01T00:30:00Z"), (1, 1))
 
-            wrong_binding = CachedData(
-                "market-1",
-                digest("a"),
-                "other-provider",
-                digest("b"),
-                "2026-01-01T00:00:00Z",
-                "2026-01-01T01:00:00Z",
-                True,
+            wrong_store = VerifiedCacheStore(root / "wrong-cache")
+            wrong_binding = wrong_store.publish(
+                b"wrong-market-object", cache_key="market-1",
+                provider_request_hash=request_hash, provider_id="other-provider",
+                quota_policy_digest=digest("b"),
+                captured_at="2026-01-01T00:00:00Z",
+                expires_at="2026-01-01T01:00:00Z",
             )
-            bound_ledger = QuotaLedger(root / "wrong-binding.jsonl", policy=policy)
+            bound_ledger = QuotaLedger(root / "wrong-binding.jsonl", policy=policy,
+                                       cache_store=wrong_store)
             bound_decision = bound_ledger.request(
                 request_id="wrong-cache-binding",
                 occurred_at="2026-01-01T00:30:00Z",
                 cache=wrong_binding,
+                provider_request_hash=request_hash,
             )
             self.assertTrue(bound_decision.allowed)
             self.assertEqual(bound_decision.billable_units, 1)

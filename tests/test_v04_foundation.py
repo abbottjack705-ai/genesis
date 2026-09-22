@@ -38,7 +38,7 @@ from genesis.evaluation import EvaluationRequest
 from genesis.selection_evaluation import SelectionObservation, evaluate_selection_policy
 from genesis.labels import DecisionFact, DecisionFrame, FutureOutcomeLabel
 from genesis.provenance import AvailabilityClass, ProvenanceRef
-from genesis.quota import CachedData, QuotaInterpretation, QuotaLedger, QuotaPolicy
+from genesis.quota import QuotaInterpretation, QuotaLedger, QuotaPolicy, VerifiedCacheStore
 from genesis.registry import RegistryConflict
 from genesis.risk import (
     BankrollSnapshot,
@@ -320,25 +320,27 @@ class V04ProtectedLedgerQuotaTests(unittest.TestCase):
                 reserve_units=1,
                 daily_billable_budget=2,
             )
+            cache_store = VerifiedCacheStore(tmp / "cache-authority")
             quota = QuotaLedger(
-                tmp / "quota.jsonl", policy=policy, allow_test_policy=True
+                tmp / "quota.jsonl", policy=policy, allow_test_policy=True,
+                cache_store=cache_store,
             )
             self.assertTrue(quota.request(request_id="1", occurred_at="2026-01-01T00:00:00Z").allowed)
             self.assertTrue(quota.request(request_id="2", occurred_at="2026-01-01T00:01:00Z").allowed)
             self.assertFalse(quota.request(request_id="3", occurred_at="2026-01-01T00:02:00Z").allowed)
-            cache = CachedData(
-                "event-current",
-                digest("9"),
-                policy.provider_id,
-                policy.policy_digest,
-                "2026-01-01T00:00:00Z",
-                "2026-01-01T01:00:00Z",
-                True,
+            request_hash = digest("8")
+            cache = cache_store.publish(
+                b"current-event", cache_key="event-current",
+                provider_request_hash=request_hash, provider_id=policy.provider_id,
+                quota_policy_digest=policy.policy_digest,
+                captured_at="2026-01-01T00:00:00Z",
+                expires_at="2026-01-01T01:00:00Z",
             )
             self.assertTrue(
                 quota.request(
                     request_id="4",
                     occurred_at="2026-01-01T00:03:00Z",
                     cache=cache,
+                    provider_request_hash=request_hash,
                 ).allowed
             )

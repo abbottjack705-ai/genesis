@@ -8,8 +8,8 @@ The V2.1 R0–R10 checkpoint was independently audited at `166f923`.
 Astra returned **HOLD / NOT APPROVED** (A1 CRITICAL, A2–A8 HIGH). S1 has
 locally repaired A1+A2; S2a/S2b locally repaired A3/A7. Approved ADR-0002 v1
 authorizes S3; S3a locally repairs A5 with a 150/150 final full-suite gate.
-S3b locally repairs A4 with a 173/173 full-suite gate. A6 and A8 remain open
-and require staged remediation and a fresh
+S3b locally repairs A4 with a 173/173 full-suite gate. S4 locally repairs A6
+with a 184/184 full-suite gate. A8 remains open and requires staged remediation and a fresh
 independent hostile re-audit. The original R0–R10 history is preserved.
 
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
@@ -174,7 +174,28 @@ Detailed traceability and results are under `remediation_evidence/R0` through
   173/173 are green; `compileall` passes. Exact evidence is in
   `remediation_evidence/S3b/`.
 - This is local A4 closure only, not independent Astra re-audit approval.
-  A6/A8 and the overall audited HOLD remain open.
+  A6 is addressed separately below; A8 and the overall audited HOLD remain open.
+
+## S4 verification (local A6 checkpoint)
+
+- Eleven independent cache-authority tests were RED on sealed `166f923` and
+  clean S3b `42f7540`: 15 invariant assertion failures on each baseline, zero
+  import/setup errors. The original caller-created `CachedData(verified=True)`
+  reproduced Astra's nonexistent-cache bypass.
+- `VerifiedCacheStore` now owns content-addressed bytes and exact versioned
+  entry identity. Each entry binds provider request, provider, active quota
+  policy, capture, expiry, byte length and object hash. Append-only
+  invalidation history is resolved at the request time.
+- Quota decisions fence the cache authority log through their durable append.
+  Persisted cache hits carry the complete proof identity and fail replay when
+  the authority/object is missing, tampered, incompatible or unavailable.
+  Legacy caller `verified` values cannot authorize a cache hit.
+- Targeted cache/R8/foundation tests passed 39/39; full regression passed
+  184/184; `compileall` passed. Exact evidence is in
+  `remediation_evidence/S4/`.
+- Interpretation A, daily/monthly/reserve arithmetic and the one-allowance law
+  are unchanged. This is local A6 closure only. A8 and the overall audit HOLD
+  remain open; no adapter, research or live GO follows.
 
 ## Compatibility and migration state
 
@@ -199,6 +220,6 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Review S3b, then proceed to A6 and A8 in dependency order. A new
+Review S4, then proceed to A8. A new
 independent hostile re-audit and explicit checkpoint approval are still required
 before any adapter or later Genesis phase.

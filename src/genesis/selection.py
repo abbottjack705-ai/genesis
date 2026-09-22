@@ -5,13 +5,14 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Iterable, Protocol
+from typing import Any, Callable, Iterable, Protocol
 
 from .capabilities import MarketCapabilityRegistry
 from .canonical import CandidateBet
 from .decision import decision_hash_for_candidate
 from .evidence import StructuredEvidenceStore
 from .evidence_pack import EvidencePackStore
+from .feature_manifest import FeatureInputManifestStore
 from .pit import PITStore
 from .policy import (
     PolicySet,
@@ -220,10 +221,18 @@ class QualificationRecordStore:
         fields = {key: row[key] for key in QualificationRecord.__dataclass_fields__}
         return QualificationRecord(**fields)
 
-    def append(self, record: QualificationRecord) -> QualificationRecord:
+    def append(
+        self,
+        record: QualificationRecord,
+        *,
+        verify: Callable[[], bool] | None = None,
+        read_locks: tuple[AppendOnlyJsonl, ...] = (),
+    ) -> QualificationRecord:
         payload = {"record_type": "qualification_record", **record.to_dict()}
 
         def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
+            if verify is not None and not verify():
+                raise RegistryConflict("qualification proof changed before append")
             matches = [
                 self._from_row(row)
                 for row in rows
@@ -236,7 +245,7 @@ class QualificationRecordStore:
                 return None
             raise RegistryConflict("qualification record ID conflict")
 
-        self.log.transaction(build)
+        self.log.transaction(build, read_locks=read_locks)
         return record
 
     def get(self, record_id: str) -> QualificationRecord:
@@ -267,6 +276,7 @@ class QualificationAuthority:
         market_capabilities: MarketCapabilityRegistry,
         pit: PITStore,
         evidence_packs: EvidencePackStore,
+        feature_manifests: FeatureInputManifestStore,
         structured_evidence: StructuredEvidenceStore,
         policy: PolicySet,
         risk_view: QualificationRiskReadView,
@@ -278,6 +288,7 @@ class QualificationAuthority:
             "market_capabilities": market_capabilities,
             "pit": pit,
             "evidence_packs": evidence_packs,
+            "feature_manifests": feature_manifests,
             "structured_evidence": structured_evidence,
             "policy": policy,
             "risk_view": risk_view,
@@ -292,6 +303,7 @@ class QualificationAuthority:
             (market_capabilities, MarketCapabilityRegistry),
             (pit, PITStore),
             (evidence_packs, EvidencePackStore),
+            (feature_manifests, FeatureInputManifestStore),
             (structured_evidence, StructuredEvidenceStore),
             (policy, PolicySet),
             (qualification_records, QualificationRecordStore),
@@ -313,6 +325,7 @@ class QualificationAuthority:
         self.market_capabilities = market_capabilities
         self.pit = pit
         self.evidence_packs = evidence_packs
+        self.feature_manifests = feature_manifests
         self.structured_evidence = structured_evidence
         self.policy = policy
         self.risk_view = risk_view
@@ -368,15 +381,8 @@ class QualificationAuthority:
                     capability.sport == candidate.sport
                     and capability.market_family == (candidate.market_family or capability.market_family)
                 )
-                source_ready = bool(
-                    self.pit.feature_view(
-                        candidate.feature_manifest_hash or "missing-feature-manifest",
-                        (candidate.event_id,),
-                        candidate.decision_at,
-                    )
-                )
             except Exception:
-                source_ready = False
+                market_ready = False
 
         evidence_pack = None
         structured_rows: list[dict[str, Any]] = []
@@ -393,6 +399,16 @@ class QualificationAuthority:
                 for item in evidence_pack.structured_evidence_hashes
             ]
             evidence_reproducible = True
+            source_ready = bool(
+                self.feature_manifests.verify_for_pack(
+                    evidence_pack,
+                    event_id=candidate.event_id,
+                    market_id=candidate.market_id,
+                    pit=self.pit,
+                    evidence=self.structured_evidence.evidence,
+                    structured_evidence=self.structured_evidence,
+                )
+            )
         except Exception:
             evidence_reproducible = False
 
@@ -425,16 +441,17 @@ class QualificationAuthority:
         critical_fresh = bool(
             evidence_pack
             and parse_utc(evidence_pack.evidence_cutoff_ts) <= parse_utc(candidate.decision_at)
+            and parse_utc(evidence_pack.frozen_at) <= parse_utc(candidate.decision_at)
             and all(
-                parse_utc(row["retrieved_at"]) <= parse_utc(candidate.decision_at)
+                parse_utc(row["retrieved_at"]) <= parse_utc(evidence_pack.evidence_cutoff_ts)
                 and (
                     row.get("ready_at") is None
-                    or parse_utc(row["ready_at"]) <= parse_utc(candidate.decision_at)
+                    or parse_utc(row["ready_at"]) <= parse_utc(evidence_pack.evidence_cutoff_ts)
                 )
                 and (
                     row.get("freshness_expires_at") is None
                     or parse_utc(row["freshness_expires_at"])
-                    >= parse_utc(candidate.decision_at)
+                    >= parse_utc(evidence_pack.evidence_cutoff_ts)
                 )
                 for row in structured_rows
             )
@@ -564,7 +581,45 @@ class QualificationAuthority:
             expires_at=candidate.expires_at,
             gate_results_digest=gate_results_digest,
         )
-        self.qualification_records.append(record)
+        assert evidence_pack is not None
+        assert self.pit.log is not None
+
+        def verify_frozen_inputs() -> bool:
+            try:
+                current_pack = self.evidence_packs.use_authoritatively(
+                    candidate.evidence_pack_id
+                )
+                if current_pack != evidence_pack:
+                    return False
+                self.feature_manifests.verify_for_pack(
+                    current_pack,
+                    event_id=candidate.event_id,
+                    market_id=candidate.market_id,
+                    pit=self.pit,
+                    evidence=self.structured_evidence.evidence,
+                    structured_evidence=self.structured_evidence,
+                )
+                return True
+            except Exception:
+                return False
+
+        proof_locks = (
+            self.pit.log,
+            self.pit.capabilities.log,
+            self.feature_manifests.bindings.log,
+            self.structured_evidence.evidence.contracts.log,
+        )
+        try:
+            self.qualification_records.append(
+                record, verify=verify_frozen_inputs, read_locks=proof_locks
+            )
+        except RegistryConflict:
+            stale_gates = tuple(
+                _gate("source_ready", False, ReasonCode.PASS_DATA_CAPABILITY_NOT_READY)
+                if gate.name == "source_ready" else gate
+                for gate in gates
+            )
+            return SelectionDecision(candidate.candidate_id, "PASS", stale_gates)
         return SelectionDecision(
             candidate.candidate_id, "QUALIFY", gates, record.qualification_record_id
         )

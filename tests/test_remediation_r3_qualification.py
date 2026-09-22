@@ -40,6 +40,7 @@ from genesis.selection import (
     qualify_v04,
     rank_qualified,
 )
+from genesis.time import iso_utc
 from ._support import scratch_directory
 
 
@@ -137,22 +138,6 @@ def build_fixture(
     )
     structured = StructuredEvidenceStore(tmp / "structured", evidence=evidence)
     structured_hash = structured.publish(research)
-    feature_hash = digest("b")
-    frozen_pack = EvidencePack.freeze(
-        pack_id="pack-v2",
-        evidence_cutoff_ts="2026-01-01T00:02:00Z",
-        frozen_at="2026-01-01T00:03:00Z",
-        source_artifact_hashes=(observation.artifact_hash,),
-        extractor_versions=("extract-v1",),
-        prompt_schema_hash=digest("a"),
-        contradiction_links=(),
-        freshness_state=("fresh",),
-        feature_manifest_hash=feature_hash,
-        structured_evidence_hashes=(structured_hash,),
-    )
-    packs = EvidencePackStore(tmp / "packs", structured_evidence=structured)
-    packs.freeze(frozen_pack)
-
     source_capabilities = SourceCapabilityRegistry(tmp / "source-capabilities.jsonl")
     source_capabilities.register(
         SourceCapability(
@@ -186,6 +171,62 @@ def build_fixture(
             "2026-01-01T00:00:00Z",
         )
     )
+
+    # The sealed baseline has no manifest owner. Keep its fixture importable
+    # for independent RED replay; current S3a fixtures publish an exact object.
+    try:
+        from genesis.feature_manifest import (
+            FeatureInputManifestStore, SourceInputBindingStore,
+            identity_transform_hash,
+        )
+    except ModuleNotFoundError:
+        manifests = None
+        feature_hash = digest("b")
+    else:
+        bindings = SourceInputBindingStore(tmp / "source-bindings.jsonl")
+        bindings.register(
+            source_id="source-1", source_contract_id="source-contract-v1",
+            provider="synthetic", approval_reference="synthetic-test-only",
+        )
+        manifests = FeatureInputManifestStore(tmp / "feature-manifests", bindings=bindings)
+        manifest_body = {
+            "domain": "genesis.feature-input-manifest.v1",
+            "schema_version": "feature-input-manifest-v1",
+            "event_id": "event-1",
+            "market_id": "market-1",
+            "evidence_cutoff_ts": iso_utc("2026-01-01T00:02:00Z"),
+            "required_inputs": [{
+                "role": "feature", "input_key": "weather",
+                "entity_id": "event-1", "event_id": "event-1",
+                "market_id": "market-1", "source_id": "source-1",
+                "source_contract_id": "source-contract-v1",
+                "source_capability_version": "v1",
+                "source_capability_record_hash": source_capabilities.log.records()[-1]["record_hash"],
+                "raw_artifact_hash": observation.artifact_hash,
+                "observation_id": observation.observation_id,
+                "pit_record_id": "pit-1",
+                "pit_record_hash": pit.log.records()[-1]["record_hash"],
+                "field_id": "$.weather",
+                "transform_artifact_hash": identity_transform_hash("$.weather"),
+            }],
+            "structured_evidence_hashes": [structured_hash],
+        }
+        feature_hash = manifests.publish(manifest_body)
+
+    frozen_pack = EvidencePack.freeze(
+        pack_id="pack-v2",
+        evidence_cutoff_ts="2026-01-01T00:02:00Z",
+        frozen_at="2026-01-01T00:03:00Z",
+        source_artifact_hashes=(observation.artifact_hash,),
+        extractor_versions=("extract-v1",),
+        prompt_schema_hash=digest("a"),
+        contradiction_links=(),
+        freshness_state=("fresh",),
+        feature_manifest_hash=feature_hash,
+        structured_evidence_hashes=(structured_hash,),
+    )
+    packs = EvidencePackStore(tmp / "packs", structured_evidence=structured)
+    packs.freeze(frozen_pack)
 
     market_capabilities = MarketCapabilityRegistry(tmp / "market-capabilities.jsonl")
     market = MarketCapability(
@@ -294,7 +335,7 @@ def build_fixture(
         ),
     )
     records = QualificationRecordStore(tmp / "qualifications.jsonl")
-    authority = QualificationAuthority(
+    authority_dependencies = dict(
         strategies=strategies,
         market_capabilities=market_capabilities,
         pit=pit,
@@ -307,6 +348,9 @@ def build_fixture(
         ),
         qualification_records=records,
     )
+    if manifests is not None:
+        authority_dependencies["feature_manifests"] = manifests
+    authority = QualificationAuthority(**authority_dependencies)
     return {
         "authority": authority,
         "candidate": candidate,
@@ -315,6 +359,8 @@ def build_fixture(
         "records": records,
         "policy": policy,
         "profile_hash": profile_hash,
+        "feature_manifests": manifests,
+        "observation": observation,
     }
 
 
@@ -438,6 +484,7 @@ class R3QualificationAuthorityTests(unittest.TestCase):
                     market_capabilities=None,  # type: ignore[arg-type]
                     pit=fixture["authority"].pit,
                     evidence_packs=fixture["authority"].evidence_packs,
+                    feature_manifests=fixture["feature_manifests"],
                     structured_evidence=fixture["authority"].structured_evidence,
                     policy=fixture["policy"],
                     risk_view=ReadyRiskView(),

@@ -1,0 +1,154 @@
+BASELINE_SHA=166f9230a0fb773cad2ac3619b5f98989d78a818
+BASELINE_SOURCE=C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s1-red-baseline\src\genesis\__init__.py
+test_capability_change_after_freeze_does_not_rewrite_old_cutoff (tests.test_astra_s3_manifest.AstraExactManifestTests.test_capability_change_after_freeze_does_not_rewrite_old_cutoff) ... FAIL
+test_exact_manifest_ignores_unrelated_event_and_restarts_identically (tests.test_astra_s3_manifest.AstraExactManifestTests.test_exact_manifest_ignores_unrelated_event_and_restarts_identically) ... FAIL
+test_hash_valid_but_unrelated_manifest_object_is_not_pack_authority (tests.test_astra_s3_manifest.AstraExactManifestTests.test_hash_valid_but_unrelated_manifest_object_is_not_pack_authority) ... FAIL
+test_missing_exact_manifest_object_cannot_be_replaced_by_digest_shape (tests.test_astra_s3_manifest.AstraExactManifestTests.test_missing_exact_manifest_object_cannot_be_replaced_by_digest_shape) ... FAIL
+test_new_as_of_cutoff_head_cannot_silently_replace_pinned_row (tests.test_astra_s3_manifest.AstraExactManifestTests.test_new_as_of_cutoff_head_cannot_silently_replace_pinned_row) ... FAIL
+test_pit_correction_at_qualification_commit_cannot_escape_proof (tests.test_astra_s3_manifest.AstraExactManifestTests.test_pit_correction_at_qualification_commit_cannot_escape_proof) ... FAIL
+test_post_cutoff_retrieval_cannot_be_used_at_earlier_freeze (tests.test_astra_s3_manifest.AstraExactManifestTests.test_post_cutoff_retrieval_cannot_be_used_at_earlier_freeze) ... FAIL
+test_same_event_different_payload_cannot_certify_frozen_pack (tests.test_astra_s3_manifest.AstraExactManifestTests.test_same_event_different_payload_cannot_certify_frozen_pack) ... FAIL
+test_same_event_wrong_source_cannot_certify_pack (tests.test_astra_s3_manifest.AstraExactManifestTests.test_same_event_wrong_source_cannot_certify_pack) ... FAIL
+test_same_payload_but_wrong_pit_identity_cannot_certify_pack (tests.test_astra_s3_manifest.AstraExactManifestTests.test_same_payload_but_wrong_pit_identity_cannot_certify_pack) ... FAIL
+test_source_block_at_qualification_commit_cannot_escape_proof (tests.test_astra_s3_manifest.AstraExactManifestTests.test_source_block_at_qualification_commit_cannot_escape_proof) ... FAIL
+
+======================================================================
+FAIL: test_capability_change_after_freeze_does_not_rewrite_old_cutoff (tests.test_astra_s3_manifest.AstraExactManifestTests.test_capability_change_after_freeze_does_not_rewrite_old_cutoff)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 111, in test_capability_change_after_freeze_does_not_rewrite_old_cutoff
+    self.assertEqual(decision.action, "QUALIFY",
+AssertionError: 'PASS' != 'QUALIFY'
+- PASS
++ QUALIFY
+ : later source status retroactively replaced frozen evidence
+
+======================================================================
+FAIL: test_exact_manifest_ignores_unrelated_event_and_restarts_identically (tests.test_astra_s3_manifest.AstraExactManifestTests.test_exact_manifest_ignores_unrelated_event_and_restarts_identically)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 123, in test_exact_manifest_ignores_unrelated_event_and_restarts_identically
+    self.assertIsNotNone(manifests, "A5 has no durable manifest owner")
+AssertionError: unexpectedly None : A5 has no durable manifest owner
+
+======================================================================
+FAIL: test_hash_valid_but_unrelated_manifest_object_is_not_pack_authority (tests.test_astra_s3_manifest.AstraExactManifestTests.test_hash_valid_but_unrelated_manifest_object_is_not_pack_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 150, in test_hash_valid_but_unrelated_manifest_object_is_not_pack_authority
+    self._assert_pass_without_new_qualification(fixture)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 49, in _assert_pass_without_new_qualification
+    self.assertEqual(decision.action, "PASS", "unrelated PIT row certified frozen evidence")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unrelated PIT row certified frozen evidence
+
+======================================================================
+FAIL: test_missing_exact_manifest_object_cannot_be_replaced_by_digest_shape (tests.test_astra_s3_manifest.AstraExactManifestTests.test_missing_exact_manifest_object_cannot_be_replaced_by_digest_shape)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 89, in test_missing_exact_manifest_object_cannot_be_replaced_by_digest_shape
+    self._assert_pass_without_new_qualification(fixture)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 49, in _assert_pass_without_new_qualification
+    self.assertEqual(decision.action, "PASS", "unrelated PIT row certified frozen evidence")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unrelated PIT row certified frozen evidence
+
+======================================================================
+FAIL: test_new_as_of_cutoff_head_cannot_silently_replace_pinned_row (tests.test_astra_s3_manifest.AstraExactManifestTests.test_new_as_of_cutoff_head_cannot_silently_replace_pinned_row)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 99, in test_new_as_of_cutoff_head_cannot_silently_replace_pinned_row
+    self._assert_pass_without_new_qualification(fixture)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 49, in _assert_pass_without_new_qualification
+    self.assertEqual(decision.action, "PASS", "unrelated PIT row certified frozen evidence")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unrelated PIT row certified frozen evidence
+
+======================================================================
+FAIL: test_pit_correction_at_qualification_commit_cannot_escape_proof (tests.test_astra_s3_manifest.AstraExactManifestTests.test_pit_correction_at_qualification_commit_cannot_escape_proof)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 165, in test_pit_correction_at_qualification_commit_cannot_escape_proof
+    self._assert_pass_without_new_qualification(fixture)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 49, in _assert_pass_without_new_qualification
+    self.assertEqual(decision.action, "PASS", "unrelated PIT row certified frozen evidence")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unrelated PIT row certified frozen evidence
+
+======================================================================
+FAIL: test_post_cutoff_retrieval_cannot_be_used_at_earlier_freeze (tests.test_astra_s3_manifest.AstraExactManifestTests.test_post_cutoff_retrieval_cannot_be_used_at_earlier_freeze)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 81, in test_post_cutoff_retrieval_cannot_be_used_at_earlier_freeze
+    self._assert_pass_without_new_qualification(fixture)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 49, in _assert_pass_without_new_qualification
+    self.assertEqual(decision.action, "PASS", "unrelated PIT row certified frozen evidence")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unrelated PIT row certified frozen evidence
+
+======================================================================
+FAIL: test_same_event_different_payload_cannot_certify_frozen_pack (tests.test_astra_s3_manifest.AstraExactManifestTests.test_same_event_different_payload_cannot_certify_frozen_pack)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 57, in test_same_event_different_payload_cannot_certify_frozen_pack
+    self._assert_pass_without_new_qualification(fixture)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 49, in _assert_pass_without_new_qualification
+    self.assertEqual(decision.action, "PASS", "unrelated PIT row certified frozen evidence")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unrelated PIT row certified frozen evidence
+
+======================================================================
+FAIL: test_same_event_wrong_source_cannot_certify_pack (tests.test_astra_s3_manifest.AstraExactManifestTests.test_same_event_wrong_source_cannot_certify_pack)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 72, in test_same_event_wrong_source_cannot_certify_pack
+    self._assert_pass_without_new_qualification(fixture)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 49, in _assert_pass_without_new_qualification
+    self.assertEqual(decision.action, "PASS", "unrelated PIT row certified frozen evidence")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unrelated PIT row certified frozen evidence
+
+======================================================================
+FAIL: test_same_payload_but_wrong_pit_identity_cannot_certify_pack (tests.test_astra_s3_manifest.AstraExactManifestTests.test_same_payload_but_wrong_pit_identity_cannot_certify_pack)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 63, in test_same_payload_but_wrong_pit_identity_cannot_certify_pack
+    self._assert_pass_without_new_qualification(fixture)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 49, in _assert_pass_without_new_qualification
+    self.assertEqual(decision.action, "PASS", "unrelated PIT row certified frozen evidence")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unrelated PIT row certified frozen evidence
+
+======================================================================
+FAIL: test_source_block_at_qualification_commit_cannot_escape_proof (tests.test_astra_s3_manifest.AstraExactManifestTests.test_source_block_at_qualification_commit_cannot_escape_proof)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 180, in test_source_block_at_qualification_commit_cannot_escape_proof
+    self._assert_pass_without_new_qualification(fixture)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_manifest.py", line 49, in _assert_pass_without_new_qualification
+    self.assertEqual(decision.action, "PASS", "unrelated PIT row certified frozen evidence")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unrelated PIT row certified frozen evidence
+
+----------------------------------------------------------------------
+Ran 11 tests in 5.736s
+
+FAILED (failures=11)

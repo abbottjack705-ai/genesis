@@ -6,8 +6,9 @@ Updated: 2026-09-22
 
 The V2.1 R0–R10 checkpoint was independently audited at `166f923`.
 Astra returned **HOLD / NOT APPROVED** (A1 CRITICAL, A2–A8 HIGH). S1 has
-locally repaired A1+A2; S2a/S2b locally repaired A3/A7 and passed their gates.
-A4–A6 and A8 remain open and require staged remediation and a fresh
+locally repaired A1+A2; S2a/S2b locally repaired A3/A7. Approved ADR-0002 v1
+authorizes S3; S3a locally repairs A5 with a 150/150 final full-suite gate.
+A4, A6 and A8 remain open and require staged remediation and a fresh
 independent hostile re-audit. The original R0–R10 history is preserved.
 
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
@@ -132,6 +133,22 @@ Detailed traceability and results are under `remediation_evidence/R0` through
   `compileall` passed. Exact transcripts/hashes: `remediation_evidence/S2b/`.
 - A3+A7 risk group is locally green, not independent audit approval or a GO.
 
+## S3a verification (partial S3 checkpoint)
+
+- ADR-0002 v1 was approved separately on 2026-09-22 with exact SHA-256
+  `7e851df9898f3a257a87b602bc1a7f6011ebae1397d42c17b8727c84e554ae00`.
+- Eleven independent A5 regressions were RED on sealed `166f923` and the
+  preceding approved-head `3729022` (11 invariant assertion failures each,
+  no import/setup failures). Exact manifest/observation/PIT/capability replay,
+  cutoff selection and append-boundary interleavings are locally green.
+- Targeted 22/22, final full suite 150/150 after source-contract replay
+  hardening, and `compileall` passed. The first unprivileged run's 12
+  Windows multiprocess permission errors and temporary approval-service
+  rejection are preserved; the permitted final rerun is green.
+- This is local A5 closure only, not independent audit approval.
+- This does not bind trusted decision outputs, tier derivation or expiry;
+  A4/S3b remains HOLD. There is no model, live adapter, shadow or money GO.
+
 ## Compatibility and migration state
 
 Legacy records remain readable only where an explicit deterministic migration is
@@ -155,7 +172,7 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Proceed to S3a/S3b (A5+A4) only after the required protected PIT/identity
-approval/version decision, then A6 and A8 in dependency order. A new
+Review S3a, then proceed to S3b/A4 under approved ADR-0002 v1, followed
+by A6 and A8 in dependency order. A new
 independent hostile re-audit and explicit checkpoint approval are still required
 before any adapter or later Genesis phase.

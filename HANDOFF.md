@@ -1,7 +1,7 @@
 # Project Genesis V0.4 remediation handoff
 
 Date: 2026-09-22
-Status: **Astra R10 HOLD; S1 A1+A2 and S2a/S2b A3+A7 locally green; A4–A6/A8 open; adapter NO-GO**
+Status: **Astra R10 HOLD; S1 A1+A2, S2a/S2b A3+A7 and S3a A5 locally green; A4/A6/A8 open; adapter NO-GO**
 
 ## S1 continuation notice
 
@@ -17,8 +17,15 @@ the exact evidence. S2b then made risk admission read its current bankroll,
 safety, qualification and exposure heads under the coordinated approval
 transaction; its 9 new tests were RED on `166f923` and S2a, then GREEN, with
 56/56 impacted and 139/139 full regression (`remediation_evidence/S2b/`).
-A4/A5 identity/PIT, A6 cache and A8 research process isolation remain open.
-Continue S3 only after the required protected identity/PIT version decision;
+A5's exact manifest/PIT correspondence is locally repaired under approved
+ADR-0002 v1. Its versioned approval note pins SHA-256
+`7e851df9898f3a257a87b602bc1a7f6011ebae1397d42c17b8727c84e554ae00`.
+S3a has independent RED on `166f923` and pre-fix `3729022`, then GREEN
+targeted/replay checks and final 150/150 full regression in
+`remediation_evidence/S3a/`. The temporary Windows approval-service rejection
+and unprivileged multiprocess failures are preserved. A4 trusted decision
+outputs, A6 cache and A8 research process isolation remain open. Continue
+S3b only under the exact approved identity decision;
 do not begin an adapter, substantive shadow
 research or live-money work.
 

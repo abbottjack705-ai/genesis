@@ -17,6 +17,8 @@ represent external evidence.
 | `FutureOutcomeLabel` | Separate label ID/entity/value, observed time, source reference, and label schema. It is never a `DecisionFact`. |
 | `CandidateBet` | Versioned strategy/model, event/market/selection, requested/observed odds, raw and conservative probabilities, evidence pack/cutoff, decision hash, status dimensions, dependency/correlation identifiers, expiry, uncertainty, and gate reasons. |
 | `EvidencePack` | Frozen cutoff/pack times, source artifact hashes, extractor versions, prompt schema hash, contradictions, freshness state, feature manifest hash, and immutable pack hash. |
+| `FeatureInputManifest-v1` | Closed content-addressed sorted exact feature/evidence input references, event/market, cutoff and structured-evidence hashes; each required reference pins source contract/capability row, raw bytes, observation, PIT row and field/transform. S3a provenance only; it does not approve a model or tier rule. |
+| `SourceInputBinding-v1` | Durable one-to-one source-contract/PIT-source/provider mapping with an approval reference; test synthetic bindings are not operational strategy authority. |
 | `MarketCapability` | Separate data/model/venue/settlement/liquidity/strategy/live capability facts; any required false or unknown fact blocks qualification. |
 | `CandidateRunRecord` | Every candidate stage/status, decision hash, rank, PASS reason, near-miss flag, and dependency group in an append-only run log. |
 | `RiskApproval` / `Exposure` | Single-use candidate-linked approval and matched/partial/unmatched/pending/UNKNOWN liability state. |

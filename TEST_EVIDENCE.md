@@ -24,7 +24,14 @@ assertion failures each), then GREEN 7/7; final full suite 130/130 and
 S2b A7 risk admission ran RED on `166f923` and S2a (9 methods, six invariant
 assertion failures each), then GREEN 9/9; impacted suites passed 56/56 and
 the final full suite passed 139/139. The final `compileall` passed. Evidence:
-`remediation_evidence/S2b/`. **A4–A6 and A8 remain open; no GO is granted.**
+`remediation_evidence/S2b/`. S3a's 11 A5 regressions were RED on `166f923`
+and the approved pre-fix head `3729022` with 11 behavioral failures each,
+zero import/setup errors; targeted exact-manifest and R3 tests are 22/22
+green; final post-hardening full suite 150/150 and `compileall` passed.
+The initial unprivileged Windows multiprocess failures and temporary
+approval-service rejection are retained. Exact transcripts are in
+`remediation_evidence/S3a/`.
+**A4, A6 and A8 remain open; no GO is granted.**
 
 ## Deterministic gate
 

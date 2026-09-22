@@ -3,8 +3,9 @@
 ## Audit disposition (2026-09-22)
 
 Astra's independent audit of R10 commit `166f923` returned **HOLD / NOT
-APPROVED**. S1 locally closed A1/A2; S2a/S2b locally closed the A3/A7
-risk-state and admission defects. A4–A6 and A8 remain open; this diagram is a
+APPROVED**. S1 locally closed A1/A2; S2a/S2b locally closed A3/A7; S3a
+locally closed A5's exact-input correspondence with full-suite evidence. A4,
+A6 and A8 remain open; this diagram is a
 foundation map, not an adapter, shadow-research or live-money GO.
 
 ## Remediated V0.4 foundation flow
@@ -111,8 +112,12 @@ SettlementLedger
 - `StrategyDecisionContract` pins every non-candidate decision input, including
   exact odds profile, adapter version, market capability and comparability group.
 - The post-audit qualifier recomputes candidate identity from authorities.
-- Astra A4/A5 show that material decision outputs and exact required PIT inputs
-  are not yet bound to that identity; new qualification authority remains HOLD.
+- S3a resolves the pack's exact content-addressed input manifest, source
+  binding/capability head, observation/raw bytes, structured evidence and PIT
+  row/head at the frozen cutoff. The PIT and source heads are fenced through
+  qualification append; a same-event substitute cannot certify the pack.
+- A4 still leaves material decision outputs outside candidate-v2 identity.
+  S3a is a provenance checkpoint, not operational qualification or a GO.
 - Tier is strict and strategy-approved. Invalid or missing tier never degrades to
   a usable default.
 - Across equal-tier incomparable groups there is no quality comparison. A stable

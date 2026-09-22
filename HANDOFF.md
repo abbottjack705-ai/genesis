@@ -1,7 +1,7 @@
 # Project Genesis V0.4 remediation handoff
 
 Date: 2026-09-22
-Status: **Astra R10 HOLD; S1 A1+A2 and S2a A3 locally green; A7/A4–A8 open; adapter NO-GO**
+Status: **Astra R10 HOLD; S1 A1+A2 and S2a/S2b A3+A7 locally green; A4–A6/A8 open; adapter NO-GO**
 
 ## S1 continuation notice
 
@@ -13,9 +13,13 @@ reservation binding, with RED evidence against the sealed R10 commit and
 GREEN 123/123 full suite plus `compileall` evidence at `remediation_evidence/S1/`.
 S2a has since closed A3 strict risk/bankroll/safety replay locally with RED on
 `166f923` and S1 and 130/130 full GREEN; `remediation_evidence/S2a/` contains
-the exact evidence. A7 risk-admission serialization, A4/A5 identity/PIT,
-A6 cache and A8 research process isolation remain open. Continue S2b A7
-from the S2a green commit; do not begin an adapter, substantive shadow
+the exact evidence. S2b then made risk admission read its current bankroll,
+safety, qualification and exposure heads under the coordinated approval
+transaction; its 9 new tests were RED on `166f923` and S2a, then GREEN, with
+56/56 impacted and 139/139 full regression (`remediation_evidence/S2b/`).
+A4/A5 identity/PIT, A6 cache and A8 research process isolation remain open.
+Continue S3 only after the required protected identity/PIT version decision;
+do not begin an adapter, substantive shadow
 research or live-money work.
 
 ## Review decision requested

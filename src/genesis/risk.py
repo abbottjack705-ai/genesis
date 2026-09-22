@@ -582,57 +582,72 @@ class RiskEngine:
         return exposure
 
     def approve(self, request: RiskRequest) -> RiskDecision:
-        try:
-            qualification = self.qualifications.get(request.qualification_record_id)
-            bankroll = self.bankrolls.current()
-            safety = self.safety.current()
-        except Exception:
-            return RiskDecision(False, "authority_unavailable", "0", "0")
-        if safety.kill_switch_active:
-            return RiskDecision(False, "kill_switch_active", "0", "0")
-        if request.bankroll_snapshot_id != bankroll.snapshot_id:
-            return RiskDecision(False, "stale_bankroll_snapshot", "0", "0")
-        if qualification.candidate_decision_hash != request.candidate_decision_hash:
-            return RiskDecision(False, "qualification_candidate_mismatch", "0", "0")
-        if qualification.active_policy_digest != self.policy_set.digest:
-            return RiskDecision(False, "qualification_policy_mismatch", "0", "0")
-        if parse_utc(request.requested_at) >= parse_utc(qualification.expires_at):
-            return RiskDecision(False, "qualification_expired", "0", "0")
-        try:
-            tier = parse_tier(qualification.approved_tier, policy=self.policy)
-        except ValueError:
-            return RiskDecision(False, "invalid_qualification_tier", "0", "0")
-        if request.expected_tier is not None and request.expected_tier != qualification.approved_tier:
-            return RiskDecision(False, "caller_tier_mismatch", "0", "0")
-        stake = self.policy.stake_amount(bankroll.bankroll, tier)
-        fragment = MatchedFragment("risk-proposal", request.side, Decimal(request.odds), stake)
-        liability = money(fragment.liability)
-        if request.expected_stake is not None and Decimal(request.expected_stake) != stake:
-            return RiskDecision(False, "caller_stake_mismatch", "0", "0")
-        if request.expected_liability is not None and Decimal(request.expected_liability) != liability:
-            return RiskDecision(False, "caller_liability_mismatch", "0", "0")
-
-        approval = RiskApproval.create(
-            qualification_record_id=qualification.qualification_record_id,
-            candidate_decision_hash=request.candidate_decision_hash,
-            strategy_decision_contract_hash=qualification.strategy_decision_contract_hash,
-            bankroll_snapshot_id=bankroll.snapshot_id,
-            bankroll_value=bankroll.bankroll,
-            approved_unit_tier=qualification.approved_tier,
-            approved_stake=canonical_decimal(stake),
-            approved_liability=canonical_decimal(liability),
-            side=request.side,
-            odds=request.odds,
-            risk_policy_version=self.policy.version,
-            risk_policy_digest=self.policy.digest,
-            safety_state_id=safety.state_id,
-            issued_at=request.requested_at,
-            expires_at=qualification.expires_at,
-        )
         decision_holder: dict[str, RiskDecision] = {}
 
         def build(rows: tuple[dict, ...]) -> dict | None:
+            # No mutable authority fact is captured before the coordinator
+            # locks. Bankroll, safety and qualification writers use these same
+            # per-log locks; risk owns the primary lock through its fsynced
+            # approval append. JSONL, not SQLite, remains the business truth.
             all_exposures = self._exposures(rows)
+            try:
+                qualification = self.qualifications.get(request.qualification_record_id)
+                bankroll = self.bankrolls.current()
+                safety = self.safety.current()
+            except Exception:
+                decision_holder["value"] = RiskDecision(
+                    False, "authority_unavailable", "0", "0"
+                )
+                return None
+            if safety.kill_switch_active:
+                decision_holder["value"] = RiskDecision(False, "kill_switch_active", "0", "0")
+                return None
+            if request.bankroll_snapshot_id != bankroll.snapshot_id:
+                decision_holder["value"] = RiskDecision(False, "stale_bankroll_snapshot", "0", "0")
+                return None
+            if qualification.candidate_decision_hash != request.candidate_decision_hash:
+                decision_holder["value"] = RiskDecision(False, "qualification_candidate_mismatch", "0", "0")
+                return None
+            if qualification.active_policy_digest != self.policy_set.digest:
+                decision_holder["value"] = RiskDecision(False, "qualification_policy_mismatch", "0", "0")
+                return None
+            if parse_utc(request.requested_at) >= parse_utc(qualification.expires_at):
+                decision_holder["value"] = RiskDecision(False, "qualification_expired", "0", "0")
+                return None
+            try:
+                tier = parse_tier(qualification.approved_tier, policy=self.policy)
+            except ValueError:
+                decision_holder["value"] = RiskDecision(False, "invalid_qualification_tier", "0", "0")
+                return None
+            if request.expected_tier is not None and request.expected_tier != qualification.approved_tier:
+                decision_holder["value"] = RiskDecision(False, "caller_tier_mismatch", "0", "0")
+                return None
+            stake = self.policy.stake_amount(bankroll.bankroll, tier)
+            fragment = MatchedFragment("risk-proposal", request.side, Decimal(request.odds), stake)
+            liability = money(fragment.liability)
+            if request.expected_stake is not None and Decimal(request.expected_stake) != stake:
+                decision_holder["value"] = RiskDecision(False, "caller_stake_mismatch", "0", "0")
+                return None
+            if request.expected_liability is not None and Decimal(request.expected_liability) != liability:
+                decision_holder["value"] = RiskDecision(False, "caller_liability_mismatch", "0", "0")
+                return None
+            approval = RiskApproval.create(
+                qualification_record_id=qualification.qualification_record_id,
+                candidate_decision_hash=request.candidate_decision_hash,
+                strategy_decision_contract_hash=qualification.strategy_decision_contract_hash,
+                bankroll_snapshot_id=bankroll.snapshot_id,
+                bankroll_value=bankroll.bankroll,
+                approved_unit_tier=qualification.approved_tier,
+                approved_stake=canonical_decimal(stake),
+                approved_liability=canonical_decimal(liability),
+                side=request.side,
+                odds=request.odds,
+                risk_policy_version=self.policy.version,
+                risk_policy_digest=self.policy.digest,
+                safety_state_id=safety.state_id,
+                issued_at=request.requested_at,
+                expires_at=qualification.expires_at,
+            )
             if any(
                 row.get("record_type") == "risk_approval_created"
                 and row.get("schema_version") == "risk-approval-v2"
@@ -695,7 +710,10 @@ class RiskEngine:
                 "affected_scope": request.affected_scope,
             }
 
-        self.audit_log.log.transaction(build)
+        self.audit_log.log.transaction(
+            build,
+            read_locks=(self.bankrolls.log, self.safety.log, self.qualifications.log),
+        )
         return decision_holder["value"]
 
     def get_approval(self, approval_id: str) -> RiskApproval:

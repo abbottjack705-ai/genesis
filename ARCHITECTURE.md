@@ -3,8 +3,8 @@
 ## Audit disposition (2026-09-22)
 
 Astra's independent audit of R10 commit `166f923` returned **HOLD / NOT
-APPROVED**. S1 locally closed A1/A2; S2a locally closed A3 strict active-state
-replay. A7 and A4–A8 remain open; this diagram is a
+APPROVED**. S1 locally closed A1/A2; S2a/S2b locally closed the A3/A7
+risk-state and admission defects. A4–A6 and A8 remain open; this diagram is a
 foundation map, not an adapter, shadow-research or live-money GO.
 
 ## Remediated V0.4 foundation flow
@@ -51,9 +51,14 @@ generation and is never business truth.
 
 S1 submission holds the risk, bankroll, safety, market and critical-refresh
 coordinator locks through its order append and recertifies from those owners
-inside that transaction. This does not repair A7's earlier risk-admission
-read-before-transaction window. S2a now rejects incompatible active risk,
-bankroll and safety rows on startup and transactional replay. Recovery must not
+inside that transaction. S2a rejects incompatible active risk, bankroll and
+safety rows on startup and transactional replay. S2b risk admission holds the
+risk, bankroll, safety and qualification-log coordinator locks while it reads
+their current heads, derives stake/liability, checks open exposure/correlation
+and fsyncs a new approval. Bankroll/safety writers are ordered against that
+admission; a pre-lock change is observed and a later change is ordered after
+the approval. This is not a claim that the A4/A5 qualification identity/PIT
+boundary, A6 cache proof or A8 research process boundary is closed. Recovery must not
 silently heal, truncate, choose a branch, or infer missing identity.
 
 ## Trust boundaries

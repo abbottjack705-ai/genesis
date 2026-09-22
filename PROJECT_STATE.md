@@ -6,8 +6,8 @@ Updated: 2026-09-22
 
 The V2.1 R0–R10 checkpoint was independently audited at `166f923`.
 Astra returned **HOLD / NOT APPROVED** (A1 CRITICAL, A2–A8 HIGH). S1 has
-locally repaired A1+A2; S2a locally repaired A3 and passed its gates.
-A7 and A4–A8 remain open and require staged remediation and a fresh
+locally repaired A1+A2; S2a/S2b locally repaired A3/A7 and passed their gates.
+A4–A6 and A8 remain open and require staged remediation and a fresh
 independent hostile re-audit. The original R0–R10 history is preserved.
 
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
@@ -53,13 +53,15 @@ system, or £100 canary was added.
   comparability groups and deterministically diversifies across groups.
 - Risk owns durable bankroll, qualification, safety, approval, and exposure state;
   derives stake and BACK/LAY liability and enforces `1u = 0.025` and the hard 3u
-  cap. S2a rejects unsupported active risk/bankroll/safety replay. A7
-  cross-store risk admission remains open.
+  cap. S2a rejects unsupported active risk/bankroll/safety replay. S2b
+  coordinates current bankroll, safety, qualification and exposure heads
+  through the risk approval append; A4/A5 qualification identity/PIT gaps
+  are not repaired by this admission lock.
 - S1 PAPER execution enforces one order-intent lineage per candidate hash,
   exact consumed approval plus active reservation binding, and mandatory fresh
   recertification at pending and sent. S1 fences the known durable safety/risk/
   market/refresh heads during the order append. Ambiguous restart still blocks
-  blind retry; this is not a claim that A7 is closed.
+  blind retry; this is not a claim that A4–A8 are closed.
 - Settlement has one current economic head per fill. Corrections, voids, and
   cancellations require the current same-fill head and record distinct
   `delta_pnl` and `effective_pnl`.
@@ -116,7 +118,19 @@ Detailed traceability and results are under `remediation_evidence/R0` through
 - Impacted retained plus S1 suite: 38/38 before the final A3 adversary was
   added. Complete final suite: 130/130; `compileall`
   passed. Full outputs and hashes: `remediation_evidence/S2a/`.
-- A7 risk-admission serialization remains open; this is not completion of S2.
+- A7 remained open at the S2a checkpoint; S2b below is its separate closure.
+
+## S2b verification
+
+- A7's nine independent regressions: RED on isolated clean `166f923` and
+  preceding S2a `aed0e5b` (six invariant assertion failures, zero import/setup
+  errors on each); GREEN 9/9. Spawned workers explicitly loaded each selected
+  checkout's source. Both rebase-before-admission and authority-writer-after-
+  admission-lock schedules, kill, qualification ambiguity, cap competition,
+  restart and post-fsync coordinator-commit loss were checked.
+- Retained R5/R6/R7/R10 plus S1/S2a/S2b: 56/56; full suite: 139/139;
+  `compileall` passed. Exact transcripts/hashes: `remediation_evidence/S2b/`.
+- A3+A7 risk group is locally green, not independent audit approval or a GO.
 
 ## Compatibility and migration state
 
@@ -141,7 +155,7 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Proceed to S2b (A7) after the S2a green commit, using new RED evidence against
-`166f923`, then continue A4+A5, A6 and A8 in dependency order. A new
+Proceed to S3a/S3b (A5+A4) only after the required protected PIT/identity
+approval/version decision, then A6 and A8 in dependency order. A new
 independent hostile re-audit and explicit checkpoint approval are still required
 before any adapter or later Genesis phase.

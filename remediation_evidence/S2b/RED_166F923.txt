@@ -1,0 +1,65 @@
+BASELINE_SOURCE=C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s1-red-baseline\src\genesis\__init__.py
+test_coordinator_commit_failure_after_jsonl_fsync_replays_once (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_coordinator_commit_failure_after_jsonl_fsync_replays_once) ... ok
+test_downward_rebase_at_transaction_entry_cannot_commit_old_7_5_stake (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_downward_rebase_at_transaction_entry_cannot_commit_old_7_5_stake) ... FAIL
+test_kill_at_transaction_entry_cannot_commit_approval (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_kill_at_transaction_entry_cannot_commit_approval) ... FAIL
+test_multiprocess_authority_writers_wait_for_locked_admission (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_authority_writers_wait_for_locked_admission) ... 
+  test_multiprocess_authority_writers_wait_for_locked_admission (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_authority_writers_wait_for_locked_admission) (owner='bankroll') ... FAIL
+  test_multiprocess_authority_writers_wait_for_locked_admission (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_authority_writers_wait_for_locked_admission) (owner='safety') ... FAIL
+test_multiprocess_rebase_before_admission_resumes_blocks_stale_head (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_rebase_before_admission_resumes_blocks_stale_head) ... FAIL
+test_preexisting_stake_survives_rebase_but_new_risk_uses_current_cap (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_preexisting_stake_survives_rebase_but_new_risk_uses_current_cap) ... ok
+test_qualification_ambiguity_at_transaction_entry_cannot_commit (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_qualification_ambiguity_at_transaction_entry_cannot_commit) ... FAIL
+test_uncertain_post_append_response_restarts_as_exactly_one_approval (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_uncertain_post_append_response_restarts_as_exactly_one_approval) ... ok
+test_unknown_exposure_at_entry_and_competing_last_capacity_block (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_unknown_exposure_at_entry_and_competing_last_capacity_block) ... ok
+
+======================================================================
+FAIL: test_downward_rebase_at_transaction_entry_cannot_commit_old_7_5_stake (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_downward_rebase_at_transaction_entry_cannot_commit_old_7_5_stake)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_admission.py", line 184, in test_downward_rebase_at_transaction_entry_cannot_commit_old_7_5_stake
+    self.assertFalse(decision.passed, "A7 admitted 7.5 against current bankroll 10")
+AssertionError: True is not false : A7 admitted 7.5 against current bankroll 10
+
+======================================================================
+FAIL: test_kill_at_transaction_entry_cannot_commit_approval (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_kill_at_transaction_entry_cannot_commit_approval)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_admission.py", line 203, in test_kill_at_transaction_entry_cannot_commit_approval
+    self.assertFalse(decision.passed, "A7 admitted against an active kill switch")
+AssertionError: True is not false : A7 admitted against an active kill switch
+
+======================================================================
+FAIL: test_multiprocess_authority_writers_wait_for_locked_admission (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_authority_writers_wait_for_locked_admission) (owner='bankroll')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_admission.py", line 327, in test_multiprocess_authority_writers_wait_for_locked_admission
+    self.assertFalse(done.wait(2),
+AssertionError: True is not false : authority writer crossed an active admission fence
+
+======================================================================
+FAIL: test_multiprocess_authority_writers_wait_for_locked_admission (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_authority_writers_wait_for_locked_admission) (owner='safety')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_admission.py", line 327, in test_multiprocess_authority_writers_wait_for_locked_admission
+    self.assertFalse(done.wait(2),
+AssertionError: True is not false : authority writer crossed an active admission fence
+
+======================================================================
+FAIL: test_multiprocess_rebase_before_admission_resumes_blocks_stale_head (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_rebase_before_admission_resumes_blocks_stale_head)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_admission.py", line 293, in test_multiprocess_rebase_before_admission_resumes_blocks_stale_head
+    self.assertFalse(outcome[0], "cross-process stale admission committed")
+AssertionError: True is not false : cross-process stale admission committed
+
+======================================================================
+FAIL: test_qualification_ambiguity_at_transaction_entry_cannot_commit (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_qualification_ambiguity_at_transaction_entry_cannot_commit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_admission.py", line 217, in test_qualification_ambiguity_at_transaction_entry_cannot_commit
+    self.assertFalse(decision.passed, "ambiguous qualification granted new risk")
+AssertionError: True is not false : ambiguous qualification granted new risk
+
+----------------------------------------------------------------------
+Ran 9 tests in 4.887s
+
+FAILED (failures=6)

@@ -1,0 +1,139 @@
+PRIOR_SOURCE=C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s2a-red-s1\src\genesis\__init__.py
+test_consumption_after_expiry_or_release_is_not_valid_history (tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history) ... 
+  test_consumption_after_expiry_or_release_is_not_valid_history (tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history) (cause='expired') ... FAIL
+  test_consumption_after_expiry_or_release_is_not_valid_history (tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history) (cause='released') ... FAIL
+test_hash_valid_unsupported_active_approval_blocks_existing_and_restart (tests.test_astra_s2_replay.AstraStrictReplayTests.test_hash_valid_unsupported_active_approval_blocks_existing_and_restart) ... FAIL
+test_incompatible_event_arriving_at_transaction_entry_blocks (tests.test_astra_s2_replay.AstraStrictReplayTests.test_incompatible_event_arriving_at_transaction_entry_blocks) ... FAIL
+test_invalid_known_transitions_and_missing_owner_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_invalid_known_transitions_and_missing_owner_fields_block) ... 
+  test_invalid_known_transitions_and_missing_owner_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_invalid_known_transitions_and_missing_owner_fields_block) (owner='risk') ... FAIL
+test_known_valid_history_still_approves_once (tests.test_astra_s2_replay.AstraStrictReplayTests.test_known_valid_history_still_approves_once) ... ok
+test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) ... 
+  test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) (index=0) ... FAIL
+  test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) (index=1) ... FAIL
+  test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) (index=2) ... FAIL
+test_unsupported_bankroll_and_safety_heads_cannot_be_skipped (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unsupported_bankroll_and_safety_heads_cannot_be_skipped) ... 
+  test_unsupported_bankroll_and_safety_heads_cannot_be_skipped (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unsupported_bankroll_and_safety_heads_cannot_be_skipped) (owner='bankrolls') ... FAIL
+  test_unsupported_bankroll_and_safety_heads_cannot_be_skipped (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unsupported_bankroll_and_safety_heads_cannot_be_skipped) (owner='safety') ... FAIL
+
+======================================================================
+FAIL: test_consumption_after_expiry_or_release_is_not_valid_history (tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history) (cause='expired')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 219, in test_consumption_after_expiry_or_release_is_not_valid_history
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_consumption_after_expiry_or_release_is_not_valid_history (tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history) (cause='released')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 219, in test_consumption_after_expiry_or_release_is_not_valid_history
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_hash_valid_unsupported_active_approval_blocks_existing_and_restart (tests.test_astra_s2_replay.AstraStrictReplayTests.test_hash_valid_unsupported_active_approval_blocks_existing_and_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 61, in test_hash_valid_unsupported_active_approval_blocks_existing_and_restart
+    self.assert_admission_blocked(fixture["engine"], req)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 40, in assert_admission_blocked
+    self.assertFalse(decision.passed, "ambiguous active history granted new risk")
+AssertionError: True is not false : ambiguous active history granted new risk
+
+======================================================================
+FAIL: test_incompatible_event_arriving_at_transaction_entry_blocks (tests.test_astra_s2_replay.AstraStrictReplayTests.test_incompatible_event_arriving_at_transaction_entry_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 178, in test_incompatible_event_arriving_at_transaction_entry_blocks
+    self.assert_admission_blocked(fixture["engine"], req)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 40, in assert_admission_blocked
+    self.assertFalse(decision.passed, "ambiguous active history granted new risk")
+AssertionError: True is not false : ambiguous active history granted new risk
+
+======================================================================
+FAIL: test_invalid_known_transitions_and_missing_owner_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_invalid_known_transitions_and_missing_owner_fields_block) (owner='risk')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 131, in test_invalid_known_transitions_and_missing_owner_fields_block
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) (index=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 85, in test_unknown_type_missing_schema_and_missing_material_fields_block
+    self.assert_admission_blocked(fixture["engine"], req)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 40, in assert_admission_blocked
+    self.assertFalse(decision.passed, "ambiguous active history granted new risk")
+AssertionError: True is not false : ambiguous active history granted new risk
+
+======================================================================
+FAIL: test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) (index=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 85, in test_unknown_type_missing_schema_and_missing_material_fields_block
+    self.assert_admission_blocked(fixture["engine"], req)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 40, in assert_admission_blocked
+    self.assertFalse(decision.passed, "ambiguous active history granted new risk")
+AssertionError: True is not false : ambiguous active history granted new risk
+
+======================================================================
+FAIL: test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) (index=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 35, in assert_admission_blocked
+    decision = engine.approve(req)
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s2a-red-s1\src\genesis\risk.py", line 619, in approve
+    self.audit_log.log.transaction(build)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s2a-red-s1\src\genesis\registry.py", line 111, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s2a-red-s1\src\genesis\risk.py", line 567, in build
+    open_exposures = [item for item in self._exposures(rows) if self._open(item)]
+                                       ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s2a-red-s1\src\genesis\risk.py", line 449, in _exposures
+    result.extend(
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s2a-red-s1\src\genesis\risk.py", line 452, in <genexpr>
+    candidate_decision_hash=row["candidate_decision_hash"],
+                            ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'candidate_decision_hash'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 85, in test_unknown_type_missing_schema_and_missing_material_fields_block
+    self.assert_admission_blocked(fixture["engine"], req)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 39, in assert_admission_blocked
+    self.fail(f"active-state replay escaped as an untyped error: {exc!r}")
+AssertionError: active-state replay escaped as an untyped error: KeyError('candidate_decision_hash')
+
+======================================================================
+FAIL: test_unsupported_bankroll_and_safety_heads_cannot_be_skipped (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unsupported_bankroll_and_safety_heads_cannot_be_skipped) (owner='bankrolls')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 107, in test_unsupported_bankroll_and_safety_heads_cannot_be_skipped
+    self.assert_admission_blocked(fixture["engine"], req)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 40, in assert_admission_blocked
+    self.assertFalse(decision.passed, "ambiguous active history granted new risk")
+AssertionError: True is not false : ambiguous active history granted new risk
+
+======================================================================
+FAIL: test_unsupported_bankroll_and_safety_heads_cannot_be_skipped (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unsupported_bankroll_and_safety_heads_cannot_be_skipped) (owner='safety')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 107, in test_unsupported_bankroll_and_safety_heads_cannot_be_skipped
+    self.assert_admission_blocked(fixture["engine"], req)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s2_replay.py", line 40, in assert_admission_blocked
+    self.assertFalse(decision.passed, "ambiguous active history granted new risk")
+AssertionError: True is not false : ambiguous active history granted new risk
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.221s
+
+FAILED (failures=10)

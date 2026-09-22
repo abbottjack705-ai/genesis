@@ -18,7 +18,10 @@ access-denied errors in unchanged R9 tests and one obsolete legacy expectation
 that permitted submission after material evidence change. The legacy test was
 strengthened to assert the block while retaining timeout/reconciliation coverage;
 the sandbox failure transcript is retained. The independent full rerun passed.
-**A3–A8 remain open; no GO is granted.**
+S2a A3 strict replay also ran RED on `166f923` and S1 (7 methods, 10 invariant
+assertion failures each), then GREEN 7/7; final full suite 130/130 and
+`compileall` passed. Evidence: `remediation_evidence/S2a/`.
+**A7 and A4–A8 remain open; no GO is granted.**
 
 ## Deterministic gate
 
@@ -62,6 +65,7 @@ protected external dataset or historical outcome source.
 | protected evaluator IPC/attempts (A8 research-process isolation open) | `test_remediation_r9_protected.py` — 11 tests |
 | complete restart/fault matrix | `test_remediation_r10_integration.py` — 3 tests |
 | Astra S1 mandatory submission and reservation | `test_astra_s1_submission.py`, `test_astra_s1_reservation.py` — 13 tests |
+| Astra S2a strict active replay | `test_astra_s2_replay.py` — 7 tests |
 
 Individual test methods combine closely related rows of the binding T-F01
 through T-F15 matrix. Each batch checkpoint records the exact matrix rows it

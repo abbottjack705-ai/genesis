@@ -6,8 +6,8 @@ Updated: 2026-09-22
 
 The V2.1 R0–R10 checkpoint was independently audited at `166f923`.
 Astra returned **HOLD / NOT APPROVED** (A1 CRITICAL, A2–A8 HIGH). S1 has
-locally repaired A1+A2 and passed its targeted and full regression gates;
-the remaining A3–A8 are open and require staged remediation and a fresh
+locally repaired A1+A2; S2a locally repaired A3 and passed its gates.
+A7 and A4–A8 remain open and require staged remediation and a fresh
 independent hostile re-audit. The original R0–R10 history is preserved.
 
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
@@ -53,12 +53,13 @@ system, or £100 canary was added.
   comparability groups and deterministically diversifies across groups.
 - Risk owns durable bankroll, qualification, safety, approval, and exposure state;
   derives stake and BACK/LAY liability and enforces `1u = 0.025` and the hard 3u
-  cap. A3 unsupported active replay and A7 cross-store risk admission remain open.
+  cap. S2a rejects unsupported active risk/bankroll/safety replay. A7
+  cross-store risk admission remains open.
 - S1 PAPER execution enforces one order-intent lineage per candidate hash,
   exact consumed approval plus active reservation binding, and mandatory fresh
   recertification at pending and sent. S1 fences the known durable safety/risk/
   market/refresh heads during the order append. Ambiguous restart still blocks
-  blind retry; this is not a claim that A3/A7 are closed.
+  blind retry; this is not a claim that A7 is closed.
 - Settlement has one current economic head per fill. Corrections, voids, and
   cancellations require the current same-fill head and record distinct
   `delta_pnl` and `effective_pnl`.
@@ -108,6 +109,15 @@ Detailed traceability and results are under `remediation_evidence/R0` through
 - Exact commands and outputs: `remediation_evidence/S1/`. Local green is
   partial; no adapter, research or live GO follows.
 
+## S2a verification
+
+- Strict active-state replay regressions: RED on clean `166f923` and S1
+  `2835238` (7 methods, 10 assertion failures on each); GREEN 7/7.
+- Impacted retained plus S1 suite: 38/38 before the final A3 adversary was
+  added. Complete final suite: 130/130; `compileall`
+  passed. Full outputs and hashes: `remediation_evidence/S2a/`.
+- A7 risk-admission serialization remains open; this is not completion of S2.
+
 ## Compatibility and migration state
 
 Legacy records remain readable only where an explicit deterministic migration is
@@ -131,7 +141,7 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Proceed to S2 (A3+A7) only after the S1 green commit, using new RED evidence
-against `166f923`, then continue A4+A5, A6 and A8 in dependency order. A new
+Proceed to S2b (A7) after the S2a green commit, using new RED evidence against
+`166f923`, then continue A4+A5, A6 and A8 in dependency order. A new
 independent hostile re-audit and explicit checkpoint approval are still required
 before any adapter or later Genesis phase.

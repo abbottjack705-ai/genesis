@@ -111,12 +111,27 @@ class BankrollSnapshotStore:
         )
 
     def history(self) -> tuple[BankrollSnapshot, ...]:
-        return tuple(
-            self._from_row(row)
-            for row in self.log.records()
-            if row.get("record_type") == "bankroll_snapshot_recorded"
-            and row.get("schema_version") == "bankroll-snapshot-v2"
-        )
+        history: list[BankrollSnapshot] = []
+        for row in self.log.records():
+            if (row.get("record_type"), row.get("schema_version")) != (
+                "bankroll_snapshot_recorded", "bankroll-snapshot-v2"
+            ):
+                raise RegistryConflict("unsupported active bankroll event")
+            try:
+                snapshot = self._from_row(row)
+            except (KeyError, TypeError, ValueError) as exc:
+                raise RegistryConflict("incomplete active bankroll event") from exc
+            if history:
+                previous = history[-1]
+                if (
+                    snapshot.parent_snapshot_id != previous.snapshot_id
+                    or parse_utc(snapshot.captured_at) <= parse_utc(previous.captured_at)
+                ):
+                    raise RegistryConflict("bankroll replay has an invalid head transition")
+            elif snapshot.parent_snapshot_id is not None:
+                raise RegistryConflict("initial bankroll replay has a parent")
+            history.append(snapshot)
+        return tuple(history)
 
     def current(self) -> BankrollSnapshot:
         history = self.history()
@@ -138,12 +153,7 @@ class BankrollSnapshotStore:
         }
 
         def build(rows: tuple[dict, ...]) -> dict | None:
-            history = [
-                self._from_row(row)
-                for row in rows
-                if row.get("record_type") == "bankroll_snapshot_recorded"
-                and row.get("schema_version") == "bankroll-snapshot-v2"
-            ]
+            history = list(self.history())
             matches = [item for item in history if item.snapshot_id == snapshot.snapshot_id]
             if matches:
                 if all(item == snapshot for item in matches):
@@ -215,12 +225,27 @@ class SafetyStateStore:
         return SafetyState(**{key: row[key] for key in SafetyState.__dataclass_fields__})
 
     def history(self) -> tuple[SafetyState, ...]:
-        return tuple(
-            self._from_row(row)
-            for row in self.log.records()
-            if row.get("record_type") == "safety_mode_transition"
-            and row.get("schema_version") == "safety-state-v2"
-        )
+        history: list[SafetyState] = []
+        for row in self.log.records():
+            if (row.get("record_type"), row.get("schema_version")) != (
+                "safety_mode_transition", "safety-state-v2"
+            ):
+                raise RegistryConflict("unsupported active safety event")
+            try:
+                state = self._from_row(row)
+            except (KeyError, TypeError, ValueError) as exc:
+                raise RegistryConflict("incomplete active safety event") from exc
+            if history:
+                previous = history[-1]
+                if (
+                    state.parent_state_id != previous.state_id
+                    or parse_utc(state.recorded_at) <= parse_utc(previous.recorded_at)
+                ):
+                    raise RegistryConflict("safety replay has an invalid head transition")
+            elif state.parent_state_id is not None:
+                raise RegistryConflict("initial safety replay has a parent")
+            history.append(state)
+        return tuple(history)
 
     def current(self) -> SafetyState:
         history = self.history()
@@ -236,12 +261,7 @@ class SafetyStateStore:
         }
 
         def build(rows: tuple[dict, ...]) -> dict | None:
-            history = [
-                self._from_row(row)
-                for row in rows
-                if row.get("record_type") == "safety_mode_transition"
-                and row.get("schema_version") == "safety-state-v2"
-            ]
+            history = list(self.history())
             matches = [item for item in history if item.state_id == state.state_id]
             if matches:
                 if all(item == state for item in matches):
@@ -415,6 +435,12 @@ class RiskEngine:
         self.qualifications = qualifications
         self.safety = safety
         self.audit_log = audit_log
+        # A hash-valid but semantically incompatible active event is not an
+        # empty reservation. Validate the durable heads on startup as well as
+        # at each later transactional replay.
+        self.bankrolls.history()
+        self.safety.history()
+        self._exposures(self.audit_log.log.records())
 
     @staticmethod
     def _open(exposure: Exposure) -> bool:
@@ -440,39 +466,90 @@ class RiskEngine:
         return Exposure(**fields)
 
     def _exposures(self, rows: tuple[dict, ...] | list[dict]) -> list[Exposure]:
-        result = [
-            self._exposure_from_row(row)
-            for row in rows
-            if row.get("record_type") == "risk_exposure_recorded"
-            and row.get("schema_version") == "risk-exposure-v2"
-        ]
-        result.extend(
-            Exposure(
-                exposure_id=row["approval_id"],
-                candidate_decision_hash=row["candidate_decision_hash"],
-                liability=row["approved_liability"],
-                state=ExposureState.PENDING,
-                correlation_cluster_ids=tuple(row.get("correlation_cluster_ids", ())),
-                affected_scope=row.get("affected_scope"),
-            )
-            for row in rows
-            if row.get("record_type") == "risk_approval_created"
-            and row.get("schema_version") == "risk-approval-v2"
-        )
-        latest = {item.exposure_id: item for item in result}
+        latest: dict[str, Exposure] = {}
+        approvals: dict[str, RiskApproval] = {}
+        consumed: set[str] = set()
+        candidate_hashes: set[str] = set()
+        schemas = {
+            "risk_exposure_recorded": "risk-exposure-v2",
+            "risk_approval_created": "risk-approval-v2",
+            "risk_approval_consumed": "risk-approval-v2",
+            "risk_reservation_transition": "risk-reservation-v2",
+        }
         for row in rows:
-            if row.get("record_type") == "risk_reservation_transition":
-                exposure_id = row["approval_id"]
-                if exposure_id not in latest:
-                    raise RegistryConflict("reservation transition has no approval")
-                current = latest[exposure_id]
-                if current.state != ExposureState(row["from_state"]):
-                    raise RegistryConflict("reservation transition prior state mismatch")
-                latest[exposure_id] = replace(
-                    current, state=ExposureState(row["to_state"])
-                )
-        result = list(latest.values())
-        return result
+            event = row.get("record_type")
+            if event not in schemas or row.get("schema_version") != schemas[event]:
+                raise RegistryConflict("unsupported or missing active risk event schema")
+            try:
+                if event == "risk_exposure_recorded":
+                    exposure = self._exposure_from_row(row)
+                    parse_utc(row["recorded_at"])
+                    if exposure.exposure_id in latest:
+                        raise RegistryConflict("duplicate risk exposure identity")
+                    latest[exposure.exposure_id] = exposure
+                elif event == "risk_approval_created":
+                    approval = self._approval_from_row(row)
+                    clusters = row["correlation_cluster_ids"]
+                    if not isinstance(clusters, list) or any(
+                        not isinstance(cluster, str) or not cluster for cluster in clusters
+                    ):
+                        raise RegistryConflict("risk approval clusters are invalid")
+                    if (
+                        approval.status != "APPROVED_NOT_CONSUMED"
+                        or approval.consumed_by_order_id is not None
+                        or parse_utc(approval.issued_at) >= parse_utc(approval.expires_at)
+                        or approval.approval_id in latest
+                        or approval.candidate_decision_hash in candidate_hashes
+                    ):
+                        raise RegistryConflict("risk approval replay identity is invalid")
+                    approvals[approval.approval_id] = approval
+                    candidate_hashes.add(approval.candidate_decision_hash)
+                    latest[approval.approval_id] = Exposure(
+                        exposure_id=approval.approval_id,
+                        candidate_decision_hash=approval.candidate_decision_hash,
+                        liability=approval.approved_liability,
+                        state=ExposureState.PENDING,
+                        correlation_cluster_ids=tuple(clusters),
+                        affected_scope=row["affected_scope"],
+                    )
+                elif event == "risk_approval_consumed":
+                    approval_id = row["approval_id"]
+                    if (
+                        approval_id not in approvals
+                        or approval_id in consumed
+                        or latest[approval_id].state != ExposureState.PENDING
+                        or row["candidate_decision_hash"]
+                        != approvals[approval_id].candidate_decision_hash
+                        or not isinstance(row["order_id"], str)
+                        or not row["order_id"]
+                    ):
+                        raise RegistryConflict("risk approval consumption replay is invalid")
+                    consumed_at = parse_utc(row["consumed_at"])
+                    if consumed_at >= parse_utc(approvals[approval_id].expires_at):
+                        raise RegistryConflict("risk approval was consumed after expiry")
+                    consumed.add(approval_id)
+                else:
+                    approval_id = row["approval_id"]
+                    if approval_id not in approvals or approval_id not in latest:
+                        raise RegistryConflict("reservation transition has no approval")
+                    current = latest[approval_id]
+                    prior = ExposureState(row["from_state"])
+                    target = ExposureState(row["to_state"])
+                    if (
+                        current.state != prior
+                        or current.state in {ExposureState.SETTLED, ExposureState.VOID}
+                        or target not in {
+                            ExposureState.SETTLED, ExposureState.VOID, ExposureState.UNKNOWN
+                        }
+                    ):
+                        raise RegistryConflict("reservation transition is invalid")
+                    parse_utc(row["occurred_at"])
+                    latest[approval_id] = replace(current, state=target)
+            except (KeyError, TypeError, ValueError) as exc:
+                if isinstance(exc, RegistryConflict):
+                    raise
+                raise RegistryConflict("incomplete or invalid active risk event") from exc
+        return list(latest.values())
 
     def stake_for_units(self, bankroll: str, units: str) -> str:
         return canonical_decimal(self.policy.stake_amount(bankroll, parse_tier(units, policy=self.policy)))
@@ -486,6 +563,7 @@ class RiskEngine:
         }
 
         def build(rows: tuple[dict, ...]) -> dict | None:
+            self._exposures(rows)
             matches = [
                 row
                 for row in rows
@@ -554,6 +632,7 @@ class RiskEngine:
         decision_holder: dict[str, RiskDecision] = {}
 
         def build(rows: tuple[dict, ...]) -> dict | None:
+            all_exposures = self._exposures(rows)
             if any(
                 row.get("record_type") == "risk_approval_created"
                 and row.get("schema_version") == "risk-approval-v2"
@@ -564,7 +643,7 @@ class RiskEngine:
                     False, "duplicate_order_intent", "0", "0"
                 )
                 return None
-            open_exposures = [item for item in self._exposures(rows) if self._open(item)]
+            open_exposures = [item for item in all_exposures if self._open(item)]
             if any(item.state == ExposureState.UNKNOWN for item in open_exposures):
                 decision_holder["value"] = RiskDecision(
                     False, "unknown_exposure_blocks_new_risk", "0", "0"
@@ -621,6 +700,7 @@ class RiskEngine:
 
     def get_approval(self, approval_id: str) -> RiskApproval:
         rows = self.audit_log.log.records()
+        self._exposures(rows)
         matches = [
             self._approval_from_row(row)
             for row in rows
@@ -654,6 +734,7 @@ class RiskEngine:
         result: dict[str, RiskApproval] = {}
 
         def build(rows: tuple[dict, ...]) -> dict | None:
+            self._exposures(rows)
             matches = [
                 self._approval_from_row(row)
                 for row in rows

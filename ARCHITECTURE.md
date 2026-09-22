@@ -3,8 +3,8 @@
 ## Audit disposition (2026-09-22)
 
 Astra's independent audit of R10 commit `166f923` returned **HOLD / NOT
-APPROVED**. S1 has locally closed the reproduced A1/A2 PAPER submission and
-reservation-continuation defects. A3–A8 remain open; this diagram is a
+APPROVED**. S1 locally closed A1/A2; S2a locally closed A3 strict active-state
+replay. A7 and A4–A8 remain open; this diagram is a
 foundation map, not an adapter, shadow-research or live-money GO.
 
 ## Remediated V0.4 foundation flow
@@ -52,10 +52,9 @@ generation and is never business truth.
 S1 submission holds the risk, bankroll, safety, market and critical-refresh
 coordinator locks through its order append and recertifies from those owners
 inside that transaction. This does not repair A7's earlier risk-admission
-read-before-transaction window. Truncated and hash-invalid chains fail closed;
-known typed replay defects are rejected where implemented. Astra A3 demonstrated
-that incompatible hash-valid active risk state can still be omitted. Recovery
-must not silently heal, truncate, choose a branch, or infer missing identity.
+read-before-transaction window. S2a now rejects incompatible active risk,
+bankroll and safety rows on startup and transactional replay. Recovery must not
+silently heal, truncate, choose a branch, or infer missing identity.
 
 ## Trust boundaries
 

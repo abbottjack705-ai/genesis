@@ -60,8 +60,10 @@ from genesis.selection import (
     qualify_v04,
     rank_qualified,
 )
-from ._support import scratch_directory
-from .test_remediation_r5_risk import build_risk, request as risk_request
+from ._support import SyntheticQualificationRecordStore as QualificationRecordStore, scratch_directory
+from .test_remediation_r5_risk import (
+    build_risk, qualification as risk_qualification, request as risk_request,
+)
 from .test_remediation_r6_execution import build_execution
 
 
@@ -221,22 +223,17 @@ class V04CandidateRiskExecutionTests(unittest.TestCase):
             safety = SafetyStateStore(tmp / "safety.jsonl")
             safety.append(SafetyState.create(kill_switch_active=False, recorded_at="2026-01-01T00:00:00Z", reason="test"))
             qualifications = QualificationRecordStore(tmp / "qualifications.jsonl")
-            h1, h2 = digest("1"), digest("2")
-            def qualification(candidate_hash, candidate_id):
-                return QualificationRecord.create(
-                    candidate_id=candidate_id, candidate_decision_hash=candidate_hash,
-                    strategy_id="strategy", strategy_version="v1",
-                    strategy_decision_contract_hash=digest("a"), approved_tier="2.0u",
-                    comparability_group_id="group", active_policy_digest=policy.digest,
-                    market_capability_id="cap", decision_at="2026-01-01T00:00:00Z",
-                    evaluated_at="2026-01-01T00:01:00Z", expires_at="2026-01-01T01:00:00Z",
-                    gate_results_digest=digest("b"),
-                )
-            q1 = qualifications.append(qualification(h1, "c1"))
-            q2 = qualifications.append(qualification(h2, "c2"))
+            q1 = risk_qualification(
+                qualifications, policy, candidate_hash=digest("1"), tier="2.0u",
+                candidate_id="c1",
+            )
+            q2 = risk_qualification(
+                qualifications, policy, candidate_hash=digest("2"), tier="2.0u",
+                candidate_id="c2",
+            )
             engine = RiskEngine(policy=policy, bankrolls=bankrolls, qualifications=qualifications, safety=safety, audit_log=audit)
             self.assertEqual(engine.rebase("110", captured_at="2026-01-01T00:02:00Z", scheduled_weekly=True, drawdown_triggered=False).direction, "upward")
-            h1, h2 = digest("1"), digest("2")
+            h1, h2 = q1.candidate_decision_hash, q2.candidate_decision_hash
             current = bankrolls.current()
             decision = engine.approve(RiskRequest(h1, q1.qualification_record_id, current.snapshot_id, BetSide.BACK, "2.00", "2026-01-01T00:03:00Z", ("cluster-1",)))
             self.assertTrue(decision.passed)

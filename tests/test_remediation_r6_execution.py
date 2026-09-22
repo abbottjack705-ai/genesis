@@ -31,7 +31,7 @@ from genesis.risk import (
     SafetyStateStore,
 )
 from genesis.selection import QualificationRecordStore
-from ._support import scratch_directory
+from ._support import SyntheticQualificationRecordStore as QualificationRecordStore, scratch_directory
 from .test_remediation_r5_risk import build_risk, request as risk_request
 
 
@@ -76,7 +76,9 @@ def build_execution(
     odds: str = "2.00",
     expires_at: str = "2026-01-01T01:00:00Z",
 ):
-    risk_fixture = build_risk(root / "risk", expires_at=expires_at)
+    risk_fixture = build_risk(
+        root / "risk", expires_at=expires_at, side=side, odds=odds,
+    )
     risk_decision = risk_fixture["engine"].approve(
         risk_request(risk_fixture, side=side, odds=odds)
     )
@@ -248,23 +250,17 @@ class R6RiskBindingTests(unittest.TestCase):
             fake_intent = replace_intent(
                 fake["intent"], risk_approval_id=digest("9")
             )
-            fake["adapter"].create_intent(fake_intent)
-            with self.assertRaises(Exception):
-                fake["adapter"].bind_risk(
-                    "key-a", bound_at="2026-01-01T00:13:00Z"
-                )
+            with self.assertRaises(RegistryConflict):
+                fake["adapter"].create_intent(fake_intent)
 
     def test_candidate_stake_and_lay_liability_mismatches_fail(self):
         with scratch_directory() as tmp:
             candidate = build_execution(tmp / "candidate")
-            candidate["adapter"].create_intent(
-                replace_intent(
-                    candidate["intent"], candidate_decision_hash=digest("8")
-                )
-            )
             with self.assertRaises(RegistryConflict):
-                candidate["adapter"].bind_risk(
-                    "key-a", bound_at="2026-01-01T00:13:00Z"
+                candidate["adapter"].create_intent(
+                    replace_intent(
+                        candidate["intent"], candidate_decision_hash=digest("8")
+                    )
                 )
 
             stake = build_execution(tmp / "stake")

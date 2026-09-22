@@ -5,7 +5,8 @@ import unittest
 from decimal import Decimal
 
 from genesis.accounting import BetSide
-from genesis.policy import PolicySet, RiskPolicy
+from genesis.decision import candidate_v3_decision_hash
+from genesis.policy import PolicySet, RiskPolicy, canonical_decimal, parse_tier
 from genesis.risk import (
     BankrollSnapshot,
     BankrollSnapshotStore,
@@ -18,7 +19,8 @@ from genesis.risk import (
     SafetyStateStore,
 )
 from genesis.selection import QualificationRecord, QualificationRecordStore
-from ._support import scratch_directory
+from genesis.time import iso_utc
+from ._support import SyntheticQualificationRecordStore as QualificationRecordStore, scratch_directory
 
 
 def digest(character: str) -> str:
@@ -33,11 +35,69 @@ def qualification(
     tier: str,
     candidate_id: str = "candidate",
     expires_at: str = "2026-01-01T01:00:00Z",
+    side: BetSide = BetSide.BACK,
+    odds: str = "2",
 ) -> QualificationRecord:
+    binding = {
+        "domain": "genesis.strategy-output-rule-binding.v1",
+        "schema_version": "strategy-output-rule-binding-v1",
+        "strategy_decision_contract_hash": digest("a"),
+        "active_policy_digest": policy.digest,
+        "approved_tier_policy_id": policy.risk.version,
+        "model_artifact_hash": digest("1"),
+        "calibration_artifact_hash": digest("2"),
+        "feature_manifest_hash": digest("c"),
+        "gate_policy_hash": digest("3"),
+        "model_runner_hash": digest("4"),
+        "calibration_runner_hash": digest("5"),
+        "tier_rule_hash": digest("6"),
+        "expiry_rule_hash": digest("7"),
+        "resolver_artifact_hash": digest("9"),
+        "scope": "PAPER", "valid_from": iso_utc("2026-01-01T00:00:00Z"),
+        "valid_through": None,
+        "human_approval_reference": "synthetic-test-only-risk-not-operational",
+    }
+    binding_hash = store.bindings.register_approved(binding)
+    output = {
+        "domain": "genesis.decision-output.v1", "schema_version": "decision-output-v1",
+        "feature_manifest_hash": digest("c"), "evidence_pack_hash": digest("d"),
+        "strategy_decision_contract_hash": digest("a"),
+        "strategy_config_hash": digest("e"), "odds_profile_hash": digest("f"),
+        "sport_adapter_version": "synthetic-risk-test", "market_capability_id": "capability-v1",
+        "model_artifact_hash": digest("1"), "calibration_artifact_hash": digest("2"),
+        "gate_policy_hash": digest("3"), "model_runner_hash": digest("4"),
+        "calibration_runner_hash": digest("5"), "tier_rule_hash": digest("6"),
+        "expiry_rule_hash": digest("7"), "resolver_binding_hash": binding_hash,
+        "strategy_id": "strategy", "strategy_version": "v1", "model_version": "model-v1",
+        "sport": "football", "market_family": "match_winner",
+        "event_id": f"event-{candidate_id}-{candidate_hash[:8]}",
+        "market_id": "market-test", "selection_id": f"selection-{candidate_id}-{candidate_hash[:8]}",
+        "side": side.value, "evidence_cutoff_ts": iso_utc("2026-01-01T00:00:00Z"),
+        "decision_at": iso_utc("2026-01-01T00:00:00Z"),
+        "model_probability": "0.62", "calibrated_probability": "0.61",
+        "conservative_probability": "0.6", "model_support_status": "supported",
+        "calibration_status": "supported", "uncertainty_status": "supported",
+        "critical_uncertainty_flags": [], "support_region_id": "synthetic-risk-test",
+        "observed_odds": canonical_decimal(Decimal(odds)), "requested_odds_min": "1.5",
+        "requested_odds_max": "3", "approved_tier": tier if tier in {
+            "1.0u", "1.5u", "2.0u", "2.5u", "3.0u",
+        } else "3.0u", "expires_at": iso_utc(expires_at),
+        "comparability_group_id": "group", "selection_dependency_group": None,
+        "correlation_cluster_ids": [], "meeting_id": None, "competition_id": None,
+        "participant_ids": [], "shared_evidence_ids": [],
+    }
+    output_hash = store.outputs.publish(output)
+    derived_hash = candidate_v3_decision_hash(
+        strategy_decision_contract_hash=digest("a"),
+        feature_manifest_hash=output["feature_manifest_hash"],
+        evidence_pack_hash=output["evidence_pack_hash"],
+        decision_output_hash=output_hash,
+    )
     return store.append(
         QualificationRecord.create(
+            schema_version="qualification-record-v3",
             candidate_id=candidate_id,
-            candidate_decision_hash=candidate_hash,
+            candidate_decision_hash=derived_hash,
             strategy_id="strategy",
             strategy_version="v1",
             strategy_decision_contract_hash=digest("a"),
@@ -49,6 +109,8 @@ def qualification(
             evaluated_at="2026-01-01T00:01:00Z",
             expires_at=expires_at,
             gate_results_digest=digest("b"),
+            decision_output_hash=output_hash,
+            feature_manifest_hash=output["feature_manifest_hash"],
         )
     )
 
@@ -60,6 +122,8 @@ def build_risk(
     candidate_hash: str = digest("1"),
     bankroll: str = "100",
     expires_at: str = "2026-01-01T01:00:00Z",
+    side: BetSide = BetSide.BACK,
+    odds: str = "2",
 ):
     policy = PolicySet()
     bankrolls = BankrollSnapshotStore(tmp / "bankroll.jsonl")
@@ -83,6 +147,8 @@ def build_risk(
         candidate_hash=candidate_hash,
         tier=tier,
         expires_at=expires_at,
+        side=side,
+        odds=odds,
     )
     audit = RiskAuditLog(tmp / "risk.jsonl")
     engine = RiskEngine(
@@ -101,7 +167,7 @@ def build_risk(
         "qualification": record,
         "audit": audit,
         "engine": engine,
-        "candidate_hash": candidate_hash,
+        "candidate_hash": record.candidate_decision_hash,
     }
 
 
@@ -164,11 +230,13 @@ class R5RiskAuthorityTests(unittest.TestCase):
                     )
                     decision = fixture["engine"].approve(request(fixture))
                     self.assertFalse(decision.passed)
-                    self.assertEqual(decision.reason, "invalid_qualification_tier")
+                    with self.assertRaises(ValueError):
+                        parse_tier(tier)
+                    self.assertEqual(decision.reason, "authority_unavailable")
 
     def test_lay_liability_and_caller_mismatch_checks_are_decimal_exact(self):
         with scratch_directory() as tmp:
-            fixture = build_risk(tmp, tier="2.0u")
+            fixture = build_risk(tmp, tier="2.0u", side=BetSide.LAY, odds="3")
             stake_mismatch = fixture["engine"].approve(
                 request(fixture, side=BetSide.LAY, odds="3.00", expected_stake="5.01")
             )

@@ -211,6 +211,7 @@ class CandidateBet:
     strategy_decision_contract_hash: str | None = None
     comparability_group_id: str | None = None
     candidate_decision_hash: str | None = None
+    decision_output_hash: str | None = None
 
     def __post_init__(self) -> None:
         from decimal import Decimal
@@ -241,16 +242,26 @@ class CandidateBet:
             "config_digest",
             "strategy_decision_contract_hash",
             "candidate_decision_hash",
+            "decision_output_hash",
         ):
             value = getattr(self, name)
             if value is not None and len(value) != 64:
                 raise ValueError(f"{name} must be a SHA-256 digest")
+        if self.candidate_version in {"candidate-v1", "candidate-v2"} and self.decision_output_hash is not None:
+            raise ValueError("legacy candidate cannot acquire a V3 output reference")
+        if self.candidate_version == "candidate-v3" and self.decision_output_hash is None:
+            raise ValueError("candidate-v3 requires an exact output identity")
 
 
 def as_record(value: Any) -> dict[str, Any]:
     """Serialize dataclasses without making IDs or timestamps implicit."""
 
     result = asdict(value)
+    if isinstance(value, CandidateBet) and value.candidate_version in {
+        "candidate-v1", "candidate-v2",
+    }:
+        # V3's additional reference must not rewrite old serialized records.
+        result.pop("decision_output_hash", None)
     return _enum_values(result)
 
 

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import unittest
+import json
 from dataclasses import replace
+from datetime import timedelta
 
 import genesis.selection as selection_module
 from genesis.canonical import CandidateBet, EvidenceStatus, MarketSide, ResearchEvidence
@@ -16,7 +18,8 @@ from genesis.pit import (
     SourceCapability,
     SourceCapabilityRegistry,
 )
-from genesis.policy import PolicySet, matched_odds_profile, odds_profile_hash, parse_tier
+from genesis.policy import PolicySet, canonical_decimal, matched_odds_profile, odds_profile_hash, parse_tier
+from genesis.repro import canonical_json, sha256_bytes
 from genesis.provenance import (
     AvailabilityClass,
     ProvenanceRef,
@@ -40,8 +43,8 @@ from genesis.selection import (
     qualify_v04,
     rank_qualified,
 )
-from genesis.time import iso_utc
-from ._support import scratch_directory
+from genesis.time import iso_utc, parse_utc
+from ._support import SyntheticQualificationRecordStore as QualificationRecordStore, scratch_directory
 
 
 def digest(character: str) -> str:
@@ -70,6 +73,78 @@ class ReadyExecutionView:
         return True
 
 
+class SyntheticS3Resolver:
+    """Isolated fixture code; no production strategy/model/rule is approved."""
+
+    def __init__(self, evidence: EvidenceStore, tier: str):
+        self.evidence = evidence
+        self.tier = tier
+        self.artifact_hash = sha256_bytes(canonical_json({
+            "domain": "genesis.synthetic-test-resolver.v1", "tier": tier,
+            "model": "dry-weather-fixture-v1", "expiry": "pack-freeze+57-minutes",
+        }))
+
+    def reproduce(self, *, binding, manifest, pack, contract, policy):
+        from genesis.decision_output import rule_binding_hash
+
+        raw = json.loads(self.evidence.get_bytes(
+            manifest["required_inputs"][0]["raw_artifact_hash"]
+        ))
+        profile = matched_odds_profile(policy, raw["odds"])
+        decision_at = parse_utc(pack.frozen_at) + timedelta(minutes=7)
+        expires_at = decision_at + timedelta(minutes=50)
+        if raw["weather"] != "dry":
+            raise ValueError("synthetic model has no support outside dry weather")
+        return {
+            "domain": "genesis.decision-output.v1",
+            "schema_version": "decision-output-v1",
+            "feature_manifest_hash": pack.feature_manifest_hash,
+            "evidence_pack_hash": pack.pack_hash,
+            "strategy_decision_contract_hash": contract.contract_hash,
+            "strategy_config_hash": contract.strategy_config_hash,
+            "odds_profile_hash": contract.odds_profile_hash,
+            "sport_adapter_version": contract.sport_adapter_version,
+            "market_capability_id": contract.market_capability_id,
+            "model_artifact_hash": contract.model_artifact_hash,
+            "calibration_artifact_hash": contract.calibration_artifact_hash,
+            "gate_policy_hash": contract.gate_policy_hash,
+            "model_runner_hash": binding["model_runner_hash"],
+            "calibration_runner_hash": binding["calibration_runner_hash"],
+            "tier_rule_hash": binding["tier_rule_hash"],
+            "expiry_rule_hash": binding["expiry_rule_hash"],
+            "resolver_binding_hash": rule_binding_hash(binding),
+            "strategy_id": contract.strategy_id,
+            "strategy_version": contract.strategy_version,
+            "model_version": "model-v1",
+            "sport": "football",
+            "market_family": "match_winner",
+            "event_id": raw["event_id"],
+            "market_id": raw["market_id"],
+            "selection_id": raw["selection_id"],
+            "side": raw["side"],
+            "evidence_cutoff_ts": iso_utc(pack.evidence_cutoff_ts),
+            "decision_at": iso_utc(decision_at),
+            "model_probability": "0.62",
+            "calibrated_probability": "0.61",
+            "conservative_probability": "0.6",
+            "model_support_status": "supported",
+            "calibration_status": "supported",
+            "uncertainty_status": "supported",
+            "critical_uncertainty_flags": [],
+            "support_region_id": contract.support_region,
+            "observed_odds": raw["odds"],
+            "requested_odds_min": canonical_decimal(profile.minimum),
+            "requested_odds_max": canonical_decimal(profile.maximum),
+            "approved_tier": self.tier,
+            "expires_at": iso_utc(expires_at),
+            "comparability_group_id": contract.comparability_group_id,
+            "selection_dependency_group": None,
+            "correlation_cluster_ids": [],
+            "meeting_id": None, "competition_id": None,
+            "participant_ids": [], "shared_evidence_ids": [],
+        }
+
+
 def build_fixture(
     tmp,
     *,
@@ -78,6 +153,7 @@ def build_fixture(
     fail_closed_views: bool = False,
     approved_tiers: tuple[str, ...] = ("1.0u", "1.5u", "2.0u", "2.5u", "3.0u"),
     comparability_group_id: str = "football-match-winner-v1",
+    synthetic_tier: str = "2.0u",
 ):
     policy = PolicySet()
     source_contracts = SourceContractRegistry(tmp / "source-contracts.jsonl")
@@ -97,7 +173,7 @@ def build_fixture(
     )
     evidence = EvidenceStore(tmp / "evidence", contracts=source_contracts)
     observation = evidence.publish(
-        b'{"weather":"dry"}',
+        b'{"event_id":"event-1","market_id":"market-1","selection_id":"selection-1","side":"back","odds":"2","weather":"dry"}',
         contract_id="source-contract-v1",
         source_uri="synthetic://weather/1",
         provider="synthetic",
@@ -196,7 +272,7 @@ def build_fixture(
             "market_id": "market-1",
             "evidence_cutoff_ts": iso_utc("2026-01-01T00:02:00Z"),
             "required_inputs": [{
-                "role": "feature", "input_key": "weather",
+                "role": "feature", "input_key": name,
                 "entity_id": "event-1", "event_id": "event-1",
                 "market_id": "market-1", "source_id": "source-1",
                 "source_contract_id": "source-contract-v1",
@@ -206,9 +282,9 @@ def build_fixture(
                 "observation_id": observation.observation_id,
                 "pit_record_id": "pit-1",
                 "pit_record_hash": pit.log.records()[-1]["record_hash"],
-                "field_id": "$.weather",
-                "transform_artifact_hash": identity_transform_hash("$.weather"),
-            }],
+                "field_id": f"$.{name}",
+                "transform_artifact_hash": identity_transform_hash(f"$.{name}"),
+            } for name in ("event_id", "market_id", "odds", "selection_id", "side", "weather")],
             "structured_evidence_hashes": [structured_hash],
         }
         feature_hash = manifests.publish(manifest_body)
@@ -303,11 +379,11 @@ def build_fixture(
         market_id="market-1",
         selection_id="selection-1",
         side=MarketSide.BACK,
-        requested_odds_min="1.50",
-        requested_odds_max="3.00",
-        observed_odds="2.00",
+        requested_odds_min="1.5",
+        requested_odds_max="3",
+        observed_odds="2",
         model_probability="0.62",
-        conservative_probability="0.60",
+        conservative_probability="0.6",
         model_version="model-v1",
         evidence_pack_id=frozen_pack.pack_hash,
         decision_at="2026-01-01T00:10:00Z",
@@ -316,7 +392,7 @@ def build_fixture(
         candidate_version="candidate-v2",
         evidence_cutoff_ts=frozen_pack.evidence_cutoff_ts,
         market_family="match_winner",
-        strategy_tier="2.0u",
+        strategy_tier=synthetic_tier,
         model_artifact_hash=model_hash,
         calibration_artifact_hash=calibration_hash,
         feature_manifest_hash=feature_hash,
@@ -324,6 +400,9 @@ def build_fixture(
         config_digest=config_hash,
         strategy_decision_contract_hash=contract.contract_hash,
         comparability_group_id=comparability_group_id,
+        model_support_status="supported",
+        calibration_status="supported",
+        uncertainty_status="supported",
     )
     candidate = replace(
         candidate,
@@ -334,7 +413,74 @@ def build_fixture(
             sport_adapter_version=contract.sport_adapter_version,
         ),
     )
-    records = QualificationRecordStore(tmp / "qualifications.jsonl")
+    try:
+        from genesis.decision_output import (
+            DecisionOutputStore, StrategyOutputRuleBindingStore,
+            TrustedDecisionOutputAuthority, rule_binding_hash,
+        )
+        from genesis.decision import candidate_v3_decision_hash
+    except ModuleNotFoundError:
+        trusted_outputs = None
+        output_body = None
+        records = QualificationRecordStore(tmp / "qualifications.jsonl")
+    else:
+        class SyntheticTestOutputAuthority(TrustedDecisionOutputAuthority):
+            def _validate_approval_reference(
+                self, reference: str, *, binding_hash: str, decision_at: str,
+            ) -> None:
+                del binding_hash, decision_at
+                if reference != "synthetic-test-only-not-operational":
+                    raise ValueError("test resolver has no non-test approval")
+
+        outputs = DecisionOutputStore(tmp / "decision-outputs")
+        bindings = StrategyOutputRuleBindingStore(tmp / "strategy-output-bindings.jsonl")
+        resolver = SyntheticS3Resolver(evidence, synthetic_tier)
+        binding = {
+            "domain": "genesis.strategy-output-rule-binding.v1",
+            "schema_version": "strategy-output-rule-binding-v1",
+            "strategy_decision_contract_hash": contract.contract_hash,
+            "active_policy_digest": policy.digest,
+            "approved_tier_policy_id": contract.approved_tier_policy_id,
+            "model_artifact_hash": contract.model_artifact_hash,
+            "calibration_artifact_hash": contract.calibration_artifact_hash,
+            "feature_manifest_hash": contract.feature_manifest_hash,
+            "gate_policy_hash": contract.gate_policy_hash,
+            "model_runner_hash": digest("1"),
+            "calibration_runner_hash": digest("2"),
+            "tier_rule_hash": sha256_bytes(canonical_json({
+                "domain": "synthetic-tier-rule", "tier": synthetic_tier,
+            })),
+            "expiry_rule_hash": digest("4"),
+            "resolver_artifact_hash": resolver.artifact_hash,
+            "scope": "PAPER",
+            "valid_from": iso_utc("2026-01-01T00:00:00Z"),
+            "valid_through": None,
+            "human_approval_reference": "synthetic-test-only-not-operational",
+        }
+        bindings.register_approved(binding)
+        output_body = resolver.reproduce(
+            binding=binding,
+            manifest=manifests.get(feature_hash),
+            pack=frozen_pack,
+            contract=contract,
+            policy=policy,
+        )
+        output_hash = outputs.publish(output_body)
+        candidate = replace(
+            candidate,
+            candidate_version="candidate-v3",
+            decision_output_hash=output_hash,
+            candidate_decision_hash=candidate_v3_decision_hash(
+                strategy_decision_contract_hash=contract.contract_hash,
+                feature_manifest_hash=feature_hash,
+                evidence_pack_hash=frozen_pack.pack_hash,
+                decision_output_hash=output_hash,
+            ),
+        )
+        trusted_outputs = SyntheticTestOutputAuthority(
+            outputs=outputs, bindings=bindings, resolver=resolver,
+        )
+        records = QualificationRecordStore(tmp / "qualifications.jsonl", outputs=outputs)
     authority_dependencies = dict(
         strategies=strategies,
         market_capabilities=market_capabilities,
@@ -350,6 +496,8 @@ def build_fixture(
     )
     if manifests is not None:
         authority_dependencies["feature_manifests"] = manifests
+    if trusted_outputs is not None:
+        authority_dependencies["decision_outputs"] = trusted_outputs
     authority = QualificationAuthority(**authority_dependencies)
     return {
         "authority": authority,
@@ -361,6 +509,8 @@ def build_fixture(
         "profile_hash": profile_hash,
         "feature_manifests": manifests,
         "observation": observation,
+        "trusted_outputs": trusted_outputs,
+        "output_body": output_body,
     }
 
 
@@ -377,6 +527,7 @@ class R3QualificationAuthorityTests(unittest.TestCase):
                 gate_policy_hash=None,
                 strategy_decision_contract_hash=None,
                 candidate_decision_hash=None,
+                decision_output_hash=None,
             )
             facts = QualificationFacts(
                 **{name: True for name in QualificationFacts.__dataclass_fields__}
@@ -547,12 +698,12 @@ class R3StrictTierTests(unittest.TestCase):
 
     def test_each_policy_tier_qualifies_when_the_strategy_contract_allows_it(self):
         with scratch_directory() as tmp:
-            fixture = build_fixture(tmp)
             for value in ("1.0u", "1.5u", "2.0u", "2.5u", "3.0u"):
                 with self.subTest(value=value):
+                    fixture = build_fixture(tmp / value.replace(".", "-"), synthetic_tier=value)
                     self.assertEqual(parse_tier(value), parse_tier(value))
                     decision = fixture["authority"].evaluate(
-                        replace(fixture["candidate"], strategy_tier=value),
+                        fixture["candidate"],
                         now="2026-01-01T00:11:00Z",
                     )
                     self.assertEqual(decision.action, "QUALIFY")

@@ -31,7 +31,13 @@ green; final post-hardening full suite 150/150 and `compileall` passed.
 The initial unprivileged Windows multiprocess failures and temporary
 approval-service rejection are retained. Exact transcripts are in
 `remediation_evidence/S3a/`.
-**A4, A6 and A8 remain open; no GO is granted.**
+S3b A4's final 23-method set was RED on sealed `166f923` and clean S3a
+`4f04c0a` (43 invariant assertion failures each, no setup/import errors).
+A same-worktree side/price mismatch test was RED before its fix. The final
+S3b targeted suite passed 51/51, retained S1/S2 and R5–R10 passed 81/81,
+the full suite passed 173/173, and `compileall` passed. Exact transcripts,
+commands and hashes: `remediation_evidence/S3b/`.
+**A6 and A8 remain open; no GO is granted.**
 
 ## Deterministic gate
 
@@ -77,6 +83,8 @@ protected external dataset or historical outcome source.
 | Astra S1 mandatory submission and reservation | `test_astra_s1_submission.py`, `test_astra_s1_reservation.py` — 13 tests |
 | Astra S2a strict active replay | `test_astra_s2_replay.py` — 7 tests |
 | Astra S2b cross-store risk admission | `test_astra_s2_admission.py` — 9 tests |
+| Astra S3a exact manifest and PIT | `test_astra_s3_manifest.py` — 11 tests |
+| Astra S3b trusted output and v3 adversaries | `test_astra_s3_output.py`, `test_astra_s3_v3_adversarial.py` — 23 tests |
 
 Individual test methods combine closely related rows of the binding T-F01
 through T-F15 matrix. Each batch checkpoint records the exact matrix rows it

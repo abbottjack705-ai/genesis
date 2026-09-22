@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from decimal import Decimal
 from pathlib import Path
 from typing import Any, Callable, Iterable, Protocol
 
 from .capabilities import MarketCapabilityRegistry
 from .canonical import CandidateBet
-from .decision import decision_hash_for_candidate
+from .decision import candidate_v3_decision_hash, decision_hash_for_candidate
+from .decision_output import (
+    DecisionOutputStore, StrategyOutputRuleBindingStore,
+    TrustedDecisionOutputAuthority,
+)
 from .evidence import StructuredEvidenceStore
 from .evidence_pack import EvidencePackStore
 from .feature_manifest import FeatureInputManifestStore
@@ -90,6 +94,60 @@ def _gate(name: str, value: bool | None, reason: ReasonCode) -> GateResult:
     return GateResult(name, False, ReasonCode.PASS_UNKNOWN_STATE if value is None else reason)
 
 
+def _candidate_matches_output(candidate: CandidateBet, output: dict) -> bool:
+    """Candidate copies are comparison-only; they never supply V3 authority."""
+
+    try:
+        scalars = {
+            "strategy_id": candidate.strategy_id,
+            "strategy_version": candidate.strategy_version,
+            "model_version": candidate.model_version,
+            "sport": candidate.sport,
+            "market_family": candidate.market_family,
+            "event_id": candidate.event_id,
+            "market_id": candidate.market_id,
+            "selection_id": candidate.selection_id,
+            "side": candidate.side.value,
+            "model_probability": candidate.model_probability,
+            "conservative_probability": candidate.conservative_probability,
+            "model_support_status": candidate.model_support_status,
+            "calibration_status": candidate.calibration_status,
+            "uncertainty_status": candidate.uncertainty_status,
+            "observed_odds": candidate.observed_odds,
+            "requested_odds_min": candidate.requested_odds_min,
+            "requested_odds_max": candidate.requested_odds_max,
+            "approved_tier": candidate.strategy_tier,
+            "comparability_group_id": candidate.comparability_group_id,
+            "selection_dependency_group": candidate.selection_dependency_group,
+            "meeting_id": candidate.meeting_id,
+            "competition_id": candidate.competition_id,
+            "feature_manifest_hash": candidate.feature_manifest_hash,
+            "evidence_pack_hash": candidate.evidence_pack_id,
+            "strategy_decision_contract_hash": candidate.strategy_decision_contract_hash,
+            "strategy_config_hash": candidate.config_digest,
+            "model_artifact_hash": candidate.model_artifact_hash,
+            "calibration_artifact_hash": candidate.calibration_artifact_hash,
+            "gate_policy_hash": candidate.gate_policy_hash,
+        }
+        if any(output[key] != value for key, value in scalars.items()):
+            return False
+        for key, values in (
+            ("critical_uncertainty_flags", candidate.critical_uncertainty_flags),
+            ("correlation_cluster_ids", candidate.correlation_cluster_ids),
+            ("participant_ids", candidate.participant_ids),
+            ("shared_evidence_ids", candidate.shared_evidence_ids),
+        ):
+            if tuple(output[key]) != tuple(values):
+                return False
+        return all((
+            output["evidence_cutoff_ts"] == iso_utc(candidate.evidence_cutoff_ts),
+            output["decision_at"] == iso_utc(candidate.decision_at),
+            output["expires_at"] == iso_utc(candidate.expires_at),
+        ))
+    except Exception:
+        return False
+
+
 def qualify_v04(candidate: CandidateBet, *, now: str, facts: QualificationFacts) -> SelectionDecision:
     """Legacy caller-facts path retained for audit replay; never authoritative."""
 
@@ -167,10 +225,12 @@ class QualificationRecord:
     expires_at: str
     gate_results_digest: str
     action: str = "QUALIFY"
+    decision_output_hash: str | None = None
+    feature_manifest_hash: str | None = None
 
     def __post_init__(self) -> None:
-        if self.schema_version != "qualification-record-v2" or self.action != "QUALIFY":
-            raise ValueError("qualification records can only encode V2 QUALIFY authority")
+        if self.schema_version not in {"qualification-record-v2", "qualification-record-v3"} or self.action != "QUALIFY":
+            raise ValueError("unsupported qualification record authority")
         for name in (
             "qualification_record_id",
             "candidate_decision_hash",
@@ -184,12 +244,24 @@ class QualificationRecord:
             int(value, 16)
         for value in (self.decision_at, self.evaluated_at, self.expires_at):
             parse_utc(value)
+        if self.schema_version == "qualification-record-v2":
+            if self.decision_output_hash is not None or self.feature_manifest_hash is not None:
+                raise ValueError("historical V2 qualification cannot carry V3 lineage")
+        else:
+            for name in ("decision_output_hash", "feature_manifest_hash"):
+                value = getattr(self, name)
+                if not isinstance(value, str) or len(value) != 64:
+                    raise ValueError(f"V3 qualification lacks {name}")
+                int(value, 16)
         if self.compute_id() != self.qualification_record_id:
             raise ValueError("qualification record ID mismatch")
 
     def unsigned_dict(self) -> dict[str, Any]:
         value = asdict(self)
         value.pop("qualification_record_id")
+        if self.schema_version == "qualification-record-v2":
+            value.pop("decision_output_hash")
+            value.pop("feature_manifest_hash")
         for key in ("decision_at", "evaluated_at", "expires_at"):
             value[key] = iso_utc(value[key])
         return value
@@ -213,12 +285,37 @@ class QualificationRecord:
 
 
 class QualificationRecordStore:
-    def __init__(self, path: str | Path):
+    def __init__(
+        self, path: str | Path, *, outputs: DecisionOutputStore | None = None,
+        bindings: StrategyOutputRuleBindingStore | None = None,
+    ):
         self.log = AppendOnlyJsonl(path)
+        self.outputs = outputs or DecisionOutputStore(Path(path).parent / "decision-outputs")
+        self.bindings = bindings or StrategyOutputRuleBindingStore(
+            Path(path).parent / "strategy-output-bindings.jsonl"
+        )
+        self.approval_root = Path(path).parent / "strategy-output-approvals"
+
+    def _require_separate_approval(
+        self, reference: str, *, binding_hash: str, decision_at: str,
+    ) -> None:
+        TrustedDecisionOutputAuthority(
+            outputs=self.outputs, bindings=self.bindings, resolver=None,
+            approval_root=self.approval_root,
+        )._validate_approval_reference(
+            reference, binding_hash=binding_hash, decision_at=decision_at,
+        )
 
     @staticmethod
     def _from_row(row: dict[str, Any]) -> QualificationRecord:
-        fields = {key: row[key] for key in QualificationRecord.__dataclass_fields__}
+        schema = row.get("schema_version")
+        expected = set(QualificationRecord.__dataclass_fields__)
+        if schema == "qualification-record-v2":
+            expected -= {"decision_output_hash", "feature_manifest_hash"}
+        if set(row) != expected | {"record_type", "previous_hash", "sequence", "record_hash"} \
+                or row.get("record_type") != "qualification_record":
+            raise RegistryConflict("qualification record has an unsupported active schema")
+        fields = {key: row[key] for key in QualificationRecord.__dataclass_fields__ if key in row}
         return QualificationRecord(**fields)
 
     def append(
@@ -259,6 +356,51 @@ class QualificationRecordStore:
             raise RegistryConflict(f"unknown or ambiguous qualification record: {record_id}")
         return matches[0]
 
+    def get_for_new_risk(self, record_id: str, *, at: str | None = None) -> QualificationRecord:
+        self.verify()
+        record = self.get(record_id)
+        if record.schema_version != "qualification-record-v3":
+            raise RegistryConflict("legacy qualification is audit-only for new risk")
+        assert record.decision_output_hash is not None
+        assert record.feature_manifest_hash is not None
+        output = self.outputs.get(record.decision_output_hash)
+        binding = self.bindings.require_active(
+            output["resolver_binding_hash"], at or record.evaluated_at,
+        )
+        self._require_separate_approval(
+            binding["human_approval_reference"],
+            binding_hash=output["resolver_binding_hash"],
+            decision_at=record.decision_at,
+        )
+        expected_hash = candidate_v3_decision_hash(
+            strategy_decision_contract_hash=record.strategy_decision_contract_hash,
+            feature_manifest_hash=record.feature_manifest_hash,
+            evidence_pack_hash=output["evidence_pack_hash"],
+            decision_output_hash=record.decision_output_hash,
+        )
+        if any((
+            record.candidate_decision_hash != expected_hash,
+            record.feature_manifest_hash != output["feature_manifest_hash"],
+            record.strategy_decision_contract_hash != output["strategy_decision_contract_hash"],
+            record.approved_tier != output["approved_tier"],
+            iso_utc(record.expires_at) != output["expires_at"],
+            iso_utc(record.decision_at) != output["decision_at"],
+            record.comparability_group_id != output["comparability_group_id"],
+            record.market_capability_id != output["market_capability_id"],
+            binding["strategy_decision_contract_hash"] != record.strategy_decision_contract_hash,
+            binding["active_policy_digest"] != record.active_policy_digest,
+            binding["feature_manifest_hash"] != record.feature_manifest_hash,
+            binding["model_artifact_hash"] != output["model_artifact_hash"],
+            binding["calibration_artifact_hash"] != output["calibration_artifact_hash"],
+            binding["gate_policy_hash"] != output["gate_policy_hash"],
+            any(binding[name] != output[name] for name in (
+                "model_runner_hash", "calibration_runner_hash", "tier_rule_hash",
+                "expiry_rule_hash",
+            )),
+        )):
+            raise RegistryConflict("V3 qualification/output lineage mismatch")
+        return record
+
     def verify(self) -> int:
         rows = self.log.records()
         for row in rows:
@@ -282,6 +424,7 @@ class QualificationAuthority:
         risk_view: QualificationRiskReadView,
         execution_view: QualificationExecutionReadView,
         qualification_records: QualificationRecordStore,
+        decision_outputs: TrustedDecisionOutputAuthority | None = None,
     ):
         dependencies = {
             "strategies": strategies,
@@ -331,6 +474,7 @@ class QualificationAuthority:
         self.risk_view = risk_view
         self.execution_view = execution_view
         self.qualification_records = qualification_records
+        self.decision_outputs = decision_outputs
 
     @staticmethod
     def _read(owner: Any, method: str, candidate: CandidateBet) -> bool | None:
@@ -412,6 +556,25 @@ class QualificationAuthority:
         except Exception:
             evidence_reproducible = False
 
+        output: dict | None = None
+        if candidate.candidate_version == "candidate-v3" and evidence_pack is not None \
+                and source_ready and self.decision_outputs is not None:
+            try:
+                if candidate.decision_output_hash is None:
+                    raise ValueError("missing decision output identity")
+                if self.decision_outputs.outputs.root.resolve() != \
+                        self.qualification_records.outputs.root.resolve():
+                    raise ValueError("qualification and output stores are not bound")
+                manifest = self.feature_manifests.get(evidence_pack.feature_manifest_hash)
+                output = self.decision_outputs.verify(
+                    candidate.decision_output_hash, manifest=manifest,
+                    pack=evidence_pack, contract=contract, policy=self.policy,
+                )
+                if not _candidate_matches_output(candidate, output):
+                    output = None
+            except Exception:
+                output = None
+
         profile = None
         profile_hash = None
         price_ok = False
@@ -431,11 +594,15 @@ class QualificationAuthority:
             contract
             and candidate.model_artifact_hash
             and candidate.model_artifact_hash == contract.model_artifact_hash
+            and output is not None
+            and output["model_support_status"] == "supported"
         )
         calibration_supported = bool(
             contract
             and candidate.calibration_artifact_hash
             and candidate.calibration_artifact_hash == contract.calibration_artifact_hash
+            and output is not None
+            and output["calibration_status"] == "supported"
         )
         odds_profile_ok = bool(contract and profile_hash == contract.odds_profile_hash)
         critical_fresh = bool(
@@ -467,10 +634,13 @@ class QualificationAuthority:
         uncertainty_supported = bool(
             structured_rows
             and all(row.get("status") not in {"uncertain", "contradicted"} for row in structured_rows)
+            and output is not None
+            and output["uncertainty_status"] == "supported"
+            and not output["critical_uncertainty_flags"]
         )
 
         identity_unambiguous = False
-        if contract is not None and artifact is not None and evidence_pack is not None and profile_hash:
+        if contract is not None and artifact is not None and evidence_pack is not None and profile_hash and output is not None:
             try:
                 material_hashes = (
                     candidate.model_artifact_hash,
@@ -483,15 +653,15 @@ class QualificationAuthority:
                 )
                 if any(value is None or len(value) != 64 for value in material_hashes):
                     raise ValueError("candidate identity is incomplete")
-                expected_hash = decision_hash_for_candidate(
-                    candidate,
-                    strategy_config_hash=contract.strategy_config_hash,
-                    odds_profile_hash=profile_hash,
-                    sport_adapter_version=contract.sport_adapter_version,
+                expected_hash = candidate_v3_decision_hash(
+                    strategy_decision_contract_hash=contract.contract_hash,
+                    feature_manifest_hash=evidence_pack.feature_manifest_hash,
+                    evidence_pack_hash=evidence_pack.pack_hash,
+                    decision_output_hash=candidate.decision_output_hash,
                 )
                 identity_unambiguous = all(
                     (
-                        candidate.candidate_version == "candidate-v2",
+                        candidate.candidate_version == "candidate-v3",
                         candidate.candidate_decision_hash == expected_hash,
                         candidate.config_digest == contract.strategy_config_hash,
                         candidate.feature_manifest_hash == contract.feature_manifest_hash,
@@ -501,6 +671,7 @@ class QualificationAuthority:
                         candidate.strategy_decision_contract_hash == contract.contract_hash,
                         market_ready,
                         tier_valid,
+                        _candidate_matches_output(candidate, output),
                     )
                 )
             except Exception:
@@ -537,6 +708,7 @@ class QualificationAuthority:
             _gate("strategy_approved", facts.strategy_approved, ReasonCode.PASS_STRATEGY_NOT_APPROVED),
             _gate("source_ready", facts.source_ready, ReasonCode.PASS_DATA_CAPABILITY_NOT_READY),
             _gate("identity_unambiguous", facts.identity_unambiguous, ReasonCode.PASS_IDENTITY_AMBIGUOUS),
+            _gate("trusted_decision_output", output is not None, ReasonCode.PASS_IDENTITY_AMBIGUOUS),
             _gate("model_supported", facts.model_supported, ReasonCode.PASS_MODEL_OUT_OF_SUPPORT),
             _gate("calibration_supported", facts.calibration_supported, ReasonCode.PASS_CALIBRATION_UNSUPPORTED),
             _gate("evidence_pack_frozen", facts.evidence_pack_frozen, ReasonCode.PASS_MISSING_EVIDENCE),
@@ -558,6 +730,7 @@ class QualificationAuthority:
             return SelectionDecision(candidate.candidate_id, "PASS", gates)
 
         assert contract is not None
+        assert output is not None
         gate_results_digest = sha256_bytes(
             canonical_json(
                 [
@@ -567,19 +740,22 @@ class QualificationAuthority:
             )
         )
         record = QualificationRecord.create(
+            schema_version="qualification-record-v3",
             candidate_id=candidate.candidate_id,
             candidate_decision_hash=candidate.candidate_decision_hash,
             strategy_id=candidate.strategy_id,
             strategy_version=candidate.strategy_version,
             strategy_decision_contract_hash=contract.contract_hash,
-            approved_tier=candidate.strategy_tier,
+            approved_tier=output["approved_tier"],
             comparability_group_id=contract.comparability_group_id,
             active_policy_digest=self.policy.digest,
             market_capability_id=contract.market_capability_id,
             decision_at=candidate.decision_at,
             evaluated_at=now,
-            expires_at=candidate.expires_at,
+            expires_at=output["expires_at"],
             gate_results_digest=gate_results_digest,
+            decision_output_hash=candidate.decision_output_hash,
+            feature_manifest_hash=evidence_pack.feature_manifest_hash,
         )
         assert evidence_pack is not None
         assert self.pit.log is not None
@@ -599,6 +775,13 @@ class QualificationAuthority:
                     evidence=self.structured_evidence.evidence,
                     structured_evidence=self.structured_evidence,
                 )
+                current_output = self.decision_outputs.verify(
+                    candidate.decision_output_hash,
+                    manifest=self.feature_manifests.get(current_pack.feature_manifest_hash),
+                    pack=current_pack, contract=contract, policy=self.policy,
+                )
+                if current_output != output or not _candidate_matches_output(candidate, current_output):
+                    return False
                 return True
             except Exception:
                 return False
@@ -608,6 +791,7 @@ class QualificationAuthority:
             self.pit.capabilities.log,
             self.feature_manifests.bindings.log,
             self.structured_evidence.evidence.contracts.log,
+            self.decision_outputs.bindings.log,
         )
         try:
             self.qualification_records.append(
@@ -660,6 +844,49 @@ def qualify(
 
 
 def rank_qualified(candidates: Iterable[tuple[CandidateBet, SelectionDecision]]) -> list[CandidateBet]:
+    """Historical/pure ranking diagnostic; V3 requires the authority-aware path."""
+
+    items = list(candidates)
+    if any(candidate.candidate_version == "candidate-v3" for candidate, _ in items):
+        raise ValueError("candidate-v3 ranking requires exact output authority")
+    return _rank_qualified_items(items)
+
+
+def rank_qualified_v3(
+    candidates: Iterable[tuple[CandidateBet, SelectionDecision]],
+    *,
+    qualification_records: QualificationRecordStore,
+) -> list[CandidateBet]:
+    """Rank only reproduced V3 outputs with their exact qualification lineage."""
+
+    verified: list[tuple[CandidateBet, SelectionDecision]] = []
+    seen: set[str] = set()
+    for candidate, decision in candidates:
+        if not decision.passed:
+            continue
+        if candidate.candidate_version != "candidate-v3" or decision.qualification_record_id is None:
+            raise ValueError("V3 ranking requires authoritative qualification")
+        record = qualification_records.get_for_new_risk(decision.qualification_record_id)
+        output = qualification_records.outputs.get(record.decision_output_hash)
+        if (record.candidate_decision_hash != candidate.candidate_decision_hash
+                or record.candidate_id != candidate.candidate_id
+                or not _candidate_matches_output(candidate, output)):
+            raise ValueError("candidate and trusted ranking output differ")
+        if record.candidate_decision_hash in seen:
+            raise ValueError("one decision identity cannot be ranked twice")
+        seen.add(record.candidate_decision_hash)
+        trusted = replace(
+            candidate,
+            strategy_tier=output["approved_tier"],
+            conservative_probability=output["conservative_probability"],
+            observed_odds=output["observed_odds"],
+            comparability_group_id=output["comparability_group_id"],
+        )
+        verified.append((trusted, decision))
+    return _rank_qualified_items(verified)
+
+
+def _rank_qualified_items(candidates: Iterable[tuple[CandidateBet, SelectionDecision]]) -> list[CandidateBet]:
     qualified: list[CandidateBet] = []
     for candidate, decision in candidates:
         if not decision.passed:

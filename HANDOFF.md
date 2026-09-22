@@ -1,7 +1,7 @@
 # Project Genesis V0.4 remediation handoff
 
 Date: 2026-09-22
-Status: **Astra R10 HOLD; S1 A1+A2, S2a/S2b A3+A7 and S3a A5 locally green; A4/A6/A8 open; adapter NO-GO**
+Status: **Astra R10 HOLD; S1 A1+A2, S2a/S2b A3+A7 and S3a/S3b A5+A4 locally green; A6/A8 open; adapter NO-GO**
 
 ## S1 continuation notice
 
@@ -24,8 +24,13 @@ S3a has independent RED on `166f923` and pre-fix `3729022`, then GREEN
 targeted/replay checks and final 150/150 full regression in
 `remediation_evidence/S3a/`. The temporary Windows approval-service rejection
 and unprivileged multiprocess failures are preserved. A4 trusted decision
-outputs, A6 cache and A8 research process isolation remain open. Continue
-S3b only under the exact approved identity decision;
+outputs now bind candidate-v3 and new-risk/order lineage under the same
+approved ADR. S3b's 23 tests are RED on sealed `166f923` and clean S3a
+`4f04c0a` (43 invariant failures on each); targeted 51/51, retained 81/81,
+full 173/173 and `compileall` are green. Exact logs and hashes are in
+`remediation_evidence/S3b/`. This is local A4 closure, not an independent
+re-audit or strategy-specific approval. A6 cache and A8 research process
+isolation remain open. Continue with A6 next;
 do not begin an adapter, substantive shadow
 research or live-money work.
 

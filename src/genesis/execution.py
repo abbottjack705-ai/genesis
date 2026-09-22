@@ -454,6 +454,16 @@ class PaperExecutionAdapter:
 
         def build(rows: tuple[dict, ...]) -> dict | None:
             records = self._replay(rows)
+            try:
+                approval = self.risk.get_approval(intent.risk_approval_id)
+                qualification = self.risk.qualifications.get_for_new_risk(
+                    approval.qualification_record_id, at=intent.created_at,
+                )
+            except Exception as exc:
+                raise RegistryConflict("new order requires exact V3 qualification") from exc
+            if (approval.candidate_decision_hash != intent.candidate_decision_hash
+                    or qualification.candidate_decision_hash != intent.candidate_decision_hash):
+                raise RegistryConflict("order candidate/output lineage differs")
             by_key = {
                 record.intent.idempotency_key: record for record in records.values()
             }
@@ -476,7 +486,12 @@ class PaperExecutionAdapter:
             result["value"] = record
             return payload
 
-        self._audit.transaction(build)
+        self._audit.transaction(
+            build, read_locks=(
+                self.risk.audit_log.log, self.risk.qualifications.log,
+                self.risk.qualifications.bindings.log,
+            ),
+        )
         return result["value"]
 
     def get(self, idempotency_key: str) -> OrderRecord:
@@ -515,6 +530,11 @@ class PaperExecutionAdapter:
                 return record
             raise RegistryConflict("order is not eligible for risk binding")
         approval = self.risk.get_approval(record.intent.risk_approval_id)
+        qualification = self.risk.qualifications.get_for_new_risk(
+            approval.qualification_record_id, at=bound_at,
+        )
+        if qualification.candidate_decision_hash != record.intent.candidate_decision_hash:
+            raise RegistryConflict("order lacks exact V3 qualification lineage")
         if approval.status != "APPROVED_NOT_CONSUMED":
             raise RegistryConflict("risk approval is not available for binding")
         expected = (
@@ -609,6 +629,7 @@ class PaperExecutionAdapter:
             self.risk.audit_log.log,
             self.risk.bankrolls.log,
             self.risk.safety.log,
+            self.risk.qualifications.bindings.log,
             self.markets.log,
             self.refreshes.log,
         ) if state in {OrderState.SUBMISSION_PENDING, OrderState.SUBMISSION_SENT} else ()

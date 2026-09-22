@@ -4,7 +4,8 @@
 
 Astra's independent audit of R10 commit `166f923` returned **HOLD / NOT
 APPROVED**. S1 locally closed A1/A2; S2a/S2b locally closed A3/A7; S3a
-locally closed A5's exact-input correspondence with full-suite evidence. A4,
+locally closed A5's exact-input correspondence. S3b locally binds A4's trusted
+decision outputs to candidate-v3 and downstream new-risk/order lineage.
 A6 and A8 remain open; this diagram is a
 foundation map, not an adapter, shadow-research or live-money GO.
 
@@ -58,8 +59,8 @@ risk, bankroll, safety and qualification-log coordinator locks while it reads
 their current heads, derives stake/liability, checks open exposure/correlation
 and fsyncs a new approval. Bankroll/safety writers are ordered against that
 admission; a pre-lock change is observed and a later change is ordered after
-the approval. This is not a claim that the A4/A5 qualification identity/PIT
-boundary, A6 cache proof or A8 research process boundary is closed. Recovery must not
+the approval. S3a/S3b separately fence exact PIT/decision-output identity;
+A6 cache proof and A8 research process boundaries remain open. Recovery must not
 silently heal, truncate, choose a branch, or infer missing identity.
 
 ## Trust boundaries
@@ -116,8 +117,17 @@ SettlementLedger
   binding/capability head, observation/raw bytes, structured evidence and PIT
   row/head at the frozen cutoff. The PIT and source heads are fenced through
   qualification append; a same-event substitute cannot certify the pack.
-- A4 still leaves material decision outputs outside candidate-v2 identity.
-  S3a is a provenance checkpoint, not operational qualification or a GO.
+- S3b leaves every historical candidate-v1/v2 hash and record untouched but
+  makes them audit-only for new qualification, risk, pending and sent events.
+  Candidate-v3 binds the exact manifest, pack, contract and content-addressed
+  DecisionOutput-v1. Qualification resolves an active, unambiguous approved
+  rule binding and reproduces every output through its pinned resolver;
+  copied candidate fields cannot authorize a changed probability, uncertainty,
+  price, dependence, tier or expiry. Risk and orders verify the v3
+  qualification/output lineage; risk side and requested odds must match the
+  trusted side and existing output band. Revocation blocks new risk and sends.
+  No strategy-specific model, tier formula or expiry rule is approved here:
+  operational qualification remains fail-closed without separate approval.
 - Tier is strict and strategy-approved. Invalid or missing tier never degrades to
   a usable default.
 - Across equal-tier incomparable groups there is no quality comparison. A stable

@@ -591,7 +591,9 @@ class RiskEngine:
             # approval append. JSONL, not SQLite, remains the business truth.
             all_exposures = self._exposures(rows)
             try:
-                qualification = self.qualifications.get(request.qualification_record_id)
+                qualification = self.qualifications.get_for_new_risk(
+                    request.qualification_record_id, at=request.requested_at,
+                )
                 bankroll = self.bankrolls.current()
                 safety = self.safety.current()
             except Exception:
@@ -610,6 +612,18 @@ class RiskEngine:
                 return None
             if qualification.active_policy_digest != self.policy_set.digest:
                 decision_holder["value"] = RiskDecision(False, "qualification_policy_mismatch", "0", "0")
+                return None
+            try:
+                output = self.qualifications.outputs.get(qualification.decision_output_hash)
+            except Exception:
+                decision_holder["value"] = RiskDecision(False, "authority_unavailable", "0", "0")
+                return None
+            if (request.side.value != output["side"]
+                    or Decimal(request.odds) < Decimal(output["requested_odds_min"])
+                    or Decimal(request.odds) > Decimal(output["requested_odds_max"])):
+                decision_holder["value"] = RiskDecision(
+                    False, "decision_output_execution_mismatch", "0", "0"
+                )
                 return None
             if parse_utc(request.requested_at) >= parse_utc(qualification.expires_at):
                 decision_holder["value"] = RiskDecision(False, "qualification_expired", "0", "0")
@@ -712,7 +726,10 @@ class RiskEngine:
 
         self.audit_log.log.transaction(
             build,
-            read_locks=(self.bankrolls.log, self.safety.log, self.qualifications.log),
+            read_locks=(
+                self.bankrolls.log, self.safety.log, self.qualifications.log,
+                self.qualifications.bindings.log,
+            ),
         )
         return decision_holder["value"]
 
@@ -763,6 +780,11 @@ class RiskEngine:
             if len(matches) != 1:
                 raise RegistryConflict(f"unknown risk approval: {approval_id}")
             approval = matches[0]
+            qualification = self.qualifications.get_for_new_risk(
+                approval.qualification_record_id, at=consumed_at,
+            )
+            if qualification.candidate_decision_hash != approval.candidate_decision_hash:
+                raise RegistryConflict("risk approval lacks exact V3 output lineage")
             consumptions = [
                 row
                 for row in rows
@@ -790,7 +812,9 @@ class RiskEngine:
                 "consumed_at": consumed_at,
             }
 
-        self.audit_log.log.transaction(build)
+        self.audit_log.log.transaction(
+            build, read_locks=(self.qualifications.log, self.qualifications.bindings.log),
+        )
         return result["value"]
 
     def reserved_exposures(self) -> tuple[Exposure, ...]:
@@ -835,6 +859,11 @@ class RiskEngine:
     def approval_still_valid(self, approval_id: str, *, at: str) -> bool:
         try:
             approval = self.get_approval(approval_id)
+            qualification = self.qualifications.get_for_new_risk(
+                approval.qualification_record_id, at=at,
+            )
+            if qualification.candidate_decision_hash != approval.candidate_decision_hash:
+                return False
             if parse_utc(at) >= parse_utc(approval.expires_at):
                 return False
             if self.safety.current().kill_switch_active:

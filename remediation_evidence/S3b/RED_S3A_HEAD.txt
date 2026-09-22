@@ -1,0 +1,151 @@
+BASELINE_SHA=4f04c0a7a996250480d870ecae920a03812e894d
+BASELINE_SOURCE=C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s3b-red-s3a\src\genesis\__init__.py
+test_copied_hash_cannot_change_conservative_probability (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_change_conservative_probability) ... FAIL
+test_copied_hash_cannot_change_dependence (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_change_dependence) ... FAIL
+test_copied_hash_cannot_change_model_probability (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_change_model_probability) ... FAIL
+test_copied_hash_cannot_change_observed_price (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_change_observed_price) ... FAIL
+test_copied_hash_cannot_change_price_band (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_change_price_band) ... FAIL
+test_copied_hash_cannot_change_uncertainty_status (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_change_uncertainty_status) ... FAIL
+test_copied_hash_cannot_extend_expiry (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_extend_expiry) ... FAIL
+test_copied_hash_cannot_substitute_another_permitted_tier (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_substitute_another_permitted_tier) ... FAIL
+test_original_candidate_v2_hash_is_audit_only_for_new_qualification (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_original_candidate_v2_hash_is_audit_only_for_new_qualification) ... FAIL
+test_output_schema_rejects_implicit_or_noncanonical_material_values (tests.test_astra_s3_output.AstraV3ContractTests.test_output_schema_rejects_implicit_or_noncanonical_material_values) ... FAIL
+test_v3_preimage_and_output_are_domain_separated_and_material (tests.test_astra_s3_output.AstraV3ContractTests.test_v3_preimage_and_output_are_domain_separated_and_material) ... FAIL
+
+======================================================================
+FAIL: test_copied_hash_cannot_change_conservative_probability (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_change_conservative_probability)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 35, in test_copied_hash_cannot_change_conservative_probability
+    self._assert_legacy_audit_only(conservative_probability="0.61")
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 24, in _assert_legacy_audit_only
+    self.assertEqual(decision.action, "PASS", "unbound v2 output qualified")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unbound v2 output qualified
+
+======================================================================
+FAIL: test_copied_hash_cannot_change_dependence (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_change_dependence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 53, in test_copied_hash_cannot_change_dependence
+    self._assert_legacy_audit_only(correlation_cluster_ids=("cluster-other",))
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 24, in _assert_legacy_audit_only
+    self.assertEqual(decision.action, "PASS", "unbound v2 output qualified")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unbound v2 output qualified
+
+======================================================================
+FAIL: test_copied_hash_cannot_change_model_probability (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_change_model_probability)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 32, in test_copied_hash_cannot_change_model_probability
+    self._assert_legacy_audit_only(model_probability="0.63")
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 24, in _assert_legacy_audit_only
+    self.assertEqual(decision.action, "PASS", "unbound v2 output qualified")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unbound v2 output qualified
+
+======================================================================
+FAIL: test_copied_hash_cannot_change_observed_price (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_change_observed_price)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 41, in test_copied_hash_cannot_change_observed_price
+    self._assert_legacy_audit_only(observed_odds="2.01")
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 24, in _assert_legacy_audit_only
+    self.assertEqual(decision.action, "PASS", "unbound v2 output qualified")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unbound v2 output qualified
+
+======================================================================
+FAIL: test_copied_hash_cannot_change_price_band (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_change_price_band)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 44, in test_copied_hash_cannot_change_price_band
+    self._assert_legacy_audit_only(requested_odds_min="1.60")
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 24, in _assert_legacy_audit_only
+    self.assertEqual(decision.action, "PASS", "unbound v2 output qualified")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unbound v2 output qualified
+
+======================================================================
+FAIL: test_copied_hash_cannot_change_uncertainty_status (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_change_uncertainty_status)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 38, in test_copied_hash_cannot_change_uncertainty_status
+    self._assert_legacy_audit_only(uncertainty_status="supported")
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 24, in _assert_legacy_audit_only
+    self.assertEqual(decision.action, "PASS", "unbound v2 output qualified")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unbound v2 output qualified
+
+======================================================================
+FAIL: test_copied_hash_cannot_extend_expiry (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_extend_expiry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 50, in test_copied_hash_cannot_extend_expiry
+    self._assert_legacy_audit_only(expires_at="2026-01-01T02:00:00Z")
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 24, in _assert_legacy_audit_only
+    self.assertEqual(decision.action, "PASS", "unbound v2 output qualified")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unbound v2 output qualified
+
+======================================================================
+FAIL: test_copied_hash_cannot_substitute_another_permitted_tier (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_copied_hash_cannot_substitute_another_permitted_tier)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 47, in test_copied_hash_cannot_substitute_another_permitted_tier
+    self._assert_legacy_audit_only(strategy_tier="2.5u")
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 24, in _assert_legacy_audit_only
+    self.assertEqual(decision.action, "PASS", "unbound v2 output qualified")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unbound v2 output qualified
+
+======================================================================
+FAIL: test_original_candidate_v2_hash_is_audit_only_for_new_qualification (tests.test_astra_s3_output.AstraDecisionOutputBoundaryTests.test_original_candidate_v2_hash_is_audit_only_for_new_qualification)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 29, in test_original_candidate_v2_hash_is_audit_only_for_new_qualification
+    self._assert_legacy_audit_only()
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 24, in _assert_legacy_audit_only
+    self.assertEqual(decision.action, "PASS", "unbound v2 output qualified")
+AssertionError: 'QUALIFY' != 'PASS'
+- QUALIFY
++ PASS
+ : unbound v2 output qualified
+
+======================================================================
+FAIL: test_output_schema_rejects_implicit_or_noncanonical_material_values (tests.test_astra_s3_output.AstraV3ContractTests.test_output_schema_rejects_implicit_or_noncanonical_material_values)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 129, in test_output_schema_rejects_implicit_or_noncanonical_material_values
+    self.assertIsNotNone(spec, "no strict output schema exists")
+AssertionError: unexpectedly None : no strict output schema exists
+
+======================================================================
+FAIL: test_v3_preimage_and_output_are_domain_separated_and_material (tests.test_astra_s3_output.AstraV3ContractTests.test_v3_preimage_and_output_are_domain_separated_and_material)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_output.py", line 99, in test_v3_preimage_and_output_are_domain_separated_and_material
+    self.assertIsNotNone(spec, "no trusted v3 output contract exists")
+AssertionError: unexpectedly None : no trusted v3 output contract exists
+
+----------------------------------------------------------------------
+Ran 11 tests in 3.656s
+
+FAILED (failures=11)

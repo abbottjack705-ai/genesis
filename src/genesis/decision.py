@@ -85,6 +85,34 @@ def decision_hash_for_candidate(
     )
 
 
+def candidate_v3_decision_hash(
+    *,
+    strategy_decision_contract_hash: str,
+    feature_manifest_hash: str,
+    evidence_pack_hash: str,
+    decision_output_hash: str,
+) -> str:
+    """Domain-separated v3 identity; legacy v1/v2 preimages stay unchanged."""
+
+    fields = {
+        "domain": "genesis.candidate-decision.v3",
+        "schema_version": "candidate-decision-v3",
+        "strategy_decision_contract_hash": strategy_decision_contract_hash,
+        "feature_manifest_hash": feature_manifest_hash,
+        "evidence_pack_hash": evidence_pack_hash,
+        "decision_output_hash": decision_output_hash,
+    }
+    for name in (
+        "strategy_decision_contract_hash", "feature_manifest_hash",
+        "evidence_pack_hash", "decision_output_hash",
+    ):
+        value = fields[name]
+        if not isinstance(value, str) or len(value) != 64 or value.lower() != value:
+            raise ValueError(f"{name} must be lowercase SHA-256 hex")
+        int(value, 16)
+    return sha256_bytes(canonical_json(fields))
+
+
 @dataclass(frozen=True)
 class ReproducibilityManifest:
     git_commit_hash: str

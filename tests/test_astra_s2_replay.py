@@ -15,7 +15,7 @@ from genesis.risk import (
 )
 from genesis.selection import QualificationRecordStore
 
-from ._support import scratch_directory
+from ._support import SyntheticQualificationRecordStore as QualificationRecordStore, scratch_directory
 from .test_remediation_r5_risk import build_risk, request
 
 

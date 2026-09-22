@@ -8,7 +8,8 @@ The V2.1 R0–R10 checkpoint was independently audited at `166f923`.
 Astra returned **HOLD / NOT APPROVED** (A1 CRITICAL, A2–A8 HIGH). S1 has
 locally repaired A1+A2; S2a/S2b locally repaired A3/A7. Approved ADR-0002 v1
 authorizes S3; S3a locally repairs A5 with a 150/150 final full-suite gate.
-A4, A6 and A8 remain open and require staged remediation and a fresh
+S3b locally repairs A4 with a 173/173 full-suite gate. A6 and A8 remain open
+and require staged remediation and a fresh
 independent hostile re-audit. The original R0–R10 history is preserved.
 
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
@@ -46,9 +47,10 @@ system, or £100 canary was added.
   frozen evidence packs, and candidate decision identity are distinct and
   replayable.
 - `QualificationAuthority.evaluate()` requires its configured authorities and
-  persists an immutable `QualificationRecord` on success. Astra A4/A5 show that
-  mutable material outputs and unrelated same-event PIT rows can still enter
-  qualification; this boundary is not yet closed.
+  persists an immutable v3 record on success. S3a fences exact PIT/manifest
+  correspondence; S3b verifies the content-addressed decision output against
+  an independently approved, pinned resolver/rule binding. Without a real
+  strategy-specific approval it returns PASS.
 - Ranking has no exceptional-short, market-family, group-label, raw-odds, raw-EV,
   or incomparable raw-probability quality shortcut. It ranks only within explicit
   comparability groups and deterministically diversifies across groups.
@@ -56,8 +58,8 @@ system, or £100 canary was added.
   derives stake and BACK/LAY liability and enforces `1u = 0.025` and the hard 3u
   cap. S2a rejects unsupported active risk/bankroll/safety replay. S2b
   coordinates current bankroll, safety, qualification and exposure heads
-  through the risk approval append; A4/A5 qualification identity/PIT gaps
-  are not repaired by this admission lock.
+  through the risk approval append. S3b additionally rejects legacy or
+  mismatched v3 lineage and a different side or out-of-band requested price.
 - S1 PAPER execution enforces one order-intent lineage per candidate hash,
   exact consumed approval plus active reservation binding, and mandatory fresh
   recertification at pending and sent. S1 fences the known durable safety/risk/
@@ -146,8 +148,33 @@ Detailed traceability and results are under `remediation_evidence/R0` through
   Windows multiprocess permission errors and temporary approval-service
   rejection are preserved; the permitted final rerun is green.
 - This is local A5 closure only, not independent audit approval.
-- This does not bind trusted decision outputs, tier derivation or expiry;
-  A4/S3b remains HOLD. There is no model, live adapter, shadow or money GO.
+- S3b's separate local A4 closure follows. There is no model, live adapter,
+  shadow or money GO.
+
+## S3b verification (local A4 checkpoint)
+
+- Approved ADR-0002 v1 remains the exact S3 identity authority (SHA-256
+  `7e851df9898f3a257a87b602bc1a7f6011ebae1397d42c17b8727c84e554ae00`).
+  Existing v1/v2 identity functions and historical hashes are unchanged.
+- The final independent A4 set was RED on sealed `166f923` and clean S3a
+  `4f04c0a`: 23 methods, 43 invariant assertion failures on each baseline,
+  zero import/setup errors. A same-worktree side/price adversary was also RED
+  before its risk-boundary repair.
+- Candidate-v3 and `qualification-record-v3` bind content-addressed
+  DecisionOutput-v1 and the exact FeatureInputManifest-v1. Qualification
+  requires a separately approved active rule binding and pinned resolver
+  reproduction, not caller copies or a mere self-hash. Risk, intent and
+  pending/sent checks retain the output lineage; rule revocation blocks new
+  actions. Legacy v1/v2 history remains readable and terminal settlement
+  remains legal, but legacy identity cannot authorize new actions.
+- Synthetic resolver and binding fixtures exist only in tests. No real model,
+  calibration, tier formula/cutoff, expiry TTL, strategy-specific approval,
+  adapter, protected research campaign or live path was created. Production
+  qualification remains fail-closed. Targeted 51/51, retained 81/81 and full
+  173/173 are green; `compileall` passes. Exact evidence is in
+  `remediation_evidence/S3b/`.
+- This is local A4 closure only, not independent Astra re-audit approval.
+  A6/A8 and the overall audited HOLD remain open.
 
 ## Compatibility and migration state
 
@@ -172,7 +199,6 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Review S3a, then proceed to S3b/A4 under approved ADR-0002 v1, followed
-by A6 and A8 in dependency order. A new
+Review S3b, then proceed to A6 and A8 in dependency order. A new
 independent hostile re-audit and explicit checkpoint approval are still required
 before any adapter or later Genesis phase.

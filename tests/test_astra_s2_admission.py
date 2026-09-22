@@ -26,7 +26,7 @@ from genesis.risk import (
 )
 from genesis.selection import QualificationRecordStore
 
-from ._support import scratch_directory
+from ._support import SyntheticQualificationRecordStore as QualificationRecordStore, scratch_directory
 from .test_remediation_r5_risk import build_risk, digest, qualification, request
 
 
@@ -58,9 +58,15 @@ def _isolated_worker_authority(source_root):
         SafetyStateStore as WorkerSafetyStore,
     )
     from genesis.selection import QualificationRecordStore as WorkerQualifications
+
+    class SyntheticWorkerQualifications(WorkerQualifications):
+        def _require_separate_approval(self, reference, *, binding_hash, decision_at):
+            if not reference.startswith("synthetic-test-only-"):
+                raise ValueError("fixture does not recognize output approval")
+
     return (WorkerPolicySet, WorkerBankrollSnapshot, WorkerBankrollStore,
             WorkerRiskAuditLog, WorkerRiskEngine, WorkerSafetyState,
-            WorkerSafetyStore, WorkerQualifications)
+            WorkerSafetyStore, SyntheticWorkerQualifications)
 
 
 def _worker_engine(root, source_root):
@@ -230,19 +236,19 @@ class AstraAdmissionSerializationTests(unittest.TestCase):
             self.assertEqual(decision.reason, "unknown_exposure_blocks_new_risk")
 
             other = build_risk(root / "capacity")
-            qualification(other["qualifications"], other["policy"],
-                          candidate_hash=digest("2"), tier="3.0u", candidate_id="other")
+            second_qualification = qualification(
+                other["qualifications"], other["policy"],
+                candidate_hash=digest("2"), tier="3.0u", candidate_id="other",
+            )
             other["engine"].record_exposure(
                 Exposure("prior", digest("8"), "50", ExposureState.MATCHED),
                 recorded_at="2026-01-01T00:05:00Z",
             )
             first = other["engine"].approve(request(other))
             self.assertTrue(first.passed)
-            second_record = next(
-                item for item in other["qualifications"].log.records()
-                if item.get("candidate_decision_hash") == digest("2")
-            )
-            second = RiskRequest(digest("2"), second_record["qualification_record_id"],
+            second = RiskRequest(
+                second_qualification.candidate_decision_hash,
+                second_qualification.qualification_record_id,
                                  other["snapshot"].snapshot_id, BetSide.BACK,
                                  "2.00", "2026-01-01T00:10:00Z")
             self.assertEqual(other["engine"].approve(second).reason,
@@ -261,7 +267,7 @@ class AstraAdmissionSerializationTests(unittest.TestCase):
             record = qualification(fixture["qualifications"], fixture["policy"],
                                    candidate_hash=digest("2"), tier="1.0u",
                                    candidate_id="later")
-            second = RiskRequest(digest("2"), record.qualification_record_id,
+            second = RiskRequest(record.candidate_decision_hash, record.qualification_record_id,
                                  fixture["bankrolls"].current().snapshot_id,
                                  BetSide.BACK, "2.00", "2026-01-01T00:30:00Z")
             self.assertEqual(_restarted(root).approve(second).reason,

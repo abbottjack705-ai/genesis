@@ -1,0 +1,485 @@
+BASELINE_SHA=166f9230a0fb773cad2ac3619b5f98989d78a818
+BASELINE_SOURCE=C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s1-red-baseline\src\genesis\__init__.py
+test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) ... 
+  test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'model_probability': '0.63'}) ... FAIL
+  test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'conservative_probability': '0.61'}) ... FAIL
+  test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'uncertainty_status': 'uncertain'}) ... FAIL
+  test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'critical_uncertainty_flags': ('late-news',)}) ... FAIL
+  test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'observed_odds': '2.01'}) ... FAIL
+  test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'requested_odds_min': '1.6'}) ... FAIL
+  test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'strategy_tier': '2.5u'}) ... FAIL
+  test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'expires_at': '2026-01-01T02:00:00Z'}) ... FAIL
+  test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'correlation_cluster_ids': ('other',)}) ... FAIL
+  test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'shared_evidence_ids': ('other-evidence',)}) ... FAIL
+  test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'model_version': 'other-model'}) ... FAIL
+test_exact_v3_replay_survives_restart_without_new_identity (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_exact_v3_replay_survives_restart_without_new_identity) ... FAIL
+test_legacy_or_mismatched_v3_qualification_cannot_approve_new_risk (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_legacy_or_mismatched_v3_qualification_cannot_approve_new_risk) ... FAIL
+test_output_without_qualification_after_crash_cannot_reach_risk (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_output_without_qualification_after_crash_cannot_reach_risk) ... FAIL
+test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail) ... 
+  test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail) (case='revoked') ... FAIL
+  test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail) (case='ambiguous') ... FAIL
+  test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail) (case='resolver-missing') ... FAIL
+  test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail) (case='production-copy') ... FAIL
+test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) ... 
+  test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='model_probability') ... FAIL
+  test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='conservative_probability') ... FAIL
+  test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='observed_odds') ... FAIL
+  test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='requested_odds_min') ... FAIL
+  test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='approved_tier') ... FAIL
+  test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='expires_at') ... FAIL
+  test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='correlation_cluster_ids') ... FAIL
+  test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='tier_rule_hash') ... FAIL
+test_two_processes_cannot_publish_different_bytes_at_one_output_id (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_two_processes_cannot_publish_different_bytes_at_one_output_id) ... FAIL
+test_v3_ranking_uses_record_and_output_not_caller_copies (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_v3_ranking_uses_record_and_output_not_caller_copies) ... FAIL
+
+======================================================================
+FAIL: test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'model_probability': '0.63'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 96, in test_each_copied_v3_material_field_swap_fails_before_record
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'conservative_probability': '0.61'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 96, in test_each_copied_v3_material_field_swap_fails_before_record
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'uncertainty_status': 'uncertain'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 96, in test_each_copied_v3_material_field_swap_fails_before_record
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'critical_uncertainty_flags': ('late-news',)})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 96, in test_each_copied_v3_material_field_swap_fails_before_record
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'observed_odds': '2.01'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 96, in test_each_copied_v3_material_field_swap_fails_before_record
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'requested_odds_min': '1.6'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 96, in test_each_copied_v3_material_field_swap_fails_before_record
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'strategy_tier': '2.5u'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 96, in test_each_copied_v3_material_field_swap_fails_before_record
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'expires_at': '2026-01-01T02:00:00Z'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 96, in test_each_copied_v3_material_field_swap_fails_before_record
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'correlation_cluster_ids': ('other',)})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 96, in test_each_copied_v3_material_field_swap_fails_before_record
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'shared_evidence_ids': ('other-evidence',)})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 96, in test_each_copied_v3_material_field_swap_fails_before_record
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_each_copied_v3_material_field_swap_fails_before_record (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_each_copied_v3_material_field_swap_fails_before_record) (change={'model_version': 'other-model'})
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 96, in test_each_copied_v3_material_field_swap_fails_before_record
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_exact_v3_replay_survives_restart_without_new_identity (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_exact_v3_replay_survives_restart_without_new_identity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 51, in test_exact_v3_replay_survives_restart_without_new_identity
+    fixture = self._fixture(root)
+              ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_legacy_or_mismatched_v3_qualification_cannot_approve_new_risk (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_legacy_or_mismatched_v3_qualification_cannot_approve_new_risk)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 184, in test_legacy_or_mismatched_v3_qualification_cannot_approve_new_risk
+    self._fixture(root / "v3-existence")
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_output_without_qualification_after_crash_cannot_reach_risk (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_output_without_qualification_after_crash_cannot_reach_risk)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 228, in test_output_without_qualification_after_crash_cannot_reach_risk
+    fixture = self._fixture(root)
+              ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail) (case='revoked')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 138, in test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail
+    fixture = self._fixture(root / case)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail) (case='ambiguous')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 138, in test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail
+    fixture = self._fixture(root / case)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail) (case='resolver-missing')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 138, in test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail
+    fixture = self._fixture(root / case)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail) (case='production-copy')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 138, in test_revoked_ambiguous_or_unavailable_binding_and_resolver_fail
+    fixture = self._fixture(root / case)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='model_probability')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 114, in test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='conservative_probability')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 114, in test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='observed_odds')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 114, in test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='requested_odds_min')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 114, in test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='approved_tier')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 114, in test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='expires_at')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 114, in test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='correlation_cluster_ids')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 114, in test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted) (field='tier_rule_hash')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 114, in test_self_hashed_changed_output_and_new_candidate_hash_are_not_trusted
+    fixture = self._fixture(root / str(index))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_two_processes_cannot_publish_different_bytes_at_one_output_id (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_two_processes_cannot_publish_different_bytes_at_one_output_id)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 252, in test_two_processes_cannot_publish_different_bytes_at_one_output_id
+    fixture = self._fixture(root / "fixture")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+======================================================================
+FAIL: test_v3_ranking_uses_record_and_output_not_caller_copies (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_v3_ranking_uses_record_and_output_not_caller_copies)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 160, in test_v3_ranking_uses_record_and_output_not_caller_copies
+    fixture = self._fixture(root)
+              ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 37, in _fixture
+    self.assertEqual(
+AssertionError: 'candidate-v2' != 'candidate-v3'
+- candidate-v2
+?            ^
++ candidate-v3
+?            ^
+ : no v3 trusted decision authority exists
+
+----------------------------------------------------------------------
+Ran 8 tests in 9.321s
+
+FAILED (failures=28)

@@ -1,0 +1,18 @@
+test_change_at_transaction_entry_is_observed_not_reused (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_change_at_transaction_entry_is_observed_not_reused) ... ok
+test_cross_thread_authority_writer_waits_until_submission_is_durable (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_cross_thread_authority_writer_waits_until_submission_is_durable) ... ok
+test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) ... ok
+test_process_death_inside_fenced_check_leaves_no_pending_event_or_lock (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_process_death_inside_fenced_check_leaves_no_pending_event_or_lock) ... ok
+test_restart_preserves_pre_submission_gate_and_pending_ambiguity (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_restart_preserves_pre_submission_gate_and_pending_ambiguity) ... ok
+test_stale_success_and_between_phase_kill_do_not_certify_send (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_stale_success_and_between_phase_kill_do_not_certify_send) ... ok
+test_unchanged_authorities_allow_one_paper_submission (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_unchanged_authorities_allow_one_paper_submission) ... ok
+test_missing_or_conflicting_exact_reservation_never_certifies (tests.test_astra_s1_reservation.AstraReservationGateTests.test_missing_or_conflicting_exact_reservation_never_certifies) ... ok
+test_other_unknown_blocks_affected_continuation (tests.test_astra_s1_reservation.AstraReservationGateTests.test_other_unknown_blocks_affected_continuation) ... ok
+test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) ... ok
+test_reservation_transition_at_order_transaction_entry_blocks (tests.test_astra_s1_reservation.AstraReservationGateTests.test_reservation_transition_at_order_transaction_entry_blocks) ... ok
+test_restart_keeps_released_and_unknown_reservations_blocking (tests.test_astra_s1_reservation.AstraReservationGateTests.test_restart_keeps_released_and_unknown_reservations_blocking) ... ok
+test_valid_reservation_and_later_terminal_release_preserve_history (tests.test_astra_s1_reservation.AstraReservationGateTests.test_valid_reservation_and_later_terminal_release_preserve_history) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 9.591s
+
+OK

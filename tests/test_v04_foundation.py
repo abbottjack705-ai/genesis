@@ -39,6 +39,7 @@ from genesis.selection_evaluation import SelectionObservation, evaluate_selectio
 from genesis.labels import DecisionFact, DecisionFrame, FutureOutcomeLabel
 from genesis.provenance import AvailabilityClass, ProvenanceRef
 from genesis.quota import CachedData, QuotaInterpretation, QuotaLedger, QuotaPolicy
+from genesis.registry import RegistryConflict
 from genesis.risk import (
     BankrollSnapshot,
     BankrollSnapshotStore,
@@ -61,6 +62,7 @@ from genesis.selection import (
 )
 from ._support import scratch_directory
 from .test_remediation_r5_risk import build_risk, request as risk_request
+from .test_remediation_r6_execution import build_execution
 
 
 def digest(char: str = "a") -> str:
@@ -262,12 +264,23 @@ class V04CandidateRiskExecutionTests(unittest.TestCase):
             adapter.create_intent(intent)
             self.assertEqual(adapter.create_intent(intent).state, OrderState.ORDER_INTENT_CREATED)
             adapter.bind_risk("idem-1", bound_at="2026-01-01T00:13:00Z")
-            adapter.transition("idem-1", OrderState.SUBMISSION_PENDING, occurred_at="2026-01-01T00:14:00Z")
-            unknown = adapter.mark_submission_timeout("idem-1", occurred_at="2026-01-01T00:15:00Z")
-            self.assertEqual(unknown.state, OrderState.RECONCILIATION_REQUIRED)
-            result = adapter.recertify("idem-1", at="2026-01-01T00:16:00Z")
+            result = adapter.recertify("idem-1", at="2026-01-01T00:14:00Z")
             self.assertFalse(result.passed)
             self.assertTrue(result.requires_new_candidate)
+            before = len(adapter._audit.records())
+            with self.assertRaises(RegistryConflict):
+                adapter.transition("idem-1", OrderState.SUBMISSION_PENDING, occurred_at="2026-01-01T00:14:00Z")
+            self.assertEqual(len(adapter._audit.records()), before)
+
+            safe = build_execution(tmp / "timeout")
+            safe_adapter = safe["adapter"]
+            safe_adapter.create_intent(safe["intent"])
+            safe_adapter.bind_risk("key-a", bound_at="2026-01-01T00:13:00Z")
+            safe_adapter.transition("key-a", OrderState.SUBMISSION_PENDING, occurred_at="2026-01-01T00:14:00Z")
+            unknown = safe_adapter.mark_submission_timeout("key-a", occurred_at="2026-01-01T00:15:00Z")
+            self.assertEqual(unknown.state, OrderState.RECONCILIATION_REQUIRED)
+            result = safe_adapter.recertify("key-a", at="2026-01-01T00:16:00Z")
+            self.assertFalse(result.passed)
 
 
 class V04ProtectedLedgerQuotaTests(unittest.TestCase):

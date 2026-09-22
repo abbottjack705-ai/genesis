@@ -1,12 +1,14 @@
 # Project Genesis state
 
-Updated: 2026-09-21
+Updated: 2026-09-22
 
 ## Current milestone
 
-The V2.1 hostile-audit remediation batches R0 through R10 are implemented and
-green in the local repository. The checkpoint is ready for the required fresh,
-independent hostile implementation audit.
+The V2.1 R0–R10 checkpoint was independently audited at `166f923`.
+Astra returned **HOLD / NOT APPROVED** (A1 CRITICAL, A2–A8 HIGH). S1 has
+locally repaired A1+A2 and passed its targeted and full regression gates;
+the remaining A3–A8 are open and require staged remediation and a fresh
+independent hostile re-audit. The original R0–R10 history is preserved.
 
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
 read-only sport/source adapter** until an independent audit finds no unresolved
@@ -42,32 +44,35 @@ system, or £100 canary was added.
 - Raw content, observations, source contracts, structured research evidence,
   frozen evidence packs, and candidate decision identity are distinct and
   replayable.
-- `QualificationAuthority.evaluate()` resolves every identity and gate from
-  required authorities. Caller booleans and the legacy qualifier cannot produce
-  post-audit `QUALIFY`. Successful qualification persists one immutable
-  `QualificationRecord`.
+- `QualificationAuthority.evaluate()` requires its configured authorities and
+  persists an immutable `QualificationRecord` on success. Astra A4/A5 show that
+  mutable material outputs and unrelated same-event PIT rows can still enter
+  qualification; this boundary is not yet closed.
 - Ranking has no exceptional-short, market-family, group-label, raw-odds, raw-EV,
   or incomparable raw-probability quality shortcut. It ranks only within explicit
   comparability groups and deterministically diversifies across groups.
 - Risk owns durable bankroll, qualification, safety, approval, and exposure state;
-  derives stake and BACK/LAY liability; enforces `1u = 0.025` and the hard 3u cap;
-  and survives restart.
-- Paper execution enforces one order-intent lineage per candidate hash, exact
-  consumed risk-approval binding, authority-owned recertification, durable mode
-  and kill state, and reconciliation blocking after ambiguous restart.
+  derives stake and BACK/LAY liability and enforces `1u = 0.025` and the hard 3u
+  cap. A3 unsupported active replay and A7 cross-store risk admission remain open.
+- S1 PAPER execution enforces one order-intent lineage per candidate hash,
+  exact consumed approval plus active reservation binding, and mandatory fresh
+  recertification at pending and sent. S1 fences the known durable safety/risk/
+  market/refresh heads during the order append. Ambiguous restart still blocks
+  blind retry; this is not a claim that A3/A7 are closed.
 - Settlement has one current economic head per fill. Corrections, voids, and
   cancellations require the current same-fill head and record distinct
   `delta_pnl` and `effective_pnl`.
 - OddsPapi Interpretation A is the approved active offline policy: normal budget
   220, protected reserve 30, assumed provider ceiling 250, daily billable limit 7.
-  Interpretation B is test-only. Reserve use requires durable, exact authority.
+  Interpretation B is test-only. Reserve use requires durable, exact authority;
+  A6 shows caller-declared cache proof is not yet trustworthy.
 - Protected evaluation uses sealed frames, frozen predictions, a separate spawned
   label-owning evaluator, bytes-only canonical JSON IPC, durable non-refundable
-  attempts, and controlled certificates/errors. Real protected activation remains
-  disabled; only the explicit local-checkpoint test switch is available pending
-  independent boundary review.
+  attempts, and controlled certificates/errors. A8 shows research callbacks may
+  run in the label-loading caller process, so process/address-space isolation is
+  not established. Real protected activation remains disabled.
 
-## R10 verification
+## R10 verification (historical, before Astra's audit)
 
 - Full original-plus-remediation suite: **110 tests passed, 0 failures, 0
   errors**.
@@ -88,6 +93,21 @@ system, or £100 canary was added.
 Detailed traceability and results are under `remediation_evidence/R0` through
 `remediation_evidence/R10`.
 
+## S1 verification
+
+- Isolated clean `166f923` baseline: new A1/A2 tests RED, 35 assertion
+  failures, zero setup/import errors. The original Astra probe is preserved and
+  now stops at its first kill-switch submission attempt with a safe block.
+- S1 new tests: 13/13 passed, including invalidation at pending and sent,
+  own/other UNKNOWN, VOID/SETTLED, restart, and deterministic authority-writer
+  interleavings. Retained R5/R6/R7/R10: 27/27 passed.
+- Full regression: 123/123 passed outside the sandbox. A sandboxed first run
+  was inconclusive due to Windows `multiprocessing.Pipe` WinError 5 in unchanged
+  R9 tests and an outdated legacy test expectation corrected without dropping
+  its timeout coverage. `compileall` passed.
+- Exact commands and outputs: `remediation_evidence/S1/`. Local green is
+  partial; no adapter, research or live GO follows.
+
 ## Compatibility and migration state
 
 Legacy records remain readable only where an explicit deterministic migration is
@@ -98,11 +118,12 @@ settlement, or quota intent is inferred.
 
 ## Residual external facts and risks
 
-- No independent post-build hostile audit has yet been performed in this task.
+- The independent R10 hostile audit occurred and returned HOLD. A fresh
+  post-remediation hostile re-audit has not yet occurred.
 - The OddsPapi 250-call ceiling is a planning assumption, not verified provider
   evidence; no provider integration exists.
-- The protected evaluator is an offline local process boundary, not a deployed
-  label vault/service, and real campaigns remain disabled.
+- The protected evaluator is an offline local process, but A8 process isolation
+  of arbitrary research is open; there is no deployed vault/service.
 - No real source availability, entitlement, revision behavior, sport semantics,
   model calibration, profitability, cloud cost, venue reconciliation, or live
   readiness is evidenced.
@@ -110,7 +131,7 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Perform the frozen Astra hostile re-audit against the exact R10 commit and bundle.
-Do not start a sport/source adapter or any later Genesis phase unless that audit
-closes all relevant CRITICAL/HIGH findings and the checkpoint is explicitly
-approved.
+Proceed to S2 (A3+A7) only after the S1 green commit, using new RED evidence
+against `166f923`, then continue A4+A5, A6 and A8 in dependency order. A new
+independent hostile re-audit and explicit checkpoint approval are still required
+before any adapter or later Genesis phase.

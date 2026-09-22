@@ -66,6 +66,8 @@ class AppendOnlyJsonl:
     def transaction(
         self,
         build_record: Callable[[tuple[dict[str, Any], ...]], dict[str, Any] | None],
+        *,
+        read_locks: tuple["AppendOnlyJsonl", ...] = (),
     ) -> str | None:
         """Serialize verified read/check/append/fsync across processes.
 
@@ -75,9 +77,29 @@ class AppendOnlyJsonl:
 
         self.path.parent.mkdir(parents=True, exist_ok=True)
         connection = sqlite3.connect(self.coordinator_path, timeout=30, isolation_level=None)
+        authority_connections: list[sqlite3.Connection] = []
         try:
             connection.execute("PRAGMA busy_timeout = 30000")
             connection.execute("BEGIN IMMEDIATE")
+            # A caller may fence independent authority heads while its own
+            # verified read/check/append completes. Each authority's normal
+            # append already takes the same sibling SQLite write lock. Keep
+            # all locks until after the JSONL row is fsynced and committed;
+            # no authority value is stored in SQLite.
+            authority_paths = sorted(
+                {
+                    log.coordinator_path.resolve()
+                    for log in read_locks
+                    if log.coordinator_path.resolve() != self.coordinator_path.resolve()
+                },
+                key=str,
+            )
+            for authority_path in authority_paths:
+                authority_path.parent.mkdir(parents=True, exist_ok=True)
+                authority = sqlite3.connect(authority_path, timeout=30, isolation_level=None)
+                authority_connections.append(authority)
+                authority.execute("PRAGMA busy_timeout = 30000")
+                authority.execute("BEGIN IMMEDIATE")
             connection.execute(
                 "CREATE TABLE IF NOT EXISTS coordination "
                 "(singleton INTEGER PRIMARY KEY CHECK (singleton = 1), generation INTEGER NOT NULL)"
@@ -108,6 +130,8 @@ class AppendOnlyJsonl:
                 connection.rollback()
             raise
         finally:
+            for authority in reversed(authority_connections):
+                authority.close()
             connection.close()
 
     def append(self, record: dict[str, Any]) -> str:

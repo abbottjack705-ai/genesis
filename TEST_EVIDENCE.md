@@ -1,6 +1,24 @@
 # Test evidence
 
-Updated: 2026-09-21
+Updated: 2026-09-22
+
+## Current audit disposition and S1 gate
+
+Astra's independent R10 audit returned **HOLD / NOT APPROVED**. The R10 results
+below remain historical evidence, not proof of A1–A8 closure. S1 A1+A2 is
+locally green: the two new Astra regression modules ran RED against isolated
+clean `166f923` (13 methods, 35 invariant assertion failures, no setup/import
+errors), then GREEN (13/13). Retained R5/R6/R7/R10 suites passed 27/27.
+The complete suite passed 123/123 in 38.344 seconds outside the sandbox, and
+`python -m compileall -q src tests` passed. Exact transcripts and SHA-256
+evidence are under `remediation_evidence/S1/`.
+
+An initial sandboxed full run had nine unrelated Windows `multiprocessing.Pipe`
+access-denied errors in unchanged R9 tests and one obsolete legacy expectation
+that permitted submission after material evidence change. The legacy test was
+strengthened to assert the block while retaining timeout/reconciliation coverage;
+the sandbox failure transcript is retained. The independent full rerun passed.
+**A3–A8 remain open; no GO is granted.**
 
 ## Deterministic gate
 
@@ -41,8 +59,9 @@ protected external dataset or historical outcome source.
 | ranking invariants | `test_remediation_r4_ranking.py` — 6 tests |
 | append concurrency | `test_remediation_r1_persistence.py` — 4 tests plus R10 stress |
 | quota boundaries/authority/concurrency | `test_remediation_r8_quota.py` — 14 tests |
-| protected process isolation | `test_remediation_r9_protected.py` — 11 tests |
+| protected evaluator IPC/attempts (A8 research-process isolation open) | `test_remediation_r9_protected.py` — 11 tests |
 | complete restart/fault matrix | `test_remediation_r10_integration.py` — 3 tests |
+| Astra S1 mandatory submission and reservation | `test_astra_s1_submission.py`, `test_astra_s1_reservation.py` — 13 tests |
 
 Individual test methods combine closely related rows of the binding T-F01
 through T-F15 matrix. Each batch checkpoint records the exact matrix rows it
@@ -63,6 +82,9 @@ the production functions and primary tests.
 - R10 introduced no new production fix. Its three integration tests are
   green characterization/fault evidence over already-remediated code, so no
   fabricated R10 RED is claimed.
+- S1 added independent A1/A2 regressions before the production fix, ran them
+  on an isolated clean checkout of `166f923`, then repaired and reran them.
+  The original failed probe output is retained, not overwritten.
 
 ## Concurrency and fault stress
 
@@ -129,10 +151,10 @@ boundary.
 - Quota: approved active Interpretation A passes 190/191/220/221/250/251,
   daily 7/8, authorization binding/revocation/expiry/grant, restart and race
   tests. Interpretation B is test-only.
-- Protected evaluation: the research client contains no labels/path/handle;
-  callback execution is outside the label owner; exact frame artifacts are
-  required; attempt accounting survives failure/crash/restart/race; only a
-  controlled certificate or fixed generic error crosses IPC.
+- Protected evaluation: the evaluator has exact frames and durable attempt
+  accounting, but A8 shows the caller may own labels and execute research
+  callbacks in that same process. Existing client-object inspection does not
+  establish the required process/address-space isolation.
 - Legacy reachability: a source scan found the legacy qualification/protected
   names only in their defining modules. Behavioral guards prove authoritative
   qualification does not route through the legacy qualifier and registered V2

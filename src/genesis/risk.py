@@ -742,12 +742,29 @@ class RiskEngine:
                 return False
             if self.bankrolls.current().snapshot_id != approval.bankroll_snapshot_id:
                 return False
-            exposures = self._exposures(self.audit_log.log.records())
+            rows = self.audit_log.log.records()
+            # A reservation is derived from the approval event, not from the
+            # approval's CONSUMED flag.  An explicit exposure reusing that ID
+            # would make the coupled state ambiguous even if ordinary replay
+            # happened to choose the approval-derived value.
             if any(
-                item.state == ExposureState.UNKNOWN
-                and item.exposure_id != approval.approval_id
-                for item in exposures
+                row.get("record_type") == "risk_exposure_recorded"
+                and row.get("exposure_id") == approval.approval_id
+                for row in rows
             ):
+                return False
+            exposures = self._exposures(rows)
+            own = [item for item in exposures if item.exposure_id == approval.approval_id]
+            if len(own) != 1:
+                return False
+            reservation = own[0]
+            if (
+                reservation.state != ExposureState.PENDING
+                or reservation.candidate_decision_hash != approval.candidate_decision_hash
+                or reservation.liability_amount != Decimal(approval.approved_liability)
+            ):
+                return False
+            if any(item.state == ExposureState.UNKNOWN for item in exposures):
                 return False
             return approval.status in {"APPROVED_NOT_CONSUMED", "CONSUMED"}
         except Exception:

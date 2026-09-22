@@ -1,0 +1,351 @@
+BASELINE_SOURCE=C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s1-red-baseline\src\genesis\__init__.py
+test_change_at_transaction_entry_is_observed_not_reused (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_change_at_transaction_entry_is_observed_not_reused) ... 
+  test_change_at_transaction_entry_is_observed_not_reused (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_change_at_transaction_entry_is_observed_not_reused) (phase='SUBMISSION_PENDING') ... FAIL
+  test_change_at_transaction_entry_is_observed_not_reused (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_change_at_transaction_entry_is_observed_not_reused) (phase='SUBMISSION_SENT') ... FAIL
+test_cross_thread_authority_writer_waits_until_submission_is_durable (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_cross_thread_authority_writer_waits_until_submission_is_durable) ... 
+  test_cross_thread_authority_writer_waits_until_submission_is_durable (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_cross_thread_authority_writer_waits_until_submission_is_durable) (authority='safety') ... FAIL
+  test_cross_thread_authority_writer_waits_until_submission_is_durable (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_cross_thread_authority_writer_waits_until_submission_is_durable) (authority='reservation') ... FAIL
+test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) ... 
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='kill') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='expiry') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='refresh_invalid') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='refresh_material') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='strategy_withdrawn') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='market_closed') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='price_changed') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='liquidity_low') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='kill') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='expiry') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='refresh_invalid') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='refresh_material') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='strategy_withdrawn') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='market_closed') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='price_changed') ... FAIL
+  test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='liquidity_low') ... FAIL
+test_process_death_inside_fenced_check_leaves_no_pending_event_or_lock (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_process_death_inside_fenced_check_leaves_no_pending_event_or_lock) ... FAIL
+test_restart_preserves_pre_submission_gate_and_pending_ambiguity (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_restart_preserves_pre_submission_gate_and_pending_ambiguity) ... FAIL
+test_stale_success_and_between_phase_kill_do_not_certify_send (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_stale_success_and_between_phase_kill_do_not_certify_send) ... FAIL
+test_unchanged_authorities_allow_one_paper_submission (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_unchanged_authorities_allow_one_paper_submission) ... ok
+test_missing_or_conflicting_exact_reservation_never_certifies (tests.test_astra_s1_reservation.AstraReservationGateTests.test_missing_or_conflicting_exact_reservation_never_certifies) ... FAIL
+test_other_unknown_blocks_affected_continuation (tests.test_astra_s1_reservation.AstraReservationGateTests.test_other_unknown_blocks_affected_continuation) ... FAIL
+test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) ... 
+  test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) (phase='SUBMISSION_PENDING', reservation='unknown') ... FAIL
+  test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) (phase='SUBMISSION_PENDING', reservation='void') ... FAIL
+  test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) (phase='SUBMISSION_PENDING', reservation='settled') ... FAIL
+  test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) (phase='SUBMISSION_SENT', reservation='unknown') ... FAIL
+  test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) (phase='SUBMISSION_SENT', reservation='void') ... FAIL
+  test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) (phase='SUBMISSION_SENT', reservation='settled') ... FAIL
+test_reservation_transition_at_order_transaction_entry_blocks (tests.test_astra_s1_reservation.AstraReservationGateTests.test_reservation_transition_at_order_transaction_entry_blocks) ... FAIL
+test_restart_keeps_released_and_unknown_reservations_blocking (tests.test_astra_s1_reservation.AstraReservationGateTests.test_restart_keeps_released_and_unknown_reservations_blocking) ... 
+  test_restart_keeps_released_and_unknown_reservations_blocking (tests.test_astra_s1_reservation.AstraReservationGateTests.test_restart_keeps_released_and_unknown_reservations_blocking) (reservation='unknown') ... FAIL
+  test_restart_keeps_released_and_unknown_reservations_blocking (tests.test_astra_s1_reservation.AstraReservationGateTests.test_restart_keeps_released_and_unknown_reservations_blocking) (reservation='void') ... FAIL
+  test_restart_keeps_released_and_unknown_reservations_blocking (tests.test_astra_s1_reservation.AstraReservationGateTests.test_restart_keeps_released_and_unknown_reservations_blocking) (reservation='settled') ... FAIL
+test_valid_reservation_and_later_terminal_release_preserve_history (tests.test_astra_s1_reservation.AstraReservationGateTests.test_valid_reservation_and_later_terminal_release_preserve_history) ... ok
+
+======================================================================
+FAIL: test_change_at_transaction_entry_is_observed_not_reused (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_change_at_transaction_entry_is_observed_not_reused) (phase='SUBMISSION_PENDING')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 178, in test_change_at_transaction_entry_is_observed_not_reused
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_change_at_transaction_entry_is_observed_not_reused (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_change_at_transaction_entry_is_observed_not_reused) (phase='SUBMISSION_SENT')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 178, in test_change_at_transaction_entry_is_observed_not_reused
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_cross_thread_authority_writer_waits_until_submission_is_durable (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_cross_thread_authority_writer_waits_until_submission_is_durable) (authority='safety')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 286, in test_cross_thread_authority_writer_waits_until_submission_is_durable
+    self.assertEqual(len(workers), 1, "submission bypassed recertification")
+AssertionError: 0 != 1 : submission bypassed recertification
+
+======================================================================
+FAIL: test_cross_thread_authority_writer_waits_until_submission_is_durable (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_cross_thread_authority_writer_waits_until_submission_is_durable) (authority='reservation')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 286, in test_cross_thread_authority_writer_waits_until_submission_is_durable
+    self.assertEqual(len(workers), 1, "submission bypassed recertification")
+AssertionError: 0 != 1 : submission bypassed recertification
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='kill')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='expiry')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='refresh_invalid')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='refresh_material')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='strategy_withdrawn')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='market_closed')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='price_changed')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_PENDING', cause='liquidity_low')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='kill')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='expiry')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='refresh_invalid')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='refresh_material')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='strategy_withdrawn')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='market_closed')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='price_changed')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) (phase='SUBMISSION_SENT', cause='liquidity_low')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 113, in test_each_failed_owner_check_blocks_pending_and_sent
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_process_death_inside_fenced_check_leaves_no_pending_event_or_lock (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_process_death_inside_fenced_check_leaves_no_pending_event_or_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 315, in test_process_death_inside_fenced_check_leaves_no_pending_event_or_lock
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_restart_preserves_pre_submission_gate_and_pending_ambiguity (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_restart_preserves_pre_submission_gate_and_pending_ambiguity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 189, in test_restart_preserves_pre_submission_gate_and_pending_ambiguity
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_stale_success_and_between_phase_kill_do_not_certify_send (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_stale_success_and_between_phase_kill_do_not_certify_send)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_submission.py", line 151, in test_stale_success_and_between_phase_kill_do_not_certify_send
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_missing_or_conflicting_exact_reservation_never_certifies (tests.test_astra_s1_reservation.AstraReservationGateTests.test_missing_or_conflicting_exact_reservation_never_certifies)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_reservation.py", line 67, in test_missing_or_conflicting_exact_reservation_never_certifies
+    self.assertFalse(
+AssertionError: True is not false : a missing authoritative reservation must fail closed
+
+======================================================================
+FAIL: test_other_unknown_blocks_affected_continuation (tests.test_astra_s1_reservation.AstraReservationGateTests.test_other_unknown_blocks_affected_continuation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_reservation.py", line 56, in test_other_unknown_blocks_affected_continuation
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) (phase='SUBMISSION_PENDING', reservation='unknown')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_reservation.py", line 37, in test_own_unknown_void_and_settled_block_both_submission_phases
+    self.assertFalse(
+AssertionError: True is not false : own inactive reservation cannot recertify
+
+======================================================================
+FAIL: test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) (phase='SUBMISSION_PENDING', reservation='void')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_reservation.py", line 37, in test_own_unknown_void_and_settled_block_both_submission_phases
+    self.assertFalse(
+AssertionError: True is not false : own inactive reservation cannot recertify
+
+======================================================================
+FAIL: test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) (phase='SUBMISSION_PENDING', reservation='settled')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_reservation.py", line 37, in test_own_unknown_void_and_settled_block_both_submission_phases
+    self.assertFalse(
+AssertionError: True is not false : own inactive reservation cannot recertify
+
+======================================================================
+FAIL: test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) (phase='SUBMISSION_SENT', reservation='unknown')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_reservation.py", line 37, in test_own_unknown_void_and_settled_block_both_submission_phases
+    self.assertFalse(
+AssertionError: True is not false : own inactive reservation cannot recertify
+
+======================================================================
+FAIL: test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) (phase='SUBMISSION_SENT', reservation='void')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_reservation.py", line 37, in test_own_unknown_void_and_settled_block_both_submission_phases
+    self.assertFalse(
+AssertionError: True is not false : own inactive reservation cannot recertify
+
+======================================================================
+FAIL: test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) (phase='SUBMISSION_SENT', reservation='settled')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_reservation.py", line 37, in test_own_unknown_void_and_settled_block_both_submission_phases
+    self.assertFalse(
+AssertionError: True is not false : own inactive reservation cannot recertify
+
+======================================================================
+FAIL: test_reservation_transition_at_order_transaction_entry_blocks (tests.test_astra_s1_reservation.AstraReservationGateTests.test_reservation_transition_at_order_transaction_entry_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_reservation.py", line 110, in test_reservation_transition_at_order_transaction_entry_blocks
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_restart_keeps_released_and_unknown_reservations_blocking (tests.test_astra_s1_reservation.AstraReservationGateTests.test_restart_keeps_released_and_unknown_reservations_blocking) (reservation='unknown')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_reservation.py", line 126, in test_restart_keeps_released_and_unknown_reservations_blocking
+    self.assertFalse(replayed.recertify("key-a", at=ACTION).passed)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_restart_keeps_released_and_unknown_reservations_blocking (tests.test_astra_s1_reservation.AstraReservationGateTests.test_restart_keeps_released_and_unknown_reservations_blocking) (reservation='void')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_reservation.py", line 126, in test_restart_keeps_released_and_unknown_reservations_blocking
+    self.assertFalse(replayed.recertify("key-a", at=ACTION).passed)
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_restart_keeps_released_and_unknown_reservations_blocking (tests.test_astra_s1_reservation.AstraReservationGateTests.test_restart_keeps_released_and_unknown_reservations_blocking) (reservation='settled')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s1_reservation.py", line 126, in test_restart_keeps_released_and_unknown_reservations_blocking
+    self.assertFalse(replayed.recertify("key-a", at=ACTION).passed)
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 13 tests in 7.670s
+
+FAILED (failures=35)

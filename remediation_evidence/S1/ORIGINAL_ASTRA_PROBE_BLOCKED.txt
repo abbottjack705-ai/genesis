@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\outputs\GENESIS_V04_ASTRA_AUDIT_PROBE.py", line 133, in <module>
+    print(json.dumps({"submission_gate":submission_after_invalidity(root/"submit"),
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\outputs\GENESIS_V04_ASTRA_AUDIT_PROBE.py", line 52, in submission_after_invalidity
+    adapter.transition("key-a", OrderState.SUBMISSION_PENDING, occurred_at=at)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\execution.py", line 615, in transition
+    self._audit.transaction(build, read_locks=read_locks)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\registry.py", line 111, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\execution.py", line 594, in build
+    raise RegistryConflict(
+genesis.registry.RegistryConflict: submission recertification blocked: risk_or_safety_state_blocked

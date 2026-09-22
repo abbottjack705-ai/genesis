@@ -1,5 +1,12 @@
 # Project Genesis architecture
 
+## Audit disposition (2026-09-22)
+
+Astra's independent audit of R10 commit `166f923` returned **HOLD / NOT
+APPROVED**. S1 has locally closed the reproduced A1/A2 PAPER submission and
+reservation-continuation defects. A3–A8 remain open; this diagram is a
+foundation map, not an adapter, shadow-research or live-money GO.
+
 ## Remediated V0.4 foundation flow
 
 ```text
@@ -38,25 +45,27 @@ credential, cloud deployment, dashboard, or real-money order path.
 
 All safety-critical histories use `AppendOnlyJsonl`. Before a mutation, the
 complete JSONL chain is verified inside a SQLite `BEGIN IMMEDIATE` critical
-section; the precondition and append are therefore one cross-process operation.
+section; that log's precondition and append are one cross-process operation.
 The canonical JSONL row is flushed and fsynced. SQLite stores only a coordination
 generation and is never business truth.
 
-Truncated, hash-invalid, forked, semantically invalid, incomplete, or unsupported
-active state fails closed. Recovery replays JSONL; it does not silently heal,
-truncate, choose a branch, or infer missing identity.
+S1 submission holds the risk, bankroll, safety, market and critical-refresh
+coordinator locks through its order append and recertifies from those owners
+inside that transaction. This does not repair A7's earlier risk-admission
+read-before-transaction window. Truncated and hash-invalid chains fail closed;
+known typed replay defects are rejected where implemented. Astra A3 demonstrated
+that incompatible hash-valid active risk state can still be omitted. Recovery
+must not silently heal, truncate, choose a branch, or infer missing identity.
 
 ## Trust boundaries
 
 ```text
-Research process
-  receives sealed decision frames only
-  creates a frozen prediction artifact
-  never receives labels, label paths/handles, stake or order authority
+Label-loading caller / research callback (current local launcher)
+  can retain raw labels in its address space: A8 NOT CLOSED
                  |
-                 | bounded canonical JSON bytes
+                 | bounded canonical JSON IPC
                  v
-Trusted local evaluator process (checkpoint-test mode only)
+Spawned trusted evaluator process (checkpoint-test mode only)
   owns labels and fixed campaign/frame registration
   reserves a durable non-refundable attempt first
   executes no arbitrary research callback
@@ -98,6 +107,8 @@ SettlementLedger
 - `StrategyDecisionContract` pins every non-candidate decision input, including
   exact odds profile, adapter version, market capability and comparability group.
 - The post-audit qualifier recomputes candidate identity from authorities.
+- Astra A4/A5 show that material decision outputs and exact required PIT inputs
+  are not yet bound to that identity; new qualification authority remains HOLD.
 - Tier is strict and strategy-approved. Invalid or missing tier never degrades to
   a usable default.
 - Across equal-tier incomparable groups there is no quality comparison. A stable
@@ -132,11 +143,11 @@ SettlementLedger
 - `risk.py`: durable bankroll/safety/exposure ownership, exact derived risk and
   approvals.
 - `execution.py`: provider-neutral PAPER order identity, binding, recertification,
-  state replay, mode and kill control.
+  mandatory S1 pre-pending and pre-sent checks, state replay, mode and kill control.
 - `ledger.py`, `accounting.py`: authoritative fills, settlement lineages and
   deterministic Decimal payoff primitives.
 - `quota.py`, `config/oddspapi_quota_policy_v2.json`: digest-pinned approved A
-  policy, test-only B, cache proof and atomic reserve authority.
+  policy, test-only B and atomic reserve authority; A6 cache proof remains open.
 - `protected.py`, `evaluation.py`: sealed frames, frozen predictions, durable
   attempt accounting, trusted evaluator IPC and explicit legacy test harness.
 - `candidate_runs.py`, `coverage.py`, `selection_evaluation.py`: complete

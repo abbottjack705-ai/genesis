@@ -581,14 +581,19 @@ class PaperExecutionAdapter:
             current = matches[0]
             if current.order_id in self._startup_blocked:
                 raise RegistryConflict("order requires reconciliation after restart")
-            if state == OrderState.SUBMISSION_PENDING:
-                approval = self.risk.get_approval(current.intent.risk_approval_id)
-                if (
-                    current.state != OrderState.RISK_APPROVED
-                    or approval.status != "CONSUMED"
-                    or approval.consumed_by_order_id != current.order_id
-                ):
-                    raise RegistryConflict("submission requires an exact bound risk approval")
+            if state in {OrderState.SUBMISSION_PENDING, OrderState.SUBMISSION_SENT}:
+                allowed_prior = (
+                    OrderState.RISK_APPROVED
+                    if state == OrderState.SUBMISSION_PENDING
+                    else OrderState.SUBMISSION_PENDING
+                )
+                if current.state != allowed_prior:
+                    raise RegistryConflict("submission has an invalid prior order state")
+                recertification = self._recertify_record(current, at=occurred_at)
+                if not recertification.passed:
+                    raise RegistryConflict(
+                        f"submission recertification blocked: {recertification.reason}"
+                    )
             updated = current.transition(state)
             result["value"] = updated
             return {
@@ -600,7 +605,14 @@ class PaperExecutionAdapter:
                 "occurred_at": iso_utc(occurred_at),
             }
 
-        self._audit.transaction(build)
+        read_locks = (
+            self.risk.audit_log.log,
+            self.risk.bankrolls.log,
+            self.risk.safety.log,
+            self.markets.log,
+            self.refreshes.log,
+        ) if state in {OrderState.SUBMISSION_PENDING, OrderState.SUBMISSION_SENT} else ()
+        self._audit.transaction(build, read_locks=read_locks)
         return result["value"]
 
     def mark_submission_timeout(
@@ -621,6 +633,9 @@ class PaperExecutionAdapter:
 
     def recertify(self, idempotency_key: str, *, at: str) -> RecertificationResult:
         record = self.get(idempotency_key)
+        return self._recertify_record(record, at=at)
+
+    def _recertify_record(self, record: OrderRecord, *, at: str) -> RecertificationResult:
         try:
             approval = self.risk.get_approval(record.intent.risk_approval_id)
             refresh = self.refreshes.current(record.intent.candidate_decision_hash)
@@ -636,8 +651,24 @@ class PaperExecutionAdapter:
             else Decimal(market.executable_odds) <= Decimal(record.intent.odds)
         )
         checks = (
+            (
+                approval.status == "CONSUMED"
+                and approval.consumed_by_order_id == record.order_id
+                and approval.candidate_decision_hash == record.intent.candidate_decision_hash
+                and approval.side == record.intent.side
+                and Decimal(approval.approved_stake) == Decimal(record.intent.stake)
+                and Decimal(approval.approved_liability) == record.intent.liability
+                and Decimal(approval.odds) == Decimal(record.intent.odds),
+                "risk_approval_binding_invalid",
+            ),
+            (
+                record.state in {OrderState.RISK_APPROVED, OrderState.SUBMISSION_PENDING},
+                "order_not_submittable",
+            ),
             (strategy_active is True, "strategy_not_active"),
             (parse_utc(at) < parse_utc(approval.expires_at), "candidate_expired"),
+            (parse_utc(refresh.checked_at) <= parse_utc(at), "refresh_not_yet_available"),
+            (parse_utc(market.observed_at) <= parse_utc(at), "market_not_yet_observed"),
             (refresh.valid, "critical_evidence_refresh_failed"),
             (not refresh.material_change, "critical_evidence_changed"),
             (market.market_open, "market_closed"),
@@ -649,13 +680,6 @@ class PaperExecutionAdapter:
             (
                 self.risk.approval_still_valid(approval.approval_id, at=at),
                 "risk_or_safety_state_blocked",
-            ),
-            (
-                record.state not in {
-                    OrderState.UNKNOWN,
-                    OrderState.RECONCILIATION_REQUIRED,
-                },
-                "unknown_order_state",
             ),
         )
         for passed, reason in checks:

@@ -1,18 +1,31 @@
 # Project Genesis V0.4 remediation handoff
 
-Date: 2026-09-21
-Status: **R0–R10 locally green; ready for independent hostile re-audit; adapter NO-GO**
+Date: 2026-09-22
+Status: **Astra R10 HOLD; S1 A1+A2 locally green; A3–A8 open; adapter NO-GO**
+
+## S1 continuation notice
+
+The independent Astra hostile audit of R10 commit `166f923` found A1 CRITICAL
+and A2–A8 HIGH. Its report and evidence ZIP are in the task `outputs/` folder.
+This handoff's R0–R10 chain below is historical, not an approval assertion.
+S1 added mandatory pre-pending/pre-sent recertification and exact active
+reservation binding, with RED evidence against the sealed R10 commit and
+GREEN 123/123 full suite plus `compileall` evidence at `remediation_evidence/S1/`.
+A3 unsupported replay, A7 risk-admission serialization, A4/A5 identity/PIT,
+A6 cache and A8 research process isolation remain open. Continue S2 A3+A7
+only from the S1 green commit; do not begin an adapter, substantive shadow
+research or live-money work.
 
 ## Review decision requested
 
-Run the frozen Astra hostile implementation audit against the exact final R10
-snapshot. Determine whether any unresolved CRITICAL/HIGH enforcement weakness
-remains relevant to the first read-only sport/source adapter gate. Do not approve
-later strategy, provider, cloud, venue or live work through this review.
+The R10 audit has been completed and returned HOLD. After S1 and the remaining
+staged repairs, run a fresh independent hostile re-audit against the new exact
+checkpoint. Do not approve later strategy, provider, cloud, venue or live work
+through this partial S1 result.
 
-The task performing this remediation has not self-certified that independent
-audit. Until the external review and explicit checkpoint approval are complete,
-the adapter decision remains NO-GO.
+The S1 implementation is a local green checkpoint only. Until all A1–A8
+repairs, external re-audit and explicit checkpoint approval are complete, the
+adapter decision remains NO-GO.
 
 ## Authority and exact identity
 
@@ -119,8 +132,8 @@ implementation claims:
 5. What later prospective evidence establishes calibration/profitability and
    operating/cloud costs?
 
-## Stop point
+## R10 historical stop point (superseded by Astra HOLD and S1)
 
-R0–R10 implementation and evidence preparation stop here. The only next action
-authorized by this handoff is the independent hostile audit and checkpoint
-decision. Do not begin the next Genesis phase from this task.
+The original R10 handoff stopped for its independent audit. That audit returned
+HOLD; this task now proceeds only through the ordered A1–A8 remediation stages.
+No next Genesis product phase is authorized.

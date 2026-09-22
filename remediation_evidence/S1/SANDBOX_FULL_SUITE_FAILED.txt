@@ -1,0 +1,331 @@
+test_expected_value_is_not_the_selection_objective (tests.test_accounting.AccountingTests.test_expected_value_is_not_the_selection_objective) ... ok
+test_odds_and_back_arithmetic (tests.test_accounting.AccountingTests.test_odds_and_back_arithmetic) ... ok
+test_void_nonrunner_dead_heat_and_lay (tests.test_accounting.AccountingTests.test_void_nonrunner_dead_heat_and_lay) ... ok
+test_missing_or_conflicting_exact_reservation_never_certifies (tests.test_astra_s1_reservation.AstraReservationGateTests.test_missing_or_conflicting_exact_reservation_never_certifies) ... ok
+test_other_unknown_blocks_affected_continuation (tests.test_astra_s1_reservation.AstraReservationGateTests.test_other_unknown_blocks_affected_continuation) ... ok
+test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) ... ok
+test_reservation_transition_at_order_transaction_entry_blocks (tests.test_astra_s1_reservation.AstraReservationGateTests.test_reservation_transition_at_order_transaction_entry_blocks) ... ok
+test_restart_keeps_released_and_unknown_reservations_blocking (tests.test_astra_s1_reservation.AstraReservationGateTests.test_restart_keeps_released_and_unknown_reservations_blocking) ... ok
+test_valid_reservation_and_later_terminal_release_preserve_history (tests.test_astra_s1_reservation.AstraReservationGateTests.test_valid_reservation_and_later_terminal_release_preserve_history) ... ok
+test_change_at_transaction_entry_is_observed_not_reused (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_change_at_transaction_entry_is_observed_not_reused) ... ok
+test_cross_thread_authority_writer_waits_until_submission_is_durable (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_cross_thread_authority_writer_waits_until_submission_is_durable) ... ok
+test_each_failed_owner_check_blocks_pending_and_sent (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_each_failed_owner_check_blocks_pending_and_sent) ... ok
+test_restart_preserves_pre_submission_gate_and_pending_ambiguity (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_restart_preserves_pre_submission_gate_and_pending_ambiguity) ... ok
+test_stale_success_and_between_phase_kill_do_not_certify_send (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_stale_success_and_between_phase_kill_do_not_certify_send) ... ok
+test_unchanged_authorities_allow_one_paper_submission (tests.test_astra_s1_submission.AstraSubmissionGateTests.test_unchanged_authorities_allow_one_paper_submission) ... ok
+test_default_config_is_pinned_and_offline (tests.test_config.ConfigTests.test_default_config_is_pinned_and_offline) ... ok
+test_content_addressed_publish_is_idempotent_and_manifest_is_verifiable (tests.test_evidence.EvidenceTests.test_content_addressed_publish_is_idempotent_and_manifest_is_verifiable) ... ok
+test_manifest_tampering_is_detected (tests.test_evidence.EvidenceTests.test_manifest_tampering_is_detected) ... ok
+test_protected_evaluation_returns_certificate_without_labels (tests.test_protected_evaluation_and_logging.ProtectedEvaluationAndLoggingTests.test_protected_evaluation_returns_certificate_without_labels) ... ok
+test_structured_log_redacts_secrets (tests.test_protected_evaluation_and_logging.ProtectedEvaluationAndLoggingTests.test_structured_log_redacts_secrets) ... ok
+test_attempt_budget_is_consumed_and_strategy_is_pass_first (tests.test_registry_and_selection.RegistryAndSelectionTests.test_attempt_budget_is_consumed_and_strategy_is_pass_first) ... ok
+test_every_order_state_has_an_explicit_restart_disposition (tests.test_remediation_r10_integration.R10IntegratedRecoveryTests.test_every_order_state_has_an_explicit_restart_disposition) ... ok
+test_every_risk_exposure_state_replays_open_or_terminal_exactly (tests.test_remediation_r10_integration.R10IntegratedRecoveryTests.test_every_risk_exposure_state_replays_open_or_terminal_exactly) ... ok
+test_process_death_inside_append_transaction_preserves_valid_head (tests.test_remediation_r10_integration.R10IntegratedRecoveryTests.test_process_death_inside_append_transaction_preserves_valid_head) ... ok
+test_multiprocess_append_is_one_linear_chain (tests.test_remediation_r1_persistence.R1PersistenceTests.test_multiprocess_append_is_one_linear_chain) ... ok
+test_safety_precondition_and_append_share_one_transaction (tests.test_remediation_r1_persistence.R1PersistenceTests.test_safety_precondition_and_append_share_one_transaction) ... ok
+test_truncated_or_tampered_log_fails_closed (tests.test_remediation_r1_persistence.R1PersistenceTests.test_truncated_or_tampered_log_fails_closed) ... ok
+test_valid_legacy_chain_remains_authoritative (tests.test_remediation_r1_persistence.R1PersistenceTests.test_valid_legacy_chain_remains_authoritative) ... ok
+test_contract_substitution_unknown_contract_and_object_tamper_are_rejected (tests.test_remediation_r2_causal_evidence.R2ObservationIdentityTests.test_contract_substitution_unknown_contract_and_object_tamper_are_rejected) ... ok
+test_legacy_metadata_migrates_deterministically_under_exact_contract (tests.test_remediation_r2_causal_evidence.R2ObservationIdentityTests.test_legacy_metadata_migrates_deterministically_under_exact_contract) ... ok
+test_raw_content_and_observations_have_distinct_idempotent_identity (tests.test_remediation_r2_causal_evidence.R2ObservationIdentityTests.test_raw_content_and_observations_have_distinct_idempotent_identity) ... ok
+test_capability_authority_is_mandatory_for_all_decision_reads (tests.test_remediation_r2_causal_evidence.R2PITAuthorityTests.test_capability_authority_is_mandatory_for_all_decision_reads) ... ok
+test_capability_is_versioned_and_resolved_at_decision_time (tests.test_remediation_r2_causal_evidence.R2PITAuthorityTests.test_capability_is_versioned_and_resolved_at_decision_time) ... ok
+test_retrieval_ready_and_supersession_temporality_fail_closed (tests.test_remediation_r2_causal_evidence.R2PITAuthorityTests.test_retrieval_ready_and_supersession_temporality_fail_closed) ... ok
+test_all_material_research_fields_and_exact_observation_change_digest (tests.test_remediation_r2_causal_evidence.R2StructuredEvidenceTests.test_all_material_research_fields_and_exact_observation_change_digest) ... ok
+test_legacy_pack_is_audit_only_and_identity_propagates_to_decision (tests.test_remediation_r2_causal_evidence.R2StructuredEvidenceTests.test_legacy_pack_is_audit_only_and_identity_propagates_to_decision) ... ok
+test_structured_store_resolves_exact_observation_and_pack_resolves_structured_hash (tests.test_remediation_r2_causal_evidence.R2StructuredEvidenceTests.test_structured_store_resolves_exact_observation_and_pack_resolves_structured_hash) ... ok
+test_all_true_caller_facts_and_legacy_candidate_cannot_qualify (tests.test_remediation_r3_qualification.R3QualificationAuthorityTests.test_all_true_caller_facts_and_legacy_candidate_cannot_qualify) ... ok
+test_authority_does_not_route_through_legacy_qualify (tests.test_remediation_r3_qualification.R3QualificationAuthorityTests.test_authority_does_not_route_through_legacy_qualify) ... ok
+test_contract_material_changes_propagate_to_candidate_identity (tests.test_remediation_r3_qualification.R3QualificationAuthorityTests.test_contract_material_changes_propagate_to_candidate_identity) ... ok
+test_corrupt_structured_evidence_makes_existing_pack_non_authoritative (tests.test_remediation_r3_qualification.R3QualificationAuthorityTests.test_corrupt_structured_evidence_makes_existing_pack_non_authoritative) ... ok
+test_lifecycle_and_market_capability_are_resolved_at_decision_time (tests.test_remediation_r3_qualification.R3QualificationAuthorityTests.test_lifecycle_and_market_capability_are_resolved_at_decision_time) ... ok
+test_missing_or_mismatched_identity_and_corrupt_pack_fail_without_record (tests.test_remediation_r3_qualification.R3QualificationAuthorityTests.test_missing_or_mismatched_identity_and_corrupt_pack_fail_without_record) ... ok
+test_required_dependencies_and_fail_closed_stage_views_cannot_be_bypassed (tests.test_remediation_r3_qualification.R3QualificationAuthorityTests.test_required_dependencies_and_fail_closed_stage_views_cannot_be_bypassed) ... ok
+test_success_is_deterministic_and_persists_one_immutable_record (tests.test_remediation_r3_qualification.R3QualificationAuthorityTests.test_success_is_deterministic_and_persists_one_immutable_record) ... ok
+test_contract_disallowed_tier_passes_and_rank_rejects_bypass (tests.test_remediation_r3_qualification.R3StrictTierTests.test_contract_disallowed_tier_passes_and_rank_rejects_bypass) ... ok
+test_each_policy_tier_qualifies_when_the_strategy_contract_allows_it (tests.test_remediation_r3_qualification.R3StrictTierTests.test_each_policy_tier_qualifies_when_the_strategy_contract_allows_it) ... ok
+test_missing_malformed_unsupported_and_above_max_tiers_pass (tests.test_remediation_r3_qualification.R3StrictTierTests.test_missing_malformed_unsupported_and_above_max_tiers_pass) ... ok
+test_crossing_exceptional_boundary_alone_does_not_change_order (tests.test_remediation_r4_ranking.R4RankingTests.test_crossing_exceptional_boundary_alone_does_not_change_order) ... ok
+test_incomparable_groups_use_round_robin_not_global_probability (tests.test_remediation_r4_ranking.R4RankingTests.test_incomparable_groups_use_round_robin_not_global_probability) ... ok
+test_market_and_group_label_renames_have_no_quality_effect (tests.test_remediation_r4_ranking.R4RankingTests.test_market_and_group_label_renames_have_no_quality_effect) ... ok
+test_missing_comparability_group_is_rejected (tests.test_remediation_r4_ranking.R4RankingTests.test_missing_comparability_group_is_rejected) ... ok
+test_short_price_has_no_region_bonus_within_comparable_group (tests.test_remediation_r4_ranking.R4RankingTests.test_short_price_has_no_region_bonus_within_comparable_group) ... ok
+test_tier_then_within_group_quality_then_stable_identity_is_deterministic (tests.test_remediation_r4_ranking.R4RankingTests.test_tier_then_within_group_quality_then_stable_identity_is_deterministic) ... ok
+test_durable_kill_switch_and_stale_bankroll_cannot_be_overridden (tests.test_remediation_r5_risk.R5RiskAuthorityTests.test_durable_kill_switch_and_stale_bankroll_cannot_be_overridden) ... ok
+test_invalid_or_contract_disallowed_tier_never_reaches_approval (tests.test_remediation_r5_risk.R5RiskAuthorityTests.test_invalid_or_contract_disallowed_tier_never_reaches_approval) ... ok
+test_lay_liability_and_caller_mismatch_checks_are_decimal_exact (tests.test_remediation_r5_risk.R5RiskAuthorityTests.test_lay_liability_and_caller_mismatch_checks_are_decimal_exact) ... ok
+test_policy_hard_laws_reject_redefinition_and_no_daily_cap_exists (tests.test_remediation_r5_risk.R5RiskAuthorityTests.test_policy_hard_laws_reject_redefinition_and_no_daily_cap_exists) ... ok
+test_portfolio_cluster_unknown_and_duplicate_limits_use_durable_exposure (tests.test_remediation_r5_risk.R5RiskAuthorityTests.test_portfolio_cluster_unknown_and_duplicate_limits_use_durable_exposure) ... ok
+test_qualification_record_owns_tier_candidate_and_expiry (tests.test_remediation_r5_risk.R5RiskAuthorityTests.test_qualification_record_owns_tier_candidate_and_expiry) ... ok
+test_raw_liability_is_not_an_api_and_three_units_back_is_exact (tests.test_remediation_r5_risk.R5RiskAuthorityTests.test_raw_liability_is_not_an_api_and_three_units_back_is_exact) ... ok
+test_restart_rehydrates_bankroll_approval_and_reservation (tests.test_remediation_r5_risk.R5RiskAuthorityTests.test_restart_rehydrates_bankroll_approval_and_reservation) ... ok
+test_cross_process_candidate_creation_is_atomic (tests.test_remediation_r6_execution.R6OrderUniquenessTests.test_cross_process_candidate_creation_is_atomic) ... ok
+test_one_candidate_has_one_lineage_across_replay_terminal_and_restart (tests.test_remediation_r6_execution.R6OrderUniquenessTests.test_one_candidate_has_one_lineage_across_replay_terminal_and_restart) ... ok
+test_recertification_uses_market_refresh_strategy_and_safety_owners (tests.test_remediation_r6_execution.R6RestartAndRecertificationTests.test_recertification_uses_market_refresh_strategy_and_safety_owners) ... ok
+test_submission_pending_restart_never_blindly_resends (tests.test_remediation_r6_execution.R6RestartAndRecertificationTests.test_submission_pending_restart_never_blindly_resends) ... ok
+test_terminal_reservation_mode_and_corrupt_state_replay_fail_safe (tests.test_remediation_r6_execution.R6RestartAndRecertificationTests.test_terminal_reservation_mode_and_corrupt_state_replay_fail_safe) ... ok
+test_candidate_stake_and_lay_liability_mismatches_fail (tests.test_remediation_r6_execution.R6RiskBindingTests.test_candidate_stake_and_lay_liability_mismatches_fail) ... ok
+test_crash_between_consume_and_binding_is_reconciliation_blocking (tests.test_remediation_r6_execution.R6RiskBindingTests.test_crash_between_consume_and_binding_is_reconciliation_blocking) ... ok
+test_direct_transition_fake_approval_and_submission_without_binding_fail (tests.test_remediation_r6_execution.R6RiskBindingTests.test_direct_transition_fake_approval_and_submission_without_binding_fail) ... ok
+test_exact_binding_consumes_once_and_expiry_boundary_is_strict (tests.test_remediation_r6_execution.R6RiskBindingTests.test_exact_binding_consumes_once_and_expiry_boundary_is_strict) ... ok
+test_cross_fill_stale_ancestor_and_conflicting_event_id_fail_closed (tests.test_remediation_r7_settlement.R7SettlementLineageTests.test_cross_fill_stale_ancestor_and_conflicting_event_id_fail_closed) ... ok
+test_cross_process_initial_settlement_is_atomic (tests.test_remediation_r7_settlement.R7SettlementLineageTests.test_cross_process_initial_settlement_is_atomic) ... ok
+test_fill_fragment_has_exact_identity_decimal_types_and_liability (tests.test_remediation_r7_settlement.R7SettlementLineageTests.test_fill_fragment_has_exact_identity_decimal_types_and_liability) ... ok
+test_legacy_one_level_lineage_migrates_but_duplicate_unlinked_fails (tests.test_remediation_r7_settlement.R7SettlementLineageTests.test_legacy_one_level_lineage_migrates_but_duplicate_unlinked_fails) ... ok
+test_multi_step_corrections_conserve_final_effective_result (tests.test_remediation_r7_settlement.R7SettlementLineageTests.test_multi_step_corrections_conserve_final_effective_result) ... ok
+test_restart_and_void_cancellation_preserve_the_same_lineage (tests.test_remediation_r7_settlement.R7SettlementLineageTests.test_restart_and_void_cancellation_preserve_the_same_lineage) ... ok
+test_single_head_rejects_unlinked_duplicate_and_preserves_exact_schema (tests.test_remediation_r7_settlement.R7SettlementLineageTests.test_single_head_rejects_unlinked_duplicate_and_preserves_exact_schema) ... ok
+test_active_record_is_digest_pinned_approved_interpretation_a (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_active_record_is_digest_pinned_approved_interpretation_a) ... ok
+test_daily_concurrency_admits_exactly_seven (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_daily_concurrency_admits_exactly_seven) ... ok
+test_daily_seventh_allowed_eighth_blocked_and_no_account_bypass_api (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_daily_seventh_allowed_eighth_blocked_and_no_account_bypass_api) ... ok
+test_interpretation_a_boundaries_190_191_220_221_250_251 (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_interpretation_a_boundaries_190_191_220_221_250_251) ... ok
+test_interpretation_b_is_parameterized_but_stops_at_220 (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_interpretation_b_is_parameterized_but_stops_at_220) ... ok
+test_legacy_policy_migration_requires_named_interpretation (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_legacy_policy_migration_requires_named_interpretation) ... ok
+test_missing_corrupt_revoked_or_test_only_active_policy_fails_closed (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_missing_corrupt_revoked_or_test_only_active_policy_fails_closed) ... ok
+test_normal_monthly_concurrency_stops_exactly_at_220 (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_normal_monthly_concurrency_stops_exactly_at_220) ... ok
+test_partial_reserve_rehydrates_and_concurrency_cannot_oversubscribe (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_partial_reserve_rehydrates_and_concurrency_cannot_oversubscribe) ... ok
+test_request_id_replay_restart_schema_and_conflict (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_request_id_replay_restart_schema_and_conflict) ... ok
+test_reserve_authority_binding_expiry_revocation_and_grant_limit (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_reserve_authority_binding_expiry_revocation_and_grant_limit) ... ok
+test_semantic_replay_rejects_hash_valid_forged_allowance (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_semantic_replay_rejects_hash_valid_forged_allowance) ... ok
+test_valid_reserve_authority_cannot_bypass_eighth_daily_call (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_valid_reserve_authority_cannot_bypass_eighth_daily_call) ... ok
+test_verified_fresh_cache_is_zero_billable_but_stale_is_not (tests.test_remediation_r8_quota.R8QuotaPolicyTests.test_verified_fresh_cache_is_zero_billable_but_stale_is_not) ... ok
+test_evaluator_crash_after_reservation_consumes_attempt (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_evaluator_crash_after_reservation_consumes_attempt) ... ERROR
+test_label_dependent_internal_failure_has_no_side_channel (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_label_dependent_internal_failure_has_no_side_channel) ... ERROR
+test_missing_extra_and_substituted_frame_artifacts_reject_and_consume (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_missing_extra_and_substituted_frame_artifacts_reject_and_consume) ... ERROR
+test_raw_ipc_has_no_label_query_and_returns_only_generic_error (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_raw_ipc_has_no_label_query_and_returns_only_generic_error) ... ERROR
+test_real_protected_activation_remains_disabled_pending_review (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_real_protected_activation_remains_disabled_pending_review) ... ok
+test_registered_v2_campaign_cannot_select_legacy_harness (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_registered_v2_campaign_cannot_select_legacy_harness) ... ok
+test_research_client_has_no_labels_and_strategy_runs_outside_evaluator (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_research_client_has_no_labels_and_strategy_runs_outside_evaluator) ... ERROR
+test_research_failure_is_generic_non_refundable_and_survives_restart (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_research_failure_is_generic_non_refundable_and_survives_restart) ... ERROR
+test_small_cell_is_suppressed_and_attempt_is_durable (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_small_cell_is_suppressed_and_attempt_is_durable) ... ERROR
+test_two_evaluator_processes_cannot_both_take_final_attempt (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_two_evaluator_processes_cannot_both_take_final_attempt) ... ERROR
+test_unregistered_campaign_and_wrong_evaluator_digest_reject_pre_label (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_unregistered_campaign_and_wrong_evaluator_digest_reject_pre_label) ... ERROR
+test_canonical_json_and_tree_digest_are_order_independent (tests.test_reproducibility.ReproducibilityTests.test_canonical_json_and_tree_digest_are_order_independent) ... ok
+test_future_label_fields_cannot_enter_decision_frame (tests.test_time_and_labels.TimeAndLabelTests.test_future_label_fields_cannot_enter_decision_frame) ... ok
+test_future_label_is_a_distinct_record_type (tests.test_time_and_labels.TimeAndLabelTests.test_future_label_is_a_distinct_record_type) ... ok
+test_future_ready_time_is_rejected (tests.test_time_and_labels.TimeAndLabelTests.test_future_ready_time_is_rejected) ... ok
+test_source_contract_requires_ready_by_decision (tests.test_time_and_labels.TimeAndLabelTests.test_source_contract_requires_ready_by_decision) ... ok
+test_candidate_run_retention_and_non_quota_summary (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_candidate_run_retention_and_non_quota_summary) ... ok
+test_paper_order_idempotency_and_unknown_reconciliation (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_paper_order_idempotency_and_unknown_reconciliation) ... ERROR
+test_risk_counts_pending_and_unknown_and_approvals_are_single_use (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_risk_counts_pending_and_unknown_and_approvals_are_single_use) ... ok
+test_selected_set_calibration_and_pass_reasons_are_aggregated (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_selected_set_calibration_and_pass_reasons_are_aggregated) ... ok
+test_v04_gates_fail_closed_on_unknown_and_rank_uses_tiers (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_v04_gates_fail_closed_on_unknown_and_rank_uses_tiers) ... ok
+test_evidence_pack_and_decision_hash_are_immutable (tests.test_v04_foundation.V04PolicyAndPITTests.test_evidence_pack_and_decision_hash_are_immutable) ... ok
+test_market_capability_and_mode_authority_fail_closed (tests.test_v04_foundation.V04PolicyAndPITTests.test_market_capability_and_mode_authority_fail_closed) ... ok
+test_pit_query_rejects_unknown_capability_and_future_ready_record (tests.test_v04_foundation.V04PolicyAndPITTests.test_pit_query_rejects_unknown_capability_and_future_ready_record) ... ok
+test_policy_is_versioned_and_daily_ranges_are_not_caps (tests.test_v04_foundation.V04PolicyAndPITTests.test_policy_is_versioned_and_daily_ranges_are_not_caps) ... ok
+test_price_sanity_uses_provisional_near_fair_tolerance (tests.test_v04_foundation.V04PolicyAndPITTests.test_price_sanity_uses_provisional_near_fair_tolerance) ... ok
+test_runtime_cost_budget_is_fail_closed (tests.test_v04_foundation.V04PolicyAndPITTests.test_runtime_cost_budget_is_fail_closed) ... ok
+test_source_supersession_is_honoured_at_the_requested_time (tests.test_v04_foundation.V04PolicyAndPITTests.test_source_supersession_is_honoured_at_the_requested_time) ... ok
+test_ledger_is_source_of_truth_and_quota_fails_closed (tests.test_v04_foundation.V04ProtectedLedgerQuotaTests.test_ledger_is_source_of_truth_and_quota_fails_closed) ... ok
+test_protected_attempt_is_consumed_on_suppression_and_failure (tests.test_v04_foundation.V04ProtectedLedgerQuotaTests.test_protected_attempt_is_consumed_on_suppression_and_failure) ... ok
+
+======================================================================
+ERROR: test_evaluator_crash_after_reservation_consumes_attempt (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_evaluator_crash_after_reservation_consumes_attempt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 258, in test_evaluator_crash_after_reservation_consumes_attempt
+    client = launch(fixture, allow_fault_injection=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 142, in launch
+    client = launch_trusted_protected_evaluator(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\protected.py", line 1002, in launch_trusted_protected_evaluator
+    parent_connection, child_connection = context.Pipe(duplex=True)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 63, in Pipe
+    return Pipe(duplex)
+           ^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+======================================================================
+ERROR: test_label_dependent_internal_failure_has_no_side_channel (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_label_dependent_internal_failure_has_no_side_channel)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 347, in test_label_dependent_internal_failure_has_no_side_channel
+    with launch(fixture, outcomes=("TOP-SECRET-OUTCOME",)) as client:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 142, in launch
+    client = launch_trusted_protected_evaluator(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\protected.py", line 1002, in launch_trusted_protected_evaluator
+    parent_connection, child_connection = context.Pipe(duplex=True)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 63, in Pipe
+    return Pipe(duplex)
+           ^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+======================================================================
+ERROR: test_missing_extra_and_substituted_frame_artifacts_reject_and_consume (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_missing_extra_and_substituted_frame_artifacts_reject_and_consume)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 336, in test_missing_extra_and_substituted_frame_artifacts_reject_and_consume
+    with launch(fixture) as client:
+         ^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 142, in launch
+    client = launch_trusted_protected_evaluator(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\protected.py", line 1002, in launch_trusted_protected_evaluator
+    parent_connection, child_connection = context.Pipe(duplex=True)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 63, in Pipe
+    return Pipe(duplex)
+           ^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+======================================================================
+ERROR: test_raw_ipc_has_no_label_query_and_returns_only_generic_error (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_raw_ipc_has_no_label_query_and_returns_only_generic_error)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 219, in test_raw_ipc_has_no_label_query_and_returns_only_generic_error
+    client = launch(fixture)
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 142, in launch
+    client = launch_trusted_protected_evaluator(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\protected.py", line 1002, in launch_trusted_protected_evaluator
+    parent_connection, child_connection = context.Pipe(duplex=True)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 63, in Pipe
+    return Pipe(duplex)
+           ^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+======================================================================
+ERROR: test_research_client_has_no_labels_and_strategy_runs_outside_evaluator (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_research_client_has_no_labels_and_strategy_runs_outside_evaluator)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 195, in test_research_client_has_no_labels_and_strategy_runs_outside_evaluator
+    client = launch(fixture)
+             ^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 142, in launch
+    client = launch_trusted_protected_evaluator(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\protected.py", line 1002, in launch_trusted_protected_evaluator
+    parent_connection, child_connection = context.Pipe(duplex=True)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 63, in Pipe
+    return Pipe(duplex)
+           ^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+======================================================================
+ERROR: test_research_failure_is_generic_non_refundable_and_survives_restart (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_research_failure_is_generic_non_refundable_and_survives_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 242, in test_research_failure_is_generic_non_refundable_and_survives_restart
+    with launch(fixture) as client:
+         ^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 142, in launch
+    client = launch_trusted_protected_evaluator(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\protected.py", line 1002, in launch_trusted_protected_evaluator
+    parent_connection, child_connection = context.Pipe(duplex=True)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 63, in Pipe
+    return Pipe(duplex)
+           ^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+======================================================================
+ERROR: test_small_cell_is_suppressed_and_attempt_is_durable (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_small_cell_is_suppressed_and_attempt_is_durable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 232, in test_small_cell_is_suppressed_and_attempt_is_durable
+    with launch(fixture) as client:
+         ^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 142, in launch
+    client = launch_trusted_protected_evaluator(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\protected.py", line 1002, in launch_trusted_protected_evaluator
+    parent_connection, child_connection = context.Pipe(duplex=True)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 63, in Pipe
+    return Pipe(duplex)
+           ^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+======================================================================
+ERROR: test_two_evaluator_processes_cannot_both_take_final_attempt (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_two_evaluator_processes_cannot_both_take_final_attempt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 358, in test_two_evaluator_processes_cannot_both_take_final_attempt
+    first = launch(fixture)
+            ^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 142, in launch
+    client = launch_trusted_protected_evaluator(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\protected.py", line 1002, in launch_trusted_protected_evaluator
+    parent_connection, child_connection = context.Pipe(duplex=True)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 63, in Pipe
+    return Pipe(duplex)
+           ^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+======================================================================
+ERROR: test_unregistered_campaign_and_wrong_evaluator_digest_reject_pre_label (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_unregistered_campaign_and_wrong_evaluator_digest_reject_pre_label)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 298, in test_unregistered_campaign_and_wrong_evaluator_digest_reject_pre_label
+    with launch(fixture) as client:
+         ^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_remediation_r9_protected.py", line 142, in launch
+    client = launch_trusted_protected_evaluator(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\protected.py", line 1002, in launch_trusted_protected_evaluator
+    parent_connection, child_connection = context.Pipe(duplex=True)
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 63, in Pipe
+    return Pipe(duplex)
+           ^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+======================================================================
+ERROR: test_paper_order_idempotency_and_unknown_reconciliation (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_paper_order_idempotency_and_unknown_reconciliation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_v04_foundation.py", line 265, in test_paper_order_idempotency_and_unknown_reconciliation
+    adapter.transition("idem-1", OrderState.SUBMISSION_PENDING, occurred_at="2026-01-01T00:14:00Z")
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\execution.py", line 615, in transition
+    self._audit.transaction(build, read_locks=read_locks)
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\registry.py", line 111, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\src\genesis\execution.py", line 594, in build
+    raise RegistryConflict(
+genesis.registry.RegistryConflict: submission recertification blocked: critical_evidence_changed
+
+----------------------------------------------------------------------
+Ran 122 tests in 63.631s
+
+FAILED (errors=10)

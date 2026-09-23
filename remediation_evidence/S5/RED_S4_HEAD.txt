@@ -1,0 +1,119 @@
+BASE_SHA 0032ee76f6a5137a70a22b79b1207c9554e37694
+GENESIS_SOURCE C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\s5-red-s4\src\genesis\__init__.py
+test_boundary_attestation_has_only_label_free_capabilities (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_boundary_attestation_has_only_label_free_capabilities) ... FAIL
+test_direct_callable_is_rejected_before_attempt_or_parent_execution (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_direct_callable_is_rejected_before_attempt_or_parent_execution) ... FAIL
+test_label_root_overlap_is_rejected_and_real_campaign_guard_remains (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_label_root_overlap_is_rejected_and_real_campaign_guard_remains) ... FAIL
+test_malformed_research_ipc_is_generic_and_evaluator_remains_separate (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_malformed_research_ipc_is_generic_and_evaluator_remains_separate) ... FAIL
+test_module_global_raw_label_is_rejected_inside_worker (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_module_global_raw_label_is_rejected_inside_worker) ... FAIL
+test_program_reference_binds_exact_module_bytes_and_request_digest (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_program_reference_binds_exact_module_bytes_and_request_digest) ... FAIL
+test_research_exception_is_generic_and_nonrefundable (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_research_exception_is_generic_and_nonrefundable) ... FAIL
+test_research_process_crash_consumes_attempt_and_restart_cannot_refund (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_research_process_crash_consumes_attempt_and_restart_cannot_refund) ... FAIL
+test_research_timeout_is_generic_nonrefundable_and_bounded (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_research_timeout_is_generic_nonrefundable_and_bounded) ... FAIL
+test_retained_parent_label_environment_and_path_do_not_reach_research (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_retained_parent_label_environment_and_path_do_not_reach_research) ... FAIL
+test_successful_program_is_proven_to_run_in_a_third_pid (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_successful_program_is_proven_to_run_in_a_third_pid) ... FAIL
+test_two_research_workers_cannot_exceed_the_final_attempt (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_two_research_workers_cannot_exceed_the_final_attempt) ... FAIL
+
+======================================================================
+FAIL: test_boundary_attestation_has_only_label_free_capabilities (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_boundary_attestation_has_only_label_free_capabilities)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s5_process.py", line 291, in test_boundary_attestation_has_only_label_free_capabilities
+    self.assertIsInstance(boundary, dict, "A8: no process-boundary evidence exists")
+AssertionError: None is not an instance of <class 'dict'> : A8: no process-boundary evidence exists
+
+======================================================================
+FAIL: test_direct_callable_is_rejected_before_attempt_or_parent_execution (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_direct_callable_is_rejected_before_attempt_or_parent_execution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s5_process.py", line 316, in test_direct_callable_is_rejected_before_attempt_or_parent_execution
+    with self.assertRaises(ProtectedEvaluationError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: ProtectedEvaluationError not raised
+
+======================================================================
+FAIL: test_label_root_overlap_is_rejected_and_real_campaign_guard_remains (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_label_root_overlap_is_rejected_and_real_campaign_guard_remains)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s5_process.py", line 453, in test_label_root_overlap_is_rejected_and_real_campaign_guard_remains
+    self.assertIn("trusted_label_roots", parameters, "A8: label paths are not fenced")
+AssertionError: 'trusted_label_roots' not found in mappingproxy(OrderedDict({'campaign': <Parameter "campaign: 'ProtectedCampaign'">, 'sealed_frames': <Parameter "sealed_frames: 'SealedFrameSet'">, 'labels': <Parameter "labels: 'Iterable[FutureOutcomeLabel]'">, 'campaigns': <Parameter "campaigns: 'ProtectedCampaignRegistry'">, 'experiments': <Parameter "experiments: 'ExperimentRegistry'">, 'attempts': <Parameter "attempts: 'ProtectedAttemptLedger'">, 'family_limit': <Parameter "family_limit: 'int'">, 'allow_fault_injection': <Parameter "allow_fault_injection: 'bool' = False">, 'local_checkpoint_test_only': <Parameter "local_checkpoint_test_only: 'bool' = False">})) : A8: label paths are not fenced
+
+======================================================================
+FAIL: test_malformed_research_ipc_is_generic_and_evaluator_remains_separate (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_malformed_research_ipc_is_generic_and_evaluator_remains_separate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s5_process.py", line 375, in test_malformed_research_ipc_is_generic_and_evaluator_remains_separate
+    self.fail("A8: research shares the evaluator IPC endpoint")
+AssertionError: A8: research shares the evaluator IPC endpoint
+
+======================================================================
+FAIL: test_module_global_raw_label_is_rejected_inside_worker (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_module_global_raw_label_is_rejected_inside_worker)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s5_process.py", line 399, in test_module_global_raw_label_is_rejected_inside_worker
+    self.assertIsNotNone(contract, "A8: worker does not inspect program label state")
+AssertionError: unexpectedly None : A8: worker does not inspect program label state
+
+======================================================================
+FAIL: test_program_reference_binds_exact_module_bytes_and_request_digest (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_program_reference_binds_exact_module_bytes_and_request_digest)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s5_process.py", line 323, in test_program_reference_binds_exact_module_bytes_and_request_digest
+    self.assertIsNotNone(contract, "A8: research still accepts an unversioned callback")
+AssertionError: unexpectedly None : A8: research still accepts an unversioned callback
+
+======================================================================
+FAIL: test_research_exception_is_generic_and_nonrefundable (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_research_exception_is_generic_and_nonrefundable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s5_process.py", line 357, in test_research_exception_is_generic_and_nonrefundable
+    self.assertIsNotNone(contract, "A8: no isolated research error boundary exists")
+AssertionError: unexpectedly None : A8: no isolated research error boundary exists
+
+======================================================================
+FAIL: test_research_process_crash_consumes_attempt_and_restart_cannot_refund (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_research_process_crash_consumes_attempt_and_restart_cannot_refund)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s5_process.py", line 335, in test_research_process_crash_consumes_attempt_and_restart_cannot_refund
+    self.assertIsNotNone(contract, "A8: no separately crashable research process exists")
+AssertionError: unexpectedly None : A8: no separately crashable research process exists
+
+======================================================================
+FAIL: test_research_timeout_is_generic_nonrefundable_and_bounded (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_research_timeout_is_generic_nonrefundable_and_bounded)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s5_process.py", line 387, in test_research_timeout_is_generic_nonrefundable_and_bounded
+    self.assertIsNotNone(contract, "A8: no bounded research-process timeout exists")
+AssertionError: unexpectedly None : A8: no bounded research-process timeout exists
+
+======================================================================
+FAIL: test_retained_parent_label_environment_and_path_do_not_reach_research (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_retained_parent_label_environment_and_path_do_not_reach_research)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s5_process.py", line 262, in test_retained_parent_label_environment_and_path_do_not_reach_research
+    self.assertEqual(
+AssertionError: '0.3229' != '0.01'
+- 0.3229
++ 0.01
+ : A8: callback observed a parent-retained label or label path
+
+======================================================================
+FAIL: test_successful_program_is_proven_to_run_in_a_third_pid (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_successful_program_is_proven_to_run_in_a_third_pid)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s5_process.py", line 280, in test_successful_program_is_proven_to_run_in_a_third_pid
+    self.assertIsNotNone(research_pid, "A8: no separate research process exists")
+AssertionError: unexpectedly None : A8: no separate research process exists
+
+======================================================================
+FAIL: test_two_research_workers_cannot_exceed_the_final_attempt (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_two_research_workers_cannot_exceed_the_final_attempt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s5_process.py", line 414, in test_two_research_workers_cannot_exceed_the_final_attempt
+    self.assertIsNotNone(contract, "A8: no independent research workers exist")
+AssertionError: unexpectedly None : A8: no independent research workers exist
+
+----------------------------------------------------------------------
+Ran 12 tests in 3.952s
+
+FAILED (failures=12)

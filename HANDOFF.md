@@ -1,7 +1,7 @@
 # Project Genesis V0.4 remediation handoff
 
-Date: 2026-09-22
-Status: **Astra R10 HOLD; A1–A7 locally green through S4; A8 open; adapter NO-GO**
+Date: 2026-09-23
+Status: **Astra R10 HOLD; A1-A8 locally green through S5; adapter NO-GO**
 
 ## S1 continuation notice
 
@@ -33,21 +33,26 @@ re-audit or strategy-specific approval. S4 then replaces caller cache claims
 with content-addressed bytes and an append-only cache authority. Its 11 tests
 are RED on `166f923` and clean S3b `42f7540` (15 invariant failures each),
 then targeted 39/39, full 184/184 and `compileall` green. Evidence is in
-`remediation_evidence/S4/`. A8 research process isolation remains open.
-Continue with A8 next;
-do not begin an adapter, substantive shadow
-research or live-money work.
+`remediation_evidence/S4/`. Under separately approved ADR-0003 v1 (exact
+SHA-256 `0fd4c63deb7a8431c41d7869163ccf79ce0295b63b585c8e4c3a0695f1dafaad`),
+S5 moves accepted research programs into a distinct isolated process started
+before label materialization/evaluator IPC. Its 12-test hostile set was RED on
+clean `166f923` and S4, then targeted A8/R9 passed 23/23, retained R0-R10 and
+S1-S4 passed 184/184, full discovery passed 196/196, and `compileall` passed.
+Exact evidence is in `remediation_evidence/S5/`. Review S5 and run the fresh
+independent hostile re-audit next; do not begin an adapter, substantive shadow
+research, protected campaign or live-money work.
 
 ## Review decision requested
 
-The R10 audit has been completed and returned HOLD. After S1 and the remaining
-staged repairs, run a fresh independent hostile re-audit against the new exact
-checkpoint. Do not approve later strategy, provider, cloud, venue or live work
-through this partial S1 result.
+The R10 audit has been completed and returned HOLD. The staged repairs are now
+locally green through S5; run a fresh independent hostile re-audit against the
+new exact checkpoint. Do not approve later strategy, provider, cloud, venue or
+live work through these local results.
 
-The S1 implementation is a local green checkpoint only. Until all A1–A8
-repairs, external re-audit and explicit checkpoint approval are complete, the
-adapter decision remains NO-GO.
+The staged A1-A8 implementation is locally green only. Until the external
+re-audit and explicit checkpoint approval are complete, the adapter decision
+remains NO-GO.
 
 ## Authority and exact identity
 

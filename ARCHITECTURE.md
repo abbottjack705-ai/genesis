@@ -1,13 +1,15 @@
 # Project Genesis architecture
 
-## Audit disposition (2026-09-22)
+## Audit disposition (2026-09-23)
 
 Astra's independent audit of R10 commit `166f923` returned **HOLD / NOT
 APPROVED**. S1 locally closed A1/A2; S2a/S2b locally closed A3/A7; S3a
 locally closed A5's exact-input correspondence. S3b locally binds A4's trusted
 decision outputs to candidate-v3 and downstream new-risk/order lineage.
-S4 locally closes A6's cache-authority defect. A8 remains open; this diagram is a
-foundation map, not an adapter, shadow-research or live-money GO.
+S4 locally closes A6's cache-authority defect. S5 locally closes A8's
+process/address-space defect under approved ADR-0003 v1. All A1-A8 repairs still
+require a fresh independent hostile re-audit; this diagram is a foundation map,
+not an adapter, shadow-research, protected-campaign or live-money GO.
 
 ## Remediated V0.4 foundation flow
 
@@ -62,18 +64,28 @@ admission; a pre-lock change is observed and a later change is ordered after
 the approval. S3a/S3b separately fence exact PIT/decision-output identity.
 S4 resolves cache references through immutable bytes and an append-only
 provider/policy/request/freshness/invalidation authority under the quota
-transaction fence. A8's research process boundary remains open. Recovery must not
-silently heal, truncate, choose a branch, or infer missing identity.
+transaction fence. S5 launches a separately isolated research process before
+trusted labels are materialized and before the evaluator channel is created.
+Recovery must not silently heal, truncate, choose a branch, or infer missing
+identity.
 
 ## Trust boundaries
 
 ```text
-Label-loading caller / research callback (current local launcher)
-  can retain raw labels in its address space: A8 NOT CLOSED
+Label-owning trusted launcher
+  retains labels; never executes an accepted research program
                  |
-                 | bounded canonical JSON IPC
+                 | label-free sealed frames + exact ResearchProgramRef
                  v
-Spawned trusted evaluator process (checkpoint-test mode only)
+Isolated research process (distinct PID/address space)
+  starts before label materialization and evaluator-channel creation
+  receives no raw labels, label path, label store or evaluator endpoint
+  imports the exact hashed top-level stateless program
+  returns only an exact frozen-prediction artifact or generic failure
+                 |
+                 | prediction artifact identity only
+                 v
+Spawned trusted evaluator process (distinct PID; checkpoint-test mode only)
   owns labels and fixed campaign/frame registration
   reserves a durable non-refundable attempt first
   executes no arbitrary research callback
@@ -175,8 +187,10 @@ SettlementLedger
   deterministic Decimal payoff primitives.
 - `quota.py`, `config/oddspapi_quota_policy_v2.json`: digest-pinned approved A
   policy, test-only B, atomic reserve authority and immutable exact cache proof.
-- `protected.py`, `evaluation.py`: sealed frames, frozen predictions, durable
-  attempt accounting, trusted evaluator IPC and explicit legacy test harness.
+- `protected.py`, `protected_research_worker.py`, `evaluation.py`: sealed
+  frames, exact hashed research-program references, isolated research execution,
+  frozen predictions, durable attempt accounting, trusted evaluator IPC and an
+  explicit legacy test harness.
 - `candidate_runs.py`, `coverage.py`, `selection_evaluation.py`: complete
   candidate retention, non-quota search telemetry and aggregate evaluation.
 

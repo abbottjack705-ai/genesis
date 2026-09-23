@@ -2,14 +2,20 @@
 
 from __future__ import annotations
 
+import importlib
+import inspect
 import json
 import multiprocessing
 import os
+import queue
+import subprocess
+import sys
+import threading
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, BinaryIO, Iterable
 
 from .evaluation import (
     EvaluationCertificate,
@@ -20,7 +26,7 @@ from .evaluation import (
 )
 from .labels import DecisionFrame, FutureOutcomeLabel
 from .registry import AppendOnlyJsonl, ExperimentRegistry, RegistryConflict
-from .repro import canonical_json, sha256_bytes
+from .repro import canonical_json, sha256_bytes, sha256_file
 from .time import iso_utc, parse_utc
 
 
@@ -28,6 +34,10 @@ CAMPAIGN_SCHEMA = "protected-campaign-v2"
 ATTEMPT_SCHEMA = "protected-attempt-v2"
 FRAME_MANIFEST_SCHEMA = "sealed-frame-manifest-v1"
 PREDICTION_ARTIFACT_SCHEMA = "frozen-predictions-v1"
+RESEARCH_PROGRAM_SCHEMA = "research-program-ref-v1"
+RESEARCH_PROGRAM_DOMAIN = "genesis.protected-research-program.v1"
+RESEARCH_LAUNCH_SCHEMA = "protected-research-launch-v1"
+RESEARCH_BOUNDARY_SCHEMA = "protected-research-boundary-v1"
 MAX_IPC_BYTES = 1_000_000
 
 
@@ -222,6 +232,105 @@ class FrozenPredictionArtifact:
         fields = dict(value)
         fields["predictions"] = tuple(predictions)
         return cls(**fields)
+
+
+def _import_identifier(value: str) -> bool:
+    return bool(value) and all(part.isidentifier() for part in value.split("."))
+
+
+@dataclass(frozen=True)
+class ResearchProgramRef:
+    """Closed, data-only identity for code executed by the research worker."""
+
+    module: str
+    qualname: str
+    module_artifact_hash: str
+    program_digest: str
+    schema_version: str = RESEARCH_PROGRAM_SCHEMA
+    domain: str = RESEARCH_PROGRAM_DOMAIN
+
+    def __post_init__(self) -> None:
+        if self.schema_version != RESEARCH_PROGRAM_SCHEMA or self.domain != RESEARCH_PROGRAM_DOMAIN:
+            raise ValueError("unsupported research program reference")
+        if not _import_identifier(self.module) or not _import_identifier(self.qualname):
+            raise ValueError("research program import identity is invalid")
+        if "<locals>" in self.qualname or any(
+            part.startswith("__") and part.endswith("__")
+            for part in self.qualname.split(".")
+        ):
+            raise ValueError("research program traversal is forbidden")
+        for name in ("module_artifact_hash", "program_digest"):
+            value = getattr(self, name)
+            if len(value) != 64 or value.lower() != value:
+                raise ValueError(f"{name} must be lowercase SHA-256")
+            int(value, 16)
+        if self.compute_digest() != self.program_digest:
+            raise ValueError("research program digest mismatch")
+
+    def unsigned_dict(self) -> dict[str, str]:
+        return {
+            "domain": self.domain,
+            "schema_version": self.schema_version,
+            "module": self.module,
+            "qualname": self.qualname,
+            "module_artifact_hash": self.module_artifact_hash,
+        }
+
+    def compute_digest(self) -> str:
+        return sha256_bytes(canonical_json(self.unsigned_dict()))
+
+    def to_dict(self) -> dict[str, str]:
+        return self.unsigned_dict() | {"program_digest": self.program_digest}
+
+    @classmethod
+    def from_callable(cls, callback: Any) -> "ResearchProgramRef":
+        if not inspect.isfunction(callback):
+            raise ValueError("research program must be a top-level Python function")
+        if (
+            callback.__closure__ is not None
+            or callback.__defaults__
+            or callback.__kwdefaults__
+            or "<locals>" in callback.__qualname__
+        ):
+            raise ValueError("research program cannot carry parent state")
+        module = importlib.import_module(callback.__module__)
+        module_path = getattr(module, "__file__", None)
+        if not isinstance(module_path, str):
+            raise ValueError("research program module is not file-backed")
+        unsigned = {
+            "domain": RESEARCH_PROGRAM_DOMAIN,
+            "schema_version": RESEARCH_PROGRAM_SCHEMA,
+            "module": callback.__module__,
+            "qualname": callback.__qualname__,
+            "module_artifact_hash": sha256_file(Path(module_path).resolve()),
+        }
+        return cls(
+            callback.__module__,
+            callback.__qualname__,
+            unsigned["module_artifact_hash"],
+            sha256_bytes(canonical_json(unsigned)),
+        )
+
+    @classmethod
+    def from_dict(cls, value: dict[str, Any]) -> "ResearchProgramRef":
+        required = {
+            "domain",
+            "schema_version",
+            "module",
+            "qualname",
+            "module_artifact_hash",
+            "program_digest",
+        }
+        if set(value) != required or not all(isinstance(value[key], str) for key in required):
+            raise ValueError("research program payload is invalid")
+        return cls(
+            module=value["module"],
+            qualname=value["qualname"],
+            module_artifact_hash=value["module_artifact_hash"],
+            program_digest=value["program_digest"],
+            schema_version=value["schema_version"],
+            domain=value["domain"],
+        )
 
 
 @dataclass(frozen=True)
@@ -807,20 +916,184 @@ def _trusted_evaluator_worker(
     connection.close()
 
 
+def _sealed_launch_dict(sealed: SealedFrameSet) -> dict[str, Any]:
+    return {
+        "schema_version": sealed.schema_version,
+        "campaign_id": sealed.campaign_id,
+        "dataset_version": sealed.dataset_version,
+        "frames": [frame.to_dict() for frame in sealed.frames],
+        "frame_ids": list(sealed.frame_ids),
+        "frame_hashes": list(sealed.frame_hashes),
+        "frame_manifest_hash": sealed.frame_manifest_hash,
+    }
+
+
+def _paths_overlap(left: Path, right: Path) -> bool:
+    return left == right or left in right.parents or right in left.parents
+
+
+def _research_environment(workdir: Path) -> dict[str, str]:
+    environment = {
+        "PYTHONUTF8": "1",
+        "PYTHONIOENCODING": "utf-8",
+        "TEMP": str(workdir),
+        "TMP": str(workdir),
+    }
+    for name in ("SYSTEMROOT", "WINDIR", "COMSPEC"):
+        value = os.environ.get(name)
+        if value:
+            environment[name] = value
+    return environment
+
+
+def _research_reader(
+    stream: BinaryIO,
+    messages: "queue.Queue[bytes | None]",
+) -> None:
+    try:
+        while True:
+            raw = stream.readline(MAX_IPC_BYTES + 1)
+            if not raw:
+                break
+            messages.put(raw)
+    finally:
+        messages.put(None)
+
+
+def _take_research_message(
+    messages: "queue.Queue[bytes | None]",
+    *,
+    timeout: float,
+) -> dict[str, Any]:
+    try:
+        raw = messages.get(timeout=timeout)
+    except queue.Empty as exc:
+        raise ProtectedEvaluationError("protected research unavailable") from exc
+    if raw is None or len(raw) > MAX_IPC_BYTES or not raw.endswith(b"\n"):
+        raise ProtectedEvaluationError("protected research unavailable")
+    try:
+        value = json.loads(raw)
+    except Exception as exc:
+        raise ProtectedEvaluationError("protected research unavailable") from exc
+    if not isinstance(value, dict):
+        raise ProtectedEvaluationError("protected research unavailable")
+    return value
+
+
+def _start_research_process(
+    sealed_frames: SealedFrameSet,
+    *,
+    research_workdir: Path,
+    allowed_program_import_roots: tuple[Path, ...],
+) -> tuple[
+    subprocess.Popen[bytes],
+    "queue.Queue[bytes | None]",
+    threading.Thread,
+    dict[str, Any],
+]:
+    environment = _research_environment(research_workdir)
+    worker_path = Path(__file__).with_name("protected_research_worker.py").resolve()
+    creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    process = subprocess.Popen(
+        [sys.executable, "-I", "-S", str(worker_path)],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        cwd=str(research_workdir),
+        env=environment,
+        close_fds=True,
+        creationflags=creationflags,
+    )
+    if process.stdin is None or process.stdout is None:
+        process.kill()
+        process.wait(10)
+        raise ProtectedEvaluationError("protected research unavailable")
+    messages: "queue.Queue[bytes | None]" = queue.Queue()
+    reader = threading.Thread(
+        target=_research_reader,
+        args=(process.stdout, messages),
+        daemon=True,
+        name=f"genesis-research-reader-{process.pid}",
+    )
+    reader.start()
+    launch = {
+        "schema_version": RESEARCH_LAUNCH_SCHEMA,
+        "sealed_frame_manifest": _sealed_launch_dict(sealed_frames),
+        "allowed_program_import_roots": [str(path) for path in allowed_program_import_roots],
+        "max_ipc_bytes": MAX_IPC_BYTES,
+    }
+    try:
+        raw = canonical_json(launch)
+        if len(raw) > MAX_IPC_BYTES:
+            raise ValueError("research launch exceeds IPC limit")
+        process.stdin.write(raw)
+        process.stdin.flush()
+        response = _take_research_message(messages, timeout=15)
+        required = {
+            "status",
+            "schema_version",
+            "research_pid",
+            "frame_manifest_hash",
+            "received_capabilities",
+        }
+        if (
+            set(response) != required
+            or response["status"] != "ready"
+            or response["schema_version"] != RESEARCH_BOUNDARY_SCHEMA
+            or response["research_pid"] != process.pid
+            or response["frame_manifest_hash"] != sealed_frames.frame_manifest_hash
+            or response["received_capabilities"]
+            != [
+                "program_import_roots",
+                "research_ipc",
+                "research_workdir",
+                "sealed_frames",
+            ]
+        ):
+            raise ValueError("research ready response mismatch")
+    except Exception:
+        if process.poll() is None:
+            process.kill()
+        process.wait(10)
+        process.stdin.close()
+        process.stdout.close()
+        raise ProtectedEvaluationError("protected research unavailable") from None
+    boundary = {
+        "schema_version": RESEARCH_BOUNDARY_SCHEMA,
+        "research_pid": process.pid,
+        "frame_manifest_hash": sealed_frames.frame_manifest_hash,
+        "received_capabilities": tuple(response["received_capabilities"]),
+        "environment_keys": tuple(sorted(environment)),
+        "working_directory": str(research_workdir),
+        "research_ready_before_evaluator": True,
+    }
+    return process, messages, reader, boundary
+
+
 class ProtectedEvaluationClient:
-    """Research-facing client: sealed frames and controlled JSON IPC only."""
+    """Trusted orchestrator for separate label-free research and evaluator processes."""
 
     def __init__(
         self,
         connection: Any,
         process: multiprocessing.Process,
         sealed_frames: SealedFrameSet,
+        research_process: subprocess.Popen[bytes],
+        research_messages: "queue.Queue[bytes | None]",
+        research_reader: threading.Thread,
+        research_boundary: dict[str, Any],
         *,
         allow_fault_injection: bool,
     ):
         self._connection = connection
         self._process = process
         self._sealed_frames = sealed_frames
+        self._research_process = research_process
+        self._research_messages = research_messages
+        self._research_reader = research_reader
+        self._research_boundary = dict(research_boundary)
+        self._research_lock = threading.Lock()
+        self._last_research_pid: int | None = None
         self._allow_fault_injection = allow_fault_injection
         self._closed = False
 
@@ -835,6 +1108,18 @@ class ProtectedEvaluationClient:
     @property
     def evaluator_pid(self) -> int | None:
         return self._process.pid
+
+    @property
+    def research_pid(self) -> int:
+        return int(self._research_process.pid)
+
+    @property
+    def last_research_pid(self) -> int | None:
+        return self._last_research_pid
+
+    @property
+    def research_boundary(self) -> dict[str, Any]:
+        return dict(self._research_boundary)
 
     def _roundtrip(self, payload: dict[str, Any], timeout: float = 10.0) -> dict[str, Any]:
         if self._closed or not self._process.is_alive():
@@ -853,11 +1138,44 @@ class ProtectedEvaluationClient:
         except Exception:
             raise ProtectedEvaluationError("protected evaluator unavailable") from None
 
+    def _research_roundtrip(
+        self,
+        payload: dict[str, Any],
+        timeout: float = 10.0,
+    ) -> dict[str, Any]:
+        if self._closed or self._research_process.poll() is not None:
+            raise ProtectedEvaluationError("protected research unavailable") from None
+        with self._research_lock:
+            try:
+                raw = canonical_json(payload)
+                if len(raw) > MAX_IPC_BYTES or self._research_process.stdin is None:
+                    raise ValueError
+                self._research_process.stdin.write(raw)
+                self._research_process.stdin.flush()
+                return _take_research_message(self._research_messages, timeout=timeout)
+            except Exception:
+                if self._research_process.poll() is None:
+                    self._research_process.kill()
+                    self._research_process.wait(10)
+                raise ProtectedEvaluationError("protected research unavailable") from None
+
     def _reserve(self, request: EvaluationRequest) -> str:
         response = self._roundtrip({"op": "reserve", "request": request.to_dict()})
         if response.get("status") != "reserved" or not isinstance(response.get("attempt_id"), str):
             raise ProtectedEvaluationError(str(response.get("message", "protected request rejected"))) from None
         return response["attempt_id"]
+
+    def _abandon(self, request: EvaluationRequest, attempt_id: str) -> None:
+        try:
+            self._roundtrip(
+                {
+                    "op": "abandon",
+                    "request": request.to_dict(),
+                    "attempt_id": attempt_id,
+                }
+            )
+        except Exception:
+            pass
 
     def _evaluate_reserved(
         self,
@@ -903,31 +1221,63 @@ class ProtectedEvaluationClient:
     def run(
         self,
         request: EvaluationRequest,
-        strategy: ResearchStrategy,
+        program: ResearchProgramRef,
     ) -> EvaluationCertificate:
+        if not isinstance(program, ResearchProgramRef) or request.strategy_digest != program.program_digest:
+            raise ProtectedEvaluationError("protected request rejected") from None
         attempt_id = self._reserve(request)
         try:
-            predictions = {
-                frame.decision_id: strategy(frame) for frame in self._sealed_frames.frames
-            }
-            artifact = FrozenPredictionArtifact.create(
-                request,
-                self._sealed_frames.frame_manifest_hash,
-                predictions,
+            response = self._research_roundtrip(
+                {
+                    "op": "predict",
+                    "request": request.to_dict(),
+                    "program": program.to_dict(),
+                }
             )
+            if set(response) != {"status", "artifact", "research_pid"}:
+                raise ValueError
+            if (
+                response["status"] != "artifact"
+                or response["research_pid"] != self.research_pid
+                or not isinstance(response["artifact"], dict)
+            ):
+                raise ValueError
+            artifact = FrozenPredictionArtifact.from_dict(response["artifact"])
+            if (
+                artifact.campaign_id != request.campaign_id
+                or artifact.dataset_version != request.dataset_version
+                or artifact.strategy_id != request.strategy_id
+                or artifact.strategy_digest != request.strategy_digest
+                or artifact.frame_manifest_hash != self.frame_manifest_hash
+                or set(frame_id for frame_id, _ in artifact.predictions)
+                != set(self._sealed_frames.frame_ids)
+                or len(artifact.predictions) != len(self._sealed_frames.frame_ids)
+            ):
+                raise ValueError
+            self._last_research_pid = int(response["research_pid"])
         except Exception:
-            try:
-                self._roundtrip(
-                    {
-                        "op": "abandon",
-                        "request": request.to_dict(),
-                        "attempt_id": attempt_id,
-                    }
-                )
-            except Exception:
-                pass
+            self._abandon(request, attempt_id)
             raise ProtectedEvaluationError("protected evaluation failed") from None
         return self._evaluate_reserved(request, attempt_id, artifact)
+
+    def _close_research(self) -> None:
+        try:
+            if self._research_process.poll() is None:
+                try:
+                    self._research_roundtrip({"op": "shutdown"})
+                except Exception:
+                    pass
+                try:
+                    self._research_process.wait(10)
+                except subprocess.TimeoutExpired:
+                    self._research_process.kill()
+                    self._research_process.wait(10)
+        finally:
+            if self._research_process.stdin is not None:
+                self._research_process.stdin.close()
+            if self._research_process.stdout is not None:
+                self._research_process.stdout.close()
+            self._research_reader.join(10)
 
     def crash_after_reservation_for_test(self, request: EvaluationRequest) -> None:
         if not self._allow_fault_injection:
@@ -937,6 +1287,7 @@ class ProtectedEvaluationClient:
             self._connection.send_bytes(canonical_json({"op": "crash"}))
             self._process.join(10)
         finally:
+            self._close_research()
             self._closed = True
             self._connection.close()
         raise ProtectedEvaluationError("protected evaluator unavailable") from None
@@ -951,6 +1302,7 @@ class ProtectedEvaluationClient:
             if self._process.is_alive():
                 self._process.terminate()
                 self._process.join(10)
+            self._close_research()
         finally:
             self._closed = True
             self._connection.close()
@@ -971,10 +1323,13 @@ def launch_trusted_protected_evaluator(
     experiments: ExperimentRegistry,
     attempts: ProtectedAttemptLedger,
     family_limit: int,
+    research_workdir: str | Path | None = None,
+    allowed_program_import_roots: Iterable[str | Path] = (),
+    trusted_label_roots: Iterable[str | Path] = (),
     allow_fault_injection: bool = False,
     local_checkpoint_test_only: bool = False,
 ) -> ProtectedEvaluationClient:
-    """Trusted-parent launch; return object contains no labels or label path."""
+    """Launch research first, then the separate trusted label evaluator."""
 
     if not local_checkpoint_test_only:
         raise RegistryConflict(
@@ -994,43 +1349,98 @@ def launch_trusted_protected_evaluator(
         or sealed_frames.frame_manifest_hash != campaign.frame_manifest_hash
     ):
         raise RegistryConflict("protected sealed frame registration mismatch")
-    trusted_labels = tuple(labels)
-    if len(trusted_labels) != len(sealed_frames.frames):
-        raise RegistryConflict("protected labels do not align to registered frames")
+    if research_workdir is None:
+        raise RegistryConflict("protected research workdir is required")
+    resolved_workdir = Path(research_workdir).resolve()
+    resolved_workdir.mkdir(parents=True, exist_ok=True)
+    import_roots = tuple(Path(path).resolve() for path in allowed_program_import_roots)
+    label_roots = tuple(Path(path).resolve() for path in trusted_label_roots)
+    if not import_roots or any(not path.is_dir() for path in import_roots):
+        raise RegistryConflict("protected program import roots are invalid")
+    if any(not path.is_dir() for path in label_roots):
+        raise RegistryConflict("trusted label roots are invalid")
+    for label_root in label_roots:
+        if _paths_overlap(resolved_workdir, label_root) or any(
+            _paths_overlap(import_root, label_root) for import_root in import_roots
+        ):
+            raise RegistryConflict("research and trusted label paths must be disjoint")
 
-    context = multiprocessing.get_context("spawn")
-    parent_connection, child_connection = context.Pipe(duplex=True)
-    process = context.Process(
-        target=_trusted_evaluator_worker,
-        args=(
-            child_connection,
-            campaign,
-            sealed_frames.frames,
-            trusted_labels,
-            str(campaigns.log.path),
-            str(experiments.log.path),
-            str(attempts.log.path),
-            family_limit,
-            allow_fault_injection,
-        ),
+    research_process, research_messages, research_reader, research_boundary = (
+        _start_research_process(
+            sealed_frames,
+            research_workdir=resolved_workdir,
+            allowed_program_import_roots=import_roots,
+        )
     )
-    process.start()
-    child_connection.close()
+
+    def dispose_research() -> None:
+        if research_process.poll() is None:
+            research_process.kill()
+        research_process.wait(10)
+        if research_process.stdin is not None:
+            research_process.stdin.close()
+        if research_process.stdout is not None:
+            research_process.stdout.close()
+        research_reader.join(10)
+
+    # Materialize raw labels and create the evaluator endpoint only after the
+    # fresh-interpreter research worker has completed its label-free startup.
     try:
+        trusted_labels = tuple(labels)
+        if len(trusted_labels) != len(sealed_frames.frames):
+            raise RegistryConflict("protected labels do not align to registered frames")
+    except Exception:
+        dispose_research()
+        raise
+
+    parent_connection: Any | None = None
+    child_connection: Any | None = None
+    process: multiprocessing.Process | None = None
+    try:
+        context = multiprocessing.get_context("spawn")
+        parent_connection, child_connection = context.Pipe(duplex=True)
+        process = context.Process(
+            target=_trusted_evaluator_worker,
+            args=(
+                child_connection,
+                campaign,
+                sealed_frames.frames,
+                trusted_labels,
+                str(campaigns.log.path),
+                str(experiments.log.path),
+                str(attempts.log.path),
+                family_limit,
+                allow_fault_injection,
+            ),
+        )
+        process.start()
+        child_connection.close()
+        child_connection = None
         if not parent_connection.poll(15):
             raise ProtectedEvaluationError("protected evaluator unavailable")
         response = json.loads(parent_connection.recv_bytes(MAX_IPC_BYTES))
         if response != {"status": "ready"}:
             raise ProtectedEvaluationError("protected evaluator unavailable")
     except Exception:
-        if process.is_alive():
+        if process is not None and process.pid is not None and process.is_alive():
             process.terminate()
-        process.join(10)
-        parent_connection.close()
+        if process is not None and process.pid is not None:
+            process.join(10)
+        if child_connection is not None:
+            child_connection.close()
+        if parent_connection is not None:
+            parent_connection.close()
+        dispose_research()
         raise ProtectedEvaluationError("protected evaluator unavailable") from None
+    assert process is not None and parent_connection is not None
+    research_boundary["evaluator_pid"] = process.pid
     return ProtectedEvaluationClient(
         parent_connection,
         process,
         sealed_frames,
+        research_process,
+        research_messages,
+        research_reader,
+        research_boundary,
         allow_fault_injection=allow_fault_injection,
     )

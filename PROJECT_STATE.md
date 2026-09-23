@@ -1,6 +1,6 @@
 # Project Genesis state
 
-Updated: 2026-09-22
+Updated: 2026-09-23
 
 ## Current milestone
 
@@ -9,8 +9,10 @@ Astra returned **HOLD / NOT APPROVED** (A1 CRITICAL, A2–A8 HIGH). S1 has
 locally repaired A1+A2; S2a/S2b locally repaired A3/A7. Approved ADR-0002 v1
 authorizes S3; S3a locally repairs A5 with a 150/150 final full-suite gate.
 S3b locally repairs A4 with a 173/173 full-suite gate. S4 locally repairs A6
-with a 184/184 full-suite gate. A8 remains open and requires staged remediation and a fresh
-independent hostile re-audit. The original R0–R10 history is preserved.
+with a 184/184 full-suite gate. Under separately approved ADR-0003 v1, S5
+locally repairs A8 with a 196/196 full-suite gate. A1-A8 now require a fresh
+independent hostile re-audit; the overall audit disposition remains HOLD. The
+original R0-R10 history is preserved.
 
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
 read-only sport/source adapter** until an independent audit finds no unresolved
@@ -64,7 +66,8 @@ system, or £100 canary was added.
   exact consumed approval plus active reservation binding, and mandatory fresh
   recertification at pending and sent. S1 fences the known durable safety/risk/
   market/refresh heads during the order append. Ambiguous restart still blocks
-  blind retry; this is not a claim that A4–A8 are closed.
+  blind retry; at the S1 checkpoint this did not claim that later findings were
+  closed.
 - Settlement has one current economic head per fill. Corrections, voids, and
   cancellations require the current same-fill head and record distinct
   `delta_pnl` and `effective_pnl`.
@@ -72,11 +75,14 @@ system, or £100 canary was added.
   220, protected reserve 30, assumed provider ceiling 250, daily billable limit 7.
   Interpretation B is test-only. Reserve use requires durable, exact authority;
   A6 shows caller-declared cache proof is not yet trustworthy.
-- Protected evaluation uses sealed frames, frozen predictions, a separate spawned
-  label-owning evaluator, bytes-only canonical JSON IPC, durable non-refundable
-  attempts, and controlled certificates/errors. A8 shows research callbacks may
-  run in the label-loading caller process, so process/address-space isolation is
-  not established. Real protected activation remains disabled.
+- Protected evaluation uses sealed frames, frozen predictions, durable
+  non-refundable attempts, controlled certificates/errors and two separately
+  spawned processes. The isolated research worker starts before protected label
+  materialization and evaluator-channel creation, receives only sealed
+  label-free frames plus an exact hashed `ResearchProgramRef`, and cannot
+  receive a label path/store or evaluator endpoint. The distinct trusted
+  evaluator owns labels and never executes arbitrary research code. Real
+  protected activation remains disabled.
 
 ## R10 verification (historical, before Astra's audit)
 
@@ -174,7 +180,7 @@ Detailed traceability and results are under `remediation_evidence/R0` through
   173/173 are green; `compileall` passes. Exact evidence is in
   `remediation_evidence/S3b/`.
 - This is local A4 closure only, not independent Astra re-audit approval.
-  A6 is addressed separately below; A8 and the overall audited HOLD remain open.
+  A6 and A8 are addressed separately below; the overall audited HOLD remains.
 
 ## S4 verification (local A6 checkpoint)
 
@@ -194,8 +200,30 @@ Detailed traceability and results are under `remediation_evidence/R0` through
   184/184; `compileall` passed. Exact evidence is in
   `remediation_evidence/S4/`.
 - Interpretation A, daily/monthly/reserve arithmetic and the one-allowance law
-  are unchanged. This is local A6 closure only. A8 and the overall audit HOLD
-  remain open; no adapter, research or live GO follows.
+  are unchanged. This is local A6 closure only. The overall audit HOLD remains;
+  no adapter, research or live GO follows.
+
+## S5 verification (local A8 checkpoint)
+
+- ADR-0003 v1 was separately approved on 2026-09-22 at exact SHA-256
+  `0fd4c63deb7a8431c41d7869163ccf79ce0295b63b585c8e4c3a0695f1dafaad`.
+  The immutable decision record and its separate versioned approval note are in
+  `DECISIONS/`.
+- Twelve independent A8 regressions were RED on isolated clean `166f923` and
+  clean S4 `0032ee7`: 12 failing invariant assertions and zero setup/import
+  errors on each. They cover retained parent labels/environment/path, distinct
+  third-PID execution, closed capabilities, direct-callable rejection, exact
+  program identity, crash/restart/non-refund, generic exceptions, malformed
+  IPC, timeout, module-global labels, final-attempt concurrency and root overlap.
+- The final hostile/retained targeted gate passed 23/23. The explicit retained
+  R0-R10 and S1-S4 gate passed 184/184; its reported 39174.655-second elapsed
+  time includes a host/session pause, not test execution time. The mandatory
+  independent full discovery rerun passed 196/196 in 288.095 seconds, and
+  `python -m compileall -q src tests` passed.
+- Exact commands, outputs and hashes are in `remediation_evidence/S5/`.
+  This is local A8 closure only. A fresh hostile re-audit and explicit
+  checkpoint decision remain mandatory; no adapter, shadow research, protected
+  campaign or live-money GO follows.
 
 ## Compatibility and migration state
 
@@ -211,8 +239,9 @@ settlement, or quota intent is inferred.
   post-remediation hostile re-audit has not yet occurred.
 - The OddsPapi 250-call ceiling is a planning assumption, not verified provider
   evidence; no provider integration exists.
-- The protected evaluator is an offline local process, but A8 process isolation
-  of arbitrary research is open; there is no deployed vault/service.
+- S5 establishes the local test-harness research/evaluator process boundary,
+  but there is no deployed protected vault/service and no real protected
+  campaign is authorized.
 - No real source availability, entitlement, revision behavior, sport semantics,
   model calibration, profitability, cloud cost, venue reconciliation, or live
   readiness is evidenced.
@@ -220,6 +249,6 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Review S4, then proceed to A8. A new
-independent hostile re-audit and explicit checkpoint approval are still required
-before any adapter or later Genesis phase.
+Review the S5 checkpoint, then run a new independent hostile re-audit against
+its exact committed tree. Explicit checkpoint approval is still required before
+any adapter or later Genesis phase.

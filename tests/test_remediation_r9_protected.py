@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import gc
 import json
 import os
 import threading
@@ -15,6 +14,7 @@ from genesis.protected import (
     ProtectedAttemptLedger,
     ProtectedCampaign,
     ProtectedCampaignRegistry,
+    ResearchProgramRef,
     SealedFrameSet,
     launch_trusted_protected_evaluator,
 )
@@ -80,6 +80,18 @@ def labels_for(
     )
 
 
+def signal_program(frame: DecisionFrame) -> str:
+    return "0.9" if frame.values()["signal"] else "0.1"
+
+
+def half_program(_frame: DecisionFrame) -> str:
+    return "0.5"
+
+
+def failing_program(_frame: DecisionFrame) -> str:
+    raise RuntimeError("secret detail")
+
+
 def build_fixture(
     root: Path,
     *,
@@ -139,6 +151,8 @@ def build_fixture(
 
 def launch(fixture, *, outcomes=None, allow_fault_injection: bool = False):
     trusted_labels = labels_for(fixture["frames"], outcomes)
+    research_workdir = fixture["root"] / "research-worker"
+    research_workdir.mkdir(exist_ok=True)
     client = launch_trusted_protected_evaluator(
         campaign=fixture["campaign"],
         sealed_frames=fixture["sealed"],
@@ -147,11 +161,11 @@ def launch(fixture, *, outcomes=None, allow_fault_injection: bool = False):
         experiments=fixture["experiments"],
         attempts=fixture["attempts"],
         family_limit=fixture["campaign"].max_attempts,
+        research_workdir=research_workdir,
+        allowed_program_import_roots=(Path(__file__).resolve().parents[1],),
         allow_fault_injection=allow_fault_injection,
         local_checkpoint_test_only=True,
     )
-    del trusted_labels
-    gc.collect()
     return client
 
 
@@ -159,12 +173,13 @@ def request(
     fixture,
     *,
     strategy: str = "strategy-1",
+    program: ResearchProgramRef | None = None,
     rules_digest: str | None = None,
 ) -> EvaluationRequest:
     return EvaluationRequest(
         fixture["campaign"].campaign_id,
         strategy,
-        digest("c"),
+        program.program_digest if program is not None else digest("c"),
         "dataset-v1",
         rules_digest or fixture["campaign"].evaluator_digest,
     )
@@ -195,18 +210,13 @@ class R9ProtectedIsolationTests(unittest.TestCase):
             client = launch(fixture)
             try:
                 self.assertNotEqual(client.evaluator_pid, os.getpid())
+                self.assertNotEqual(client.research_pid, os.getpid())
+                self.assertNotEqual(client.research_pid, client.evaluator_pid)
                 self.assertFalse(contains_label_object(client))
                 self.assertNotIn("label", " ".join(client.__dict__).lower())
-                seen_pids: list[int] = []
-
-                def hostile_strategy(frame: DecisionFrame) -> str:
-                    seen_pids.append(os.getpid())
-                    self.assertFalse(contains_label_object(client))
-                    self.assertNotIn("outcome", frame.values())
-                    return "0.9" if frame.values()["signal"] else "0.1"
-
-                certificate = client.run(request(fixture), hostile_strategy)
-                self.assertEqual(seen_pids, [os.getpid(), os.getpid()])
+                program = ResearchProgramRef.from_callable(signal_program)
+                certificate = client.run(request(fixture, program=program), program)
+                self.assertEqual(client.last_research_pid, client.research_pid)
                 self.assertEqual(certificate.metrics["brier"], "0.01")
                 self.assertFalse(certificate.raw_labels_exposed)
                 self.assertEqual(certificate.frame_manifest_hash, client.frame_manifest_hash)
@@ -229,8 +239,9 @@ class R9ProtectedIsolationTests(unittest.TestCase):
     def test_small_cell_is_suppressed_and_attempt_is_durable(self):
         with scratch_directory() as root:
             fixture = build_fixture(root, count=1, minimum_cell_size=2)
+            program = ResearchProgramRef.from_callable(half_program)
             with launch(fixture) as client:
-                certificate = client.run(request(fixture), lambda _frame: "0.5")
+                certificate = client.run(request(fixture, program=program), program)
             self.assertEqual(certificate.metrics, {"suppressed": "true"})
             self.assertEqual(certificate.n_observations, 0)
             restarted = ProtectedAttemptLedger(root / "attempts.jsonl")
@@ -239,18 +250,20 @@ class R9ProtectedIsolationTests(unittest.TestCase):
     def test_research_failure_is_generic_non_refundable_and_survives_restart(self):
         with scratch_directory() as root:
             fixture = build_fixture(root, max_attempts=1)
+            failing = ResearchProgramRef.from_callable(failing_program)
             with launch(fixture) as client:
                 with self.assertRaises(ProtectedEvaluationError) as caught:
-                    client.run(request(fixture), lambda _frame: (_ for _ in ()).throw(RuntimeError("secret detail")))
+                    client.run(request(fixture, program=failing), failing)
                 self.assertEqual(str(caught.exception), "protected evaluation failed")
                 self.assertIsNone(caught.exception.__cause__)
             self.assertEqual(
                 ProtectedAttemptLedger(root / "attempts.jsonl").counts(fixture["campaign"]),
                 (1, 1),
             )
+            valid = ResearchProgramRef.from_callable(half_program)
             with launch(fixture) as restarted:
                 with self.assertRaises(ProtectedEvaluationError):
-                    restarted.run(request(fixture), lambda _frame: "0.5")
+                    restarted.run(request(fixture, program=valid), valid)
 
     def test_evaluator_crash_after_reservation_consumes_attempt(self):
         with scratch_directory() as root:
@@ -263,9 +276,10 @@ class R9ProtectedIsolationTests(unittest.TestCase):
                 ProtectedAttemptLedger(root / "attempts.jsonl").counts(fixture["campaign"]),
                 (1, 1),
             )
+            program = ResearchProgramRef.from_callable(half_program)
             with launch(fixture) as restarted:
                 with self.assertRaises(ProtectedEvaluationError):
-                    restarted.run(request(fixture), lambda _frame: "0.5")
+                    restarted.run(request(fixture, program=program), program)
 
     def test_unregistered_campaign_and_wrong_evaluator_digest_reject_pre_label(self):
         with scratch_directory() as root:
@@ -296,10 +310,11 @@ class R9ProtectedIsolationTests(unittest.TestCase):
                     local_checkpoint_test_only=True,
                 )
             with launch(fixture) as client:
+                program = ResearchProgramRef.from_callable(half_program)
                 with self.assertRaises(ProtectedEvaluationError):
                     client.run(
-                        request(fixture, rules_digest=digest("f")),
-                        lambda _frame: "0.5",
+                        request(fixture, program=program, rules_digest=digest("f")),
+                        program,
                     )
             self.assertEqual(fixture["attempts"].counts(fixture["campaign"]), (0, 0))
 
@@ -344,9 +359,10 @@ class R9ProtectedIsolationTests(unittest.TestCase):
     def test_label_dependent_internal_failure_has_no_side_channel(self):
         with scratch_directory() as root:
             fixture = build_fixture(root, count=1, max_attempts=1)
+            program = ResearchProgramRef.from_callable(half_program)
             with launch(fixture, outcomes=("TOP-SECRET-OUTCOME",)) as client:
                 with self.assertRaises(ProtectedEvaluationError) as caught:
-                    client.run(request(fixture), lambda _frame: "0.5")
+                    client.run(request(fixture, program=program), program)
                 self.assertEqual(str(caught.exception), "protected evaluation failed")
                 self.assertNotIn("TOP-SECRET", str(caught.exception))
                 self.assertIsNone(caught.exception.__cause__)
@@ -357,6 +373,7 @@ class R9ProtectedIsolationTests(unittest.TestCase):
             fixture = build_fixture(root, max_attempts=1)
             first = launch(fixture)
             second = launch(fixture)
+            program = ResearchProgramRef.from_callable(half_program)
             barrier = threading.Barrier(3)
             outcomes: list[str] = []
 
@@ -364,8 +381,8 @@ class R9ProtectedIsolationTests(unittest.TestCase):
                 barrier.wait()
                 try:
                     client.run(
-                        request(fixture, strategy=strategy_id),
-                        lambda _frame: "0.5",
+                        request(fixture, strategy=strategy_id, program=program),
+                        program,
                     )
                     outcomes.append("certificate")
                 except ProtectedEvaluationError:

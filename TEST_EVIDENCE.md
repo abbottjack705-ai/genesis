@@ -1,6 +1,6 @@
 # Test evidence
 
-Updated: 2026-09-22
+Updated: 2026-09-23
 
 ## Current audit disposition and staged gates
 
@@ -42,7 +42,18 @@ S4 A6's 11 independent tests were RED on sealed `166f923` and clean S3b
 The targeted cache/R8/foundation gate passed 39/39, the full suite passed
 184/184, and `compileall` passed. Exact evidence is under
 `remediation_evidence/S4/`.
-**A8 remains open; no GO is granted.**
+S5 A8's 12 independent hostile methods were RED on isolated clean `166f923`
+and clean S4 `0032ee7`, with 12 invariant assertion failures and zero
+setup/import errors on each. Under separately approved ADR-0003 v1, the
+research program now runs only in a distinct isolated process with a sealed
+label-free launch and exact hashed program identity; the trusted label-owning
+evaluator remains a different process and executes no research callback.
+Targeted A8 plus retained R9 passed 23/23; explicit retained R0-R10 plus S1-S4
+passed 184/184. That retained transcript's reported 39174.655-second elapsed
+includes a host/session pause. The mandatory independent discovery run passed
+196/196 in 288.095 seconds and `compileall` passed. Exact evidence is under
+`remediation_evidence/S5/`. **The overall Astra HOLD remains; no GO is
+granted.**
 
 ## Deterministic gate
 
@@ -83,7 +94,7 @@ protected external dataset or historical outcome source.
 | ranking invariants | `test_remediation_r4_ranking.py` — 6 tests |
 | append concurrency | `test_remediation_r1_persistence.py` — 4 tests plus R10 stress |
 | quota boundaries/authority/concurrency | `test_remediation_r8_quota.py` — 14 tests |
-| protected evaluator IPC/attempts (A8 research-process isolation open) | `test_remediation_r9_protected.py` — 11 tests |
+| protected evaluator IPC/attempts | `test_remediation_r9_protected.py` — 11 tests |
 | complete restart/fault matrix | `test_remediation_r10_integration.py` — 3 tests |
 | Astra S1 mandatory submission and reservation | `test_astra_s1_submission.py`, `test_astra_s1_reservation.py` — 13 tests |
 | Astra S2a strict active replay | `test_astra_s2_replay.py` — 7 tests |
@@ -91,6 +102,8 @@ protected external dataset or historical outcome source.
 | Astra S3a exact manifest and PIT | `test_astra_s3_manifest.py` — 11 tests |
 | Astra S3b trusted output and v3 adversaries | `test_astra_s3_output.py`, `test_astra_s3_v3_adversarial.py` — 23 tests |
 | Astra S4 immutable cache authority | `test_astra_s4_cache.py` — 11 tests |
+
+| Astra S5 research/evaluator process isolation | `test_astra_s5_process.py` — 12 tests |
 
 Individual test methods combine closely related rows of the binding T-F01
 through T-F15 matrix. Each batch checkpoint records the exact matrix rows it
@@ -180,10 +193,12 @@ boundary.
 - Quota: approved active Interpretation A passes 190/191/220/221/250/251,
   daily 7/8, authorization binding/revocation/expiry/grant, restart and race
   tests. Interpretation B is test-only.
-- Protected evaluation: the evaluator has exact frames and durable attempt
-  accounting, but A8 shows the caller may own labels and execute research
-  callbacks in that same process. Existing client-object inspection does not
-  establish the required process/address-space isolation.
+- Protected evaluation: exact hashed research programs execute only in an
+  isolated third process that starts before protected labels are materialized
+  and before evaluator IPC exists. It receives only sealed frames and cannot
+  receive a label path/store or evaluator endpoint. The trusted label-owning
+  evaluator remains distinct, consumes durable non-refundable attempts and
+  executes no arbitrary research callback.
 - Legacy reachability: a source scan found the legacy qualification/protected
   names only in their defining modules. Behavioral guards prove authoritative
   qualification does not route through the legacy qualifier and registered V2

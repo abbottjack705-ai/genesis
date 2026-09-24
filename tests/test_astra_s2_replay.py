@@ -4,11 +4,19 @@ from __future__ import annotations
 
 import unittest
 
-from genesis.registry import RegistryConflict
+from genesis.execution import (
+    CriticalEvidenceRefreshStore,
+    ExecutionMarketStateStore,
+    ModeStateStore,
+    PaperExecutionAdapter,
+    RegistryStrategyExecutionView,
+)
+from genesis.ledger import SettlementLedger
+from genesis.release_proof import OfflinePaperReleaseProofStore
+from genesis.registry import RegistryConflict, StrategyRegistry
 from genesis.risk import (
     BankrollSnapshot,
     BankrollSnapshotStore,
-    ExposureState,
     RiskAuditLog,
     RiskEngine,
     SafetyStateStore,
@@ -26,6 +34,9 @@ def restarted(root, fixture):
         qualifications=QualificationRecordStore(root / "qualifications.jsonl"),
         safety=SafetyStateStore(root / "safety.jsonl"),
         audit_log=RiskAuditLog(root / "risk.jsonl"),
+        strategies=StrategyRegistry(root / "strategies.jsonl"),
+        modes=ModeStateStore(root / "mode.jsonl"),
+        action_clock=lambda requested_at: requested_at,
     )
 
 
@@ -199,10 +210,28 @@ class AstraStrictReplayTests(unittest.TestCase):
                     approval = fixture["engine"].approve(request(fixture))
                     self.assertTrue(approval.passed)
                     if cause == "released":
-                        fixture["engine"].transition_reservation(
+                        execution = PaperExecutionAdapter(
+                            case / "orders.jsonl",
+                            risk=fixture["engine"],
+                            markets=ExecutionMarketStateStore(case / "markets.jsonl"),
+                            refreshes=CriticalEvidenceRefreshStore(case / "refreshes.jsonl"),
+                            strategy_view=RegistryStrategyExecutionView(fixture["strategies"]),
+                            action_clock=lambda requested_at: requested_at,
+                        )
+                        proofs = OfflinePaperReleaseProofStore(
+                            case / "release-proofs.jsonl",
+                            risk=fixture["engine"],
+                            execution=execution,
+                            ledger=SettlementLedger(case / "ledger.jsonl"),
+                        )
+                        proof_hash = proofs.issue_unconsumed_approval(
                             approval.approval_id,
-                            ExposureState.VOID,
                             occurred_at="2026-01-01T00:15:00Z",
+                        )
+                        fixture["engine"].attach_release_proofs(proofs)
+                        fixture["engine"].release_with_proof(
+                            proof_hash,
+                            occurred_at="2026-01-01T00:15:30Z",
                         )
                     fixture["audit"].log.append({
                         "record_type": "risk_approval_consumed",

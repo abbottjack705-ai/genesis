@@ -75,31 +75,25 @@ class AppendOnlyJsonl:
         remains the sole authoritative business and audit history.
         """
 
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        connection = sqlite3.connect(self.coordinator_path, timeout=30, isolation_level=None)
-        authority_connections: list[sqlite3.Connection] = []
+        # Every participant, including the append target, is acquired in the
+        # same global order.  A risk release can read an order while an order
+        # send reads risk; taking each primary first would deadlock that pair.
+        coordinator_paths = sorted(
+            {self.coordinator_path.resolve()}
+            | {log.coordinator_path.resolve() for log in read_locks},
+            key=lambda path: os.path.normcase(str(path)),
+        )
+        connections: dict[Path, sqlite3.Connection] = {}
         try:
-            connection.execute("PRAGMA busy_timeout = 30000")
-            connection.execute("BEGIN IMMEDIATE")
-            # A caller may fence independent authority heads while its own
-            # verified read/check/append completes. Each authority's normal
-            # append already takes the same sibling SQLite write lock. Keep
-            # all locks until after the JSONL row is fsynced and committed;
-            # no authority value is stored in SQLite.
-            authority_paths = sorted(
-                {
-                    log.coordinator_path.resolve()
-                    for log in read_locks
-                    if log.coordinator_path.resolve() != self.coordinator_path.resolve()
-                },
-                key=str,
-            )
-            for authority_path in authority_paths:
-                authority_path.parent.mkdir(parents=True, exist_ok=True)
-                authority = sqlite3.connect(authority_path, timeout=30, isolation_level=None)
-                authority_connections.append(authority)
-                authority.execute("PRAGMA busy_timeout = 30000")
-                authority.execute("BEGIN IMMEDIATE")
+            for coordinator_path in coordinator_paths:
+                coordinator_path.parent.mkdir(parents=True, exist_ok=True)
+                connection = sqlite3.connect(
+                    coordinator_path, timeout=30, isolation_level=None,
+                )
+                connections[coordinator_path] = connection
+                connection.execute("PRAGMA busy_timeout = 30000")
+                connection.execute("BEGIN IMMEDIATE")
+            connection = connections[self.coordinator_path.resolve()]
             connection.execute(
                 "CREATE TABLE IF NOT EXISTS coordination "
                 "(singleton INTEGER PRIMARY KEY CHECK (singleton = 1), generation INTEGER NOT NULL)"
@@ -126,13 +120,14 @@ class AppendOnlyJsonl:
             connection.commit()
             return record_hash
         except BaseException:
-            if connection.in_transaction:
-                connection.rollback()
+            for connection in connections.values():
+                if connection.in_transaction:
+                    connection.rollback()
             raise
         finally:
-            for authority in reversed(authority_connections):
-                authority.close()
-            connection.close()
+            for coordinator_path in reversed(coordinator_paths):
+                if coordinator_path in connections:
+                    connections[coordinator_path].close()
 
     def append(self, record: dict[str, Any]) -> str:
         result = self.transaction(lambda _records: record)
@@ -417,35 +412,93 @@ class StrategyRegistry:
 
     def __init__(self, path: str | Path):
         self.log = AppendOnlyJsonl(path)
-        self._latest: dict[tuple[str, str], StrategyArtifact] = {}
-        for row in self.log.records():
+        self._replay_current(self.log.records())
+
+    def _replay_current(
+        self, rows: list[dict[str, Any]] | tuple[dict[str, Any], ...],
+    ) -> dict[tuple[str, str], StrategyArtifact]:
+        """Derive current heads from verified JSONL, never an instance cache."""
+        latest: dict[tuple[str, str], StrategyArtifact] = {}
+        last_time: dict[tuple[str, str], Any] = {}
+        contract_hashes: set[str] = set()
+        for row in rows:
             kind = row.get("record_type")
             if kind == "strategy_registered":
-                fields = {k: row[k] for k in StrategyArtifact.__dataclass_fields__}
-                fields["lifecycle"] = StrategyLifecycle(fields["lifecycle"])
-                artifact = StrategyArtifact(**fields)
-                self._latest[(artifact.strategy_id, artifact.version)] = artifact
+                try:
+                    fields = {k: row[k] for k in StrategyArtifact.__dataclass_fields__}
+                    fields["lifecycle"] = StrategyLifecycle(fields["lifecycle"])
+                    artifact = StrategyArtifact(**fields)
+                except (KeyError, TypeError, ValueError) as exc:
+                    raise RegistryConflict("invalid strategy registration") from exc
+                key = (artifact.strategy_id, artifact.version)
+                if key in latest or artifact.lifecycle != StrategyLifecycle.IDEA:
+                    raise RegistryConflict("duplicate or invalid strategy registration")
+                latest[key] = artifact
+                last_time[key] = parse_utc(artifact.created_at)
             elif kind == "strategy_transition":
-                key = (row["strategy_id"], row["version"])
-                current = self._latest[key]
-                self._latest[key] = replace(
+                try:
+                    key = (row["strategy_id"], row["version"])
+                    current = latest[key]
+                    target = StrategyLifecycle(row["to"])
+                    occurred = parse_utc(row["occurred_at"])
+                except (KeyError, TypeError, ValueError) as exc:
+                    raise RegistryConflict("invalid or orphaned strategy transition") from exc
+                if (
+                    row.get("from") != current.lifecycle.value
+                    or target not in self._allowed[current.lifecycle]
+                    or occurred <= last_time[key]
+                    or (target == StrategyLifecycle.APPROVED_LIVE and not row.get("approval_ref"))
+                ):
+                    raise RegistryConflict("strategy transition conflicts with durable head")
+                latest[key] = replace(
                     current,
-                    lifecycle=StrategyLifecycle(row["to"]),
+                    lifecycle=target,
                     approval_ref=row.get("approval_ref") or current.approval_ref,
                 )
+                last_time[key] = occurred
+            elif kind == "strategy_decision_contract_registered":
+                contract = self._contract_from_row(row)
+                key = (contract.strategy_id, contract.strategy_version)
+                if key not in latest or contract.contract_hash in contract_hashes:
+                    raise RegistryConflict("orphaned or duplicate strategy contract")
+                contract_hashes.add(contract.contract_hash)
+            else:
+                raise RegistryConflict(f"unknown strategy registry event: {kind}")
+        return latest
+
+    @staticmethod
+    def _contract_from_row(row: dict[str, Any]) -> StrategyDecisionContract:
+        try:
+            fields = {key: row[key] for key in StrategyDecisionContract.__dataclass_fields__}
+            fields["required_lifecycle"] = StrategyLifecycle(fields["required_lifecycle"])
+            fields["approved_tiers"] = tuple(fields["approved_tiers"])
+            return StrategyDecisionContract(**fields)
+        except (KeyError, TypeError, ValueError) as exc:
+            raise RegistryConflict("invalid strategy decision contract") from exc
 
     def register(self, artifact: StrategyArtifact) -> None:
         key = (artifact.strategy_id, artifact.version)
-        if key in self._latest:
-            raise RegistryConflict(f"strategy version already exists: {key}")
         if artifact.lifecycle != StrategyLifecycle.IDEA:
             raise RegistryConflict("new strategy artifacts must start at IDEA")
-        self._latest[key] = artifact
-        self.log.append({"record_type": "strategy_registered", **asdict(artifact), "lifecycle": artifact.lifecycle.value})
+
+        def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any]:
+            if key in self._replay_current(rows):
+                raise RegistryConflict(f"strategy version already exists: {key}")
+            return {
+                "record_type": "strategy_registered",
+                **asdict(artifact),
+                "lifecycle": artifact.lifecycle.value,
+            }
+
+        self.log.transaction(build)
 
     def get(self, strategy_id: str, version: str) -> StrategyArtifact:
+        return self.current_head(strategy_id, version)
+
+    def current_head(self, strategy_id: str, version: str) -> StrategyArtifact:
+        """Fresh verified durable head; action callers must also hold ``log``."""
         try:
-            return self._latest[(strategy_id, version)]
+            return self._replay_current(self.log.records())[(strategy_id, version)]
         except KeyError as exc:
             raise RegistryConflict(f"unknown strategy version: {(strategy_id, version)}") from exc
 
@@ -453,13 +506,8 @@ class StrategyRegistry:
         record = {"record_type": "strategy_decision_contract_registered", **contract.to_dict()}
 
         def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
-            strategy_exists = any(
-                row.get("record_type") == "strategy_registered"
-                and row.get("strategy_id") == contract.strategy_id
-                and row.get("version") == contract.strategy_version
-                for row in rows
-            )
-            if not strategy_exists:
+            current = self._replay_current(rows)
+            if (contract.strategy_id, contract.strategy_version) not in current:
                 raise RegistryConflict("strategy decision contract has no registered strategy")
             matches = [
                 row
@@ -478,25 +526,47 @@ class StrategyRegistry:
         return result or contract.contract_hash
 
     def get_decision_contract(self, contract_hash: str) -> StrategyDecisionContract:
+        rows = self.log.records()
+        self._replay_current(rows)
         matches = [
             row
-            for row in self.log.records()
+            for row in rows
             if row.get("record_type") == "strategy_decision_contract_registered"
             and row.get("contract_hash") == contract_hash
         ]
         if len(matches) != 1:
             raise RegistryConflict(f"unknown or ambiguous strategy contract: {contract_hash}")
-        row = matches[0]
-        fields = {key: row[key] for key in StrategyDecisionContract.__dataclass_fields__}
-        fields["required_lifecycle"] = StrategyLifecycle(fields["required_lifecycle"])
-        fields["approved_tiers"] = tuple(fields["approved_tiers"])
-        return StrategyDecisionContract(**fields)
+        return self._contract_from_row(matches[0])
+
+    def require_current_paper_contract(
+        self, strategy_id: str, version: str, contract_hash: str,
+    ) -> StrategyArtifact:
+        """Check the bound exact contract and current PAPER head.
+
+        Risk approval and order send callers must hold ``self.log``'s
+        coordinator through their own checked append. This standalone method
+        is a fresh read, not by itself a cross-owner transaction.
+        """
+        contract = self.get_decision_contract(contract_hash)
+        head = self.current_head(strategy_id, version)
+        if any((
+            contract.strategy_id != strategy_id,
+            contract.strategy_version != version,
+            contract.required_lifecycle != StrategyLifecycle.PAPER,
+            head.lifecycle != StrategyLifecycle.PAPER,
+            head.config_digest != contract.strategy_config_hash,
+            head.model_digest != contract.model_artifact_hash,
+            head.support_region != contract.support_region,
+        )):
+            raise RegistryConflict("current strategy does not match PAPER decision contract")
+        return head
 
     def lifecycle_at(
         self, strategy_id: str, version: str, at: str
     ) -> StrategyLifecycle:
         point = parse_utc(at)
         rows = self.log.records()
+        self._replay_current(rows)
         registrations = [
             row
             for row in rows
@@ -531,27 +601,35 @@ class StrategyRegistry:
         occurred_at: str,
     ) -> StrategyArtifact:
         key = (strategy_id, version)
-        current = self._latest[key]
-        if lifecycle not in self._allowed[current.lifecycle]:
-            raise RegistryConflict(f"invalid strategy transition {current.lifecycle} -> {lifecycle}")
         if lifecycle == StrategyLifecycle.APPROVED_LIVE and not approval_ref:
             raise RegistryConflict("live activation requires an external approval reference")
         occurred = iso_utc(occurred_at)
-        event_times = [current.created_at]
-        for row in self.log.records():
-            if (
-                row.get("record_type") == "strategy_transition"
-                and row.get("strategy_id") == strategy_id
-                and row.get("version") == version
-                and row.get("occurred_at") is not None
-            ):
-                event_times.append(row["occurred_at"])
-        if parse_utc(occurred) <= max(parse_utc(value) for value in event_times):
-            raise RegistryConflict("strategy transition time must advance monotonically")
-        updated = replace(current, lifecycle=lifecycle, approval_ref=approval_ref or current.approval_ref)
-        self._latest[key] = updated
-        self.log.append(
-            {
+        result: dict[str, StrategyArtifact] = {}
+
+        def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any]:
+            try:
+                current = self._replay_current(rows)[key]
+            except KeyError as exc:
+                raise RegistryConflict(f"unknown strategy version: {key}") from exc
+            if lifecycle not in self._allowed[current.lifecycle]:
+                raise RegistryConflict(
+                    f"invalid strategy transition {current.lifecycle} -> {lifecycle}"
+                )
+            event_times = [parse_utc(current.created_at)]
+            event_times.extend(
+                parse_utc(row["occurred_at"])
+                for row in rows
+                if row.get("record_type") == "strategy_transition"
+                and (row.get("strategy_id"), row.get("version")) == key
+            )
+            if parse_utc(occurred) <= max(event_times):
+                raise RegistryConflict("strategy transition time must advance monotonically")
+            result["value"] = replace(
+                current,
+                lifecycle=lifecycle,
+                approval_ref=approval_ref or current.approval_ref,
+            )
+            return {
                 "record_type": "strategy_transition",
                 "strategy_id": strategy_id,
                 "version": version,
@@ -560,5 +638,6 @@ class StrategyRegistry:
                 "approval_ref": approval_ref,
                 "occurred_at": occurred,
             }
-        )
-        return updated
+
+        self.log.transaction(build)
+        return result["value"]

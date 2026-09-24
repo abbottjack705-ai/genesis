@@ -1,0 +1,17 @@
+COMMAND
+python -m unittest tests.test_astra_s2_replay -v
+
+OUTPUT
+test_consumption_after_expiry_or_release_is_not_valid_history (tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history) ... ok
+test_hash_valid_unsupported_active_approval_blocks_existing_and_restart (tests.test_astra_s2_replay.AstraStrictReplayTests.test_hash_valid_unsupported_active_approval_blocks_existing_and_restart) ... ok
+test_incompatible_event_arriving_at_transaction_entry_blocks (tests.test_astra_s2_replay.AstraStrictReplayTests.test_incompatible_event_arriving_at_transaction_entry_blocks) ... ok
+test_invalid_known_transitions_and_missing_owner_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_invalid_known_transitions_and_missing_owner_fields_block) ... ok
+test_known_valid_history_still_approves_once (tests.test_astra_s2_replay.AstraStrictReplayTests.test_known_valid_history_still_approves_once) ... ok
+test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) ... ok
+test_unsupported_bankroll_and_safety_heads_cannot_be_skipped (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unsupported_bankroll_and_safety_heads_cannot_be_skipped) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 21.594s
+
+OK
+

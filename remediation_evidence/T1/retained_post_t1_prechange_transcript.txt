@@ -1,0 +1,144 @@
+Command:
+python -m unittest tests.test_v04_foundation tests.test_astra_s2_admission -v
+
+Exit code: 1
+
+test_candidate_run_retention_and_non_quota_summary (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_candidate_run_retention_and_non_quota_summary) ... ok
+test_paper_order_idempotency_and_unknown_reconciliation (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_paper_order_idempotency_and_unknown_reconciliation) ... FAIL
+test_risk_counts_pending_and_unknown_and_approvals_are_single_use (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_risk_counts_pending_and_unknown_and_approvals_are_single_use) ... ERROR
+test_selected_set_calibration_and_pass_reasons_are_aggregated (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_selected_set_calibration_and_pass_reasons_are_aggregated) ... ok
+test_v04_gates_fail_closed_on_unknown_and_rank_uses_tiers (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_v04_gates_fail_closed_on_unknown_and_rank_uses_tiers) ... ok
+test_evidence_pack_and_decision_hash_are_immutable (tests.test_v04_foundation.V04PolicyAndPITTests.test_evidence_pack_and_decision_hash_are_immutable) ... ok
+test_market_capability_and_mode_authority_fail_closed (tests.test_v04_foundation.V04PolicyAndPITTests.test_market_capability_and_mode_authority_fail_closed) ... ok
+test_pit_query_rejects_unknown_capability_and_future_ready_record (tests.test_v04_foundation.V04PolicyAndPITTests.test_pit_query_rejects_unknown_capability_and_future_ready_record) ... ok
+test_policy_is_versioned_and_daily_ranges_are_not_caps (tests.test_v04_foundation.V04PolicyAndPITTests.test_policy_is_versioned_and_daily_ranges_are_not_caps) ... ok
+test_price_sanity_uses_provisional_near_fair_tolerance (tests.test_v04_foundation.V04PolicyAndPITTests.test_price_sanity_uses_provisional_near_fair_tolerance) ... ok
+test_runtime_cost_budget_is_fail_closed (tests.test_v04_foundation.V04PolicyAndPITTests.test_runtime_cost_budget_is_fail_closed) ... ok
+test_source_supersession_is_honoured_at_the_requested_time (tests.test_v04_foundation.V04PolicyAndPITTests.test_source_supersession_is_honoured_at_the_requested_time) ... ok
+test_ledger_is_source_of_truth_and_quota_fails_closed (tests.test_v04_foundation.V04ProtectedLedgerQuotaTests.test_ledger_is_source_of_truth_and_quota_fails_closed) ... ok
+test_protected_attempt_is_consumed_on_suppression_and_failure (tests.test_v04_foundation.V04ProtectedLedgerQuotaTests.test_protected_attempt_is_consumed_on_suppression_and_failure) ... ok
+test_coordinator_commit_failure_after_jsonl_fsync_replays_once (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_coordinator_commit_failure_after_jsonl_fsync_replays_once) ... FAIL
+test_downward_rebase_at_transaction_entry_cannot_commit_old_7_5_stake (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_downward_rebase_at_transaction_entry_cannot_commit_old_7_5_stake) ... ok
+test_kill_at_transaction_entry_cannot_commit_approval (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_kill_at_transaction_entry_cannot_commit_approval) ... ok
+test_multiprocess_authority_writers_wait_for_locked_admission (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_authority_writers_wait_for_locked_admission) ...
+  test_multiprocess_authority_writers_wait_for_locked_admission (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_authority_writers_wait_for_locked_admission) (owner='bankroll') ... ERROR
+  test_multiprocess_authority_writers_wait_for_locked_admission (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_authority_writers_wait_for_locked_admission) (owner='safety') ... ERROR
+test_multiprocess_rebase_before_admission_resumes_blocks_stale_head (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_rebase_before_admission_resumes_blocks_stale_head) ... ERROR
+test_preexisting_stake_survives_rebase_but_new_risk_uses_current_cap (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_preexisting_stake_survives_rebase_but_new_risk_uses_current_cap) ... ERROR
+test_qualification_ambiguity_at_transaction_entry_cannot_commit (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_qualification_ambiguity_at_transaction_entry_cannot_commit) ... ok
+test_uncertain_post_append_response_restarts_as_exactly_one_approval (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_uncertain_post_append_response_restarts_as_exactly_one_approval) ... FAIL
+test_unknown_exposure_at_entry_and_competing_last_capacity_block (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_unknown_exposure_at_entry_and_competing_last_capacity_block) ... ERROR
+
+======================================================================
+ERROR: test_risk_counts_pending_and_unknown_and_approvals_are_single_use (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_risk_counts_pending_and_unknown_and_approvals_are_single_use)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_v04_foundation.py", line 226, in test_risk_counts_pending_and_unknown_and_approvals_are_single_use
+    q1 = risk_qualification(
+         ^^^^^^^^^^^^^^^^^^^
+TypeError: qualification() missing 1 required keyword-only argument: 'contract_hash'
+
+======================================================================
+ERROR: test_multiprocess_authority_writers_wait_for_locked_admission (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_authority_writers_wait_for_locked_admission) (owner='bankroll')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_astra_s2_admission.py", line 319, in test_multiprocess_authority_writers_wait_for_locked_admission
+    approval_results, writer_results = context.Queue(), context.Queue()
+                                       ^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 103, in Queue
+    return Queue(maxsize, ctx=self.get_context())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\queues.py", line 42, in __init__
+    self._reader, self._writer = connection.Pipe(duplex=False)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+======================================================================
+ERROR: test_multiprocess_authority_writers_wait_for_locked_admission (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_authority_writers_wait_for_locked_admission) (owner='safety')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_astra_s2_admission.py", line 319, in test_multiprocess_authority_writers_wait_for_locked_admission
+    approval_results, writer_results = context.Queue(), context.Queue()
+                                       ^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 103, in Queue
+    return Queue(maxsize, ctx=self.get_context())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\queues.py", line 42, in __init__
+    self._reader, self._writer = connection.Pipe(duplex=False)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+======================================================================
+ERROR: test_multiprocess_rebase_before_admission_resumes_blocks_stale_head (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_rebase_before_admission_resumes_blocks_stale_head)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_astra_s2_admission.py", line 284, in test_multiprocess_rebase_before_admission_resumes_blocks_stale_head
+    results = context.Queue()
+              ^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 103, in Queue
+    return Queue(maxsize, ctx=self.get_context())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\queues.py", line 42, in __init__
+    self._reader, self._writer = connection.Pipe(duplex=False)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+======================================================================
+ERROR: test_preexisting_stake_survives_rebase_but_new_risk_uses_current_cap (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_preexisting_stake_survives_rebase_but_new_risk_uses_current_cap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_astra_s2_admission.py", line 267, in test_preexisting_stake_survives_rebase_but_new_risk_uses_current_cap
+    record = qualification(fixture["qualifications"], fixture["policy"],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: qualification() missing 1 required keyword-only argument: 'contract_hash'
+
+======================================================================
+ERROR: test_unknown_exposure_at_entry_and_competing_last_capacity_block (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_unknown_exposure_at_entry_and_competing_last_capacity_block)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_astra_s2_admission.py", line 239, in test_unknown_exposure_at_entry_and_competing_last_capacity_block
+    second_qualification = qualification(
+                           ^^^^^^^^^^^^^^
+TypeError: qualification() missing 1 required keyword-only argument: 'contract_hash'
+
+======================================================================
+FAIL: test_paper_order_idempotency_and_unknown_reconciliation (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_paper_order_idempotency_and_unknown_reconciliation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_v04_foundation.py", line 266, in test_paper_order_idempotency_and_unknown_reconciliation
+    self.assertTrue(result.requires_new_candidate)
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_coordinator_commit_failure_after_jsonl_fsync_replays_once (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_coordinator_commit_failure_after_jsonl_fsync_replays_once)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_astra_s2_admission.py", line 398, in test_coordinator_commit_failure_after_jsonl_fsync_replays_once
+    self.assertEqual(reopened.approve(req).reason, "duplicate_order_intent")
+AssertionError: 'strategy_authority_unavailable' != 'duplicate_order_intent'
+- strategy_authority_unavailable
++ duplicate_order_intent
+
+======================================================================
+FAIL: test_uncertain_post_append_response_restarts_as_exactly_one_approval (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_uncertain_post_append_response_restarts_as_exactly_one_approval)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_astra_s2_admission.py", line 369, in test_uncertain_post_append_response_restarts_as_exactly_one_approval
+    self.assertEqual(reopened.approve(req).reason, "duplicate_order_intent")
+AssertionError: 'strategy_authority_unavailable' != 'duplicate_order_intent'
+- strategy_authority_unavailable
++ duplicate_order_intent
+
+----------------------------------------------------------------------
+Ran 23 tests in 3.954s
+
+FAILED (failures=3, errors=6)

@@ -1,0 +1,201 @@
+diff --git a/tests/test_astra_s2_admission.py b/tests/test_astra_s2_admission.py
+index e7a9a53..783f543 100644
+--- a/tests/test_astra_s2_admission.py
++++ b/tests/test_astra_s2_admission.py
+@@ -12,7 +12,9 @@ from unittest.mock import patch
+ import genesis
+ 
+ from genesis.accounting import BetSide
++from genesis.execution import ModeStateStore
+ from genesis.policy import PolicySet
++from genesis.registry import StrategyRegistry
+ from genesis.risk import (
+     BankrollSnapshot,
+     BankrollSnapshotStore,
+@@ -37,6 +39,9 @@ def _restarted(root: Path) -> RiskEngine:
+         qualifications=QualificationRecordStore(root / "qualifications.jsonl"),
+         safety=SafetyStateStore(root / "safety.jsonl"),
+         audit_log=RiskAuditLog(root / "risk.jsonl"),
++        strategies=StrategyRegistry(root / "strategies.jsonl"),
++        modes=ModeStateStore(root / "mode.jsonl"),
++        action_clock=lambda requested_at: requested_at,
+     )
+ 
+ 
+@@ -58,6 +63,8 @@ def _isolated_worker_authority(source_root):
+         SafetyStateStore as WorkerSafetyStore,
+     )
+     from genesis.selection import QualificationRecordStore as WorkerQualifications
++    from genesis.registry import StrategyRegistry as WorkerStrategyRegistry
++    from genesis.execution import ModeStateStore as WorkerModeStateStore
+ 
+     class SyntheticWorkerQualifications(WorkerQualifications):
+         def _require_separate_approval(self, reference, *, binding_hash, decision_at):
+@@ -66,17 +73,21 @@ def _isolated_worker_authority(source_root):
+ 
+     return (WorkerPolicySet, WorkerBankrollSnapshot, WorkerBankrollStore,
+             WorkerRiskAuditLog, WorkerRiskEngine, WorkerSafetyState,
+-            WorkerSafetyStore, SyntheticWorkerQualifications)
++            WorkerSafetyStore, SyntheticWorkerQualifications,
++            WorkerStrategyRegistry, WorkerModeStateStore)
+ 
+ 
+ def _worker_engine(root, source_root):
+-    policy, _, bankrolls, audit, engine, _, safety, qualifications = (
++    policy, _, bankrolls, audit, engine, _, safety, qualifications, strategies, modes = (
+         _isolated_worker_authority(source_root)
+     )
+     return engine(
+         policy=policy(), bankrolls=bankrolls(root / "bankroll.jsonl"),
+         qualifications=qualifications(root / "qualifications.jsonl"),
+         safety=safety(root / "safety.jsonl"), audit_log=audit(root / "risk.jsonl"),
++        strategies=strategies(root / "strategies.jsonl"),
++        modes=modes(root / "mode.jsonl"),
++        action_clock=lambda requested_at: requested_at,
+     )
+ 
+ 
+@@ -121,7 +132,7 @@ def _locked_approval_worker(root, req, source_root, entered, release, results):
+ 
+ def _authority_writer(root, owner, source_root, attempting, done, results):
+     try:
+-        _, bankroll_snapshot, bankroll_store, _, _, safety_state, safety_store, _ = (
++        _, bankroll_snapshot, bankroll_store, _, _, safety_state, safety_store, _, _, _ = (
+             _isolated_worker_authority(source_root)
+         )
+         if owner == "bankroll":
+@@ -238,7 +249,9 @@ class AstraAdmissionSerializationTests(unittest.TestCase):
+             other = build_risk(root / "capacity")
+             second_qualification = qualification(
+                 other["qualifications"], other["policy"],
+-                candidate_hash=digest("2"), tier="3.0u", candidate_id="other",
++                candidate_hash=digest("2"),
++                contract_hash=other["contract"].contract_hash,
++                tier="3.0u", candidate_id="other",
+             )
+             other["engine"].record_exposure(
+                 Exposure("prior", digest("8"), "50", ExposureState.MATCHED),
+@@ -265,7 +278,9 @@ class AstraAdmissionSerializationTests(unittest.TestCase):
+                 scheduled_weekly=False, drawdown_triggered=True,
+             )
+             record = qualification(fixture["qualifications"], fixture["policy"],
+-                                   candidate_hash=digest("2"), tier="1.0u",
++                                   candidate_hash=digest("2"),
++                                   contract_hash=fixture["contract"].contract_hash,
++                                   tier="1.0u",
+                                    candidate_id="later")
+             second = RiskRequest(record.candidate_decision_hash, record.qualification_record_id,
+                                  fixture["bankrolls"].current().snapshot_id,
+diff --git a/tests/test_v04_foundation.py b/tests/test_v04_foundation.py
+index dc420b5..a59b336 100644
+--- a/tests/test_v04_foundation.py
++++ b/tests/test_v04_foundation.py
+@@ -1,13 +1,18 @@
+ from __future__ import annotations
+ 
+ import unittest
++from dataclasses import asdict
+ from decimal import Decimal
+ 
+ from genesis.accounting import BetSide, SettlementKind
+ from genesis.candidate_runs import CandidateRunRecord, CandidateRunStore, SearchCoverageSummary
+ from genesis.canonical import CandidateBet, MarketSide
+ from genesis.capabilities import CapabilityUnavailable, MarketCapability, MarketCapabilityRegistry
+-from genesis.decision import ReproducibilityManifest, candidate_decision_hash
++from genesis.decision import (
++    ReproducibilityManifest,
++    candidate_decision_hash,
++    candidate_v3_decision_hash,
++)
+ from genesis.evidence_pack import EvidencePack, EvidencePackStore
+ from genesis.config import OperationalMode
+ from genesis.execution import (
+@@ -22,6 +27,7 @@ from genesis.execution import (
+     OrderIntent,
+     OrderState,
+     PaperExecutionAdapter,
++    RegistryStrategyExecutionView,
+ )
+ from genesis.ledger import FillRecord, SettlementLedger
+ from genesis.policy import PolicySet, assess_price_sanity, break_even_probability
+@@ -41,12 +47,8 @@ from genesis.provenance import AvailabilityClass, ProvenanceRef
+ from genesis.quota import QuotaInterpretation, QuotaLedger, QuotaPolicy, VerifiedCacheStore
+ from genesis.registry import RegistryConflict
+ from genesis.risk import (
+-    BankrollSnapshot,
+-    BankrollSnapshotStore,
+     Exposure,
+     ExposureState,
+-    RiskAuditLog,
+-    RiskEngine,
+     RiskRequest,
+     SafetyState,
+     SafetyStateStore,
+@@ -215,23 +217,34 @@ class V04CandidateRiskExecutionTests(unittest.TestCase):
+ 
+     def test_risk_counts_pending_and_unknown_and_approvals_are_single_use(self):
+         with scratch_directory() as tmp:
+-            audit = RiskAuditLog(tmp / "risk.jsonl")
+-            policy = PolicySet()
+-            bankrolls = BankrollSnapshotStore(tmp / "bankroll.jsonl")
+-            initial = BankrollSnapshot.create(bankroll="100", captured_at="2026-01-01T00:00:00Z", rebase_reason="initial")
+-            bankrolls.append(initial)
+-            safety = SafetyStateStore(tmp / "safety.jsonl")
+-            safety.append(SafetyState.create(kill_switch_active=False, recorded_at="2026-01-01T00:00:00Z", reason="test"))
+-            qualifications = QualificationRecordStore(tmp / "qualifications.jsonl")
+-            q1 = risk_qualification(
+-                qualifications, policy, candidate_hash=digest("1"), tier="2.0u",
+-                candidate_id="c1",
++            fixture = build_risk(
++                tmp, tier="2.0u", candidate_hash=digest("1"),
+             )
++            audit = fixture["audit"]
++            policy = fixture["policy"]
++            bankrolls = fixture["bankrolls"]
++            qualifications = fixture["qualifications"]
++            original_q1 = fixture["qualification"]
++            output = qualifications.outputs.get(original_q1.decision_output_hash)
++            output["correlation_cluster_ids"] = ["cluster-1"]
++            output_hash = qualifications.outputs.publish(output)
++            fields = asdict(original_q1)
++            fields.pop("qualification_record_id")
++            fields["decision_output_hash"] = output_hash
++            fields["candidate_decision_hash"] = candidate_v3_decision_hash(
++                strategy_decision_contract_hash=(
++                    original_q1.strategy_decision_contract_hash
++                ),
++                feature_manifest_hash=original_q1.feature_manifest_hash,
++                evidence_pack_hash=output["evidence_pack_hash"],
++                decision_output_hash=output_hash,
++            )
++            q1 = qualifications.append(QualificationRecord.create(**fields))
+             q2 = risk_qualification(
+                 qualifications, policy, candidate_hash=digest("2"), tier="2.0u",
+-                candidate_id="c2",
++                candidate_id="c2", contract_hash=fixture["contract"].contract_hash,
+             )
+-            engine = RiskEngine(policy=policy, bankrolls=bankrolls, qualifications=qualifications, safety=safety, audit_log=audit)
++            engine = fixture["engine"]
+             self.assertEqual(engine.rebase("110", captured_at="2026-01-01T00:02:00Z", scheduled_weekly=True, drawdown_triggered=False).direction, "upward")
+             h1, h2 = q1.candidate_decision_hash, q2.candidate_decision_hash
+             current = bankrolls.current()
+@@ -253,10 +266,15 @@ class V04CandidateRiskExecutionTests(unittest.TestCase):
+             markets.append(ExecutionMarketSnapshot.create(candidate_decision_hash=fixture["candidate_hash"], observed_at="2026-01-01T00:11:00Z", market_open=True, executable_odds="2.00", available_liquidity="100"))
+             refreshes = CriticalEvidenceRefreshStore(tmp / "refreshes.jsonl")
+             refreshes.append(CriticalEvidenceRefresh(fixture["candidate_hash"], "2026-01-01T00:11:00Z", True, True))
+-            class Active:
+-                def is_active(self, candidate_decision_hash, at):
+-                    return True
+-            adapter = PaperExecutionAdapter(tmp / "orders.jsonl", risk=fixture["engine"], markets=markets, refreshes=refreshes, strategy_view=Active())
++            adapter = PaperExecutionAdapter(
++                tmp / "orders.jsonl",
++                risk=fixture["engine"],
++                markets=markets,
++                refreshes=refreshes,
++                strategy_view=RegistryStrategyExecutionView(fixture["strategies"]),
++                modes=fixture["modes"],
++                action_clock=lambda requested_at: requested_at,
++            )
+             intent = OrderIntent(fixture["candidate_hash"], "idem-1", BetSide.BACK, approval.approved_stake, "2.00", approval.approval_id, "2026-01-01T00:12:00Z")
+             adapter.create_intent(intent)
+             self.assertEqual(adapter.create_intent(intent).state, OrderState.ORDER_INTENT_CREATED)

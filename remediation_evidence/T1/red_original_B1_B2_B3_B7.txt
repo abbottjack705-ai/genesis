@@ -1,0 +1,41 @@
+test_b1_risk_uses_output_correlation_not_caller_omission (<run_path>.NewInvariants.test_b1_risk_uses_output_correlation_not_caller_omission) ... FAIL
+test_b2_new_submission_rechecks_current_total_exposure (<run_path>.NewInvariants.test_b2_new_submission_rechecks_current_total_exposure) ... FAIL
+test_b3_release_requires_terminal_order_or_settlement_proof (<run_path>.NewInvariants.test_b3_release_requires_terminal_order_or_settlement_proof) ... FAIL
+test_b7_strategy_withdrawal_is_fenced_through_send (<run_path>.NewInvariants.test_b7_strategy_withdrawal_is_fenced_through_send) ... FAIL
+
+======================================================================
+FAIL: test_b1_risk_uses_output_correlation_not_caller_omission (<run_path>.NewInvariants.test_b1_risk_uses_output_correlation_not_caller_omission)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "outputs\GENESIS_V04_S5_ASTRA_PROBES.py", line 213, in test_b1_risk_uses_output_correlation_not_caller_omission
+    self.assertFalse(omitted.passed, "caller omission bypassed authoritative correlation cap")
+AssertionError: True is not false : caller omission bypassed authoritative correlation cap
+
+======================================================================
+FAIL: test_b2_new_submission_rechecks_current_total_exposure (<run_path>.NewInvariants.test_b2_new_submission_rechecks_current_total_exposure)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "outputs\GENESIS_V04_S5_ASTRA_PROBES.py", line 229, in test_b2_new_submission_rechecks_current_total_exposure
+    self.assertNotEqual(sent.state, OrderState.SUBMISSION_SENT,
+AssertionError: <OrderState.SUBMISSION_SENT: 'SUBMISSION_SENT'> == <OrderState.SUBMISSION_SENT: 'SUBMISSION_SENT'> : sent despite 62.5 open liability against a 60 cap
+
+======================================================================
+FAIL: test_b3_release_requires_terminal_order_or_settlement_proof (<run_path>.NewInvariants.test_b3_release_requires_terminal_order_or_settlement_proof)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "outputs\GENESIS_V04_S5_ASTRA_PROBES.py", line 244, in test_b3_release_requires_terminal_order_or_settlement_proof
+    self.assertEqual(len(engine.reserved_exposures()), 1,
+AssertionError: 0 != 1 : active sent order lost reservation without settlement evidence
+
+======================================================================
+FAIL: test_b7_strategy_withdrawal_is_fenced_through_send (<run_path>.NewInvariants.test_b7_strategy_withdrawal_is_fenced_through_send)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "outputs\GENESIS_V04_S5_ASTRA_PROBES.py", line 185, in test_b7_strategy_withdrawal_is_fenced_through_send
+    self.assertNotEqual(sent.state, OrderState.SUBMISSION_SENT,
+AssertionError: <OrderState.SUBMISSION_SENT: 'SUBMISSION_SENT'> == <OrderState.SUBMISSION_SENT: 'SUBMISSION_SENT'> : strategy withdrawal committed before send was not observed or fenced
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.232s
+
+FAILED (failures=4)

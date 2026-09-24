@@ -12,7 +12,9 @@ from unittest.mock import patch
 import genesis
 
 from genesis.accounting import BetSide
+from genesis.execution import ModeStateStore
 from genesis.policy import PolicySet
+from genesis.registry import StrategyRegistry
 from genesis.risk import (
     BankrollSnapshot,
     BankrollSnapshotStore,
@@ -37,6 +39,9 @@ def _restarted(root: Path) -> RiskEngine:
         qualifications=QualificationRecordStore(root / "qualifications.jsonl"),
         safety=SafetyStateStore(root / "safety.jsonl"),
         audit_log=RiskAuditLog(root / "risk.jsonl"),
+        strategies=StrategyRegistry(root / "strategies.jsonl"),
+        modes=ModeStateStore(root / "mode.jsonl"),
+        action_clock=lambda requested_at: requested_at,
     )
 
 
@@ -58,6 +63,8 @@ def _isolated_worker_authority(source_root):
         SafetyStateStore as WorkerSafetyStore,
     )
     from genesis.selection import QualificationRecordStore as WorkerQualifications
+    from genesis.registry import StrategyRegistry as WorkerStrategyRegistry
+    from genesis.execution import ModeStateStore as WorkerModeStateStore
 
     class SyntheticWorkerQualifications(WorkerQualifications):
         def _require_separate_approval(self, reference, *, binding_hash, decision_at):
@@ -66,17 +73,21 @@ def _isolated_worker_authority(source_root):
 
     return (WorkerPolicySet, WorkerBankrollSnapshot, WorkerBankrollStore,
             WorkerRiskAuditLog, WorkerRiskEngine, WorkerSafetyState,
-            WorkerSafetyStore, SyntheticWorkerQualifications)
+            WorkerSafetyStore, SyntheticWorkerQualifications,
+            WorkerStrategyRegistry, WorkerModeStateStore)
 
 
 def _worker_engine(root, source_root):
-    policy, _, bankrolls, audit, engine, _, safety, qualifications = (
+    policy, _, bankrolls, audit, engine, _, safety, qualifications, strategies, modes = (
         _isolated_worker_authority(source_root)
     )
     return engine(
         policy=policy(), bankrolls=bankrolls(root / "bankroll.jsonl"),
         qualifications=qualifications(root / "qualifications.jsonl"),
         safety=safety(root / "safety.jsonl"), audit_log=audit(root / "risk.jsonl"),
+        strategies=strategies(root / "strategies.jsonl"),
+        modes=modes(root / "mode.jsonl"),
+        action_clock=lambda requested_at: requested_at,
     )
 
 
@@ -121,7 +132,7 @@ def _locked_approval_worker(root, req, source_root, entered, release, results):
 
 def _authority_writer(root, owner, source_root, attempting, done, results):
     try:
-        _, bankroll_snapshot, bankroll_store, _, _, safety_state, safety_store, _ = (
+        _, bankroll_snapshot, bankroll_store, _, _, safety_state, safety_store, _, _, _ = (
             _isolated_worker_authority(source_root)
         )
         if owner == "bankroll":
@@ -238,7 +249,9 @@ class AstraAdmissionSerializationTests(unittest.TestCase):
             other = build_risk(root / "capacity")
             second_qualification = qualification(
                 other["qualifications"], other["policy"],
-                candidate_hash=digest("2"), tier="3.0u", candidate_id="other",
+                candidate_hash=digest("2"),
+                contract_hash=other["contract"].contract_hash,
+                tier="3.0u", candidate_id="other",
             )
             other["engine"].record_exposure(
                 Exposure("prior", digest("8"), "50", ExposureState.MATCHED),
@@ -265,7 +278,9 @@ class AstraAdmissionSerializationTests(unittest.TestCase):
                 scheduled_weekly=False, drawdown_triggered=True,
             )
             record = qualification(fixture["qualifications"], fixture["policy"],
-                                   candidate_hash=digest("2"), tier="1.0u",
+                                   candidate_hash=digest("2"),
+                                   contract_hash=fixture["contract"].contract_hash,
+                                   tier="1.0u",
                                    candidate_id="later")
             second = RiskRequest(record.candidate_decision_hash, record.qualification_record_id,
                                  fixture["bankrolls"].current().snapshot_id,

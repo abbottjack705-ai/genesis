@@ -1,15 +1,18 @@
 # Project Genesis architecture
 
-## Audit disposition (2026-09-23)
+## Audit disposition (2026-09-24)
 
 Astra's independent audit of R10 commit `166f923` returned **HOLD / NOT
 APPROVED**. S1 locally closed A1/A2; S2a/S2b locally closed A3/A7; S3a
 locally closed A5's exact-input correspondence. S3b locally binds A4's trusted
 decision outputs to candidate-v3 and downstream new-risk/order lineage.
 S4 locally closes A6's cache-authority defect. S5 locally closes A8's
-process/address-space defect under approved ADR-0003 v1. All A1-A8 repairs still
-require a fresh independent hostile re-audit; this diagram is a foundation map,
-not an adapter, shadow-research, protected-campaign or live-money GO.
+process/address-space defect under approved ADR-0003 v1. The independent
+post-S5 hostile audit of commit `27dd525` then returned **HOLD / NOT APPROVED**
+with B1-B8. T1 locally repairs only B1, B2, B3 and B7. B4, B5, B6 and B8 remain
+open, and the T1 work still requires hostile review. This diagram is a
+foundation map, not an adapter, shadow-research, protected-campaign or
+live-money GO.
 
 ## Remediated V0.4 foundation flow
 
@@ -66,6 +69,13 @@ S4 resolves cache references through immutable bytes and an append-only
 provider/policy/request/freshness/invalidation authority under the quota
 transaction fence. S5 launches a separately isolated research process before
 trusted labels are materialized and before the evaluator channel is created.
+T1 derives dependence only from the bound decision output, recalculates current
+portfolio capacity from authoritative heads, fences durable strategy and PAPER
+mode heads through each new-risk/pending/sent append, and permits reservation
+release only from a durable exact reconciliation proof. The T1 legacy-v2 path
+is a separate audit-settlement-only schema: it can finish an already existing
+matched PAPER order, but can never authorize qualification, new risk, pending
+or send.
 Recovery must not silently heal, truncate, choose a branch, or infer missing
 identity.
 
@@ -148,6 +158,10 @@ SettlementLedger
   trusted side and existing output band. Revocation blocks new risk and sends.
   No strategy-specific model, tier formula or expiry rule is approved here:
   operational qualification remains fail-closed without separate approval.
+- T1 makes `DecisionOutput-v1.correlation_cluster_ids` authoritative for risk.
+  A caller's non-empty copy is comparison-only and must match; omission cannot
+  erase dependence. The canonical output membership is persisted on the risk
+  approval/reservation and replay must agree with the bound output.
 - Tier is strict and strategy-approved. Invalid or missing tier never degrades to
   a usable default.
 - Across equal-tier incomparable groups there is no quality comparison. A stable
@@ -157,6 +171,15 @@ SettlementLedger
 ## Restart semantics
 
 - Risk replays bankroll, safety, approvals, consumption and reservations.
+- A consumed reservation remains fully charged through pending, match, partial
+  fill, UNKNOWN and reconciliation. It reaches `SETTLED` or `VOID` only through
+  an exact, current, durable release proof fenced with order, fill, settlement
+  and risk heads. Bare terminal labels do not release capacity. A later fill or
+  incompatible correction invalidates a prior proof conservatively and restores
+  UNKNOWN/full charge.
+- Existing historical exposure remains factual even when it exceeds a current
+  limit; hold-to-settlement is preserved while every unsafe new action is
+  denied. Capacity checks count the order's own reservation exactly once.
 - One candidate decision hash has one order-intent lineage across terminal state,
   key changes, processes and restart.
 - `SUBMISSION_PENDING`, `SUBMISSION_SENT`, `UNKNOWN`, and
@@ -172,17 +195,21 @@ SettlementLedger
 ## Module map
 
 - `registry.py`: append transaction coordinator, datasets, experiments,
-  strategies, lifecycle timeline and `StrategyDecisionContract`.
+  strategies, durable lifecycle heads and `StrategyDecisionContract`.
 - `provenance.py`, `pit.py`, `capabilities.py`: source contracts, versioned
   source/market capability, bitemporal records and mandatory as-of reads.
 - `evidence.py`, `evidence_pack.py`, `canonical.py`, `decision.py`: content,
   observations, structured evidence, frozen packs and candidate identity.
 - `selection.py`, `policy.py`: authoritative qualification, immutable
   qualification records, strict tiers, price gates and unbiased ranking.
-- `risk.py`: durable bankroll/safety/exposure ownership, exact derived risk and
-  approvals.
+- `risk.py`: durable bankroll/safety/exposure ownership, output-derived
+  dependence, current portfolio admission, exact derived risk, approvals and
+  proof-bearing reservation release.
 - `execution.py`: provider-neutral PAPER order identity, binding, recertification,
-  mandatory S1 pre-pending and pre-sent checks, state replay, mode and kill control.
+  mandatory pre-pending/pre-sent checks, durable strategy/mode fencing, state
+  replay and kill control.
+- `release_proof.py`: exact PAPER order/fill/settlement proof ownership,
+  including the separate legacy-v2 audit-settlement-only proof schema.
 - `ledger.py`, `accounting.py`: authoritative fills, settlement lineages and
   deterministic Decimal payoff primitives.
 - `quota.py`, `config/oddspapi_quota_policy_v2.json`: digest-pinned approved A
@@ -200,6 +227,12 @@ The caller-facts `qualify_v04` function and in-process protected harness remain
 only for deterministic legacy/synthetic audit replay. No production module imports
 or calls them. Pre-audit artifacts may be read only through explicit migrations;
 they are never silently promoted to post-audit authority.
+
+Historical v2 candidate and qualification identities remain unchanged. An
+already consumed and matched v2 PAPER order may release only through
+`offline-paper-legacy-release-proof-v1`, which binds the exact durable v2
+qualification row and complete current terminal evidence. It has no fabricated
+decision-output identity and is deliberately unusable for any new action.
 
 Future adapters, providers, sport models, strategy cards, real protected
 campaigns, venue reconciliation, cloud services and live activation require

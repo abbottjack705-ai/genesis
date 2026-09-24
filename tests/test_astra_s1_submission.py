@@ -13,13 +13,12 @@ from genesis.execution import (
     ExecutionMarketSnapshot,
     OrderState,
 )
-from genesis.registry import RegistryConflict
+from genesis.registry import RegistryConflict, StrategyLifecycle
 from genesis.risk import SafetyState
 from genesis.risk import ExposureState
 
 from ._support import scratch_directory
 from .test_remediation_r6_execution import (
-    InactiveStrategyView,
     build_execution,
     restart_adapter,
     restart_risk,
@@ -59,7 +58,9 @@ def invalidate(case, cause: str) -> str:
             )
         )
     elif cause == "strategy_withdrawn":
-        case["adapter"].strategy_view = InactiveStrategyView()
+        case["risk_fixture"]["strategies"].transition(
+            "strategy", "v1", StrategyLifecycle.RETIRED, occurred_at=CHANGED,
+        )
     elif cause in {"market_closed", "price_changed", "liquidity_low"}:
         case["markets"].append(
             ExecutionMarketSnapshot.create(
@@ -77,14 +78,15 @@ def invalidate(case, cause: str) -> str:
     return ACTION
 
 
-class ExitDuringStrategyCheck:
-    def is_active(self, candidate_decision_hash: str, at: str) -> bool:
-        os._exit(91)
-
-
 def _crash_while_fenced(root_text: str) -> None:
     root = Path(root_text)
-    adapter = restart_adapter(root, restart_risk(root), ExitDuringStrategyCheck())
+    adapter = restart_adapter(root, restart_risk(root))
+
+    def exit_during_fenced_recertification(_record, *, at, **_bound_heads):
+        del at
+        os._exit(91)
+
+    adapter._recertify_record = exit_during_fenced_recertification
     adapter.transition("key-a", OrderState.SUBMISSION_PENDING, occurred_at=ACTION)
     os._exit(0)
 
@@ -272,8 +274,10 @@ class AstraSubmissionGateTests(unittest.TestCase):
 
                         adapter.recertify = check_public
                     else:
-                        def check_record(record, *, at):
-                            return race_after_check(original_recertify(record, at=at))
+                        def check_record(record, *, at, **bound_heads):
+                            return race_after_check(
+                                original_recertify(record, at=at, **bound_heads)
+                            )
 
                         adapter._recertify_record = check_record
                     adapter.transition(
@@ -303,6 +307,10 @@ class AstraSubmissionGateTests(unittest.TestCase):
             self.assertFalse(process.is_alive())
             self.assertEqual(process.exitcode, 91)
             self.assertEqual(len(case["adapter"]._audit.records()), before)
+            self.assertFalse(any(
+                row.get("to_state") == OrderState.SUBMISSION_SENT.value
+                for row in case["adapter"]._audit.records()
+            ))
             safety = case["risk_fixture"]["safety"]
             safety.append(SafetyState.create(
                 kill_switch_active=True,

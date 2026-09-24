@@ -1,0 +1,74 @@
+diff --git a/tests/test_astra_s1_reservation.py b/tests/test_astra_s1_reservation.py
+index dfbe258..344e14a 100644
+--- a/tests/test_astra_s1_reservation.py
++++ b/tests/test_astra_s1_reservation.py
+@@ -13,14 +13,29 @@ from .test_astra_s1_submission import ACTION, READY, bound_case
+ from .test_remediation_r6_execution import restart_adapter, restart_risk
+ 
+ 
+-def release_or_unknown(case, state: ExposureState):
++def mark_unknown(case):
+     return case["risk_fixture"]["engine"].transition_reservation(
+         case["risk_decision"].approval_id,
+-        state,
++        ExposureState.UNKNOWN,
+         occurred_at="2026-01-01T00:15:00Z",
+     )
+ 
+ 
++def seed_historical_proofless_terminal(case, state: ExposureState):
++    """Replay a hash-valid pre-B3 terminal row; never call it release proof."""
++
++    if state not in {ExposureState.VOID, ExposureState.SETTLED}:
++        raise ValueError("historical row must be a terminal state")
++    case["risk_fixture"]["audit"].log.append({
++        "record_type": "risk_reservation_transition",
++        "schema_version": "risk-reservation-v2",
++        "approval_id": case["risk_decision"].approval_id,
++        "from_state": ExposureState.PENDING.value,
++        "to_state": state.value,
++        "occurred_at": "2026-01-01T00:15:00Z",
++    })
++
++
+ class AstraReservationGateTests(unittest.TestCase):
+@@ -33,10 +48,21 @@ class AstraReservationGateTests(unittest.TestCase):
+-                        release_or_unknown(case, state)
++                        if state == ExposureState.UNKNOWN:
++                            mark_unknown(case)
++                        else:
++                            with self.assertRaises(RegistryConflict):
++                                case["risk_fixture"]["engine"].transition_reservation(
++                                    case["risk_decision"].approval_id, state,
++                                    occurred_at="2026-01-01T00:15:00Z",
++                                )
++                            seed_historical_proofless_terminal(case, state)
+@@ -120,9 +146,22 @@ class AstraReservationGateTests(unittest.TestCase):
+-                    release_or_unknown(case, state)
++                    if state == ExposureState.UNKNOWN:
++                        mark_unknown(case)
++                    else:
++                        with self.assertRaises(RegistryConflict):
++                            case["risk_fixture"]["engine"].transition_reservation(
++                                case["risk_decision"].approval_id, state,
++                                occurred_at="2026-01-01T00:15:00Z",
++                            )
++                        seed_historical_proofless_terminal(case, state)
+@@ -131,7 +170,7 @@ class AstraReservationGateTests(unittest.TestCase):
+-    def test_valid_reservation_and_later_terminal_release_preserve_history(self):
++    def test_valid_submission_then_proofless_terminal_preserves_history_and_charge(self):
+@@ -147,10 +186,24 @@ class AstraReservationGateTests(unittest.TestCase):
+-            release_or_unknown(case, ExposureState.SETTLED)
+-            self.assertEqual(case["risk_fixture"]["engine"].reserved_exposures(), ())
++            with self.assertRaises(RegistryConflict):
++                case["risk_fixture"]["engine"].transition_reservation(
++                    case["risk_decision"].approval_id, ExposureState.SETTLED,
++                    occurred_at="2026-01-01T00:20:00Z",
++                )
++            self.assertEqual(
++                [item.exposure_id for item in
++                 case["risk_fixture"]["engine"].reserved_exposures()],
++                [case["risk_decision"].approval_id],
++            )
+
+This exact first attempt was not accepted as a final fixture adaptation.

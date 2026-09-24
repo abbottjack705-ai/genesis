@@ -1,7 +1,7 @@
 # Project Genesis V0.4 remediation handoff
 
-Date: 2026-09-23
-Status: **Astra R10 HOLD; A1-A8 locally green through S5; adapter NO-GO**
+Date: 2026-09-24
+Status: **Post-S5 Astra HOLD; T1 B1/B2/B3/B7 locally green; B4/B5/B6/B8 open; adapter NO-GO**
 
 ## S1 continuation notice
 
@@ -39,20 +39,57 @@ S5 moves accepted research programs into a distinct isolated process started
 before label materialization/evaluator IPC. Its 12-test hostile set was RED on
 clean `166f923` and S4, then targeted A8/R9 passed 23/23, retained R0-R10 and
 S1-S4 passed 184/184, full discovery passed 196/196, and `compileall` passed.
-Exact evidence is in `remediation_evidence/S5/`. Review S5 and run the fresh
-independent hostile re-audit next; do not begin an adapter, substantive shadow
-research, protected campaign or live-money work.
+Exact evidence is in `remediation_evidence/S5/`. The resulting clean S5 commit
+was `27dd525c1fd7d531c4833c4bf7e44204a9345f19`. Its independent hostile audit
+returned HOLD with B1–B8; the T1 checkpoint below is the first repair tranche.
+Do not begin an adapter, substantive shadow research, protected campaign or
+live-money work.
+
+## T1 B1/B2/B3/B7 checkpoint
+
+T1 starts from exact clean S5 commit `27dd525` and changes only the first
+post-S5 audit tranche:
+
+- B1 takes correlation/dependence membership from the bound trusted decision
+  output, persists it on approval/reservation, and treats a caller copy only as
+  a mismatch check.
+- B2 recalculates current total and correlated exposure under the admission
+  fence, counts the order's own reservation exactly once, preserves factual
+  over-limit exposure and hold-to-settlement, and denies unsafe new actions.
+- B3 requires a durable exact reconciliation proof before a consumed
+  reservation can release. Full settlement, void, proven unmatched
+  cancellation, partial-fill conservation, duplicate replay, crash/restart and
+  concurrent release/new-risk paths are covered. Bare terminal labels never
+  release capacity.
+- B7 fences durable strategy lifecycle and coherent PAPER mode/safety heads
+  with risk admission and pending/sent appends; missing or changing owners fail
+  closed.
+
+The one legacy-v2 retained conflict was resolved as the already-authorized
+ADR-0002 treatment, not a fixture rewrite or new identity. A separate
+audit-settlement-only proof binds the exact existing v2 qualification row and
+current order/fill/settlement evidence. It cannot authorize qualification,
+risk, pending or send and does not fabricate candidate-v3 output lineage.
+`remediation_evidence/T1/LEGACY_V2_RELEASE_DECISION_MEMO.md` records the
+authority analysis before implementation.
+
+The exact final gates are: original hostile outcomes 4/4, consolidated T1
+70/70, retained R0–R10 and S1–S5 196/196, full discovery 266/266, explicit
+restart/concurrency/crash 36/36, plus green `compileall` and `git diff --check`.
+All RED transcripts and pre-change retained fixtures/diffs are preserved under
+`remediation_evidence/T1/`.
+
+T1 is not an overall audit closure. B4, B5, B6 and B8 remain HOLD, and no
+adapter, strategy, shadow-research, protected-campaign or live-money GO is
+granted.
 
 ## Review decision requested
 
-The R10 audit has been completed and returned HOLD. The staged repairs are now
-locally green through S5; run a fresh independent hostile re-audit against the
-new exact checkpoint. Do not approve later strategy, provider, cloud, venue or
-live work through these local results.
-
-The staged A1-A8 implementation is locally green only. Until the external
-re-audit and explicit checkpoint approval are complete, the adapter decision
-remains NO-GO.
+Review the exact committed T1 tree and hostile-test the B1/B2/B3/B7 composition.
+Do not treat T1 as resolution of B4/B5/B6/B8 or approve later strategy,
+provider, cloud, venue or live work through these local results. Until all
+remaining findings, hostile re-audit and explicit checkpoint approval are
+complete, the adapter decision remains NO-GO.
 
 ## Authority and exact identity
 
@@ -68,7 +105,7 @@ remains NO-GO.
   handoff manifest, created after the green commit to avoid a self-referential
   identity claim.
 
-## Green batch chain
+## Historical R0–R10 green batch chain
 
 | Batch | Green commit | Closure |
 |---|---|---|
@@ -84,7 +121,7 @@ remains NO-GO.
 | R9 | `128d392` | separately spawned protected evaluator boundary |
 | R10 | final manifest | integrated replay, stress, recovery, docs and re-audit bundle |
 
-## Verification summary
+## Historical R10 verification summary
 
 ```text
 python -m unittest discover -s tests -t . -v
@@ -116,7 +153,9 @@ Read in this order:
    `HOSTILE_REAUDIT_HANDOFF.md`;
 4. each R0–R9 checkpoint and RED/GREEN artifact;
 5. production modules and primary remediation tests named by the traceability map;
-6. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle.
+6. `remediation_evidence/T1/LEGACY_V2_RELEASE_DECISION_MEMO.md`,
+   `RED_EVIDENCE.md`, retained-fixture reconciliations and `GREEN_FINAL.md`;
+7. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle.
 
 Re-run:
 
@@ -133,6 +172,9 @@ git status --short --branch
 - Explicit legacy migrations never infer missing identity or intent.
 - Pre-audit incomplete candidates/packs/approvals/orders are audit-only.
 - Ambiguous duplicate settlement history fails closed.
+- Historical v2 settlement release uses only the separate exact
+  `LEGACY_AUDIT_SETTLEMENT_ONLY` proof schema; it cannot authorize a new action
+  and does not synthesize v3 identity.
 - Legacy quota migration requires an explicitly named interpretation.
 - Active quota policy is approved Interpretation A; B is test-only.
 - Registered V2 protected campaigns cannot enter the unsafe in-process harness.
@@ -150,7 +192,8 @@ canary was implemented or run. The objective and V0.4 risk laws were not changed
 These are deliberately unresolved external or later-phase facts, not hidden
 implementation claims:
 
-1. Does the independent hostile audit find a CRITICAL/HIGH adapter-gating gap?
+1. Do B4/B5/B6/B8 remain CRITICAL/HIGH blockers after their future repair, and
+   does hostile review approve the T1 B1/B2/B3/B7 composition?
 2. Which real provider/source can prove entitlement, PIT availability, revisions
    and current quota terms? The 250 OddsPapi allowance is unverified.
 3. What separately reviewed deployment boundary will host real protected labels?
@@ -159,8 +202,9 @@ implementation claims:
 5. What later prospective evidence establishes calibration/profitability and
    operating/cloud costs?
 
-## R10 historical stop point (superseded by Astra HOLD and S1)
+## R10 historical stop point (superseded by Astra HOLD, S1–S5 and T1)
 
 The original R10 handoff stopped for its independent audit. That audit returned
-HOLD; this task now proceeds only through the ordered A1–A8 remediation stages.
-No next Genesis product phase is authorized.
+HOLD; S1–S5 locally addressed A1–A8, and the post-S5 audit returned HOLD with
+B1–B8. T1 addresses only B1/B2/B3/B7. No next Genesis product phase is
+authorized.

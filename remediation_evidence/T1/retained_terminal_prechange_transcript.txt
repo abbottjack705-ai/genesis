@@ -1,0 +1,47 @@
+Sealed source checkpoint: 27dd525c1fd7d531c4833c4bf7e44204a9345f19
+Pre-change blob tests/test_astra_s2_replay.py: e0bbb839998b659fee07f690146b94c9ce4d6fb3
+Pre-change blob tests/test_astra_s3_v3_adversarial.py: 7c9cdadb9d1dbc541032c088afcb9b8b7851f100
+
+COMMAND
+python -m unittest tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history -v
+
+OUTPUT
+test_consumption_after_expiry_or_release_is_not_valid_history (tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history) ...
+  test_consumption_after_expiry_or_release_is_not_valid_history (tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history) (cause='released') ... ERROR
+
+======================================================================
+ERROR: test_consumption_after_expiry_or_release_is_not_valid_history (tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history) (cause='released')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_astra_s2_replay.py", line 202, in test_consumption_after_expiry_or_release_is_not_valid_history
+    fixture["engine"].transition_reservation(
+  File "src/genesis/risk.py", line 1171, in transition_reservation
+    raise RegistryConflict("terminal reservation requires exact release proof")
+genesis.registry.RegistryConflict: terminal reservation requires exact release proof
+
+----------------------------------------------------------------------
+Ran 1 test in 0.523s
+
+FAILED (errors=1)
+
+COMMAND
+python -m unittest tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_legacy_order_is_audit_replay_only_but_can_finish_settlement -v
+
+OUTPUT
+test_legacy_order_is_audit_replay_only_but_can_finish_settlement (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_legacy_order_is_audit_replay_only_but_can_finish_settlement) ... ERROR
+
+======================================================================
+ERROR: test_legacy_order_is_audit_replay_only_but_can_finish_settlement (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_legacy_order_is_audit_replay_only_but_can_finish_settlement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "tests/test_astra_s3_v3_adversarial.py", line 418, in test_legacy_order_is_audit_replay_only_but_can_finish_settlement
+    fixture["engine"].transition_reservation(
+  File "src/genesis/risk.py", line 1171, in transition_reservation
+    raise RegistryConflict("terminal reservation requires exact release proof")
+genesis.registry.RegistryConflict: terminal reservation requires exact release proof
+
+----------------------------------------------------------------------
+Ran 1 test in 0.771s
+
+FAILED (errors=1)
+

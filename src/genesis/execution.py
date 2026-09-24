@@ -3,16 +3,18 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
+from datetime import datetime, timezone
 from decimal import Decimal
 from enum import StrEnum
 from pathlib import Path
-from typing import Protocol
+from typing import Callable, Protocol
 
 from .accounting import BetSide, MatchedFragment, money
 from .config import OperationalMode
-from .registry import AppendOnlyJsonl, RegistryConflict
+from .registry import AppendOnlyJsonl, RegistryConflict, StrategyRegistry
 from .repro import canonical_json, sha256_bytes
 from .risk import RiskEngine, SafetyState, SafetyStateStore
+from .selection import QualificationRecord
 from .time import iso_utc, parse_utc
 
 
@@ -257,6 +259,61 @@ class StrategyExecutionReadView(Protocol):
     def is_active(self, candidate_decision_hash: str, at: str) -> bool | None: ...
 
 
+@dataclass(frozen=True)
+class RegistryStrategyExecutionView:
+    """Exact V3 qualification/output binding to a durable PAPER strategy head.
+
+    A positive read authorizes a new action only while ``log`` is fenced by
+    that action's append transaction. Historical decision-time lifecycle is
+    deliberately separate from this current-head check.
+    """
+
+    registry: StrategyRegistry
+
+    def __post_init__(self) -> None:
+        if type(self.registry) is not StrategyRegistry:
+            raise TypeError("strategy execution view requires a real registry")
+
+    @property
+    def log(self) -> AppendOnlyJsonl:
+        return self.registry.log
+
+    def require_active(
+        self, qualification: QualificationRecord, output: dict,
+        candidate_decision_hash: str,
+    ) -> None:
+        if any((
+            qualification.candidate_decision_hash != candidate_decision_hash,
+            output.get("strategy_id") != qualification.strategy_id,
+            output.get("strategy_version") != qualification.strategy_version,
+            output.get("strategy_decision_contract_hash")
+            != qualification.strategy_decision_contract_hash,
+        )):
+            raise RegistryConflict("strategy/output/qualification identity differs")
+        contract = self.registry.get_decision_contract(
+            qualification.strategy_decision_contract_hash
+        )
+        if any((
+            output.get("strategy_config_hash") != contract.strategy_config_hash,
+            output.get("odds_profile_hash") != contract.odds_profile_hash,
+            output.get("sport_adapter_version") != contract.sport_adapter_version,
+            output.get("market_capability_id") != contract.market_capability_id,
+            output.get("model_artifact_hash") != contract.model_artifact_hash,
+            output.get("calibration_artifact_hash") != contract.calibration_artifact_hash,
+            output.get("feature_manifest_hash") != contract.feature_manifest_hash,
+            output.get("gate_policy_hash") != contract.gate_policy_hash,
+            output.get("comparability_group_id") != contract.comparability_group_id,
+            output.get("support_region_id") != contract.support_region,
+            output.get("approved_tier") not in contract.approved_tiers,
+        )):
+            raise RegistryConflict("decision output does not match strategy contract")
+        self.registry.require_current_paper_contract(
+            qualification.strategy_id,
+            qualification.strategy_version,
+            qualification.strategy_decision_contract_hash,
+        )
+
+
 class FailClosedStrategyExecutionView:
     def is_active(self, candidate_decision_hash: str, at: str) -> None:
         del candidate_decision_hash, at
@@ -333,17 +390,29 @@ class PaperExecutionAdapter:
         risk: RiskEngine,
         markets: ExecutionMarketStateStore,
         refreshes: CriticalEvidenceRefreshStore,
-        strategy_view: StrategyExecutionReadView,
+        strategy_view: StrategyExecutionReadView | RegistryStrategyExecutionView,
+        action_clock: Callable[[str], str] | None = None,
+        modes: ModeStateStore | None = None,
     ):
         if any(value is None for value in (audit_path, risk, markets, refreshes, strategy_view)):
             raise TypeError("PaperExecutionAdapter requires every execution authority")
-        if not callable(getattr(strategy_view, "is_active", None)):
+        if not (
+            type(strategy_view) is RegistryStrategyExecutionView
+            or callable(getattr(strategy_view, "is_active", None))
+        ):
             raise TypeError("strategy execution read view is incomplete")
         self._audit = AppendOnlyJsonl(audit_path)
         self.risk = risk
         self.markets = markets
         self.refreshes = refreshes
         self.strategy_view = strategy_view
+        self.modes = modes
+        # The default is real UTC sampled inside the submission fence. An
+        # explicit injected clock is solely for deterministic offline tests;
+        # neither a caller's occurred_at nor a recertified flag is authority.
+        self._action_clock = action_clock or (
+            lambda _requested_at: iso_utc(datetime.now(timezone.utc))
+        )
         base = self._replay(self._audit.records())
         self._startup_blocked: set[str] = {
             record.order_id for record in base.values() if record.state in _RESTART_AMBIGUOUS
@@ -588,6 +657,16 @@ class PaperExecutionAdapter:
         if state == OrderState.RISK_APPROVED:
             raise RegistryConflict("RISK_APPROVED requires bind_risk()")
         result: dict[str, OrderRecord] = {}
+        # Capture the exact owner used to choose the fence. A mutable adapter
+        # attribute cannot switch from a legacy view to a bound view after the
+        # lock set has been assembled.
+        strategy_view = self.strategy_view
+        mode_states = self.modes
+        risk_mode_states = self.risk.modes
+        release_proofs = self.risk.release_proofs
+        if state in {OrderState.SUBMISSION_PENDING, OrderState.SUBMISSION_SENT} \
+                and type(mode_states) is not ModeStateStore:
+            raise RegistryConflict("submission requires a durable mode authority")
 
         def build(rows: tuple[dict, ...]) -> dict:
             records = self._replay(rows)
@@ -601,6 +680,15 @@ class PaperExecutionAdapter:
             current = matches[0]
             if current.order_id in self._startup_blocked:
                 raise RegistryConflict("order requires reconciliation after restart")
+            if state in {OrderState.SUBMISSION_PENDING, OrderState.SUBMISSION_SENT} \
+                    and self.risk.release_proofs is not release_proofs:
+                raise RegistryConflict("release proof owner changed before submission")
+            if state in {OrderState.SUBMISSION_PENDING, OrderState.SUBMISSION_SENT} \
+                    and self.risk.modes is not risk_mode_states:
+                raise RegistryConflict("risk mode owner changed before submission")
+            action_at = iso_utc(self._action_clock(occurred_at)) if state in {
+                OrderState.SUBMISSION_PENDING, OrderState.SUBMISSION_SENT,
+            } else iso_utc(occurred_at)
             if state in {OrderState.SUBMISSION_PENDING, OrderState.SUBMISSION_SENT}:
                 allowed_prior = (
                     OrderState.RISK_APPROVED
@@ -609,7 +697,10 @@ class PaperExecutionAdapter:
                 )
                 if current.state != allowed_prior:
                     raise RegistryConflict("submission has an invalid prior order state")
-                recertification = self._recertify_record(current, at=occurred_at)
+                recertification = self._recertify_record(
+                    current, at=action_at, strategy_view=strategy_view,
+                    mode_states=mode_states, release_fenced=True,
+                )
                 if not recertification.passed:
                     raise RegistryConflict(
                         f"submission recertification blocked: {recertification.reason}"
@@ -622,17 +713,23 @@ class PaperExecutionAdapter:
                 "order_id": current.order_id,
                 "from_state": current.state.value,
                 "to_state": state.value,
-                "occurred_at": iso_utc(occurred_at),
+                "occurred_at": action_at,
             }
 
         read_locks = (
             self.risk.audit_log.log,
             self.risk.bankrolls.log,
             self.risk.safety.log,
+            self.risk.qualifications.log,
             self.risk.qualifications.bindings.log,
             self.markets.log,
             self.refreshes.log,
+            *self.risk._release_read_locks_for(release_proofs),
         ) if state in {OrderState.SUBMISSION_PENDING, OrderState.SUBMISSION_SENT} else ()
+        if read_locks and type(strategy_view) is RegistryStrategyExecutionView:
+            read_locks += (strategy_view.log,)
+        if read_locks and type(mode_states) is ModeStateStore:
+            read_locks += (mode_states.log,)
         self._audit.transaction(build, read_locks=read_locks)
         return result["value"]
 
@@ -653,16 +750,83 @@ class PaperExecutionAdapter:
         return record
 
     def recertify(self, idempotency_key: str, *, at: str) -> RecertificationResult:
-        record = self.get(idempotency_key)
-        return self._recertify_record(record, at=at)
+        strategy_view = self.strategy_view
+        mode_states = self.modes
+        risk_mode_states = self.risk.modes
+        release_proofs = self.risk.release_proofs
+        if type(strategy_view) is not RegistryStrategyExecutionView:
+            return RecertificationResult(False, "strategy_authority_unfenced")
+        if type(mode_states) is not ModeStateStore:
+            return RecertificationResult(False, "mode_authority_unfenced")
+        result: dict[str, RecertificationResult] = {}
 
-    def _recertify_record(self, record: OrderRecord, *, at: str) -> RecertificationResult:
+        def inspect(rows: tuple[dict, ...]) -> None:
+            if (
+                self.strategy_view is not strategy_view
+                or self.modes is not mode_states
+                or self.risk.modes is not risk_mode_states
+                or self.risk.release_proofs is not release_proofs
+            ):
+                raise RegistryConflict("recertification owner changed during fenced read")
+            matches = [
+                item for item in self._replay(rows).values()
+                if item.intent.idempotency_key == idempotency_key
+            ]
+            if len(matches) != 1:
+                raise RegistryConflict("unknown order")
+            result["value"] = self._recertify_record(
+                matches[0], at=iso_utc(self._action_clock(at)),
+                strategy_view=strategy_view, mode_states=mode_states,
+                release_fenced=True,
+            )
+            return None
+
+        self._audit.transaction(
+            inspect,
+            read_locks=(
+                self.risk.audit_log.log, self.risk.bankrolls.log,
+                self.risk.safety.log, self.risk.qualifications.log,
+                self.risk.qualifications.bindings.log, self.markets.log,
+                self.refreshes.log, strategy_view.log, mode_states.log,
+                *self.risk._release_read_locks_for(release_proofs),
+            ),
+        )
+        return result["value"]
+
+    def _recertify_record(
+        self, record: OrderRecord, *, at: str,
+        strategy_view: StrategyExecutionReadView | RegistryStrategyExecutionView | None = None,
+        mode_states: ModeStateStore | None = None,
+        release_fenced: bool = False,
+    ) -> RecertificationResult:
+        view = self.strategy_view if strategy_view is None else strategy_view
+        if type(view) is not RegistryStrategyExecutionView:
+            return RecertificationResult(False, "strategy_authority_unfenced")
+        modes = self.modes if mode_states is None else mode_states
+        if type(modes) is not ModeStateStore:
+            return RecertificationResult(False, "mode_authority_unfenced")
+        risk_modes = self.risk.modes
+        if (
+            type(risk_modes) is not ModeStateStore
+            or risk_modes.log.coordinator_path.resolve()
+            != modes.log.coordinator_path.resolve()
+        ):
+            return RecertificationResult(False, "mode_authority_mismatch")
         try:
             approval = self.risk.get_approval(record.intent.risk_approval_id)
+            qualification = self.risk.qualifications.get_for_new_risk(
+                approval.qualification_record_id, at=at,
+            )
+            assert qualification.decision_output_hash is not None
+            output = self.risk.qualifications.outputs.get(
+                qualification.decision_output_hash
+            )
             refresh = self.refreshes.current(record.intent.candidate_decision_hash)
             market = self.markets.current(record.intent.candidate_decision_hash)
-            strategy_active = self.strategy_view.is_active(
-                record.intent.candidate_decision_hash, at
+            mode_head = modes.current()
+            safety_head = self.risk.safety.current()
+            view.require_active(
+                qualification, output, record.intent.candidate_decision_hash,
             )
         except Exception:
             return RecertificationResult(False, "authority_unavailable")
@@ -686,7 +850,11 @@ class PaperExecutionAdapter:
                 record.state in {OrderState.RISK_APPROVED, OrderState.SUBMISSION_PENDING},
                 "order_not_submittable",
             ),
-            (strategy_active is True, "strategy_not_active"),
+            (
+                qualification.active_policy_digest == self.risk.policy_set.digest
+                and approval.risk_policy_digest == self.risk.policy.digest,
+                "policy_binding_invalid",
+            ),
             (parse_utc(at) < parse_utc(approval.expires_at), "candidate_expired"),
             (parse_utc(refresh.checked_at) <= parse_utc(at), "refresh_not_yet_available"),
             (parse_utc(market.observed_at) <= parse_utc(at), "market_not_yet_observed"),
@@ -699,8 +867,17 @@ class PaperExecutionAdapter:
                 "liquidity_unavailable",
             ),
             (
-                self.risk.approval_still_valid(approval.approval_id, at=at),
+                self.risk.approval_still_valid(
+                    approval.approval_id, at=at, release_fenced=release_fenced,
+                ),
                 "risk_or_safety_state_blocked",
+            ),
+            (
+                mode_head.mode == OperationalMode.PAPER
+                and not safety_head.kill_switch_active
+                and iso_utc(mode_head.occurred_at) == iso_utc(safety_head.recorded_at)
+                and safety_head.reason == "mode:paper",
+                "mode_safety_head_not_coherent_paper",
             ),
         )
         for passed, reason in checks:
@@ -799,13 +976,31 @@ class ModeStateStore:
         fields["mode"] = OperationalMode(fields["mode"])
         return ModeState(**fields)
 
+    def _history(self, rows: tuple[dict, ...] | list[dict]) -> tuple[ModeState, ...]:
+        history: list[ModeState] = []
+        for row in rows:
+            if (row.get("record_type"), row.get("schema_version")) != (
+                "safety_mode_transition", "mode-state-v2",
+            ):
+                raise RegistryConflict("unsupported active mode event")
+            try:
+                state = self._from_row(row)
+            except (KeyError, TypeError, ValueError) as exc:
+                raise RegistryConflict("incomplete active mode event") from exc
+            if history:
+                prior = history[-1]
+                if (
+                    state.parent_state_id != prior.state_id
+                    or parse_utc(state.occurred_at) <= parse_utc(prior.occurred_at)
+                ):
+                    raise RegistryConflict("mode replay has an invalid head transition")
+            elif state.parent_state_id is not None:
+                raise RegistryConflict("initial mode replay has a parent")
+            history.append(state)
+        return tuple(history)
+
     def current(self) -> ModeState:
-        history = [
-            self._from_row(row)
-            for row in self.log.records()
-            if row.get("record_type") == "safety_mode_transition"
-            and row.get("schema_version") == "mode-state-v2"
-        ]
+        history = self._history(self.log.records())
         if not history:
             raise RegistryConflict("mode authority has no current state")
         return history[-1]
@@ -818,12 +1013,7 @@ class ModeStateStore:
         }
 
         def build(rows: tuple[dict, ...]) -> dict | None:
-            history = [
-                self._from_row(row)
-                for row in rows
-                if row.get("record_type") == "safety_mode_transition"
-                and row.get("schema_version") == "mode-state-v2"
-            ]
+            history = self._history(rows)
             if any(item.state_id == state.state_id for item in history):
                 return None
             current = history[-1] if history else None

@@ -1,0 +1,40 @@
+Command:
+python -m unittest tests.test_v04_foundation -v
+
+test_candidate_run_retention_and_non_quota_summary (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_candidate_run_retention_and_non_quota_summary) ... ok
+test_paper_order_idempotency_and_unknown_reconciliation (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_paper_order_idempotency_and_unknown_reconciliation) ... ok
+test_risk_counts_pending_and_unknown_and_approvals_are_single_use (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_risk_counts_pending_and_unknown_and_approvals_are_single_use) ... ok
+test_selected_set_calibration_and_pass_reasons_are_aggregated (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_selected_set_calibration_and_pass_reasons_are_aggregated) ... ok
+test_v04_gates_fail_closed_on_unknown_and_rank_uses_tiers (tests.test_v04_foundation.V04CandidateRiskExecutionTests.test_v04_gates_fail_closed_on_unknown_and_rank_uses_tiers) ... ok
+test_evidence_pack_and_decision_hash_are_immutable (tests.test_v04_foundation.V04PolicyAndPITTests.test_evidence_pack_and_decision_hash_are_immutable) ... ok
+test_market_capability_and_mode_authority_fail_closed (tests.test_v04_foundation.V04PolicyAndPITTests.test_market_capability_and_mode_authority_fail_closed) ... ok
+test_pit_query_rejects_unknown_capability_and_future_ready_record (tests.test_v04_foundation.V04PolicyAndPITTests.test_pit_query_rejects_unknown_capability_and_future_ready_record) ... ok
+test_policy_is_versioned_and_daily_ranges_are_not_caps (tests.test_v04_foundation.V04PolicyAndPITTests.test_policy_is_versioned_and_daily_ranges_are_not_caps) ... ok
+test_price_sanity_uses_provisional_near_fair_tolerance (tests.test_v04_foundation.V04PolicyAndPITTests.test_price_sanity_uses_provisional_near_fair_tolerance) ... ok
+test_runtime_cost_budget_is_fail_closed (tests.test_v04_foundation.V04PolicyAndPITTests.test_runtime_cost_budget_is_fail_closed) ... ok
+test_source_supersession_is_honoured_at_the_requested_time (tests.test_v04_foundation.V04PolicyAndPITTests.test_source_supersession_is_honoured_at_the_requested_time) ... ok
+test_ledger_is_source_of_truth_and_quota_fails_closed (tests.test_v04_foundation.V04ProtectedLedgerQuotaTests.test_ledger_is_source_of_truth_and_quota_fails_closed) ... ok
+test_protected_attempt_is_consumed_on_suppression_and_failure (tests.test_v04_foundation.V04ProtectedLedgerQuotaTests.test_protected_attempt_is_consumed_on_suppression_and_failure) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 13.992s
+
+OK
+
+Command (outside restricted Windows process sandbox):
+python -m unittest tests.test_astra_s2_admission -v
+
+test_coordinator_commit_failure_after_jsonl_fsync_replays_once (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_coordinator_commit_failure_after_jsonl_fsync_replays_once) ... ok
+test_downward_rebase_at_transaction_entry_cannot_commit_old_7_5_stake (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_downward_rebase_at_transaction_entry_cannot_commit_old_7_5_stake) ... ok
+test_kill_at_transaction_entry_cannot_commit_approval (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_kill_at_transaction_entry_cannot_commit_approval) ... ok
+test_multiprocess_authority_writers_wait_for_locked_admission (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_authority_writers_wait_for_locked_admission) ... ok
+test_multiprocess_rebase_before_admission_resumes_blocks_stale_head (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_multiprocess_rebase_before_admission_resumes_blocks_stale_head) ... ok
+test_preexisting_stake_survives_rebase_but_new_risk_uses_current_cap (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_preexisting_stake_survives_rebase_but_new_risk_uses_current_cap) ... ok
+test_qualification_ambiguity_at_transaction_entry_cannot_commit (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_qualification_ambiguity_at_transaction_entry_cannot_commit) ... ok
+test_uncertain_post_append_response_restarts_as_exactly_one_approval (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_uncertain_post_append_response_restarts_as_exactly_one_approval) ... ok
+test_unknown_exposure_at_entry_and_competing_last_capacity_block (tests.test_astra_s2_admission.AstraAdmissionSerializationTests.test_unknown_exposure_at_entry_and_competing_last_capacity_block) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 43.476s
+
+OK

@@ -1,0 +1,15 @@
+test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes)
+C02: release/admission share one fence and cannot mint over-cap risk. ... ok
+test_duplicate_release_replay_is_exactly_once_across_restart (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_duplicate_release_replay_is_exactly_once_across_restart)
+L08/L09: response loss and exact retry never append/free twice. ... ok
+test_durable_proof_then_crash_without_release_restarts_and_retries (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_durable_proof_then_crash_without_release_restarts_and_retries)
+L09: proof alone releases nothing; restart may verify and append once. ... ok
+test_partial_fill_with_live_remainder_conserves_full_reservation (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_partial_fill_with_live_remainder_conserves_full_reservation)
+L05/R05: a fragment never shrinks or duplicates its order envelope. ... ok
+test_proven_synthetic_paper_unmatched_cancellation_releases_once (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_proven_synthetic_paper_unmatched_cancellation_releases_once)
+L04 positive: durable zero-fill/no-matchability proof frees capacity. ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 6.152s
+
+OK

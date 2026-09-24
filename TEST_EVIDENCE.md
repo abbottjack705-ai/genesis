@@ -1,6 +1,6 @@
 # Test evidence
 
-Updated: 2026-09-23
+Updated: 2026-09-24
 
 ## Current audit disposition and staged gates
 
@@ -55,6 +55,20 @@ includes a host/session pause. The mandatory independent discovery run passed
 `remediation_evidence/S5/`. **The overall Astra HOLD remains; no GO is
 granted.**
 
+The independent post-S5 hostile audit of clean `27dd525` also returned
+**HOLD / NOT APPROVED** with B1–B8. T1 addresses only B1, B2, B3 and B7.
+Its initial 28-method B1/B2/B3/B7 set produced 29 deliberate invariant
+failures on an isolated `27dd525`, with zero import/setup errors; the four
+original Astra probes produced four intended failures. Additional RED runs
+cover release-proof ownership and legal paths, mode/safety fencing and
+legacy-v2 settlement compatibility. The finalized T1 gate passed 70/70,
+retained R0–R10 plus S1–S5 passed 196/196, full discovery passed 266/266 in
+865.285 seconds, and the explicit restart/concurrency/crash gate passed 36/36.
+`compileall` and `git diff --check` passed. Exact commands, output identities,
+retained-fixture reconciliation and the authority decision memo are in
+`remediation_evidence/T1/`. **B4/B5/B6/B8 and the overall HOLD remain; no GO
+is granted.**
+
 ## Deterministic gate
 
 Command:
@@ -102,8 +116,11 @@ protected external dataset or historical outcome source.
 | Astra S3a exact manifest and PIT | `test_astra_s3_manifest.py` — 11 tests |
 | Astra S3b trusted output and v3 adversaries | `test_astra_s3_output.py`, `test_astra_s3_v3_adversarial.py` — 23 tests |
 | Astra S4 immutable cache authority | `test_astra_s4_cache.py` — 11 tests |
-
 | Astra S5 research/evaluator process isolation | `test_astra_s5_process.py` — 12 tests |
+| T1 B1 authoritative dependence | `test_astra_t1_dependence.py` — 9 tests |
+| T1 B2 current portfolio | `test_astra_t1_portfolio.py` — 5 tests |
+| T1 B3 proof-bearing release | `test_astra_t1_release.py`, `test_astra_t1_release_proof.py`, `test_astra_t1_release_integration.py`, `test_astra_t1_release_concurrency.py`, `test_astra_t1_legacy_release.py` — 38 tests |
+| T1 B7 strategy/mode fencing and composition | `test_astra_t1_strategy.py`, `test_astra_t1_mode.py`, `test_astra_t1_composition.py` — 18 tests |
 
 Individual test methods combine closely related rows of the binding T-F01
 through T-F15 matrix. Each batch checkpoint records the exact matrix rows it
@@ -127,6 +144,12 @@ the production functions and primary tests.
 - S1 added independent A1/A2 regressions before the production fix, ran them
   on an isolated clean checkout of `166f923`, then repaired and reran them.
   The original failed probe output is retained, not overwritten.
+- T1 ran independent B1/B2/B3/B7 regressions on an isolated clean checkout of
+  `27dd525` before production edits. It separately retained the original Astra
+  probe failures, expanded concurrency/restart/legal-path RED runs, and a
+  four-failure legacy-v2 compatibility RED before the additive proof schema.
+  No failed transcript was replaced; `remediation_evidence/T1/GREEN_FINAL.md`
+  records the final gates.
 
 ## Concurrency and fault stress
 
@@ -212,5 +235,6 @@ cloud cost, sport/market semantics, venue reconciliation, deployed protected
 service isolation, or live readiness. No strategy search, outcome experiment,
 external call or real protected campaign was run.
 
-The implementation remains NO-GO for a read-only adapter until the fresh
-independent hostile audit and explicit checkpoint approval are complete.
+The implementation remains NO-GO for a read-only adapter. T1's local green
+does not resolve B4/B5/B6/B8 or replace hostile review and explicit checkpoint
+approval.

@@ -1,0 +1,206 @@
+test_late_55_before_pending_blocks_pending_append (tests.test_astra_t1_portfolio.CurrentPortfolioSubmissionTests.test_late_55_before_pending_blocks_pending_append)
+PENDING has the same current portfolio obligation as SENT. ... FAIL
+test_original_late_55_blocks_fresh_recertification_and_sent_append (tests.test_astra_t1_portfolio.CurrentPortfolioSubmissionTests.test_original_late_55_blocks_fresh_recertification_and_sent_append)
+The sent gate must reject 7.5 + 55 > 60, without losing either fact. ... FAIL
+test_own_reservation_is_counted_once_at_exact_total_cap (tests.test_astra_t1_portfolio.CurrentPortfolioSubmissionTests.test_own_reservation_is_counted_once_at_exact_total_cap)
+7.5 own plus 52.5 independent equals 60, not 67.5. ... ok
+test_restart_replays_breach_and_keeps_factual_exposure (tests.test_astra_t1_portfolio.CurrentPortfolioSubmissionTests.test_restart_replays_breach_and_keeps_factual_exposure)
+A new process cannot forget the later matched exposure. ... FAIL
+test_single_increment_above_total_cap_denies_new_submission (tests.test_astra_t1_portfolio.CurrentPortfolioSubmissionTests.test_single_increment_above_total_cap_denies_new_submission)
+A 60.01 portfolio is over cap even if the own approval was legal. ... FAIL
+test_l01_sent_order_bare_settled_cannot_release_full_envelope (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l01_sent_order_bare_settled_cannot_release_full_envelope) ... FAIL
+test_l02_sent_order_bare_void_cannot_release_full_envelope (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l02_sent_order_bare_void_cannot_release_full_envelope) ... FAIL
+test_l02_unconsumed_approval_cannot_accept_bare_void_as_proof (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l02_unconsumed_approval_cannot_accept_bare_void_as_proof) ... FAIL
+test_l04_bare_cancelled_order_does_not_prove_no_further_match (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l04_bare_cancelled_order_does_not_prove_no_further_match) ... FAIL
+test_l05_one_partial_fill_and_live_remainder_cannot_bare_settle (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l05_one_partial_fill_and_live_remainder_cannot_bare_settle) ... FAIL
+test_l05_terminal_order_enum_without_fill_heads_cannot_release (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l05_terminal_order_enum_without_fill_heads_cannot_release) ... FAIL
+test_l07_unknown_cannot_be_cleared_by_bare_terminal_label (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l07_unknown_cannot_be_cleared_by_bare_terminal_label) ... FAIL
+test_l09_restart_before_release_proof_keeps_reservation (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l09_restart_before_release_proof_keeps_reservation) ... ok
+test_l11_legacy_v2_terminal_row_cannot_create_spendable_capacity_on_restart (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l11_legacy_v2_terminal_row_cannot_create_spendable_capacity_on_restart) ... FAIL
+test_backdated_order_event_does_not_restore_withdrawn_strategy (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_backdated_order_event_does_not_restore_withdrawn_strategy) ... FAIL
+test_boolean_strategy_view_cannot_authorize_pending_or_sent (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_boolean_strategy_view_cannot_authorize_pending_or_sent) ... 
+  test_boolean_strategy_view_cannot_authorize_pending_or_sent (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_boolean_strategy_view_cannot_authorize_pending_or_sent) (phase='SUBMISSION_PENDING') ... FAIL
+  test_boolean_strategy_view_cannot_authorize_pending_or_sent (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_boolean_strategy_view_cannot_authorize_pending_or_sent) (phase='SUBMISSION_SENT') ... FAIL
+test_cross_instance_current_head_replays_committed_retirement (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_cross_instance_current_head_replays_committed_retirement) ... FAIL
+test_cross_instance_duplicate_registration_is_rejected (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_cross_instance_duplicate_registration_is_rejected) ... FAIL
+test_true_read_then_committed_withdrawal_cannot_append_new_action (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_true_read_then_committed_withdrawal_cannot_append_new_action) ... 
+  test_true_read_then_committed_withdrawal_cannot_append_new_action (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_true_read_then_committed_withdrawal_cannot_append_new_action) (phase='SUBMISSION_PENDING') ... FAIL
+  test_true_read_then_committed_withdrawal_cannot_append_new_action (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_true_read_then_committed_withdrawal_cannot_append_new_action) (phase='SUBMISSION_SENT') ... FAIL
+
+======================================================================
+FAIL: test_late_55_before_pending_blocks_pending_append (tests.test_astra_t1_portfolio.CurrentPortfolioSubmissionTests.test_late_55_before_pending_blocks_pending_append)
+PENDING has the same current portfolio obligation as SENT.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_portfolio.py", line 72, in test_late_55_before_pending_blocks_pending_append
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_original_late_55_blocks_fresh_recertification_and_sent_append (tests.test_astra_t1_portfolio.CurrentPortfolioSubmissionTests.test_original_late_55_blocks_fresh_recertification_and_sent_append)
+The sent gate must reject 7.5 + 55 > 60, without losing either fact.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_portfolio.py", line 47, in test_original_late_55_blocks_fresh_recertification_and_sent_append
+    self.assertFalse(
+AssertionError: True is not false : a fresh recertification ignored the current 62.5 liability
+
+======================================================================
+FAIL: test_restart_replays_breach_and_keeps_factual_exposure (tests.test_astra_t1_portfolio.CurrentPortfolioSubmissionTests.test_restart_replays_breach_and_keeps_factual_exposure)
+A new process cannot forget the later matched exposure.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_portfolio.py", line 127, in test_restart_replays_breach_and_keeps_factual_exposure
+    self.assertFalse(
+AssertionError: True is not false : restart replayed the exposure but still approved unsafe new submission
+
+======================================================================
+FAIL: test_single_increment_above_total_cap_denies_new_submission (tests.test_astra_t1_portfolio.CurrentPortfolioSubmissionTests.test_single_increment_above_total_cap_denies_new_submission)
+A 60.01 portfolio is over cap even if the own approval was legal.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_portfolio.py", line 107, in test_single_increment_above_total_cap_denies_new_submission
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_l01_sent_order_bare_settled_cannot_release_full_envelope (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l01_sent_order_bare_settled_cannot_release_full_envelope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_release.py", line 48, in test_l01_sent_order_bare_settled_cannot_release_full_envelope
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : SETTLED is a caller assertion, not order/ledger release proof
+
+======================================================================
+FAIL: test_l02_sent_order_bare_void_cannot_release_full_envelope (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l02_sent_order_bare_void_cannot_release_full_envelope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_release.py", line 67, in test_l02_sent_order_bare_void_cannot_release_full_envelope
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : VOID alone does not prove zero fills or no further matchability
+
+======================================================================
+FAIL: test_l02_unconsumed_approval_cannot_accept_bare_void_as_proof (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l02_unconsumed_approval_cannot_accept_bare_void_as_proof)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_release.py", line 85, in test_l02_unconsumed_approval_cannot_accept_bare_void_as_proof
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : even never-consumed release needs a replayable proof decision
+
+======================================================================
+FAIL: test_l04_bare_cancelled_order_does_not_prove_no_further_match (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l04_bare_cancelled_order_does_not_prove_no_further_match)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_release.py", line 146, in test_l04_bare_cancelled_order_does_not_prove_no_further_match
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : local CANCELLED enum lacks trusted no-more-matchability proof
+
+======================================================================
+FAIL: test_l05_one_partial_fill_and_live_remainder_cannot_bare_settle (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l05_one_partial_fill_and_live_remainder_cannot_bare_settle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_release.py", line 120, in test_l05_one_partial_fill_and_live_remainder_cannot_bare_settle
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : one open fragment and matchable remainder hold the full envelope
+
+======================================================================
+FAIL: test_l05_terminal_order_enum_without_fill_heads_cannot_release (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l05_terminal_order_enum_without_fill_heads_cannot_release)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_release.py", line 171, in test_l05_terminal_order_enum_without_fill_heads_cannot_release
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : order SETTLED enum cannot stand in for all fill settlement heads
+
+======================================================================
+FAIL: test_l07_unknown_cannot_be_cleared_by_bare_terminal_label (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l07_unknown_cannot_be_cleared_by_bare_terminal_label)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_release.py", line 193, in test_l07_unknown_cannot_be_cleared_by_bare_terminal_label
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : UNKNOWN requires exact terminal reconciliation, not a label
+
+======================================================================
+FAIL: test_l11_legacy_v2_terminal_row_cannot_create_spendable_capacity_on_restart (tests.test_astra_t1_release.AstraB3ReleaseTests.test_l11_legacy_v2_terminal_row_cannot_create_spendable_capacity_on_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_release.py", line 222, in test_l11_legacy_v2_terminal_row_cannot_create_spendable_capacity_on_restart
+    self.assertEqual(
+AssertionError: Lists differ: [] != ['d410eac9ccd64bc307011cdaae9f54d4fc5c08d7e79c9fa6376525e9057e49c5']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'d410eac9ccd64bc307011cdaae9f54d4fc5c08d7e79c9fa6376525e9057e49c5'
+
+- []
++ ['d410eac9ccd64bc307011cdaae9f54d4fc5c08d7e79c9fa6376525e9057e49c5'] : a proofless legacy terminal row must not create new capacity
+
+======================================================================
+FAIL: test_backdated_order_event_does_not_restore_withdrawn_strategy (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_backdated_order_event_does_not_restore_withdrawn_strategy)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_strategy.py", line 178, in test_backdated_order_event_does_not_restore_withdrawn_strategy
+    self.assertTrue(
+AssertionError: False is not true : backdated caller time bypassed a durable strategy withdrawal
+
+======================================================================
+FAIL: test_boolean_strategy_view_cannot_authorize_pending_or_sent (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_boolean_strategy_view_cannot_authorize_pending_or_sent) (phase='SUBMISSION_PENDING')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_strategy.py", line 135, in test_boolean_strategy_view_cannot_authorize_pending_or_sent
+    self.assertTrue(
+AssertionError: False is not true : unfenced caller boolean authorized a new order state
+
+======================================================================
+FAIL: test_boolean_strategy_view_cannot_authorize_pending_or_sent (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_boolean_strategy_view_cannot_authorize_pending_or_sent) (phase='SUBMISSION_SENT')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_strategy.py", line 135, in test_boolean_strategy_view_cannot_authorize_pending_or_sent
+    self.assertTrue(
+AssertionError: False is not true : unfenced caller boolean authorized a new order state
+
+======================================================================
+FAIL: test_cross_instance_current_head_replays_committed_retirement (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_cross_instance_current_head_replays_committed_retirement)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_strategy.py", line 192, in test_cross_instance_current_head_replays_committed_retirement
+    self.assertEqual(
+AssertionError: <StrategyLifecycle.PAPER: 'paper'> != <StrategyLifecycle.RETIRED: 'retired'> : a stale in-process strategy cache hid the durable head
+
+======================================================================
+FAIL: test_cross_instance_duplicate_registration_is_rejected (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_cross_instance_duplicate_registration_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_strategy.py", line 213, in test_cross_instance_duplicate_registration_is_rejected
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : a second process registered the same strategy version
+
+======================================================================
+FAIL: test_true_read_then_committed_withdrawal_cannot_append_new_action (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_true_read_then_committed_withdrawal_cannot_append_new_action) (phase='SUBMISSION_PENDING')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_strategy.py", line 159, in test_true_read_then_committed_withdrawal_cannot_append_new_action
+    self.assertTrue(
+AssertionError: False is not true : new action appended after the strategy withdrawal committed
+
+======================================================================
+FAIL: test_true_read_then_committed_withdrawal_cannot_append_new_action (tests.test_astra_t1_strategy.AstraStrategyFenceTests.test_true_read_then_committed_withdrawal_cannot_append_new_action) (phase='SUBMISSION_SENT')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\tests\test_astra_t1_strategy.py", line 159, in test_true_read_then_committed_withdrawal_cannot_append_new_action
+    self.assertTrue(
+AssertionError: False is not true : new action appended after the strategy withdrawal committed
+
+----------------------------------------------------------------------
+Ran 19 tests in 5.667s
+
+FAILED (failures=19)

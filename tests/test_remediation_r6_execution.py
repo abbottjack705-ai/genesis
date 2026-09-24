@@ -19,9 +19,12 @@ from genesis.execution import (
     OrderIntent,
     OrderState,
     PaperExecutionAdapter,
+    RegistryStrategyExecutionView,
 )
 from genesis.policy import PolicySet
-from genesis.registry import AppendOnlyJsonl, RegistryConflict
+from genesis.ledger import SettlementLedger
+from genesis.release_proof import OfflinePaperReleaseProofStore
+from genesis.registry import AppendOnlyJsonl, RegistryConflict, StrategyRegistry
 from genesis.risk import (
     BankrollSnapshotStore,
     ExposureState,
@@ -56,6 +59,9 @@ def restart_risk(root: Path) -> RiskEngine:
         qualifications=QualificationRecordStore(root / "risk" / "qualifications.jsonl"),
         safety=SafetyStateStore(root / "risk" / "safety.jsonl"),
         audit_log=RiskAuditLog(root / "risk" / "risk.jsonl"),
+        strategies=StrategyRegistry(root / "risk" / "strategies.jsonl"),
+        modes=ModeStateStore(root / "risk" / "mode.jsonl"),
+        action_clock=lambda requested_at: requested_at,  # synthetic offline time
     )
 
 
@@ -65,7 +71,11 @@ def restart_adapter(root: Path, risk: RiskEngine, strategy_view=None) -> PaperEx
         risk=risk,
         markets=ExecutionMarketStateStore(root / "markets.jsonl"),
         refreshes=CriticalEvidenceRefreshStore(root / "refreshes.jsonl"),
-        strategy_view=strategy_view or ActiveStrategyView(),
+        strategy_view=strategy_view or RegistryStrategyExecutionView(
+            StrategyRegistry(root / "risk" / "strategies.jsonl")
+        ),
+        modes=ModeStateStore(root / "risk" / "mode.jsonl"),
+        action_clock=lambda requested_at: requested_at,  # synthetic offline test time
     )
 
 
@@ -103,12 +113,15 @@ def build_execution(
             False,
         )
     )
+    modes = risk_fixture["modes"]
     adapter = PaperExecutionAdapter(
         root / "orders.jsonl",
         risk=risk_fixture["engine"],
         markets=markets,
         refreshes=refreshes,
-        strategy_view=ActiveStrategyView(),
+        strategy_view=RegistryStrategyExecutionView(risk_fixture["strategies"]),
+        modes=modes,
+        action_clock=lambda requested_at: requested_at,  # synthetic offline test time
     )
     intent = OrderIntent(
         risk_fixture["candidate_hash"],
@@ -124,6 +137,7 @@ def build_execution(
         "risk_decision": risk_decision,
         "markets": markets,
         "refreshes": refreshes,
+        "modes": modes,
         "adapter": adapter,
         "intent": intent,
         "root": root,
@@ -435,13 +449,29 @@ class R6RestartAndRecertificationTests(unittest.TestCase):
             adapter.transition(
                 "key-a", OrderState.REJECTED, occurred_at="2026-01-01T00:14:00Z"
             )
-            fixture["risk_fixture"]["engine"].transition_reservation(
-                fixture["risk_decision"].approval_id,
-                ExposureState.VOID,
-                occurred_at="2026-01-01T00:14:00Z",
+            ledger = SettlementLedger(tmp / "terminal" / "ledger.jsonl")
+            proof_owner = OfflinePaperReleaseProofStore(
+                tmp / "terminal" / "release-proofs.jsonl",
+                risk=fixture["risk_fixture"]["engine"],
+                execution=adapter,
+                ledger=ledger,
+            )
+            proof_hash = proof_owner.issue_unsent_rejection(
+                fixture["intent"].order_id,
+                occurred_at="2026-01-01T00:14:30Z",
+            )
+            fixture["risk_fixture"]["engine"].attach_release_proofs(proof_owner)
+            fixture["risk_fixture"]["engine"].release_with_proof(
+                proof_hash, occurred_at="2026-01-01T00:15:00Z",
             )
             restarted_risk = restart_risk(tmp / "terminal")
             restarted = restart_adapter(tmp / "terminal", restarted_risk)
+            restarted_risk.attach_release_proofs(OfflinePaperReleaseProofStore(
+                tmp / "terminal" / "release-proofs.jsonl",
+                risk=restarted_risk,
+                execution=restarted,
+                ledger=SettlementLedger(tmp / "terminal" / "ledger.jsonl"),
+            ))
             self.assertEqual(restarted.get("key-a").state, OrderState.REJECTED)
             self.assertEqual(restarted_risk.reserved_exposures(), ())
 

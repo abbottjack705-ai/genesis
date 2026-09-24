@@ -2,11 +2,18 @@ from __future__ import annotations
 
 import json
 import unittest
+from dataclasses import asdict
 from decimal import Decimal
 
 from genesis.accounting import BetSide
+from genesis.config import OperationalMode
 from genesis.decision import candidate_v3_decision_hash
+from genesis.execution import ModeState, ModeStateStore
 from genesis.policy import PolicySet, RiskPolicy, canonical_decimal, parse_tier
+from genesis.registry import (
+    StrategyArtifact, StrategyDecisionContract, StrategyLifecycle,
+    StrategyRegistry,
+)
 from genesis.risk import (
     BankrollSnapshot,
     BankrollSnapshotStore,
@@ -32,6 +39,7 @@ def qualification(
     policy: PolicySet,
     *,
     candidate_hash: str,
+    contract_hash: str,
     tier: str,
     candidate_id: str = "candidate",
     expires_at: str = "2026-01-01T01:00:00Z",
@@ -41,7 +49,7 @@ def qualification(
     binding = {
         "domain": "genesis.strategy-output-rule-binding.v1",
         "schema_version": "strategy-output-rule-binding-v1",
-        "strategy_decision_contract_hash": digest("a"),
+        "strategy_decision_contract_hash": contract_hash,
         "active_policy_digest": policy.digest,
         "approved_tier_policy_id": policy.risk.version,
         "model_artifact_hash": digest("1"),
@@ -61,7 +69,7 @@ def qualification(
     output = {
         "domain": "genesis.decision-output.v1", "schema_version": "decision-output-v1",
         "feature_manifest_hash": digest("c"), "evidence_pack_hash": digest("d"),
-        "strategy_decision_contract_hash": digest("a"),
+        "strategy_decision_contract_hash": contract_hash,
         "strategy_config_hash": digest("e"), "odds_profile_hash": digest("f"),
         "sport_adapter_version": "synthetic-risk-test", "market_capability_id": "capability-v1",
         "model_artifact_hash": digest("1"), "calibration_artifact_hash": digest("2"),
@@ -88,7 +96,7 @@ def qualification(
     }
     output_hash = store.outputs.publish(output)
     derived_hash = candidate_v3_decision_hash(
-        strategy_decision_contract_hash=digest("a"),
+        strategy_decision_contract_hash=contract_hash,
         feature_manifest_hash=output["feature_manifest_hash"],
         evidence_pack_hash=output["evidence_pack_hash"],
         decision_output_hash=output_hash,
@@ -100,7 +108,7 @@ def qualification(
             candidate_decision_hash=derived_hash,
             strategy_id="strategy",
             strategy_version="v1",
-            strategy_decision_contract_hash=digest("a"),
+            strategy_decision_contract_hash=contract_hash,
             approved_tier=tier,
             comparability_group_id="group",
             active_policy_digest=policy.digest,
@@ -137,14 +145,53 @@ def build_risk(
     safety_state = SafetyState.create(
         kill_switch_active=False,
         recorded_at="2026-01-01T00:00:00Z",
-        reason="initial-safe",
+        reason="mode:paper",
     )
     safety.append(safety_state)
+    modes = ModeStateStore(tmp / "mode.jsonl")
+    modes.append(ModeState.create(
+        mode=OperationalMode.PAPER,
+        occurred_at="2026-01-01T00:00:00Z",
+        authorization_id="synthetic-offline-test-only",
+        parent_state_id=None,
+    ))
+    # Synthetic, nonoperational exact PAPER strategy/contract authority for
+    # risk and execution regression fixtures. It grants no model/tier/TTL GO.
+    strategies = StrategyRegistry(tmp / "strategies.jsonl")
+    strategies.register(StrategyArtifact(
+        "strategy", "v1", StrategyLifecycle.IDEA,
+        digest("8"), digest("e"), digest("1"),
+        "synthetic-risk-test", "2025-12-31T23:50:00Z",
+    ))
+    for lifecycle, at in (
+        (StrategyLifecycle.EXPLORATION, "2025-12-31T23:51:00Z"),
+        (StrategyLifecycle.WALK_FORWARD, "2025-12-31T23:52:00Z"),
+        (StrategyLifecycle.PROTECTED, "2025-12-31T23:53:00Z"),
+        (StrategyLifecycle.PROSPECTIVE_SHADOW, "2025-12-31T23:54:00Z"),
+        (StrategyLifecycle.PAPER, "2025-12-31T23:55:00Z"),
+    ):
+        strategies.transition("strategy", "v1", lifecycle, occurred_at=at)
+    contract = StrategyDecisionContract.create(
+        strategy_id="strategy", strategy_version="v1",
+        strategy_config_hash=digest("e"), odds_profile_hash=digest("f"),
+        sport_adapter_version="synthetic-risk-test",
+        market_capability_id="capability-v1",
+        required_lifecycle=StrategyLifecycle.PAPER,
+        support_region="synthetic-risk-test", comparability_group_id="group",
+        model_artifact_hash=digest("1"),
+        calibration_artifact_hash=digest("2"),
+        feature_manifest_hash=digest("c"), gate_policy_hash=digest("3"),
+        approved_tier_policy_id=policy.risk.version,
+        approved_tiers=("1.0u", "1.5u", "2.0u", "2.5u", "3.0u"),
+        created_at="2025-12-31T23:56:00Z",
+    )
+    strategies.register_decision_contract(contract)
     qualifications = QualificationRecordStore(tmp / "qualifications.jsonl")
     record = qualification(
         qualifications,
         policy,
         candidate_hash=candidate_hash,
+        contract_hash=contract.contract_hash,
         tier=tier,
         expires_at=expires_at,
         side=side,
@@ -157,12 +204,18 @@ def build_risk(
         qualifications=qualifications,
         safety=safety,
         audit_log=audit,
+        strategies=strategies,
+        modes=modes,
+        action_clock=lambda requested_at: requested_at,  # synthetic offline time
     )
     return {
         "policy": policy,
         "bankrolls": bankrolls,
         "snapshot": snapshot,
         "safety": safety,
+        "modes": modes,
+        "strategies": strategies,
+        "contract": contract,
         "qualifications": qualifications,
         "qualification": record,
         "audit": audit,
@@ -270,6 +323,27 @@ class R5RiskAuthorityTests(unittest.TestCase):
             )
 
             cluster = build_risk(tmp / "cluster")
+            # B1: the correlated group must be in the trusted v3 output, not
+            # introduced only by a risk caller's comparison copy.
+            old_record = cluster["qualification"]
+            output = cluster["qualifications"].outputs.get(
+                old_record.decision_output_hash
+            )
+            output["correlation_cluster_ids"] = ["cluster-1"]
+            output_hash = cluster["qualifications"].outputs.publish(output)
+            fields = asdict(old_record)
+            fields.pop("qualification_record_id")
+            fields["decision_output_hash"] = output_hash
+            fields["candidate_decision_hash"] = candidate_v3_decision_hash(
+                strategy_decision_contract_hash=old_record.strategy_decision_contract_hash,
+                feature_manifest_hash=old_record.feature_manifest_hash,
+                evidence_pack_hash=output["evidence_pack_hash"],
+                decision_output_hash=output_hash,
+            )
+            cluster["qualification"] = cluster["qualifications"].append(
+                QualificationRecord.create(**fields)
+            )
+            cluster["candidate_hash"] = fields["candidate_decision_hash"]
             cluster["engine"].record_exposure(
                 Exposure(
                     "cluster-open",

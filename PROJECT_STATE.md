@@ -1,18 +1,17 @@
 # Project Genesis state
 
-Updated: 2026-09-23
+Updated: 2026-09-24
 
 ## Current milestone
 
 The V2.1 R0–R10 checkpoint was independently audited at `166f923`.
-Astra returned **HOLD / NOT APPROVED** (A1 CRITICAL, A2–A8 HIGH). S1 has
-locally repaired A1+A2; S2a/S2b locally repaired A3/A7. Approved ADR-0002 v1
-authorizes S3; S3a locally repairs A5 with a 150/150 final full-suite gate.
-S3b locally repairs A4 with a 173/173 full-suite gate. S4 locally repairs A6
-with a 184/184 full-suite gate. Under separately approved ADR-0003 v1, S5
-locally repairs A8 with a 196/196 full-suite gate. A1-A8 now require a fresh
-independent hostile re-audit; the overall audit disposition remains HOLD. The
-original R0-R10 history is preserved.
+Astra returned **HOLD / NOT APPROVED** (A1 CRITICAL, A2–A8 HIGH). S1 through
+S5 locally repaired A1–A8, ending at clean commit `27dd525`. The independent
+post-S5 hostile audit then returned **HOLD / NOT APPROVED** with B1–B8. T1
+locally repairs only B1, B2, B3 and B7 over that exact base. Its final full
+suite is 266/266 green, but B4, B5, B6 and B8 remain open and T1 still requires
+hostile review. The original R0–R10 and S1–S5 histories and all failed
+reproduction evidence are preserved.
 
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
 read-only sport/source adapter** until an independent audit finds no unresolved
@@ -62,19 +61,33 @@ system, or £100 canary was added.
   coordinates current bankroll, safety, qualification and exposure heads
   through the risk approval append. S3b additionally rejects legacy or
   mismatched v3 lineage and a different side or out-of-band requested price.
+  T1 additionally derives correlation membership from the bound decision output,
+  persists that canonical membership, and recomputes current total and correlated
+  capacity from authoritative exposure heads. A caller may compare a non-empty
+  copy but cannot omit dependence. The order's own reservation is counted once.
 - S1 PAPER execution enforces one order-intent lineage per candidate hash,
   exact consumed approval plus active reservation binding, and mandatory fresh
   recertification at pending and sent. S1 fences the known durable safety/risk/
   market/refresh heads during the order append. Ambiguous restart still blocks
   blind retry; at the S1 checkpoint this did not claim that later findings were
   closed.
+- T1 fences current strategy lifecycle, coherent PAPER mode/safety, release
+  proof, risk, bankroll, qualification, market and refresh heads through each
+  relevant new-risk or pending/sent append. A stale active/PAPER read cannot
+  survive a committed withdrawal or mode change and authorize a new action;
+  an owner that cannot join the durable fence fails closed.
+- T1 makes release a proof-bearing lifecycle event. A consumed reservation
+  stays fully charged through pending, partial fill, UNKNOWN and reconciliation
+  until an exact durable order/fill/settlement proof is validated under the same
+  fence. Bare `SETTLED`, `VOID` or cancellation labels cannot create capacity;
+  a late fill or incompatible correction restores UNKNOWN/full charge.
 - Settlement has one current economic head per fill. Corrections, voids, and
   cancellations require the current same-fill head and record distinct
   `delta_pnl` and `effective_pnl`.
 - OddsPapi Interpretation A is the approved active offline policy: normal budget
   220, protected reserve 30, assumed provider ceiling 250, daily billable limit 7.
   Interpretation B is test-only. Reserve use requires durable, exact authority;
-  A6 shows caller-declared cache proof is not yet trustworthy.
+  S4 replaced caller-declared cache trust with content-addressed cache proof.
 - Protected evaluation uses sealed frames, frozen predictions, durable
   non-refundable attempts, controlled certificates/errors and two separately
   spawned processes. The isolated research worker starts before protected label
@@ -225,6 +238,34 @@ Detailed traceability and results are under `remediation_evidence/R0` through
   checkpoint decision remain mandatory; no adapter, shadow research, protected
   campaign or live-money GO follows.
 
+## T1 verification (local B1/B2/B3/B7 checkpoint)
+
+- The exact pre-fix source was clean post-S5 commit
+  `27dd525c1fd7d531c4833c4bf7e44204a9345f19`. The finalized independent
+  B1/B2/B3/B7 tests ran in an isolated checkout and produced 29 deliberate
+  invariant failures across 28 methods with zero import/setup errors. The four
+  original Astra reproductions also failed for their four intended invariants.
+- Additional RED evidence covers the proof owner, every legal release path,
+  release/new-risk and owner-attachment interleavings, PAPER mode/safety
+  coherence, and the legacy-v2 compatibility boundary. The latter produced
+  four deliberate failures before implementation and is reconciled in
+  `remediation_evidence/T1/LEGACY_V2_RELEASE_DECISION_MEMO.md`.
+- The legacy repair is additive and audit-only. It binds the exact existing v2
+  qualification ID and durable row hash plus order, fill and current settlement
+  heads. It does not invent a v3 output, alter a historical identity or permit
+  qualification, risk, pending or send.
+- Original hostile outcomes passed 4/4; the consolidated T1 gate passed 70/70;
+  retained R0–R10 and S1–S5 passed 196/196; the full repository passed 266/266
+  in 865.285 seconds; explicit restart/concurrency/crash gates passed 36/36;
+  `compileall` and `git diff --check` passed.
+- Retained S1/S3 fixtures were changed only where their setup depended on the
+  invalid bare-terminal-release assumption. Original assertions were preserved
+  or strengthened, and all pre-change blobs, diffs and transcripts remain in
+  `remediation_evidence/T1/`.
+- This is local closure of B1, B2, B3 and B7 only. B4, B5, B6 and B8 and the
+  overall hostile-audit HOLD remain. No adapter, strategy, shadow-research,
+  protected-campaign or live-money GO follows.
+
 ## Compatibility and migration state
 
 Legacy records remain readable only where an explicit deterministic migration is
@@ -236,7 +277,9 @@ settlement, or quota intent is inferred.
 ## Residual external facts and risks
 
 - The independent R10 hostile audit occurred and returned HOLD. A fresh
-  post-remediation hostile re-audit has not yet occurred.
+  A-finding re-audit occurred after S5 and returned HOLD with B1–B8. T1 locally
+  repairs B1/B2/B3/B7 only; B4/B5/B6/B8 remain unresolved and T1 has not yet
+  received hostile approval.
 - The OddsPapi 250-call ceiling is a planning assumption, not verified provider
   evidence; no provider integration exists.
 - S5 establishes the local test-harness research/evaluator process boundary,
@@ -249,6 +292,7 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Review the S5 checkpoint, then run a new independent hostile re-audit against
-its exact committed tree. Explicit checkpoint approval is still required before
-any adapter or later Genesis phase.
+Review the exact T1 commit and evidence, then hostile-test its B1/B2/B3/B7
+composition. Continue only with the still-open B4/B5/B6/B8 remediation under
+their dependency and authority constraints. Explicit audit/checkpoint approval
+remains mandatory before any adapter or later Genesis phase.

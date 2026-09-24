@@ -3,16 +3,22 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
+from datetime import datetime, timezone
 from decimal import Decimal
 from enum import StrEnum
 from pathlib import Path
+from typing import TYPE_CHECKING, Callable
 
 from .accounting import BetSide, MatchedFragment, money
+from .decision import candidate_v3_decision_hash
 from .policy import PolicySet, canonical_decimal, parse_tier
-from .registry import AppendOnlyJsonl, RegistryConflict
+from .registry import AppendOnlyJsonl, RegistryConflict, StrategyRegistry
 from .repro import canonical_json, sha256_bytes
 from .selection import QualificationRecordStore
 from .time import iso_utc, parse_utc
+
+if TYPE_CHECKING:
+    from .release_proof import OfflinePaperReleaseProofStore
 
 
 class ExposureState(StrEnum):
@@ -423,6 +429,9 @@ class RiskEngine:
         qualifications: QualificationRecordStore,
         safety: SafetyStateStore,
         audit_log: RiskAuditLog,
+        strategies: StrategyRegistry | None = None,
+        modes: object | None = None,
+        action_clock: Callable[[str], str] | None = None,
     ):
         dependencies = (policy, bankrolls, qualifications, safety, audit_log)
         if any(value is None for value in dependencies):
@@ -435,12 +444,88 @@ class RiskEngine:
         self.qualifications = qualifications
         self.safety = safety
         self.audit_log = audit_log
+        self.strategies = strategies
+        self.modes = modes
+        self.release_proofs: OfflinePaperReleaseProofStore | None = None
+        # Real UTC is the default new-action clock. An explicit alternate
+        # clock is for synthetic offline tests; request timestamps alone are
+        # never production expiry/strategy authority.
+        self._action_clock = action_clock or (
+            lambda _requested_at: iso_utc(datetime.now(timezone.utc))
+        )
         # A hash-valid but semantically incompatible active event is not an
         # empty reservation. Validate the durable heads on startup as well as
         # at each later transactional replay.
         self.bankrolls.history()
         self.safety.history()
+        if self.modes is not None:
+            self.modes.current()
         self._exposures(self.audit_log.log.records())
+
+    def attach_release_proofs(self, proofs: OfflinePaperReleaseProofStore) -> None:
+        """Install the exact PAPER proof owner after risk/execution construction.
+
+        No release can create spendable capacity while this owner is absent.
+        An owner may be installed only once, and its risk identity and audit
+        path must match this engine's durable risk log.
+        """
+        if proofs.risk is not self:
+            raise RegistryConflict("release proof owner is mismatched")
+
+        def bind(rows: tuple[dict, ...]) -> None:
+            if self.release_proofs is not None:
+                raise RegistryConflict("release proof owner is already installed")
+            self.release_proofs = proofs
+            try:
+                self._exposures(rows, release_fenced=True)
+            except BaseException:
+                self.release_proofs = None
+                raise
+            return None
+
+        try:
+            self.audit_log.log.transaction(
+                bind, read_locks=self._release_read_locks_for(proofs),
+            )
+        except BaseException:
+            if self.release_proofs is proofs:
+                self.release_proofs = None
+            raise
+
+    @staticmethod
+    def _release_read_locks_for(
+        proofs: OfflinePaperReleaseProofStore | None,
+    ) -> tuple[AppendOnlyJsonl, ...]:
+        if proofs is None:
+            return ()
+        return (proofs.log, *proofs.authority_logs)
+
+    def _release_read_locks(self) -> tuple[AppendOnlyJsonl, ...]:
+        return self._release_read_locks_for(self.release_proofs)
+
+    @staticmethod
+    def _mode_lock_for(modes: object | None) -> tuple[AppendOnlyJsonl, ...]:
+        from .execution import ModeStateStore
+
+        return (modes.log,) if type(modes) is ModeStateStore else ()
+
+    @staticmethod
+    def _coherent_paper_mode(modes: object | None, safety: SafetyState) -> bool:
+        from .config import OperationalMode
+        from .execution import ModeStateStore
+
+        if type(modes) is not ModeStateStore:
+            return False
+        try:
+            head = modes.current()
+            return (
+                head.mode == OperationalMode.PAPER
+                and not safety.kill_switch_active
+                and iso_utc(head.occurred_at) == iso_utc(safety.recorded_at)
+                and safety.reason == "mode:paper"
+            )
+        except Exception:
+            return False
 
     @staticmethod
     def _open(exposure: Exposure) -> bool:
@@ -451,6 +536,44 @@ class RiskEngine:
             ExposureState.PENDING,
             ExposureState.UNKNOWN,
         }
+
+    def _portfolio_capacity(
+        self,
+        exposures: list[Exposure],
+        *,
+        bankroll: Decimal,
+        proposed_clusters: set[str],
+        extra_liability: Decimal = Decimal("0"),
+    ) -> tuple[str | None, Decimal, Decimal]:
+        """Check current capacity without charging an owned reservation twice.
+
+        At approval ``extra_liability`` is the not-yet-reserved proposal. At
+        pending/send it is zero because the exact approval reservation is
+        already one of ``exposures``. An unrelated factual exposure remains
+        additive. Existing breached positions are retained, never erased to
+        create apparent new capacity.
+        """
+
+        open_items = [item for item in exposures if self._open(item)]
+        total = sum((item.liability_amount for item in open_items), Decimal("0")) + extra_liability
+        if total > bankroll * self.policy.max_open_liability_fraction:
+            return "open_liability_limit", total, Decimal("0")
+        cluster_limit = bankroll * self.policy.correlated_cluster_fraction
+        for cluster in sorted({name for item in open_items for name in item.correlation_cluster_ids}):
+            current_cluster = sum(
+                (item.liability_amount for item in open_items
+                 if cluster in item.correlation_cluster_ids), Decimal("0"),
+            )
+            if current_cluster > cluster_limit:
+                return "existing_correlation_cluster_limit", total, current_cluster
+        selected_cluster = extra_liability + sum(
+            (item.liability_amount for item in open_items
+             if proposed_clusters.intersection(item.correlation_cluster_ids)),
+            Decimal("0"),
+        )
+        if proposed_clusters and selected_cluster > cluster_limit:
+            return "correlation_cluster_limit", total, selected_cluster
+        return None, total, selected_cluster
 
     @staticmethod
     def _approval_from_row(row: dict) -> RiskApproval:
@@ -465,16 +588,72 @@ class RiskEngine:
         fields["correlation_cluster_ids"] = tuple(fields["correlation_cluster_ids"])
         return Exposure(**fields)
 
-    def _exposures(self, rows: tuple[dict, ...] | list[dict]) -> list[Exposure]:
+    def _bound_approval_clusters(self, approval: RiskApproval) -> tuple[str, ...] | None:
+        """Reconstruct v3 reservation membership from its immutable output.
+
+        Historical v2 qualifications have no decision-output identity. They
+        remain readable for audit and settlement, but cannot authorize new
+        risk through ``get_for_new_risk``. A v3 approval must be coherent with
+        its exact qualification and content-addressed output on every replay;
+        a copied cluster list in the approval event is never authority.
+        """
+
+        try:
+            qualification = self.qualifications.get(approval.qualification_record_id)
+            if qualification.schema_version == "qualification-record-v2":
+                if (
+                    qualification.candidate_decision_hash != approval.candidate_decision_hash
+                    or qualification.strategy_decision_contract_hash
+                    != approval.strategy_decision_contract_hash
+                ):
+                    raise RegistryConflict("historical approval qualification mismatch")
+                return None
+            if qualification.schema_version != "qualification-record-v3":
+                raise RegistryConflict("unsupported approval qualification schema")
+            output = self.qualifications.outputs.get(qualification.decision_output_hash)
+            expected_candidate_hash = candidate_v3_decision_hash(
+                strategy_decision_contract_hash=qualification.strategy_decision_contract_hash,
+                feature_manifest_hash=qualification.feature_manifest_hash,
+                evidence_pack_hash=output["evidence_pack_hash"],
+                decision_output_hash=qualification.decision_output_hash,
+            )
+            if any((
+                approval.candidate_decision_hash != qualification.candidate_decision_hash,
+                approval.strategy_decision_contract_hash
+                != qualification.strategy_decision_contract_hash,
+                qualification.candidate_decision_hash != expected_candidate_hash,
+                qualification.feature_manifest_hash != output["feature_manifest_hash"],
+                qualification.strategy_decision_contract_hash
+                != output["strategy_decision_contract_hash"],
+                qualification.approved_tier != output["approved_tier"],
+                iso_utc(qualification.expires_at) != output["expires_at"],
+                iso_utc(qualification.decision_at) != output["decision_at"],
+                qualification.comparability_group_id != output["comparability_group_id"],
+                qualification.market_capability_id != output["market_capability_id"],
+            )):
+                raise RegistryConflict("v3 approval/output lineage mismatch")
+            return tuple(output["correlation_cluster_ids"])
+        except RegistryConflict:
+            raise
+        except Exception as exc:
+            raise RegistryConflict("approval dependence authority unavailable") from exc
+
+    def _exposures(
+        self, rows: tuple[dict, ...] | list[dict], *, release_fenced: bool = False,
+    ) -> list[Exposure]:
         latest: dict[str, Exposure] = {}
         approvals: dict[str, RiskApproval] = {}
         consumed: set[str] = set()
+        raw_states: dict[str, ExposureState] = {}
+        release_rows: dict[str, dict] = {}
         candidate_hashes: set[str] = set()
         schemas = {
             "risk_exposure_recorded": "risk-exposure-v2",
             "risk_approval_created": "risk-approval-v2",
             "risk_approval_consumed": "risk-approval-v2",
             "risk_reservation_transition": "risk-reservation-v2",
+            "risk_reservation_release": "risk-reservation-release-v1",
+            "risk_reservation_legacy_release": "risk-reservation-legacy-release-v1",
         }
         for row in rows:
             event = row.get("record_type")
@@ -502,6 +681,11 @@ class RiskEngine:
                         or approval.candidate_decision_hash in candidate_hashes
                     ):
                         raise RegistryConflict("risk approval replay identity is invalid")
+                    bound_clusters = self._bound_approval_clusters(approval)
+                    if bound_clusters is not None and clusters != list(bound_clusters):
+                        raise RegistryConflict(
+                            "risk approval clusters differ from bound decision output"
+                        )
                     approvals[approval.approval_id] = approval
                     candidate_hashes.add(approval.candidate_decision_hash)
                     latest[approval.approval_id] = Exposure(
@@ -512,6 +696,7 @@ class RiskEngine:
                         correlation_cluster_ids=tuple(clusters),
                         affected_scope=row["affected_scope"],
                     )
+                    raw_states[approval.approval_id] = ExposureState.PENDING
                 elif event == "risk_approval_consumed":
                     approval_id = row["approval_id"]
                     if (
@@ -528,7 +713,7 @@ class RiskEngine:
                     if consumed_at >= parse_utc(approvals[approval_id].expires_at):
                         raise RegistryConflict("risk approval was consumed after expiry")
                     consumed.add(approval_id)
-                else:
+                elif event == "risk_reservation_transition":
                     approval_id = row["approval_id"]
                     if approval_id not in approvals or approval_id not in latest:
                         raise RegistryConflict("reservation transition has no approval")
@@ -536,19 +721,182 @@ class RiskEngine:
                     prior = ExposureState(row["from_state"])
                     target = ExposureState(row["to_state"])
                     if (
-                        current.state != prior
-                        or current.state in {ExposureState.SETTLED, ExposureState.VOID}
+                        raw_states[approval_id] != prior
+                        or approval_id in release_rows
+                        or raw_states[approval_id] in {ExposureState.SETTLED, ExposureState.VOID}
                         or target not in {
                             ExposureState.SETTLED, ExposureState.VOID, ExposureState.UNKNOWN
                         }
                     ):
                         raise RegistryConflict("reservation transition is invalid")
                     parse_utc(row["occurred_at"])
-                    latest[approval_id] = replace(current, state=target)
+                    raw_states[approval_id] = target
+                    # A historical bare terminal event is audit history, not
+                    # proof of no further fills. Keep its full liability charged.
+                    latest[approval_id] = replace(current, state=ExposureState.UNKNOWN)
+                else:
+                    approval_id = row["approval_id"]
+                    approval = approvals.get(approval_id)
+                    legacy_release = event == "risk_reservation_legacy_release"
+                    unconsumed_release = not legacy_release and row["order_id"] is None
+                    consumption_invalid = (
+                        approval_id in consumed if unconsumed_release
+                        else approval_id not in consumed
+                    )
+                    order_identity_invalid = (
+                        row["order_head_record_hash"] is not None
+                        or row["release_reason"] != "UNSENT_REJECTED"
+                        or row["to_state"] != ExposureState.VOID.value
+                    ) if unconsumed_release else (
+                        not isinstance(row["order_id"], str)
+                        or not row["order_id"]
+                        or not isinstance(row["order_head_record_hash"], str)
+                        or len(row["order_head_record_hash"]) != 64
+                    )
+                    common_release_fields = {
+                        "record_type", "schema_version", "approval_id",
+                        "qualification_record_id", "candidate_decision_hash",
+                        "order_id", "from_state", "to_state", "release_reason",
+                        "order_head_record_hash", "fill_proofs",
+                        "reconciliation_proof_hash", "occurred_at",
+                        "previous_hash", "sequence", "record_hash",
+                    }
+                    lineage_field = (
+                        "legacy_qualification_record_hash"
+                        if legacy_release else "decision_output_hash"
+                    )
+                    allowed_reasons = (
+                        {"FILLS_SETTLED", "FILLS_VOID"}
+                        if legacy_release else {
+                            "UNSENT_REJECTED", "UNMATCHED_CANCEL_CONFIRMED",
+                            "FILLS_SETTLED", "FILLS_VOID",
+                        }
+                    )
+                    if (
+                        set(row) != common_release_fields | {lineage_field}
+                        or
+                        approval is None or consumption_invalid
+                        or approval_id in release_rows
+                        or raw_states[approval_id] not in {
+                            ExposureState.PENDING, ExposureState.UNKNOWN,
+                            ExposureState.SETTLED, ExposureState.VOID,
+                        }
+                        or row["from_state"] != latest[approval_id].state.value
+                        or row["to_state"] not in {
+                            ExposureState.SETTLED.value, ExposureState.VOID.value,
+                        }
+                        or row["candidate_decision_hash"]
+                        != approval.candidate_decision_hash
+                        or row["qualification_record_id"]
+                        != approval.qualification_record_id
+                        or order_identity_invalid
+                        or row["release_reason"] not in allowed_reasons
+                        or not isinstance(row["reconciliation_proof_hash"], str)
+                        or len(row["reconciliation_proof_hash"]) != 64
+                        or not isinstance(row[lineage_field], str)
+                        or len(row[lineage_field]) != 64
+                    ):
+                        raise RegistryConflict("reservation release lineage is invalid")
+                    fill_proofs = row["fill_proofs"]
+                    if (
+                        not isinstance(fill_proofs, list)
+                        or [item.get("fill_id") for item in fill_proofs]
+                        != sorted({item.get("fill_id") for item in fill_proofs})
+                        or any(
+                            not isinstance(item, dict)
+                            or set(item) != {
+                                "fill_id", "fill_record_hash",
+                                "current_head_event_id", "current_head_record_hash",
+                            }
+                            or not isinstance(item["fill_id"], str)
+                            or not item["fill_id"]
+                            or not isinstance(item["current_head_event_id"], str)
+                            or not item["current_head_event_id"]
+                            or any(
+                                not isinstance(item[name], str) or len(item[name]) != 64
+                                for name in ("fill_record_hash", "current_head_record_hash")
+                            )
+                            for item in fill_proofs
+                        )
+                        or (row["release_reason"] in {"FILLS_SETTLED", "FILLS_VOID"}
+                            and not fill_proofs)
+                        or (row["release_reason"] in {
+                            "UNSENT_REJECTED", "UNMATCHED_CANCEL_CONFIRMED",
+                        } and fill_proofs)
+                    ):
+                        raise RegistryConflict("reservation release fill proof is invalid")
+                    parse_utc(row["occurred_at"])
+                    release_rows[approval_id] = row
+                    raw_states[approval_id] = ExposureState(row["to_state"])
+                    latest[approval_id] = replace(
+                        latest[approval_id], state=ExposureState.UNKNOWN,
+                    )
             except (KeyError, TypeError, ValueError) as exc:
                 if isinstance(exc, RegistryConflict):
                     raise
                 raise RegistryConflict("incomplete or invalid active risk event") from exc
+        if release_rows and release_fenced and self.release_proofs is not None:
+            proof_rows = tuple(self.release_proofs.log.records())
+            qualification_rows = tuple(self.qualifications.log.records())
+            order_rows = tuple(self.release_proofs.execution._audit.records())
+            ledger_rows = tuple(self.release_proofs.ledger.log.records())
+            for approval_id, row in release_rows.items():
+                try:
+                    legacy_release = (
+                        row["record_type"] == "risk_reservation_legacy_release"
+                    )
+                    proof = self.release_proofs.validate_current_locked(
+                        row["reconciliation_proof_hash"], proof_rows=proof_rows,
+                        risk_rows=tuple(rows),
+                        qualification_rows=qualification_rows,
+                        order_rows=order_rows, ledger_rows=ledger_rows,
+                    )
+                    if (
+                        proof["approval_id"] != approval_id
+                        or proof["order_id"] != row["order_id"]
+                        or proof["qualification_record_id"]
+                        != row["qualification_record_id"]
+                        or proof["candidate_decision_hash"]
+                        != row["candidate_decision_hash"]
+                        or proof["record_type"] != (
+                            "offline_paper_legacy_release_proof"
+                            if legacy_release else "offline_paper_release_proof"
+                        )
+                        or proof.get(
+                            "legacy_qualification_record_hash"
+                            if legacy_release else "decision_output_hash"
+                        ) != row[
+                            "legacy_qualification_record_hash"
+                            if legacy_release else "decision_output_hash"
+                        ]
+                        or proof["release_reason"] != row["release_reason"]
+                        or proof["order_head_record_hash"]
+                        != row["order_head_record_hash"]
+                        or [
+                            {
+                                "fill_id": item["fill_id"],
+                                "fill_record_hash": item["fill_record_hash"],
+                                "current_head_event_id": item["head_event_id"],
+                                "current_head_record_hash": item["head_record_hash"],
+                            }
+                            for item in proof["fill_proofs"]
+                        ] != row["fill_proofs"]
+                        or (ExposureState.VOID.value
+                            if proof["release_reason"] in {
+                                "FILLS_VOID", "UNSENT_REJECTED",
+                                "UNMATCHED_CANCEL_CONFIRMED",
+                            } else ExposureState.SETTLED.value) != row["to_state"]
+                        or parse_utc(row["occurred_at"])
+                        < parse_utc(proof["occurred_at"])
+                    ):
+                        raise RegistryConflict("reservation release proof binding changed")
+                except (RegistryConflict, KeyError, TypeError, ValueError):
+                    # Preserve the event, but do not mint new capacity from a
+                    # stale/false proof or a late fill after issuance.
+                    continue
+                latest[approval_id] = replace(
+                    latest[approval_id], state=ExposureState(row["to_state"]),
+                )
         return list(latest.values())
 
     def stake_for_units(self, bankroll: str, units: str) -> str:
@@ -583,16 +931,23 @@ class RiskEngine:
 
     def approve(self, request: RiskRequest) -> RiskDecision:
         decision_holder: dict[str, RiskDecision] = {}
+        release_proofs = self.release_proofs
+        mode_states = self.modes
 
         def build(rows: tuple[dict, ...]) -> dict | None:
             # No mutable authority fact is captured before the coordinator
             # locks. Bankroll, safety and qualification writers use these same
             # per-log locks; risk owns the primary lock through its fsynced
             # approval append. JSONL, not SQLite, remains the business truth.
-            all_exposures = self._exposures(rows)
+            if self.release_proofs is not release_proofs:
+                raise RegistryConflict("release proof owner changed during risk admission")
+            if self.modes is not mode_states:
+                raise RegistryConflict("mode owner changed during risk admission")
+            all_exposures = self._exposures(rows, release_fenced=True)
+            action_at = iso_utc(self._action_clock(request.requested_at))
             try:
                 qualification = self.qualifications.get_for_new_risk(
-                    request.qualification_record_id, at=request.requested_at,
+                    request.qualification_record_id, at=action_at,
                 )
                 bankroll = self.bankrolls.current()
                 safety = self.safety.current()
@@ -604,6 +959,11 @@ class RiskEngine:
             if safety.kill_switch_active:
                 decision_holder["value"] = RiskDecision(False, "kill_switch_active", "0", "0")
                 return None
+            if not self._coherent_paper_mode(mode_states, safety):
+                decision_holder["value"] = RiskDecision(
+                    False, "mode_safety_head_not_coherent_paper", "0", "0"
+                )
+                return None
             if request.bankroll_snapshot_id != bankroll.snapshot_id:
                 decision_holder["value"] = RiskDecision(False, "stale_bankroll_snapshot", "0", "0")
                 return None
@@ -613,10 +973,35 @@ class RiskEngine:
             if qualification.active_policy_digest != self.policy_set.digest:
                 decision_holder["value"] = RiskDecision(False, "qualification_policy_mismatch", "0", "0")
                 return None
+            if self.strategies is None:
+                decision_holder["value"] = RiskDecision(
+                    False, "strategy_authority_unavailable", "0", "0"
+                )
+                return None
             try:
                 output = self.qualifications.outputs.get(qualification.decision_output_hash)
+                if (output["strategy_id"] != qualification.strategy_id
+                        or output["strategy_version"] != qualification.strategy_version
+                        or output["strategy_decision_contract_hash"]
+                        != qualification.strategy_decision_contract_hash):
+                    raise RegistryConflict("strategy/output identity mismatch")
+                self.strategies.require_current_paper_contract(
+                    qualification.strategy_id, qualification.strategy_version,
+                    qualification.strategy_decision_contract_hash,
+                )
             except Exception:
                 decision_holder["value"] = RiskDecision(False, "authority_unavailable", "0", "0")
+                return None
+            trusted_clusters = tuple(output["correlation_cluster_ids"])
+            # The legacy request field defaults to (), which cannot distinguish
+            # omission from an explicitly empty copy. Empty therefore means no
+            # comparison; every nonempty copy must equal the trusted set.
+            if request.correlation_cluster_ids and (
+                set(request.correlation_cluster_ids) != set(trusted_clusters)
+            ):
+                decision_holder["value"] = RiskDecision(
+                    False, "caller_correlation_mismatch", "0", "0"
+                )
                 return None
             if (request.side.value != output["side"]
                     or Decimal(request.odds) < Decimal(output["requested_odds_min"])
@@ -625,7 +1010,7 @@ class RiskEngine:
                     False, "decision_output_execution_mismatch", "0", "0"
                 )
                 return None
-            if parse_utc(request.requested_at) >= parse_utc(qualification.expires_at):
+            if parse_utc(action_at) >= parse_utc(qualification.expires_at):
                 decision_holder["value"] = RiskDecision(False, "qualification_expired", "0", "0")
                 return None
             try:
@@ -659,7 +1044,7 @@ class RiskEngine:
                 risk_policy_version=self.policy.version,
                 risk_policy_digest=self.policy.digest,
                 safety_state_id=safety.state_id,
-                issued_at=request.requested_at,
+                issued_at=action_at,
                 expires_at=qualification.expires_at,
             )
             if any(
@@ -678,31 +1063,17 @@ class RiskEngine:
                     False, "unknown_exposure_blocks_new_risk", "0", "0"
                 )
                 return None
-            open_liability = sum(
-                (item.liability_amount for item in open_exposures), Decimal("0")
+            requested_clusters = set(trusted_clusters)
+            capacity_reason, proposed_total, cluster_liability = self._portfolio_capacity(
+                all_exposures,
+                bankroll=Decimal(bankroll.bankroll),
+                proposed_clusters=requested_clusters,
+                extra_liability=liability,
             )
-            proposed_total = open_liability + liability
-            if proposed_total > Decimal(bankroll.bankroll) * self.policy.max_open_liability_fraction:
+            if capacity_reason is not None:
                 decision_holder["value"] = RiskDecision(
                     False,
-                    "open_liability_limit",
-                    canonical_decimal(proposed_total),
-                    "0",
-                )
-                return None
-            requested_clusters = set(request.correlation_cluster_ids)
-            cluster_liability = liability
-            for item in open_exposures:
-                if requested_clusters.intersection(item.correlation_cluster_ids):
-                    cluster_liability += item.liability_amount
-            if (
-                requested_clusters
-                and cluster_liability
-                > Decimal(bankroll.bankroll) * self.policy.correlated_cluster_fraction
-            ):
-                decision_holder["value"] = RiskDecision(
-                    False,
-                    "correlation_cluster_limit",
+                    capacity_reason,
                     canonical_decimal(proposed_total),
                     canonical_decimal(cluster_liability),
                 )
@@ -720,7 +1091,7 @@ class RiskEngine:
                 "record_type": "risk_approval_created",
                 "schema_version": "risk-approval-v2",
                 **approval.to_dict(),
-                "correlation_cluster_ids": list(request.correlation_cluster_ids),
+                "correlation_cluster_ids": list(trusted_clusters),
                 "affected_scope": request.affected_scope,
             }
 
@@ -729,6 +1100,9 @@ class RiskEngine:
             read_locks=(
                 self.bankrolls.log, self.safety.log, self.qualifications.log,
                 self.qualifications.bindings.log,
+                *((self.strategies.log,) if self.strategies is not None else ()),
+                *self._mode_lock_for(mode_states),
+                *self._release_read_locks_for(release_proofs),
             ),
         )
         return decision_holder["value"]
@@ -765,11 +1139,17 @@ class RiskEngine:
     def consume_for_order(
         self, approval_id: str, *, order_id: str, consumed_at: str
     ) -> RiskApproval:
-        consumed_at = iso_utc(consumed_at)
         result: dict[str, RiskApproval] = {}
+        release_proofs = self.release_proofs
+        mode_states = self.modes
 
         def build(rows: tuple[dict, ...]) -> dict | None:
-            self._exposures(rows)
+            if self.release_proofs is not release_proofs:
+                raise RegistryConflict("release proof owner changed during consumption")
+            if self.modes is not mode_states:
+                raise RegistryConflict("mode owner changed during consumption")
+            action_at = iso_utc(self._action_clock(consumed_at))
+            self._exposures(rows, release_fenced=True)
             matches = [
                 self._approval_from_row(row)
                 for row in rows
@@ -781,7 +1161,7 @@ class RiskEngine:
                 raise RegistryConflict(f"unknown risk approval: {approval_id}")
             approval = matches[0]
             qualification = self.qualifications.get_for_new_risk(
-                approval.qualification_record_id, at=consumed_at,
+                approval.qualification_record_id, at=action_at,
             )
             if qualification.candidate_decision_hash != approval.candidate_decision_hash:
                 raise RegistryConflict("risk approval lacks exact V3 output lineage")
@@ -798,8 +1178,10 @@ class RiskEngine:
                     )
                     return None
                 raise RegistryConflict("risk approval is single-use")
-            if parse_utc(consumed_at) >= parse_utc(approval.expires_at):
-                raise RegistryConflict("risk approval is expired")
+            if not self.approval_still_valid(
+                approval_id, at=action_at, release_fenced=True,
+            ):
+                raise RegistryConflict("risk approval is not currently valid")
             result["value"] = replace(
                 approval, status="CONSUMED", consumed_by_order_id=order_id
             )
@@ -809,20 +1191,37 @@ class RiskEngine:
                 "approval_id": approval_id,
                 "candidate_decision_hash": approval.candidate_decision_hash,
                 "order_id": order_id,
-                "consumed_at": consumed_at,
+                "consumed_at": action_at,
             }
 
         self.audit_log.log.transaction(
-            build, read_locks=(self.qualifications.log, self.qualifications.bindings.log),
+            build, read_locks=(
+                self.qualifications.log, self.qualifications.bindings.log,
+                self.bankrolls.log, self.safety.log,
+                *((self.strategies.log,) if self.strategies is not None else ()),
+                *self._mode_lock_for(mode_states),
+                *self._release_read_locks_for(release_proofs),
+            ),
         )
         return result["value"]
 
     def reserved_exposures(self) -> tuple[Exposure, ...]:
-        return tuple(
-            item
-            for item in self._exposures(self.audit_log.log.records())
-            if self._open(item)
+        result: dict[str, tuple[Exposure, ...]] = {}
+        release_proofs = self.release_proofs
+
+        def inspect(rows: tuple[dict, ...]) -> None:
+            if self.release_proofs is not release_proofs:
+                raise RegistryConflict("release proof owner changed during replay")
+            result["value"] = tuple(
+                item for item in self._exposures(rows, release_fenced=True)
+                if self._open(item)
+            )
+            return None
+
+        self.audit_log.log.transaction(
+            inspect, read_locks=self._release_read_locks_for(release_proofs),
         )
+        return result["value"]
 
     def transition_reservation(
         self,
@@ -831,6 +1230,8 @@ class RiskEngine:
         *,
         occurred_at: str,
     ) -> Exposure:
+        if state in {ExposureState.SETTLED, ExposureState.VOID}:
+            raise RegistryConflict("terminal reservation requires exact release proof")
         result: dict[str, Exposure] = {}
 
         def build(rows: tuple[dict, ...]) -> dict:
@@ -838,9 +1239,9 @@ class RiskEngine:
             if approval_id not in exposures:
                 raise RegistryConflict("unknown reservation")
             current = exposures[approval_id]
-            if state not in {ExposureState.SETTLED, ExposureState.VOID, ExposureState.UNKNOWN}:
+            if state != ExposureState.UNKNOWN:
                 raise RegistryConflict("unsupported reservation transition")
-            if current.state in {ExposureState.SETTLED, ExposureState.VOID}:
+            if current.state in {ExposureState.SETTLED, ExposureState.VOID, ExposureState.UNKNOWN}:
                 raise RegistryConflict("terminal reservation cannot transition")
             updated = replace(current, state=state)
             result["value"] = updated
@@ -856,7 +1257,115 @@ class RiskEngine:
         self.audit_log.log.transaction(build)
         return result["value"]
 
-    def approval_still_valid(self, approval_id: str, *, at: str) -> bool:
+    def release_with_proof(self, proof_record_hash: str, *, occurred_at: str) -> Exposure:
+        """Release a fully reconciled synthetic PAPER order, never a caller label.
+
+        The risk append and exact proof/order/fill head validation are fenced
+        together. A later changed head makes the old release conservatively
+        UNKNOWN on authoritative replay, restoring the full charge.
+        """
+
+        release_proofs = self.release_proofs
+        if release_proofs is None:
+            raise RegistryConflict("release proof owner is unavailable")
+        occurred_at = iso_utc(occurred_at)
+        result: dict[str, Exposure] = {}
+
+        def build(rows: tuple[dict, ...]) -> dict | None:
+            if self.release_proofs is not release_proofs:
+                raise RegistryConflict("release proof owner changed during release")
+            proof_rows = tuple(release_proofs.log.records())
+            proof = release_proofs.validate_current_locked(
+                proof_record_hash,
+                proof_rows=proof_rows,
+                risk_rows=rows,
+                qualification_rows=tuple(self.qualifications.log.records()),
+                order_rows=tuple(release_proofs.execution._audit.records()),
+                ledger_rows=tuple(release_proofs.ledger.log.records()),
+            )
+            approval_id = proof["approval_id"]
+            exposures = {
+                item.exposure_id: item
+                for item in self._exposures(rows, release_fenced=True)
+            }
+            current = exposures.get(approval_id)
+            if current is None:
+                raise RegistryConflict("release proof has no exact reservation")
+            if parse_utc(occurred_at) < parse_utc(proof["occurred_at"]):
+                raise RegistryConflict("release event predates its proof")
+            legacy_release = (
+                proof["record_type"] == "offline_paper_legacy_release_proof"
+            )
+            previous = [
+                row for row in rows
+                if row.get("record_type") in {
+                    "risk_reservation_release", "risk_reservation_legacy_release",
+                }
+                and row.get("approval_id") == approval_id
+            ]
+            target = (
+                ExposureState.VOID if proof["release_reason"] in {
+                    "FILLS_VOID", "UNSENT_REJECTED", "UNMATCHED_CANCEL_CONFIRMED",
+                }
+                else ExposureState.SETTLED
+            )
+            if previous:
+                if (len(previous) == 1
+                        and previous[0]["reconciliation_proof_hash"]
+                        == proof_record_hash
+                        and current.state == target):
+                    result["value"] = current
+                    return None
+                raise RegistryConflict("reservation already has a different release")
+            if current.state not in {ExposureState.PENDING, ExposureState.UNKNOWN}:
+                raise RegistryConflict("reservation cannot be released")
+            result["value"] = replace(current, state=target)
+            payload = {
+                "record_type": (
+                    "risk_reservation_legacy_release"
+                    if legacy_release else "risk_reservation_release"
+                ),
+                "schema_version": (
+                    "risk-reservation-legacy-release-v1"
+                    if legacy_release else "risk-reservation-release-v1"
+                ),
+                "approval_id": approval_id,
+                "qualification_record_id": proof["qualification_record_id"],
+                "candidate_decision_hash": proof["candidate_decision_hash"],
+                "order_id": proof["order_id"],
+                "from_state": current.state.value,
+                "to_state": target.value,
+                "release_reason": proof["release_reason"],
+                "order_head_record_hash": proof["order_head_record_hash"],
+                "fill_proofs": [
+                    {
+                        "fill_id": item["fill_id"],
+                        "fill_record_hash": item["fill_record_hash"],
+                        "current_head_event_id": item["head_event_id"],
+                        "current_head_record_hash": item["head_record_hash"],
+                    }
+                    for item in proof["fill_proofs"]
+                ],
+                "reconciliation_proof_hash": proof_record_hash,
+                "occurred_at": occurred_at,
+            }
+            payload[
+                "legacy_qualification_record_hash"
+                if legacy_release else "decision_output_hash"
+            ] = proof[
+                "legacy_qualification_record_hash"
+                if legacy_release else "decision_output_hash"
+            ]
+            return payload
+
+        self.audit_log.log.transaction(
+            build, read_locks=self._release_read_locks_for(release_proofs),
+        )
+        return result["value"]
+
+    def approval_still_valid(
+        self, approval_id: str, *, at: str, release_fenced: bool = False,
+    ) -> bool:
         try:
             approval = self.get_approval(approval_id)
             qualification = self.qualifications.get_for_new_risk(
@@ -864,11 +1373,30 @@ class RiskEngine:
             )
             if qualification.candidate_decision_hash != approval.candidate_decision_hash:
                 return False
+            if self.strategies is None:
+                return False
+            output = self.qualifications.outputs.get(qualification.decision_output_hash)
+            if (output["strategy_id"] != qualification.strategy_id
+                    or output["strategy_version"] != qualification.strategy_version
+                    or output["strategy_decision_contract_hash"]
+                    != qualification.strategy_decision_contract_hash):
+                return False
+            self.strategies.require_current_paper_contract(
+                qualification.strategy_id, qualification.strategy_version,
+                qualification.strategy_decision_contract_hash,
+            )
             if parse_utc(at) >= parse_utc(approval.expires_at):
                 return False
-            if self.safety.current().kill_switch_active:
+            safety = self.safety.current()
+            if safety.kill_switch_active:
+                return False
+            if not self._coherent_paper_mode(self.modes, safety):
                 return False
             if self.bankrolls.current().snapshot_id != approval.bankroll_snapshot_id:
+                return False
+            if (approval.risk_policy_version != self.policy.version
+                    or approval.risk_policy_digest != self.policy.digest
+                    or qualification.active_policy_digest != self.policy_set.digest):
                 return False
             rows = self.audit_log.log.records()
             # A reservation is derived from the approval event, not from the
@@ -881,7 +1409,7 @@ class RiskEngine:
                 for row in rows
             ):
                 return False
-            exposures = self._exposures(rows)
+            exposures = self._exposures(rows, release_fenced=release_fenced)
             own = [item for item in exposures if item.exposure_id == approval.approval_id]
             if len(own) != 1:
                 return False
@@ -893,6 +1421,13 @@ class RiskEngine:
             ):
                 return False
             if any(item.state == ExposureState.UNKNOWN for item in exposures):
+                return False
+            capacity_reason, _, _ = self._portfolio_capacity(
+                exposures,
+                bankroll=Decimal(self.bankrolls.current().bankroll),
+                proposed_clusters=set(reservation.correlation_cluster_ids),
+            )
+            if capacity_reason is not None:
                 return False
             return approval.status in {"APPROVED_NOT_CONSUMED", "CONSUMED"}
         except Exception:
@@ -934,21 +1469,47 @@ class RiskEngine:
         )
 
     def risk_ok(self, candidate) -> bool | None:
-        try:
-            if self.safety.current().kill_switch_active:
-                return False
+        result: dict[str, bool] = {}
+        release_proofs = self.release_proofs
+        mode_states = self.modes
+
+        def inspect(rows: tuple[dict, ...]) -> None:
+            if self.release_proofs is not release_proofs:
+                raise RegistryConflict("release proof owner changed during risk gate")
+            if self.modes is not mode_states:
+                raise RegistryConflict("mode owner changed during risk gate")
+            safety = self.safety.current()
+            if safety.kill_switch_active:
+                result["value"] = False
+                return None
+            if not self._coherent_paper_mode(mode_states, safety):
+                result["value"] = False
+                return None
             self.bankrolls.current()
-            rows = self.audit_log.log.records()
-            if any(item.state == ExposureState.UNKNOWN for item in self._exposures(rows)):
-                return False
             if any(
+                item.state == ExposureState.UNKNOWN
+                for item in self._exposures(rows, release_fenced=True)
+            ):
+                result["value"] = False
+                return None
+            result["value"] = not any(
                 row.get("record_type") == "risk_approval_created"
                 and row.get("schema_version") == "risk-approval-v2"
                 and row.get("candidate_decision_hash") == candidate.candidate_decision_hash
                 for row in rows
-            ):
-                return False
-            return True
+            )
+            return None
+
+        try:
+            self.audit_log.log.transaction(
+                inspect,
+                read_locks=(
+                    self.safety.log, self.bankrolls.log,
+                    *self._mode_lock_for(mode_states),
+                    *self._release_read_locks_for(release_proofs),
+                ),
+            )
+            return result["value"]
         except Exception:
             return None
 

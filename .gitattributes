@@ -1,0 +1,4 @@
+# Raw T1 transcripts and preserved diffs are byte evidence. Keep their source
+# whitespace exact while retaining normal whitespace checks for code and prose.
+remediation_evidence/T1/*.txt whitespace=-trailing-space
+remediation_evidence/T1/*.patch whitespace=-trailing-space

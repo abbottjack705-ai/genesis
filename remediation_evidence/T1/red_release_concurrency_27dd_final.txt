@@ -1,0 +1,97 @@
+BASELINE_SHA=27dd525c1fd7d531c4833c4bf7e44204a9345f19
+BASELINE_SOURCE=C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-red-baseline\src\genesis\__init__.py
+TEST_SOURCE=C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py
+test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes)
+C02: release/admission share one fence and cannot mint over-cap risk. ... 
+  test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes) (release_first=False)
+C02: release/admission share one fence and cannot mint over-cap risk. ... FAIL
+  test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes) (release_first=True)
+C02: release/admission share one fence and cannot mint over-cap risk. ... FAIL
+test_duplicate_release_replay_is_exactly_once_across_restart (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_duplicate_release_replay_is_exactly_once_across_restart)
+L08/L09: response loss and exact retry never append/free twice. ... FAIL
+test_durable_proof_then_crash_without_release_restarts_and_retries (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_durable_proof_then_crash_without_release_restarts_and_retries)
+L09: proof alone releases nothing; restart may verify and append once. ... FAIL
+test_partial_fill_with_live_remainder_conserves_full_reservation (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_partial_fill_with_live_remainder_conserves_full_reservation)
+L05/R05: a fragment never shrinks or duplicates its order envelope. ... FAIL
+test_proven_synthetic_paper_unmatched_cancellation_releases_once (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_proven_synthetic_paper_unmatched_cancellation_releases_once)
+L04 positive: durable zero-fill/no-matchability proof frees capacity. ... FAIL
+
+======================================================================
+FAIL: test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes) (release_first=False)
+C02: release/admission share one fence and cannot mint over-cap risk.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py", line 354, in test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes
+    owner = _proof_owner(root, fixture, ledger)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py", line 39, in _proof_owner
+    raise AssertionError(
+AssertionError: B3 requires a durable proof-bearing synthetic PAPER release owner
+
+======================================================================
+FAIL: test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes) (release_first=True)
+C02: release/admission share one fence and cannot mint over-cap risk.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py", line 354, in test_concurrent_release_and_new_risk_have_only_safe_serial_outcomes
+    owner = _proof_owner(root, fixture, ledger)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py", line 39, in _proof_owner
+    raise AssertionError(
+AssertionError: B3 requires a durable proof-bearing synthetic PAPER release owner
+
+======================================================================
+FAIL: test_duplicate_release_replay_is_exactly_once_across_restart (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_duplicate_release_replay_is_exactly_once_across_restart)
+L08/L09: response loss and exact retry never append/free twice.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py", line 304, in test_duplicate_release_replay_is_exactly_once_across_restart
+    owner = _proof_owner(root, fixture, ledger)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py", line 39, in _proof_owner
+    raise AssertionError(
+AssertionError: B3 requires a durable proof-bearing synthetic PAPER release owner
+
+======================================================================
+FAIL: test_durable_proof_then_crash_without_release_restarts_and_retries (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_durable_proof_then_crash_without_release_restarts_and_retries)
+L09: proof alone releases nothing; restart may verify and append once.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py", line 264, in test_durable_proof_then_crash_without_release_restarts_and_retries
+    owner = _proof_owner(root, fixture, ledger)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py", line 39, in _proof_owner
+    raise AssertionError(
+AssertionError: B3 requires a durable proof-bearing synthetic PAPER release owner
+
+======================================================================
+FAIL: test_partial_fill_with_live_remainder_conserves_full_reservation (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_partial_fill_with_live_remainder_conserves_full_reservation)
+L05/R05: a fragment never shrinks or duplicates its order envelope.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py", line 223, in test_partial_fill_with_live_remainder_conserves_full_reservation
+    owner = _proof_owner(root, fixture, ledger)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py", line 39, in _proof_owner
+    raise AssertionError(
+AssertionError: B3 requires a durable proof-bearing synthetic PAPER release owner
+
+======================================================================
+FAIL: test_proven_synthetic_paper_unmatched_cancellation_releases_once (tests.test_astra_t1_release_concurrency.AstraB3ReleaseConcurrencyTests.test_proven_synthetic_paper_unmatched_cancellation_releases_once)
+L04 positive: durable zero-fill/no-matchability proof frees capacity.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py", line 174, in test_proven_synthetic_paper_unmatched_cancellation_releases_once
+    owner = _proof_owner(root, fixture, ledger)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t1_release_concurrency.py", line 39, in _proof_owner
+    raise AssertionError(
+AssertionError: B3 requires a durable proof-bearing synthetic PAPER release owner
+
+----------------------------------------------------------------------
+Ran 5 tests in 2.667s
+
+FAILED (failures=6)
+RUN=5
+FAILURES=6
+ERRORS=0

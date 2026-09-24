@@ -1,0 +1,63 @@
+test_coherent_paper_mode_permits_synthetic_pending_and_sent (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_coherent_paper_mode_permits_synthetic_pending_and_sent) ... ok
+test_crash_after_mode_row_before_safety_row_denies_new_action (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_crash_after_mode_row_before_safety_row_denies_new_action) ... 
+  test_crash_after_mode_row_before_safety_row_denies_new_action (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_crash_after_mode_row_before_safety_row_denies_new_action) (phase='SUBMISSION_PENDING') ... FAIL
+  test_crash_after_mode_row_before_safety_row_denies_new_action (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_crash_after_mode_row_before_safety_row_denies_new_action) (phase='SUBMISSION_SENT') ... FAIL
+test_current_disabled_mode_blocks_pending_and_sent_even_with_safe_head (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_current_disabled_mode_blocks_pending_and_sent_even_with_safe_head) ... 
+  test_current_disabled_mode_blocks_pending_and_sent_even_with_safe_head (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_current_disabled_mode_blocks_pending_and_sent_even_with_safe_head) (phase='SUBMISSION_PENDING') ... FAIL
+  test_current_disabled_mode_blocks_pending_and_sent_even_with_safe_head (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_current_disabled_mode_blocks_pending_and_sent_even_with_safe_head) (phase='SUBMISSION_SENT') ... FAIL
+test_missing_mode_owner_denies_pending (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_missing_mode_owner_denies_pending) ... FAIL
+test_mode_disable_does_not_block_old_matched_order_settlement (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_mode_disable_does_not_block_old_matched_order_settlement) ... ok
+test_unpaired_safe_safety_row_blocks_new_action (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_unpaired_safe_safety_row_blocks_new_action) ... FAIL
+
+======================================================================
+FAIL: test_crash_after_mode_row_before_safety_row_denies_new_action (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_crash_after_mode_row_before_safety_row_denies_new_action) (phase='SUBMISSION_PENDING')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-mode-red-27dd\tests\test_astra_t1_mode.py", line 117, in test_crash_after_mode_row_before_safety_row_denies_new_action
+    self.assertTrue(
+AssertionError: False is not true : a partial mode/safety transition authorized submission
+
+======================================================================
+FAIL: test_crash_after_mode_row_before_safety_row_denies_new_action (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_crash_after_mode_row_before_safety_row_denies_new_action) (phase='SUBMISSION_SENT')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-mode-red-27dd\tests\test_astra_t1_mode.py", line 117, in test_crash_after_mode_row_before_safety_row_denies_new_action
+    self.assertTrue(
+AssertionError: False is not true : a partial mode/safety transition authorized submission
+
+======================================================================
+FAIL: test_current_disabled_mode_blocks_pending_and_sent_even_with_safe_head (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_current_disabled_mode_blocks_pending_and_sent_even_with_safe_head) (phase='SUBMISSION_PENDING')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-mode-red-27dd\tests\test_astra_t1_mode.py", line 90, in test_current_disabled_mode_blocks_pending_and_sent_even_with_safe_head
+    self.assertTrue(
+AssertionError: False is not true : DISABLED mode with non-kill safety authorized submission
+
+======================================================================
+FAIL: test_current_disabled_mode_blocks_pending_and_sent_even_with_safe_head (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_current_disabled_mode_blocks_pending_and_sent_even_with_safe_head) (phase='SUBMISSION_SENT')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-mode-red-27dd\tests\test_astra_t1_mode.py", line 90, in test_current_disabled_mode_blocks_pending_and_sent_even_with_safe_head
+    self.assertTrue(
+AssertionError: False is not true : DISABLED mode with non-kill safety authorized submission
+
+======================================================================
+FAIL: test_missing_mode_owner_denies_pending (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_missing_mode_owner_denies_pending)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-mode-red-27dd\tests\test_astra_t1_mode.py", line 148, in test_missing_mode_owner_denies_pending
+    self.assertTrue(
+AssertionError: False is not true : missing durable mode authority authorized submission
+
+======================================================================
+FAIL: test_unpaired_safe_safety_row_blocks_new_action (tests.test_astra_t1_mode.AstraModeSafetyFenceTests.test_unpaired_safe_safety_row_blocks_new_action)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t1-mode-red-27dd\tests\test_astra_t1_mode.py", line 136, in test_unpaired_safe_safety_row_blocks_new_action
+    self.assertTrue(
+AssertionError: False is not true : an unpaired safety head was treated as coherent PAPER permission
+
+----------------------------------------------------------------------
+Ran 6 tests in 2.426s
+
+FAILED (failures=6)

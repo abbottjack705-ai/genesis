@@ -42,7 +42,12 @@ class RegistryAndSelectionTests(unittest.TestCase):
                 "s", "v1", StrategyLifecycle.EXPLORATION,
                 occurred_at="2026-01-01T00:01:00Z",
             )
-            self.assertEqual(StrategyRegistry(tmp / "strategies.jsonl")._latest[("s", "v1")].lifecycle, StrategyLifecycle.EXPLORATION)
+            self.assertEqual(
+                StrategyRegistry(tmp / "strategies.jsonl").current_head(
+                    "s", "v1"
+                ).lifecycle,
+                StrategyLifecycle.EXPLORATION,
+            )
 
             exclusions = ExclusionLedger(tmp / "coverage.jsonl")
             exclusions.append_exclusion(

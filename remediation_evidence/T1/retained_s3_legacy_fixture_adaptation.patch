@@ -1,0 +1,68 @@
+diff --git a/tests/test_astra_s3_v3_adversarial.py b/tests/test_astra_s3_v3_adversarial.py
+index 7c9cdad..1975803 100644
+--- a/tests/test_astra_s3_v3_adversarial.py
++++ b/tests/test_astra_s3_v3_adversarial.py
+@@ -321,12 +321,14 @@ class AstraV3AdversarialTests(unittest.TestCase):
+     def test_legacy_order_is_audit_replay_only_but_can_finish_settlement(self):
+         with scratch_directory() as root:
+             self._fixture(root / "v3-existence")
+-            from genesis.accounting import BetSide
++            from genesis.accounting import BetSide, SettlementKind
+             from genesis.execution import (
+                 CriticalEvidenceRefreshStore, ExecutionMarketStateStore,
+                 OrderIntent, OrderState, PaperExecutionAdapter,
+             )
++            from genesis.ledger import FillRecord, SettlementLedger
+             from genesis.registry import AppendOnlyJsonl, RegistryConflict
++            from genesis.release_proof import OfflinePaperReleaseProofStore
+             from genesis.risk import ExposureState, RiskApproval
+             from .test_remediation_r5_risk import build_risk
+@@ -409,18 +411,48 @@ class AstraV3AdversarialTests(unittest.TestCase):
+                 strategy_view=Active(),
+             )
+             self.assertEqual(reopened.get("legacy-key").state, OrderState.FULLY_MATCHED)
++            ledger = SettlementLedger(root / "ledger.jsonl")
++            ledger.record_fill(FillRecord(
++                fill_id="legacy-fill", order_id=intent.order_id,
++                candidate_decision_hash=legacy.candidate_decision_hash,
++                side=BetSide.BACK, odds="2", stake="5",
++                filled_at="2026-01-01T00:06:00Z",
++            ))
++            ledger.settle(
++                event_id="legacy-settlement", fill_id="legacy-fill",
++                kind=SettlementKind.WIN,
++                occurred_at="2026-01-01T00:30:00Z",
++            )
+             self.assertEqual(
+                 reopened.transition("legacy-key", OrderState.SETTLED,
+                                     occurred_at="2026-01-01T00:40:00Z").state,
+                 OrderState.SETTLED,
+             )
++            release_proofs = OfflinePaperReleaseProofStore(
++                root / "release-proofs.jsonl", risk=fixture["engine"],
++                execution=reopened, ledger=ledger,
++            )
++            proof_hash = release_proofs.issue_legacy_full_settlement(
++                intent.order_id, occurred_at="2026-01-01T00:41:00Z",
++            )
++            proof = release_proofs.validate_current(proof_hash)
++            qualification_row = next(
++                row for row in fixture["qualifications"].log.records()
++                if row.get("qualification_record_id") == legacy.qualification_record_id
++            )
++            self.assertEqual(
++                proof["legacy_qualification_record_hash"],
++                qualification_row["record_hash"],
++            )
++            self.assertNotIn("decision_output_hash", proof)
++            fixture["engine"].attach_release_proofs(release_proofs)
+             self.assertEqual(
+-                fixture["engine"].transition_reservation(
+-                    approval.approval_id, ExposureState.SETTLED,
+-                    occurred_at="2026-01-01T00:40:00Z",
++                fixture["engine"].release_with_proof(
++                    proof_hash, occurred_at="2026-01-01T00:42:00Z",
+                 ).state,
+                 ExposureState.SETTLED,
+             )
++            self.assertEqual(fixture["engine"].reserved_exposures(), ())

@@ -11,8 +11,8 @@ from .capabilities import MarketCapabilityRegistry
 from .canonical import CandidateBet
 from .decision import candidate_v3_decision_hash, decision_hash_for_candidate
 from .decision_output import (
-    DecisionOutputStore, StrategyOutputRuleBindingStore,
-    TrustedDecisionOutputAuthority,
+    APPROVAL_V2_PREFIX, DecisionOutputStore, StrategyOutputApprovalStore,
+    StrategyOutputRuleBindingStore, TrustedDecisionOutputAuthority,
 )
 from .evidence import StructuredEvidenceStore
 from .evidence_pack import EvidencePackStore
@@ -288,6 +288,7 @@ class QualificationRecordStore:
     def __init__(
         self, path: str | Path, *, outputs: DecisionOutputStore | None = None,
         bindings: StrategyOutputRuleBindingStore | None = None,
+        approvals: StrategyOutputApprovalStore | None = None,
     ):
         self.log = AppendOnlyJsonl(path)
         self.outputs = outputs or DecisionOutputStore(Path(path).parent / "decision-outputs")
@@ -295,6 +296,9 @@ class QualificationRecordStore:
             Path(path).parent / "strategy-output-bindings.jsonl"
         )
         self.approval_root = Path(path).parent / "strategy-output-approvals"
+        self.approvals = approvals or StrategyOutputApprovalStore(
+            Path(path).parent / "strategy-output-approvals-v2.jsonl"
+        )
 
     def _require_separate_approval(
         self, reference: str, *, binding_hash: str, decision_at: str,
@@ -302,6 +306,7 @@ class QualificationRecordStore:
         TrustedDecisionOutputAuthority(
             outputs=self.outputs, bindings=self.bindings, resolver=None,
             approval_root=self.approval_root,
+            approvals=self.approvals,
         )._validate_approval_reference(
             reference, binding_hash=binding_hash, decision_at=decision_at,
         )
@@ -570,6 +575,14 @@ class QualificationAuthority:
                     candidate.decision_output_hash, manifest=manifest,
                     pack=evidence_pack, contract=contract, policy=self.policy,
                 )
+                binding = self.decision_outputs.bindings.require_active(
+                    output["resolver_binding_hash"], output["decision_at"],
+                )
+                if binding["human_approval_reference"].startswith(APPROVAL_V2_PREFIX):
+                    approvals = self.decision_outputs.approvals
+                    if approvals is None or approvals.log.path.resolve() != \
+                            self.qualification_records.approvals.log.path.resolve():
+                        raise ValueError("qualification approval authorities are not bound")
                 if not _candidate_matches_output(candidate, output):
                     output = None
             except Exception:
@@ -792,6 +805,7 @@ class QualificationAuthority:
             self.feature_manifests.bindings.log,
             self.structured_evidence.evidence.contracts.log,
             self.decision_outputs.bindings.log,
+            self.qualification_records.approvals.log,
         )
         try:
             self.qualification_records.append(

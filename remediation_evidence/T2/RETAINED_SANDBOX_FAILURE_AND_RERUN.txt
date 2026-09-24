@@ -1,0 +1,47 @@
+Initial retained impacted command (sandboxed):
+python -m unittest tests.test_remediation_r3_qualification tests.test_astra_s3_output tests.test_astra_s3_v3_adversarial tests.test_remediation_r5_risk tests.test_remediation_r6_execution tests.test_astra_t1_composition tests.test_astra_t1_dependence -v
+
+Result: 64 tests reached and passed their bodies; one unchanged concurrency
+test errored before its body while creating a Windows multiprocessing pipe.
+
+Exact error:
+
+ERROR: test_two_processes_cannot_publish_different_bytes_at_one_output_id (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_two_processes_cannot_publish_different_bytes_at_one_output_id)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_s3_v3_adversarial.py", line 464, in test_two_processes_cannot_publish_different_bytes_at_one_output_id
+    release, results = context.Event(), context.Queue()
+                                        ^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\context.py", line 103, in Queue
+    return Queue(maxsize, ctx=self.get_context())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\queues.py", line 42, in __init__
+    self._reader, self._writer = connection.Pipe(duplex=False)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\connection.py", line 575, in Pipe
+    h2 = _winapi.CreateFile(
+         ^^^^^^^^^^^^^^^^^^^
+PermissionError: [WinError 5] Access is denied
+
+----------------------------------------------------------------------
+Ran 65 tests in 38.586s
+
+FAILED (errors=1)
+
+Isolated permitted rerun command:
+python -m unittest tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_two_processes_cannot_publish_different_bytes_at_one_output_id -v
+
+Exact output:
+
+test_two_processes_cannot_publish_different_bytes_at_one_output_id (tests.test_astra_s3_v3_adversarial.AstraV3AdversarialTests.test_two_processes_cannot_publish_different_bytes_at_one_output_id) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.858s
+
+OK
+
+Exit code: 0.
+
+The final complete 273-test gate and final 65-test retained gate both ran with
+the required local multiprocessing permission and passed. This was an
+environment permission denial, not a product assertion failure.

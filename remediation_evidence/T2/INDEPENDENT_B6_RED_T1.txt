@@ -1,0 +1,27 @@
+Command (repository root, sealed T1 production):
+python -m unittest tests.test_astra_t2_b6_approval -v
+
+Exit code: 1
+
+test_concurrent_reservation_and_publication_are_single_winner (tests.test_astra_t2_b6_approval.AstraT2B6ApprovalTests.test_concurrent_reservation_and_publication_are_single_winner) ... FAIL
+test_historical_identity_golden_hashes_are_unchanged (tests.test_astra_t2_b6_approval.AstraT2B6ApprovalTests.test_historical_identity_golden_hashes_are_unchanged) ... ok
+test_legacy_v1_content_hash_note_remains_valid (tests.test_astra_t2_b6_approval.AstraT2B6ApprovalTests.test_legacy_v1_content_hash_note_remains_valid) ... ok
+test_missing_wrong_future_tampered_and_revoked_approval_fail_closed (tests.test_astra_t2_b6_approval.AstraT2B6ApprovalTests.test_missing_wrong_future_tampered_and_revoked_approval_fail_closed) ... FAIL
+test_reserved_reference_constructs_final_binding_and_real_validator_accepts (tests.test_astra_t2_b6_approval.AstraT2B6ApprovalTests.test_reserved_reference_constructs_final_binding_and_real_validator_accepts) ... FAIL
+test_restart_and_exact_replay_are_idempotent (tests.test_astra_t2_b6_approval.AstraT2B6ApprovalTests.test_restart_and_exact_replay_are_idempotent) ... FAIL
+test_wrong_scope_and_absent_real_authority_fail_closed (tests.test_astra_t2_b6_approval.AstraT2B6ApprovalTests.test_wrong_scope_and_absent_real_authority_fail_closed) ... FAIL
+
+All five failures are the same explicit invariant assertion at
+`approval_store()`:
+
+AssertionError: unexpectedly None : B6 RED: production has no durable acyclic approval owner
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.223s
+
+FAILED (failures=5)
+
+RED quality check: five assertion failures, zero errors. The two frozen
+historical compatibility controls already pass on T1. The tests dynamically
+look up the missing production owner so collection/import succeeds without
+weakening the real validator.

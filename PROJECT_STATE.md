@@ -1,6 +1,6 @@
 # Project Genesis state
 
-Updated: 2026-09-24
+Updated: 2026-09-25
 
 ## Current milestone
 
@@ -8,9 +8,10 @@ The V2.1 R0–R10 checkpoint was independently audited at `166f923`.
 Astra returned **HOLD / NOT APPROVED** (A1 CRITICAL, A2–A8 HIGH). S1 through
 S5 locally repaired A1–A8, ending at clean commit `27dd525`. The independent
 post-S5 hostile audit then returned **HOLD / NOT APPROVED** with B1–B8. T1
-locally repairs only B1, B2, B3 and B7 over that exact base. Its final full
-suite is 266/266 green, but B4, B5, B6 and B8 remain open and T1 still requires
-hostile review. The original R0–R10 and S1–S5 histories and all failed
+locally repairs B1, B2, B3 and B7 over that exact base. T2 locally repairs B6
+over sealed T1 commit `d130c21668b769c371cfa4a4a75c3f382af1af71`; the
+resulting full suite is 273/273 green. B4, B5 and B8 remain open, and T1/T2
+still require hostile review. The original R0–R10 and S1–S5 histories and all failed
 reproduction evidence are preserved.
 
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
@@ -81,6 +82,13 @@ system, or £100 canary was added.
   until an exact durable order/fill/settlement proof is validated under the same
   fence. Bare `SETTLED`, `VOID` or cancellation labels cannot create capacity;
   a late fill or incompatible correction restores UNKNOWN/full charge.
+- T2 supplies an acyclic, operator-owned approval workflow while preserving the
+  exact ADR-0002 binding-v1 preimage. A stable PAPER-only v2 reference is
+  reserved first, the final binding hash is then computed, and an exact later
+  human grant binds the two in a closed append-only ledger. Revocation and the
+  approval head are fenced through qualification, risk and submission actions.
+  Historical v1 approval notes and all candidate-v1/v2/v3 hashes retain their
+  exact prior meanings.
 - Settlement has one current economic head per fill. Corrections, voids, and
   cancellations require the current same-fill head and record distinct
   `delta_pnl` and `effective_pnl`.
@@ -266,6 +274,31 @@ Detailed traceability and results are under `remediation_evidence/R0` through
   overall hostile-audit HOLD remain. No adapter, strategy, shadow-research,
   protected-campaign or live-money GO follows.
 
+## T2 verification (local B6 checkpoint)
+
+- T2 begins at sealed T1 commit
+  `d130c21668b769c371cfa4a4a75c3f382af1af71`, tree
+  `15253d9c3b8e474509e05d43f10db04b7b949b4a`. No T1 history was amended.
+- Astra's original unmodified B6 probe is preserved as assertion-based RED:
+  one intended failure and zero errors. The independent seven-test module was
+  also RED on T1 with five explicit missing-owner invariant failures and zero
+  errors; its two historical identity controls were already green.
+- `T2_B6_DECISION_MEMO.md` classifies the repair as B: compatible versioned
+  schema/interface evolution under approved ADR-0002, not a substantive
+  contract change. The legacy raw-content-hash v1 path is unchanged.
+- The genuine reserve -> final binding -> grant workflow passes through the
+  unmodified production validator. Missing, wrong, future, tampered and revoked
+  grants; wrong scope/binding; absent authority; restart/replay; and concurrent
+  publication all fail or serialize as required. Golden v1/v2/v3 candidate and
+  binding hashes are unchanged.
+- Targeted T2 passed 7/7. The final full repository passed 273/273 in 165.800 seconds
+  and `python -m compileall -q src tests` passed. One earlier retained targeted
+  run had a Windows sandbox `CreateFile` permission error before an unchanged
+  multiprocessing test body; the exact isolated permitted rerun passed 1/1.
+- This is local B6 closure only. B4, B5 and B8 and the overall hostile-audit
+  HOLD remain. No actual strategy binding/model/rule, adapter, shadow research,
+  protected campaign or live-money GO is granted.
+
 ## Compatibility and migration state
 
 Legacy records remain readable only where an explicit deterministic migration is
@@ -278,8 +311,8 @@ settlement, or quota intent is inferred.
 
 - The independent R10 hostile audit occurred and returned HOLD. A fresh
   A-finding re-audit occurred after S5 and returned HOLD with B1–B8. T1 locally
-  repairs B1/B2/B3/B7 only; B4/B5/B6/B8 remain unresolved and T1 has not yet
-  received hostile approval.
+  repairs B1/B2/B3/B7 and T2 locally repairs B6; B4/B5/B8 remain unresolved
+  and neither checkpoint has received hostile approval.
 - The OddsPapi 250-call ceiling is a planning assumption, not verified provider
   evidence; no provider integration exists.
 - S5 establishes the local test-harness research/evaluator process boundary,
@@ -292,7 +325,7 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Review the exact T1 commit and evidence, then hostile-test its B1/B2/B3/B7
-composition. Continue only with the still-open B4/B5/B6/B8 remediation under
+Review the exact T1 and T2 commits/evidence, then hostile-test their composition.
+Continue only with the still-open B4/B5/B8 remediation under
 their dependency and authority constraints. Explicit audit/checkpoint approval
 remains mandatory before any adapter or later Genesis phase.

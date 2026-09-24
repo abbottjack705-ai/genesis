@@ -1,6 +1,6 @@
 # Test evidence
 
-Updated: 2026-09-24
+Updated: 2026-09-25
 
 ## Current audit disposition and staged gates
 
@@ -66,8 +66,18 @@ retained R0–R10 plus S1–S5 passed 196/196, full discovery passed 266/266 in
 865.285 seconds, and the explicit restart/concurrency/crash gate passed 36/36.
 `compileall` and `git diff --check` passed. Exact commands, output identities,
 retained-fixture reconciliation and the authority decision memo are in
-`remediation_evidence/T1/`. **B4/B5/B6/B8 and the overall HOLD remain; no GO
-is granted.**
+`remediation_evidence/T1/`.
+
+T2 starts from sealed T1 `d130c21668b769c371cfa4a4a75c3f382af1af71` and
+addresses B6 only. The original unmodified Astra B6 probe produced its intended
+assertion failure with zero errors. The independent T2 module was RED with five
+assertion failures and zero errors, while both legacy identity controls passed.
+After the versioned acyclic approval-ledger repair it passed 7/7. The full
+final repository gate passed 273/273 in 165.800 seconds and `compileall` passed. A
+retained targeted run's one pre-test Windows pipe permission denial is preserved;
+the exact isolated permitted rerun passed. Exact commands and evidence are in
+`remediation_evidence/T2/`. **B4/B5/B8 and the overall HOLD remain; no GO is
+granted.**
 
 ## Deterministic gate
 
@@ -121,6 +131,7 @@ protected external dataset or historical outcome source.
 | T1 B2 current portfolio | `test_astra_t1_portfolio.py` — 5 tests |
 | T1 B3 proof-bearing release | `test_astra_t1_release.py`, `test_astra_t1_release_proof.py`, `test_astra_t1_release_integration.py`, `test_astra_t1_release_concurrency.py`, `test_astra_t1_legacy_release.py` — 38 tests |
 | T1 B7 strategy/mode fencing and composition | `test_astra_t1_strategy.py`, `test_astra_t1_mode.py`, `test_astra_t1_composition.py` — 18 tests |
+| T2 B6 acyclic exact human approval | `test_astra_t2_b6_approval.py` — 7 tests |
 
 Individual test methods combine closely related rows of the binding T-F01
 through T-F15 matrix. Each batch checkpoint records the exact matrix rows it
@@ -150,6 +161,10 @@ the production functions and primary tests.
   four-failure legacy-v2 compatibility RED before the additive proof schema.
   No failed transcript was replaced; `remediation_evidence/T1/GREEN_FINAL.md`
   records the final gates.
+- T2 preserved Astra's original B6 cycle reproduction unchanged, then added an
+  independent assertion-based RED suite on sealed T1 before production edits.
+  The authority classification memo preceded the compatible versioned repair;
+  no ADR content or historical identity was rewritten.
 
 ## Concurrency and fault stress
 
@@ -235,6 +250,6 @@ cloud cost, sport/market semantics, venue reconciliation, deployed protected
 service isolation, or live readiness. No strategy search, outcome experiment,
 external call or real protected campaign was run.
 
-The implementation remains NO-GO for a read-only adapter. T1's local green
-does not resolve B4/B5/B6/B8 or replace hostile review and explicit checkpoint
+The implementation remains NO-GO for a read-only adapter. T1/T2 local green
+does not resolve B4/B5/B8 or replace hostile review and explicit checkpoint
 approval.

@@ -559,6 +559,7 @@ class PaperExecutionAdapter:
             build, read_locks=(
                 self.risk.audit_log.log, self.risk.qualifications.log,
                 self.risk.qualifications.bindings.log,
+                self.risk.qualifications.approvals.log,
             ),
         )
         return result["value"]
@@ -722,6 +723,7 @@ class PaperExecutionAdapter:
             self.risk.safety.log,
             self.risk.qualifications.log,
             self.risk.qualifications.bindings.log,
+            self.risk.qualifications.approvals.log,
             self.markets.log,
             self.refreshes.log,
             *self.risk._release_read_locks_for(release_proofs),
@@ -786,7 +788,8 @@ class PaperExecutionAdapter:
             read_locks=(
                 self.risk.audit_log.log, self.risk.bankrolls.log,
                 self.risk.safety.log, self.risk.qualifications.log,
-                self.risk.qualifications.bindings.log, self.markets.log,
+                self.risk.qualifications.bindings.log,
+                self.risk.qualifications.approvals.log, self.markets.log,
                 self.refreshes.log, strategy_view.log, mode_states.log,
                 *self.risk._release_read_locks_for(release_proofs),
             ),

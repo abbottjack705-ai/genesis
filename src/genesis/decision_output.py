@@ -282,6 +282,263 @@ class StrategyOutputRuleBindingStore:
         return self._require_from_rows(self.log.records(), digest, at)
 
 
+APPROVAL_V2_PREFIX = "strategy-output-approval-v2:"
+_CHAIN_FIELDS = frozenset({"previous_hash", "sequence", "record_hash"})
+_APPROVAL_RESERVATION_FIELDS = frozenset({
+    "record_type", "schema_version", "request_id", "reserved_by",
+    "reserved_at", "scope",
+})
+_APPROVAL_GRANT_FIELDS = frozenset({
+    "record_type", "schema_version", "approval_reference", "binding_hash",
+    "approved_by", "approved_at", "scope",
+})
+_APPROVAL_REVOCATION_FIELDS = frozenset({
+    "record_type", "schema_version", "approval_reference", "binding_hash",
+    "revoked_by", "revoked_at", "reason", "scope",
+})
+
+
+def _nonempty(value: object, name: str) -> str:
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"{name} must be a nonempty string")
+    return value
+
+
+def _approval_v2_reference(reference: object) -> str:
+    if not isinstance(reference, str) or not reference.startswith(APPROVAL_V2_PREFIX):
+        raise ValueError("unsupported strategy-output approval reference")
+    suffix = reference[len(APPROVAL_V2_PREFIX):]
+    _digest(suffix, "strategy-output approval reservation hash")
+    return reference
+
+
+class StrategyOutputApprovalStore:
+    """Operator-owned acyclic approval history for exact binding-v1 hashes.
+
+    The reference is reserved first and remains part of the unchanged binding
+    preimage.  A later human grant binds that stable reference to the final
+    binding hash.  The legacy v1 content-addressed note contract remains a
+    separate read path in ``TrustedDecisionOutputAuthority``.
+    """
+
+    def __init__(self, path: str | Path):
+        self.log = AppendOnlyJsonl(path)
+
+    @staticmethod
+    def _replay(rows: tuple[dict, ...] | list[dict]) -> dict[str, dict[str, dict]]:
+        reservations: dict[str, dict] = {}
+        requests: dict[str, dict] = {}
+        grants: dict[str, dict] = {}
+        revocations: dict[str, dict] = {}
+
+        for row in rows:
+            record_type = row.get("record_type")
+            if record_type == "strategy_output_approval_reference_reserved":
+                if set(row) != _CHAIN_FIELDS | _APPROVAL_RESERVATION_FIELDS:
+                    raise RegistryConflict("approval reservation has an unsupported schema")
+                if row.get("schema_version") != "strategy-output-approval-reference-v2" \
+                        or row.get("scope") != "PAPER":
+                    raise RegistryConflict("unsupported approval reservation version or scope")
+                request_id = _nonempty(row.get("request_id"), "approval request ID")
+                _nonempty(row.get("reserved_by"), "approval reserving operator")
+                if row.get("reserved_at") != iso_utc(row.get("reserved_at")):
+                    raise RegistryConflict("approval reservation time is not canonical UTC")
+                reference = APPROVAL_V2_PREFIX + row["record_hash"]
+                if reference in reservations or request_id in requests:
+                    raise RegistryConflict("duplicate strategy-output approval reservation")
+                reservations[reference] = row
+                requests[request_id] = row
+                continue
+
+            if record_type == "strategy_output_approval_granted":
+                if set(row) != _CHAIN_FIELDS | _APPROVAL_GRANT_FIELDS:
+                    raise RegistryConflict("approval grant has an unsupported schema")
+                if row.get("schema_version") != "strategy-output-approval-v2" \
+                        or row.get("scope") != "PAPER":
+                    raise RegistryConflict("unsupported approval grant version or scope")
+                reference = _approval_v2_reference(row.get("approval_reference"))
+                _digest(row.get("binding_hash"), "approved binding hash")
+                _nonempty(row.get("approved_by"), "binding approver")
+                if row.get("approved_at") != iso_utc(row.get("approved_at")):
+                    raise RegistryConflict("approval grant time is not canonical UTC")
+                reservation = reservations.get(reference)
+                if reservation is None:
+                    raise RegistryConflict("approval grant has no prior reservation")
+                if parse_utc(row["approved_at"]) < parse_utc(reservation["reserved_at"]):
+                    raise RegistryConflict("approval grant predates its reservation")
+                if reference in grants:
+                    raise RegistryConflict("duplicate or conflicting strategy-output approval")
+                grants[reference] = row
+                continue
+
+            if record_type == "strategy_output_approval_revoked":
+                if set(row) != _CHAIN_FIELDS | _APPROVAL_REVOCATION_FIELDS:
+                    raise RegistryConflict("approval revocation has an unsupported schema")
+                if row.get("schema_version") != "strategy-output-approval-v2" \
+                        or row.get("scope") != "PAPER":
+                    raise RegistryConflict("unsupported approval revocation version or scope")
+                reference = _approval_v2_reference(row.get("approval_reference"))
+                _digest(row.get("binding_hash"), "revoked binding hash")
+                _nonempty(row.get("revoked_by"), "approval revoking operator")
+                _nonempty(row.get("reason"), "approval revocation reason")
+                if row.get("revoked_at") != iso_utc(row.get("revoked_at")):
+                    raise RegistryConflict("approval revocation time is not canonical UTC")
+                grant = grants.get(reference)
+                if grant is None or grant["binding_hash"] != row["binding_hash"]:
+                    raise RegistryConflict("approval revocation lacks its exact prior grant")
+                if parse_utc(row["revoked_at"]) < parse_utc(grant["approved_at"]):
+                    raise RegistryConflict("approval revocation predates its grant")
+                if reference in revocations:
+                    raise RegistryConflict("duplicate or conflicting approval revocation")
+                revocations[reference] = row
+                continue
+
+            raise RegistryConflict("unsupported strategy-output approval history")
+
+        return {
+            "reservations": reservations,
+            "requests": requests,
+            "grants": grants,
+            "revocations": revocations,
+        }
+
+    def reserve(
+        self, *, request_id: str, reserved_by: str, reserved_at: str,
+        scope: str = "PAPER",
+    ) -> str:
+        request_id = _nonempty(request_id, "approval request ID")
+        reserved_by = _nonempty(reserved_by, "approval reserving operator")
+        timestamp = iso_utc(reserved_at)
+        if scope != "PAPER":
+            raise ValueError("strategy-output approvals are PAPER-only")
+        payload = {
+            "record_type": "strategy_output_approval_reference_reserved",
+            "schema_version": "strategy-output-approval-reference-v2",
+            "request_id": request_id,
+            "reserved_by": reserved_by,
+            "reserved_at": timestamp,
+            "scope": scope,
+        }
+        result: dict[str, str] = {}
+
+        def build(rows: tuple[dict, ...]) -> dict | None:
+            state = self._replay(rows)
+            existing = state["requests"].get(request_id)
+            if existing is not None:
+                expected = {name: existing.get(name) for name in payload}
+                if expected != payload:
+                    raise RegistryConflict("approval request ID was reused")
+                result["reference"] = APPROVAL_V2_PREFIX + existing["record_hash"]
+                return None
+            return payload
+
+        record_hash = self.log.transaction(build)
+        if record_hash is not None:
+            result["reference"] = APPROVAL_V2_PREFIX + record_hash
+        return result["reference"]
+
+    def grant(
+        self, reference: str, *, binding_hash: str, approved_by: str,
+        approved_at: str, scope: str = "PAPER",
+    ) -> None:
+        reference = _approval_v2_reference(reference)
+        _digest(binding_hash, "approved binding hash")
+        approved_by = _nonempty(approved_by, "binding approver")
+        timestamp = iso_utc(approved_at)
+        if scope != "PAPER":
+            raise ValueError("strategy-output approvals are PAPER-only")
+        payload = {
+            "record_type": "strategy_output_approval_granted",
+            "schema_version": "strategy-output-approval-v2",
+            "approval_reference": reference,
+            "binding_hash": binding_hash,
+            "approved_by": approved_by,
+            "approved_at": timestamp,
+            "scope": scope,
+        }
+
+        def build(rows: tuple[dict, ...]) -> dict | None:
+            state = self._replay(rows)
+            reservation = state["reservations"].get(reference)
+            if reservation is None:
+                raise RegistryConflict("unknown strategy-output approval reservation")
+            if parse_utc(timestamp) < parse_utc(reservation["reserved_at"]):
+                raise RegistryConflict("approval grant predates its reservation")
+            if reference in state["revocations"]:
+                raise RegistryConflict("revoked approval reference cannot be re-granted")
+            existing = state["grants"].get(reference)
+            if existing is not None:
+                expected = {name: existing.get(name) for name in payload}
+                if expected == payload:
+                    return None
+                raise RegistryConflict("approval reference was granted differently")
+            return payload
+
+        self.log.transaction(build)
+
+    def revoke(
+        self, reference: str, *, binding_hash: str, revoked_by: str,
+        revoked_at: str, reason: str, scope: str = "PAPER",
+    ) -> None:
+        reference = _approval_v2_reference(reference)
+        _digest(binding_hash, "revoked binding hash")
+        revoked_by = _nonempty(revoked_by, "approval revoking operator")
+        reason = _nonempty(reason, "approval revocation reason")
+        timestamp = iso_utc(revoked_at)
+        if scope != "PAPER":
+            raise ValueError("strategy-output approvals are PAPER-only")
+        payload = {
+            "record_type": "strategy_output_approval_revoked",
+            "schema_version": "strategy-output-approval-v2",
+            "approval_reference": reference,
+            "binding_hash": binding_hash,
+            "revoked_by": revoked_by,
+            "revoked_at": timestamp,
+            "reason": reason,
+            "scope": scope,
+        }
+
+        def build(rows: tuple[dict, ...]) -> dict | None:
+            state = self._replay(rows)
+            grant = state["grants"].get(reference)
+            if grant is None or grant["binding_hash"] != binding_hash:
+                raise RegistryConflict("cannot revoke an unapproved binding")
+            if parse_utc(timestamp) < parse_utc(grant["approved_at"]):
+                raise RegistryConflict("approval revocation predates its grant")
+            existing = state["revocations"].get(reference)
+            if existing is not None:
+                expected = {name: existing.get(name) for name in payload}
+                if expected == payload:
+                    return None
+                raise RegistryConflict("approval reference was revoked differently")
+            return payload
+
+        self.log.transaction(build)
+
+    def require_approved(
+        self, reference: str, *, binding_hash: str, decision_at: str,
+    ) -> dict:
+        reference = _approval_v2_reference(reference)
+        _digest(binding_hash, "approved binding hash")
+        at = iso_utc(decision_at)
+        state = self._replay(self.log.records())
+        if reference not in state["reservations"]:
+            raise RegistryConflict("unknown strategy-output approval reference")
+        grant = state["grants"].get(reference)
+        if grant is None or grant["binding_hash"] != binding_hash:
+            raise RegistryConflict("strategy-output approval is missing or mismatched")
+        if reference in state["revocations"]:
+            raise RegistryConflict("strategy-output approval is revoked")
+        if parse_utc(grant["approved_at"]) > parse_utc(at):
+            raise RegistryConflict("strategy-output approval postdates the decision")
+        return dict(grant)
+
+    def verify(self) -> int:
+        rows = self.log.records()
+        self._replay(rows)
+        return len(rows)
+
+
 class PinnedDecisionResolver(Protocol):
     artifact_hash: str
 
@@ -299,17 +556,26 @@ class TrustedDecisionOutputAuthority:
         bindings: StrategyOutputRuleBindingStore,
         resolver: PinnedDecisionResolver | None,
         approval_root: str | Path | None = None,
+        approvals: StrategyOutputApprovalStore | None = None,
     ):
         self.outputs = outputs
         self.bindings = bindings
         self.resolver = resolver
         self.approval_root = Path(approval_root) if approval_root is not None else None
+        self.approvals = approvals
 
     def _validate_approval_reference(
         self, reference: str, *, binding_hash: str, decision_at: str,
     ) -> None:
         """Resolve a separate operator-owned exact approval, not a caller string."""
 
+        if reference.startswith(APPROVAL_V2_PREFIX):
+            if self.approvals is None:
+                raise ValueError("no versioned strategy-output approval authority exists")
+            self.approvals.require_approved(
+                reference, binding_hash=binding_hash, decision_at=decision_at,
+            )
+            return
         if self.approval_root is None:
             raise ValueError("no separately approved strategy-output authority exists")
         _digest(reference, "human approval reference")

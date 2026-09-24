@@ -1,0 +1,29 @@
+Command (repository root, sealed T1):
+python -c "import json,runpy,unittest; p=runpy.run_path(r'..\\..\\outputs\\GENESIS_V04_S5_ASTRA_PROBES.py',run_name='astra_b6_red'); c=p['NewInvariants']; s=unittest.TestSuite([c('test_b6_separate_approval_has_no_circular_identity_dependency')]); x=unittest.TextTestRunner(verbosity=2).run(s); print('SEALED_T1_SHA=d130c21668b769c371cfa4a4a75c3f382af1af71'); print('OBSERVATION='+repr(p['OBSERVATIONS'].get('B6'))); print('RUN='+str(x.testsRun)); print('FAILURES='+str(len(x.failures))); print('ERRORS='+str(len(x.errors))); raise SystemExit(not x.wasSuccessful())"
+
+Exit code: 1
+
+test_b6_separate_approval_has_no_circular_identity_dependency (astra_b6_red.NewInvariants.test_b6_separate_approval_has_no_circular_identity_dependency) ... FAIL
+
+======================================================================
+FAIL: test_b6_separate_approval_has_no_circular_identity_dependency (astra_b6_red.NewInvariants.test_b6_separate_approval_has_no_circular_identity_dependency)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "..\\..\\outputs\\GENESIS_V04_S5_ASTRA_PROBES.py", line 309, in test_b6_separate_approval_has_no_circular_identity_dependency
+    self.assertTrue(approved,
+AssertionError: False is not true : ordinary separate approval cannot validate: final binding hash changes its own approval reference
+
+----------------------------------------------------------------------
+Ran 1 test in 0.631s
+
+FAILED (failures=1)
+SEALED_T1_SHA=d130c21668b769c371cfa4a4a75c3f382af1af71
+OBSERVATION={'binding_hash_before_approval': '64d8935e55f58e11c1b9d4644e4cf7dda8b0bd82d0a987527678bebf6595b842', 'approval_content_hash': '6ad9b663645b4dc90bc2fbd75d005c0a45c42b8aa81645fd9c8a0b69c257bd67', 'binding_hash_after_approval': '8b5afa9cab3a0178144ae44d7566fc6f004026f59d9f2877aecd484848f56324', 'approval_validation': 'rejected', 'repository_positive_fixtures_override_validator': True}
+RUN=1
+FAILURES=1
+ERRORS=0
+
+Interpretation: assertion-based RED using Astra's original, unmodified B6
+probe and the production `TrustedDecisionOutputAuthority` validator. There
+were zero import/setup errors. The test-only synthetic validator overrides in
+the retained suite are not used by this reproduction.

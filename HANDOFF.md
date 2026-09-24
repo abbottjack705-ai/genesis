@@ -1,7 +1,7 @@
 # Project Genesis V0.4 remediation handoff
 
-Date: 2026-09-24
-Status: **Post-S5 Astra HOLD; T1 B1/B2/B3/B7 locally green; B4/B5/B6/B8 open; adapter NO-GO**
+Date: 2026-09-25
+Status: **Post-S5 Astra HOLD; T1 B1/B2/B3/B7 and T2 B6 locally green; B4/B5/B8 open; adapter NO-GO**
 
 ## S1 continuation notice
 
@@ -83,10 +83,37 @@ T1 is not an overall audit closure. B4, B5, B6 and B8 remain HOLD, and no
 adapter, strategy, shadow-research, protected-campaign or live-money GO is
 granted.
 
+## T2 B6 checkpoint
+
+T2 starts from the immutable T1 commit
+`d130c21668b769c371cfa4a4a75c3f382af1af71`. The original B6 probe remains
+preserved RED. The pre-production decision memo classifies the repair as a
+compatible versioned interface evolution under approved ADR-0002: the binding-v1
+preimage still contains its nonempty approval reference and its hash algorithm
+is unchanged.
+
+The new operator-owned approval ledger reserves a stable PAPER-only
+`strategy-output-approval-v2:<reservation-record-hash>` reference before the
+binding is finalized. A later exact human grant binds that reference to the
+final binding hash; revocation blocks subsequent authorization. Historical raw
+64-hex v1 note resolution retains its exact content-addressed semantics. The
+approval head joins qualification, risk, intent, recertification, pending and
+send fences.
+
+The independent T2 tests prove the genuine unmodified-validator positive path;
+missing/wrong/future/tampered/revoked approval; wrong binding/scope; absent
+authority; restart/idempotent replay; concurrent publication; and frozen
+v1/v2/v3/binding hashes. T2 passed 7/7 and the complete repository passed
+273/273; `compileall` passed. Evidence and the authority memo are under
+`remediation_evidence/T2/`.
+
+T2 supplies no actual strategy-specific approval. B4, B5 and B8 remain HOLD,
+and no adapter, shadow-research, protected-campaign or live-money GO is granted.
+
 ## Review decision requested
 
-Review the exact committed T1 tree and hostile-test the B1/B2/B3/B7 composition.
-Do not treat T1 as resolution of B4/B5/B6/B8 or approve later strategy,
+Review the exact committed T1 and T2 trees and hostile-test their composition.
+Do not treat them as resolution of B4/B5/B8 or approve later strategy,
 provider, cloud, venue or live work through these local results. Until all
 remaining findings, hostile re-audit and explicit checkpoint approval are
 complete, the adapter decision remains NO-GO.
@@ -155,7 +182,9 @@ Read in this order:
 5. production modules and primary remediation tests named by the traceability map;
 6. `remediation_evidence/T1/LEGACY_V2_RELEASE_DECISION_MEMO.md`,
    `RED_EVIDENCE.md`, retained-fixture reconciliations and `GREEN_FINAL.md`;
-7. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle.
+7. `remediation_evidence/T2/T2_B6_DECISION_MEMO.md`, both RED transcripts and
+   `GREEN_FINAL.md`;
+8. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle.
 
 Re-run:
 
@@ -192,8 +221,8 @@ canary was implemented or run. The objective and V0.4 risk laws were not changed
 These are deliberately unresolved external or later-phase facts, not hidden
 implementation claims:
 
-1. Do B4/B5/B6/B8 remain CRITICAL/HIGH blockers after their future repair, and
-   does hostile review approve the T1 B1/B2/B3/B7 composition?
+1. Do B4/B5/B8 remain CRITICAL/HIGH blockers after their future repair, and
+   does hostile review approve the T1/T2 composition including B6?
 2. Which real provider/source can prove entitlement, PIT availability, revisions
    and current quota terms? The 250 OddsPapi allowance is unverified.
 3. What separately reviewed deployment boundary will host real protected labels?
@@ -206,5 +235,5 @@ implementation claims:
 
 The original R10 handoff stopped for its independent audit. That audit returned
 HOLD; S1–S5 locally addressed A1–A8, and the post-S5 audit returned HOLD with
-B1–B8. T1 addresses only B1/B2/B3/B7. No next Genesis product phase is
-authorized.
+B1–B8. T1 addresses B1/B2/B3/B7 and T2 addresses B6 locally. B4/B5/B8
+remain. No next Genesis product phase is authorized.

@@ -1,6 +1,6 @@
 # Project Genesis architecture
 
-## Audit disposition (2026-09-24)
+## Audit disposition (2026-09-25)
 
 Astra's independent audit of R10 commit `166f923` returned **HOLD / NOT
 APPROVED**. S1 locally closed A1/A2; S2a/S2b locally closed A3/A7; S3a
@@ -9,8 +9,9 @@ decision outputs to candidate-v3 and downstream new-risk/order lineage.
 S4 locally closes A6's cache-authority defect. S5 locally closes A8's
 process/address-space defect under approved ADR-0003 v1. The independent
 post-S5 hostile audit of commit `27dd525` then returned **HOLD / NOT APPROVED**
-with B1-B8. T1 locally repairs only B1, B2, B3 and B7. B4, B5, B6 and B8 remain
-open, and the T1 work still requires hostile review. This diagram is a
+with B1-B8. T1 locally repairs B1, B2, B3 and B7. T2 locally repairs B6's
+circular approval construction without changing the approved binding preimage.
+B4, B5 and B8 remain open, and T1/T2 still require hostile review. This diagram is a
 foundation map, not an adapter, shadow-research, protected-campaign or
 live-money GO.
 
@@ -76,6 +77,12 @@ release only from a durable exact reconciliation proof. The T1 legacy-v2 path
 is a separate audit-settlement-only schema: it can finish an already existing
 matched PAPER order, but can never authorize qualification, new risk, pending
 or send.
+T2 adds an operator-owned append-only approval ledger. A PAPER-only v2 approval
+reference is reserved before the unchanged binding-v1 hash is computed; a
+subsequent exact human grant binds that stable reference to the final binding
+hash. Qualification, risk, intent, pending and send fence the approval ledger
+head with their durable append. Historical raw-64-hex v1 approval-note meaning
+and all binding/candidate/output hash algorithms are unchanged.
 Recovery must not silently heal, truncate, choose a branch, or infer missing
 identity.
 
@@ -158,6 +165,12 @@ SettlementLedger
   trusted side and existing output band. Revocation blocks new risk and sends.
   No strategy-specific model, tier formula or expiry rule is approved here:
   operational qualification remains fail-closed without separate approval.
+- T2 resolves B6 with the disjoint
+  `strategy-output-approval-v2:<reservation-record-hash>` namespace. Reservation,
+  exact grant and revocation are closed append-only events; missing, wrong,
+  future-dated, conflicting, tampered or revoked authority fails closed. The
+  namespace is plumbing only: it does not approve any actual model, calibration,
+  strategy tier formula/cutoff or expiry duration.
 - T1 makes `DecisionOutput-v1.correlation_cluster_ids` authoritative for risk.
   A caller's non-empty copy is comparison-only and must match; omission cannot
   erase dependence. The canonical output membership is persisted on the risk

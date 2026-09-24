@@ -1,0 +1,30 @@
+Additional B5 adversaries found during the pre-seal diff review.
+
+Sealed-T2 command:
+python -c "import sys,unittest,subprocess; from pathlib import Path; base=Path(r'..\t3-red-t2').resolve(); sys.path.insert(0,str(base/'src')); import genesis; print('SEALED_T2_SHA='+subprocess.check_output(['git','-C',str(base),'rev-parse','HEAD'],text=True).strip(),flush=True); print('GENESIS_SOURCE='+genesis.__file__,flush=True); names=['tests.test_astra_t3_protected_integrity.AstraT3ReachableStateTests.test_class_state_reachable_through_instance_is_rejected','tests.test_astra_t3_protected_integrity.AstraT3ReachableStateTests.test_from_imported_holder_class_is_rejected']; suite=unittest.TestSuite(unittest.defaultTestLoader.loadTestsFromName(name) for name in names); result=unittest.TextTestRunner(verbosity=2).run(suite); sys.exit(not result.wasSuccessful())"
+
+Exit code: 1
+
+SEALED_T2_SHA=4214f38886d5046f76a3fa8002889f02a701187f
+GENESIS_SOURCE=C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\t3-red-t2\src\genesis\__init__.py
+test_class_state_reachable_through_instance_is_rejected ... FAIL
+test_from_imported_holder_class_is_rejected ... FAIL
+
+======================================================================
+FAIL: test_class_state_reachable_through_instance_is_rejected
+----------------------------------------------------------------------
+AssertionError: B5 RED: t3_class_state_holder reached protected evaluation
+
+======================================================================
+FAIL: test_from_imported_holder_class_is_rejected
+----------------------------------------------------------------------
+AssertionError: ProtectedEvaluationError not raised : B5 RED: from-imported class state was assumed label-free
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.756s
+
+FAILED (failures=2)
+
+The identical two methods were also run against the current pre-fix T3 worker.
+They produced the same two invariant assertion failures, zero errors, in 1.596s.
+These failures are behavioral—not collection, import, setup or launch errors.

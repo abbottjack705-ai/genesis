@@ -1,0 +1,43 @@
+Command (repository root, sealed T2):
+python -c "import runpy,unittest; p=runpy.run_path(r'..\\..\\outputs\\GENESIS_V04_S5_ASTRA_PROBES.py',run_name='astra_t3_red'); c=p['NewInvariants']; s=unittest.TestSuite([c('test_b4_cached_module_cannot_impersonate_changed_program_bytes'),c('test_b5_raw_label_inside_object_is_rejected')]); x=unittest.TextTestRunner(verbosity=2).run(s); print('SEALED_T2_SHA=4214f38886d5046f76a3fa8002889f02a701187f'); print('B4_OBSERVATION='+repr(p['OBSERVATIONS'].get('B4'))); print('B5_OBSERVATION='+repr(p['OBSERVATIONS'].get('B5'))); print('RUN='+str(x.testsRun)); print('FAILURES='+str(len(x.failures))); print('ERRORS='+str(len(x.errors))); raise SystemExit(not x.wasSuccessful())"
+
+Exit code: 1
+
+test_b4_cached_module_cannot_impersonate_changed_program_bytes (astra_t3_red.NewInvariants.test_b4_cached_module_cannot_impersonate_changed_program_bytes) ... FAIL
+test_b5_raw_label_inside_object_is_rejected (astra_t3_red.NewInvariants.test_b5_raw_label_inside_object_is_rejected) ... FAIL
+
+======================================================================
+FAIL: test_b4_cached_module_cannot_impersonate_changed_program_bytes (astra_t3_red.NewInvariants.test_b4_cached_module_cannot_impersonate_changed_program_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "..\\..\\outputs\\GENESIS_V04_S5_ASTRA_PROBES.py", line 263, in test_b4_cached_module_cannot_impersonate_changed_program_bytes
+    self.assertEqual(str(after.metrics["brier"]), "0.25",
+AssertionError: '0.01' != '0.25'
+- 0.01
++ 0.25
+ : new code digest certified old cached callback output
+
+======================================================================
+FAIL: test_b5_raw_label_inside_object_is_rejected (astra_t3_red.NewInvariants.test_b5_raw_label_inside_object_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "..\\..\\outputs\\GENESIS_V04_S5_ASTRA_PROBES.py", line 277, in test_b5_raw_label_inside_object_is_rejected
+    self.fail("research executed with raw FutureOutcomeLabel instances in module-global object")
+AssertionError: research executed with raw FutureOutcomeLabel instances in module-global object
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.715s
+
+FAILED (failures=2)
+SEALED_T2_SHA=4214f38886d5046f76a3fa8002889f02a701187f
+B4_OBSERVATION={'first_digest': 'b62c670e8c073f7cd30590b035b31863eb5cfb6550c983e3c286c5b11657ad1d', 'second_digest': '6df08750e98cf037b64be0a7a8e2be3ac1a9b97c73bbe2891e91335e2eff80c6', 'research_pid': 21012, 'first_certificate_brier': '0.01', 'second_certificate_brier': '0.01', 'second_expected_brier': '0.25'}
+B5_OBSERVATION={'blocked': False, 'certificate_brier': '0', 'raw_labels_exposed': False}
+RUN=2
+FAILURES=2
+ERRORS=0
+
+The observation lines above retain the identity/result facts while abbreviating
+the two full certificate dictionaries printed by the probe. The complete tool
+transcript was reviewed before this evidence file was created. Both failures
+are invariant assertions using the original probe and real worker; there were
+zero collection, import, setup or process-launch errors.

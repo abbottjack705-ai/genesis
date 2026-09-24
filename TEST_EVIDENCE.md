@@ -79,6 +79,18 @@ the exact isolated permitted rerun passed. Exact commands and evidence are in
 `remediation_evidence/T2/`. **B4/B5/B8 and the overall HOLD remain; no GO is
 granted.**
 
+T3 starts from sealed T2 `4214f38886d5046f76a3fa8002889f02a701187f` and
+addresses B4/B5 only. The original unmodified probes were RED with two intended
+assertion failures and zero errors. The independent pre-production module ran
+12 tests with ten invariant assertion failures, zero errors and two legal
+controls already green. Pre-seal review added two class-state adversaries; both
+were assertion-based RED on sealed T2 and current pre-fix T3, with zero errors.
+After the ADR-0003 implementation repair, the expanded module passed 15/15,
+the original probes passed 2/2, and retained S5/R9/protected tests passed 25/25.
+Full discovery passed 288/288 in 178.191 seconds;
+`compileall` passed. Exact evidence is under `remediation_evidence/T3/`.
+**B8 and the overall HOLD remain; no GO is granted.**
+
 ## Deterministic gate
 
 Command:
@@ -132,6 +144,7 @@ protected external dataset or historical outcome source.
 | T1 B3 proof-bearing release | `test_astra_t1_release.py`, `test_astra_t1_release_proof.py`, `test_astra_t1_release_integration.py`, `test_astra_t1_release_concurrency.py`, `test_astra_t1_legacy_release.py` — 38 tests |
 | T1 B7 strategy/mode fencing and composition | `test_astra_t1_strategy.py`, `test_astra_t1_mode.py`, `test_astra_t1_composition.py` — 18 tests |
 | T2 B6 acyclic exact human approval | `test_astra_t2_b6_approval.py` — 7 tests |
+| T3 B4/B5 exact protected bytes and reachable state | `test_astra_t3_protected_integrity.py` — 15 tests |
 
 Individual test methods combine closely related rows of the binding T-F01
 through T-F15 matrix. Each batch checkpoint records the exact matrix rows it
@@ -165,6 +178,12 @@ the production functions and primary tests.
   independent assertion-based RED suite on sealed T1 before production edits.
   The authority classification memo preceded the compatible versioned repair;
   no ADR content or historical identity was rewritten.
+- T3 preserved the original B4/B5 probe failures on sealed T2 and added an
+  independent 12-test RED suite before production edits. Its authority memo
+  preceded the repair and classified it under unchanged ADR-0003 v1. The later
+  outside-root positive-hardening case and two assertion-RED class-state cases
+  expand the final module to 15 tests without replacing or inflating the
+  historical RED claims.
 
 ## Concurrency and fault stress
 
@@ -236,7 +255,10 @@ boundary.
   and before evaluator IPC exists. It receives only sealed frames and cannot
   receive a label path/store or evaluator endpoint. The trusted label-owning
   evaluator remains distinct, consumes durable non-refundable attempts and
-  executes no arbitrary research callback.
+  executes no arbitrary research callback. T3 additionally proves that the
+  source bytes verified are the bytes executed, cached callables cannot cross
+  identities, and reachable raw-label or unsupported opaque capabilities fail
+  closed.
 - Legacy reachability: a source scan found the legacy qualification/protected
   names only in their defining modules. Behavioral guards prove authoritative
   qualification does not route through the legacy qualifier and registered V2
@@ -250,6 +272,6 @@ cloud cost, sport/market semantics, venue reconciliation, deployed protected
 service isolation, or live readiness. No strategy search, outcome experiment,
 external call or real protected campaign was run.
 
-The implementation remains NO-GO for a read-only adapter. T1/T2 local green
-does not resolve B4/B5/B8 or replace hostile review and explicit checkpoint
+The implementation remains NO-GO for a read-only adapter. T1/T2/T3 local green
+does not resolve B8 or replace integrated hostile review and explicit checkpoint
 approval.

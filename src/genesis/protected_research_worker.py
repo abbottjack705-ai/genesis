@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-import importlib
 import inspect
 import json
 import os
 import sys
+import types
+from decimal import Decimal
+from enum import Enum
 from pathlib import Path
 from types import FunctionType, ModuleType
 from typing import Any, BinaryIO
@@ -26,7 +28,7 @@ from genesis.protected import (  # noqa: E402
     SealedFrameSet,
 )
 from genesis.provenance import AvailabilityClass, ProvenanceRef  # noqa: E402
-from genesis.repro import canonical_json, sha256_file  # noqa: E402
+from genesis.repro import canonical_json, sha256_bytes  # noqa: E402
 
 
 def _send(stream: BinaryIO, payload: dict[str, Any]) -> None:
@@ -114,39 +116,368 @@ def _sealed_from_dict(value: Any) -> SealedFrameSet:
     )
 
 
-def _contains_label(value: Any, seen: set[int] | None = None, depth: int = 0) -> bool:
+_ATOMIC_CAPABILITIES = (
+    str,
+    bytes,
+    bytearray,
+    int,
+    float,
+    complex,
+    bool,
+    type(None),
+    Decimal,
+    Enum,
+    range,
+    slice,
+)
+_CONTAINER_CAPABILITIES = (tuple, list, set, frozenset)
+_FORBIDDEN_REFLECTION_NAMES = frozenset({
+    "__builtins__",
+    "__dict__",
+    "__getattribute__",
+    "__import__",
+    "compile",
+    "delattr",
+    "eval",
+    "exec",
+    "getattr",
+    "globals",
+    "locals",
+    "setattr",
+    "vars",
+})
+
+
+def _inside(path: Path, roots: tuple[Path, ...]) -> bool:
+    return any(path.is_relative_to(root) for root in roots)
+
+
+def _module_path(module: ModuleType) -> Path | None:
+    value = vars(module).get("__file__")
+    if not isinstance(value, str):
+        return None
+    try:
+        return Path(value).resolve(strict=True)
+    except (OSError, RuntimeError):
+        return None
+
+
+def _program_module_path(module_name: str, roots: tuple[Path, ...]) -> Path:
+    """Resolve one exact source origin without importing untrusted target code."""
+
+    relative = Path(*module_name.split("."))
+    candidates: set[Path] = set()
+    for root in roots:
+        for unresolved in (
+            root / relative.with_suffix(".py"),
+            root / relative / "__init__.py",
+        ):
+            try:
+                candidate = unresolved.resolve(strict=True)
+            except (OSError, RuntimeError):
+                continue
+            if not candidate.is_file() or not candidate.is_relative_to(root):
+                continue
+            candidates.add(candidate)
+    if len(candidates) != 1:
+        raise ValueError("research program module origin is missing or ambiguous")
+    return candidates.pop()
+
+
+def _code_names(code: types.CodeType) -> frozenset[str]:
+    names = set(code.co_names)
+    for value in code.co_consts:
+        if isinstance(value, types.CodeType):
+            names.update(_code_names(value))
+    return frozenset(names)
+
+
+def _code_strings(code: types.CodeType) -> frozenset[str]:
+    values = {value for value in code.co_consts if isinstance(value, str)}
+    for value in code.co_consts:
+        if isinstance(value, types.CodeType):
+            values.update(_code_strings(value))
+    return frozenset(values)
+
+
+def _audit_function(
+    value: FunctionType,
+    *,
+    seen: set[int],
+    roots: tuple[Path, ...],
+    program_module: str,
+) -> None:
+    _audit_capability(
+        value.__dict__, seen=seen, roots=roots,
+        program_module=program_module, referenced_names=frozenset(),
+    )
+    if value.__module__ != program_module:
+        # Imported trusted functions are code capabilities, not research-owned
+        # state. Their mutable function attributes were still checked above.
+        module_path_value = value.__globals__.get("__file__")
+        if isinstance(module_path_value, str):
+            try:
+                if _inside(Path(module_path_value).resolve(strict=True), roots):
+                    raise ValueError("custom imported function capability is unsupported")
+            except (OSError, RuntimeError):
+                raise ValueError("imported function origin is uninspectable") from None
+        return
+    if value.__closure__ is not None:
+        raise ValueError("research function closure state is unsupported")
+    names = _code_names(value.__code__)
+    if names & _FORBIDDEN_REFLECTION_NAMES \
+            or _code_strings(value.__code__) & _FORBIDDEN_REFLECTION_NAMES \
+            or any(name.startswith("__") and name.endswith("__") for name in names):
+        raise ValueError("dynamic research reflection is unsupported")
+    for state in (value.__defaults__, value.__kwdefaults__, value.__annotations__):
+        _audit_capability(
+            state, seen=seen, roots=roots,
+            program_module=program_module, referenced_names=names,
+        )
+    for name in names:
+        if name == "__builtins__" or name not in value.__globals__:
+            continue
+        _audit_capability(
+            value.__globals__[name], seen=seen, roots=roots,
+            program_module=program_module, referenced_names=names,
+        )
+
+
+def _audit_type(
+    value: type,
+    *,
+    seen: set[int],
+    roots: tuple[Path, ...],
+    program_module: str,
+) -> None:
+    if value.__module__ != program_module:
+        owner = sys.modules.get(value.__module__)
+        if not isinstance(owner, ModuleType):
+            raise ValueError("imported type origin is uninspectable")
+        exported: Any = owner
+        for component in value.__qualname__.split("."):
+            if component == "<locals>" or not isinstance(exported, (ModuleType, type)):
+                raise ValueError("imported type origin is uninspectable")
+            namespace = vars(exported)
+            if component not in namespace:
+                raise ValueError("imported type origin is uninspectable")
+            exported = namespace[component]
+        if exported is not value:
+            raise ValueError("imported type origin is uninspectable")
+        path = _module_path(owner)
+        if path is None:
+            spec = vars(owner).get("__spec__")
+            if value.__module__ == "builtins" \
+                    or getattr(spec, "origin", None) in {"built-in", "frozen"}:
+                return
+            raise ValueError("imported type origin is uninspectable")
+        if _inside(path, roots):
+            raise ValueError("custom imported type capability is unsupported")
+        return
+
+    for name, item in vars(value).items():
+        if name in {"__dict__", "__weakref__", "__module__", "__doc__", "__slots__"}:
+            continue
+        _audit_capability(
+            item, seen=seen, roots=roots,
+            program_module=program_module, referenced_names=frozenset(),
+        )
+
+
+def _audit_object_state(
+    value: Any,
+    *,
+    seen: set[int],
+    roots: tuple[Path, ...],
+    program_module: str,
+    referenced_names: frozenset[str],
+) -> None:
+    _audit_capability(
+        type(value), seen=seen, roots=roots,
+        program_module=program_module, referenced_names=referenced_names,
+    )
+    inspectable = False
+    try:
+        state = object.__getattribute__(value, "__dict__")
+    except (AttributeError, TypeError):
+        state = None
+    except Exception:
+        raise ValueError("research global object state is uninspectable") from None
+    if state is not None:
+        if not isinstance(state, (dict, types.MappingProxyType)):
+            raise ValueError("research global object dictionary is unsupported")
+        inspectable = True
+        _audit_capability(
+            state, seen=seen, roots=roots,
+            program_module=program_module, referenced_names=referenced_names,
+        )
+
+    for owner in type(value).__mro__:
+        raw_slots = vars(owner).get("__slots__", ())
+        if isinstance(raw_slots, str):
+            slots = (raw_slots,)
+        elif isinstance(raw_slots, (tuple, list)):
+            slots = tuple(raw_slots)
+        else:
+            raise ValueError("research global slots are unsupported")
+        for slot in slots:
+            if slot in {"__dict__", "__weakref__"}:
+                continue
+            descriptor = vars(owner).get(slot)
+            if not isinstance(descriptor, types.MemberDescriptorType):
+                raise ValueError("research global slot descriptor is unsupported")
+            inspectable = True
+            try:
+                item = descriptor.__get__(value, type(value))
+            except AttributeError:
+                continue
+            except Exception:
+                raise ValueError("research global slot is uninspectable") from None
+            _audit_capability(
+                item, seen=seen, roots=roots,
+                program_module=program_module, referenced_names=referenced_names,
+            )
+
+    if not inspectable:
+        raise ValueError("opaque research global capability is unsupported")
+
+
+def _audit_capability(
+    value: Any,
+    *,
+    seen: set[int],
+    roots: tuple[Path, ...],
+    program_module: str,
+    referenced_names: frozenset[str],
+) -> None:
     if isinstance(value, FutureOutcomeLabel):
-        return True
-    if depth > 5 or isinstance(
-        value,
-        (str, bytes, int, float, bool, type(None), FunctionType, type, ModuleType),
-    ):
-        return False
-    seen = seen or set()
-    if id(value) in seen:
-        return False
-    seen.add(id(value))
+        raise ValueError("research program contains a reachable raw label")
+    if isinstance(value, _ATOMIC_CAPABILITIES):
+        return
+    identity = id(value)
+    if identity in seen:
+        return
+    seen.add(identity)
+
     if isinstance(value, dict):
-        return any(_contains_label(item, seen, depth + 1) for item in value.values())
-    if isinstance(value, (tuple, list, set, frozenset)):
-        return any(_contains_label(item, seen, depth + 1) for item in value)
-    return False
+        for key, item in value.items():
+            _audit_capability(
+                key, seen=seen, roots=roots,
+                program_module=program_module, referenced_names=referenced_names,
+            )
+            _audit_capability(
+                item, seen=seen, roots=roots,
+                program_module=program_module, referenced_names=referenced_names,
+            )
+        return
+    if isinstance(value, types.MappingProxyType):
+        _audit_capability(
+            dict(value), seen=seen, roots=roots,
+            program_module=program_module, referenced_names=referenced_names,
+        )
+        return
+    if isinstance(value, _CONTAINER_CAPABILITIES):
+        for item in value:
+            _audit_capability(
+                item, seen=seen, roots=roots,
+                program_module=program_module, referenced_names=referenced_names,
+            )
+        return
+    if isinstance(value, FunctionType):
+        _audit_function(
+            value, seen=seen, roots=roots, program_module=program_module,
+        )
+        return
+    if isinstance(value, ModuleType):
+        path = _module_path(value)
+        if path is not None and _inside(path, roots):
+            raise ValueError("custom imported module capability is unsupported")
+        namespace = vars(value)
+        for name in referenced_names:
+            if name in namespace:
+                _audit_capability(
+                    namespace[name], seen=seen, roots=roots,
+                    program_module=program_module, referenced_names=frozenset(),
+                )
+        return
+    if isinstance(value, type):
+        _audit_type(
+            value, seen=seen, roots=roots, program_module=program_module,
+        )
+        return
+    if isinstance(value, staticmethod):
+        _audit_capability(
+            value.__func__, seen=seen, roots=roots,
+            program_module=program_module, referenced_names=referenced_names,
+        )
+        return
+    if isinstance(value, classmethod):
+        _audit_capability(
+            value.__func__, seen=seen, roots=roots,
+            program_module=program_module, referenced_names=referenced_names,
+        )
+        return
+    if isinstance(value, property):
+        for item in (value.fget, value.fset, value.fdel):
+            _audit_capability(
+                item, seen=seen, roots=roots,
+                program_module=program_module, referenced_names=referenced_names,
+            )
+        return
+    if isinstance(value, types.MethodType):
+        _audit_capability(
+            value.__func__, seen=seen, roots=roots,
+            program_module=program_module, referenced_names=referenced_names,
+        )
+        _audit_capability(
+            value.__self__, seen=seen, roots=roots,
+            program_module=program_module, referenced_names=referenced_names,
+        )
+        return
+    if isinstance(value, (
+        types.BuiltinFunctionType,
+        types.BuiltinMethodType,
+        types.CodeType,
+        types.GetSetDescriptorType,
+        types.MemberDescriptorType,
+        types.MethodDescriptorType,
+        types.WrapperDescriptorType,
+    )):
+        return
+    if isinstance(value, BaseException):
+        _audit_capability(
+            value.args, seen=seen, roots=roots,
+            program_module=program_module, referenced_names=referenced_names,
+        )
+        return
+    _audit_object_state(
+        value, seen=seen, roots=roots,
+        program_module=program_module, referenced_names=referenced_names,
+    )
 
 
 def _resolve_program(program: ResearchProgramRef, roots: tuple[Path, ...]) -> FunctionType:
-    importlib.invalidate_caches()
-    module = importlib.import_module(program.module)
-    module_path_value = getattr(module, "__file__", None)
-    if not isinstance(module_path_value, str):
-        raise ValueError("research program module is not file-backed")
-    module_path = Path(module_path_value).resolve()
-    if not any(module_path.is_relative_to(root) for root in roots):
-        raise ValueError("research program module is outside allowed roots")
-    if sha256_file(module_path) != program.module_artifact_hash:
+    module_path = _program_module_path(program.module, roots)
+    source = module_path.read_bytes()
+    if sha256_bytes(source) != program.module_artifact_hash:
         raise ValueError("research program module artifact mismatch")
+    code = compile(source, str(module_path), "exec", dont_inherit=True)
+    module = ModuleType(program.module)
+    module.__file__ = str(module_path)
+    module.__package__ = program.module.rpartition(".")[0]
+    if module_path.name == "__init__.py":
+        module.__package__ = program.module
+        module.__path__ = [str(module_path.parent)]  # type: ignore[attr-defined]
+    exec(code, module.__dict__)
+
     target: Any = module
     for component in program.qualname.split("."):
-        target = getattr(target, component)
+        if isinstance(target, ModuleType):
+            if component not in vars(target):
+                raise ValueError("research program function is missing")
+            target = vars(target)[component]
+        else:
+            target = inspect.getattr_static(target, component)
     if (
         not inspect.isfunction(target)
         or target.__module__ != program.module
@@ -164,8 +495,9 @@ def _resolve_program(program: ResearchProgramRef, roots: tuple[Path, ...]) -> Fu
         or parameters[0].default is not inspect.Parameter.empty
     ):
         raise ValueError("research program must accept exactly one frame")
-    if any(_contains_label(value) for value in module.__dict__.values()):
-        raise ValueError("research program module contains a raw label")
+    _audit_function(
+        target, seen=set(), roots=roots, program_module=program.module,
+    )
     return target
 
 

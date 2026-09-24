@@ -1,0 +1,41 @@
+Command (repository root, sealed T2 production):
+python -m unittest tests.test_astra_t3_protected_integrity -v
+
+Exit code: 1
+
+test_custom_imported_holder_with_raw_labels_is_rejected ... FAIL
+test_deep_cyclic_collection_with_raw_labels_is_rejected ... FAIL
+test_function_attribute_with_raw_labels_is_rejected ... FAIL
+test_label_free_deep_cycle_and_retained_simple_program_still_work ... ok
+test_object_dictionary_holder_with_raw_labels_is_rejected ... FAIL
+test_opaque_reachable_global_fails_closed ... FAIL
+test_rejected_hidden_label_consumes_attempt_across_restart ... FAIL
+test_slot_holder_with_raw_labels_is_rejected ... FAIL
+test_ambiguous_module_origin_fails_closed_before_execution ... FAIL
+test_changed_module_executes_new_verified_bytes_not_cached_callable ... FAIL
+test_identical_repeat_works_and_stale_reference_after_change_rejects ... ok
+test_import_time_path_mutation_cannot_change_bytes_already_verified_for_execution ... FAIL
+
+----------------------------------------------------------------------
+Ran 12 tests in 10.770s
+
+FAILED (failures=10)
+
+All ten failures were explicit `unittest` assertion failures. There were zero
+errors, skips, collection failures, import failures or process-launch failures.
+The two legal/control paths already passed on sealed T2.
+
+Representative exact assertions:
+
+- `B4 RED: new bytes were certified while cached old code executed`
+  (`'0.01' != '0.25'`).
+- `B4 RED: post-verify path mutation displaced the verified bytes`.
+- `B4 RED: ambiguous module origins were silently ordered`.
+- `B5 RED: t3_object_holder reached protected evaluation`.
+- `B5 RED: t3_slot_holder reached protected evaluation`.
+- `B5 RED: t3_function_attribute reached protected evaluation`.
+- `B5 RED: t3_deep_cycle_label reached protected evaluation`.
+- `B5 RED: t3_opaque_global reached protected evaluation`.
+- `B5 RED: imported holder was assumed label-free`.
+- Hidden-label rejection was absent, so the one-attempt restart invariant also
+  failed because a certificate was issued instead of a generic consumed error.

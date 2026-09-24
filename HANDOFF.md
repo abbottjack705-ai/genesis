@@ -1,7 +1,7 @@
 # Project Genesis V0.4 remediation handoff
 
 Date: 2026-09-25
-Status: **Post-S5 Astra HOLD; T1 B1/B2/B3/B7 and T2 B6 locally green; B4/B5/B8 open; adapter NO-GO**
+Status: **Post-S5 Astra HOLD; T1 B1/B2/B3/B7, T2 B6 and T3 B4/B5 locally green; B8 open; adapter NO-GO**
 
 ## S1 continuation notice
 
@@ -110,13 +110,40 @@ v1/v2/v3/binding hashes. T2 passed 7/7 and the complete repository passed
 T2 supplies no actual strategy-specific approval. B4, B5 and B8 remain HOLD,
 and no adapter, shadow-research, protected-campaign or live-money GO is granted.
 
+## T3 B4/B5 checkpoint
+
+T3 starts from immutable T2 commit
+`4214f38886d5046f76a3fa8002889f02a701187f`, tree
+`31f00dabaaf320835f8aaf7d041ab5c75bc1b83c`. The authority memo classifies the
+repair as already-authorized ADR-0003 implementation work; the ADR, its approval
+note and every `ResearchProgramRef-v1`/program-digest meaning remain unchanged.
+
+The research worker resolves exactly one source below the declared roots, reads
+and hashes it once, and executes those exact bytes in a fresh namespace. It does
+not obtain the target from `sys.modules`. Before accepting predictions it audits
+the target's complete reachable capability graph without a depth cutoff and
+fails closed on raw labels, opaque state, dynamic reflection and custom imported
+holders. Generic errors, nonrefundable attempts, distinct PIDs, sealed frames,
+closed IPC and real-campaign disablement remain intact.
+
+The preserved RED is: original probes 2/2 failing assertions, zero errors;
+independent suite 10 failing assertions across 12 methods, zero errors, two
+legal controls green; two additional class-state methods then failed by
+assertion on sealed T2 and current pre-fix T3, with zero errors. GREEN is:
+expanded T3 15/15, original probes 2/2, retained S5/R9/protected 25/25, full
+repository 288/288 in 178.191 seconds, and `compileall`. Exact evidence and the
+decision memo are in `remediation_evidence/T3/`.
+
+T3 is not overall audit closure. B8 remains HOLD, and no adapter, shadow
+research, protected campaign or live-money GO is granted.
+
 ## Review decision requested
 
-Review the exact committed T1 and T2 trees and hostile-test their composition.
-Do not treat them as resolution of B4/B5/B8 or approve later strategy,
-provider, cloud, venue or live work through these local results. Until all
-remaining findings, hostile re-audit and explicit checkpoint approval are
-complete, the adapter decision remains NO-GO.
+Review the exact committed T1, T2 and T3 trees. Repair B8 separately in T4, then
+hostile-test the complete composition. Do not approve later strategy, provider,
+cloud, venue or live work through these local results. Until B8, hostile re-
+audit and explicit checkpoint approval are complete, the adapter decision
+remains NO-GO.
 
 ## Authority and exact identity
 
@@ -184,7 +211,9 @@ Read in this order:
    `RED_EVIDENCE.md`, retained-fixture reconciliations and `GREEN_FINAL.md`;
 7. `remediation_evidence/T2/T2_B6_DECISION_MEMO.md`, both RED transcripts and
    `GREEN_FINAL.md`;
-8. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle.
+8. `remediation_evidence/T3/T3_B4_B5_AUTHORITY_MEMO.md`, both RED transcripts
+   and `GREEN_FINAL.md`;
+9. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle.
 
 Re-run:
 
@@ -221,8 +250,8 @@ canary was implemented or run. The objective and V0.4 risk laws were not changed
 These are deliberately unresolved external or later-phase facts, not hidden
 implementation claims:
 
-1. Do B4/B5/B8 remain CRITICAL/HIGH blockers after their future repair, and
-   does hostile review approve the T1/T2 composition including B6?
+1. Does B8 remain a CRITICAL/HIGH blocker after T4, and does hostile review
+   approve the complete T1/T2/T3/T4 composition?
 2. Which real provider/source can prove entitlement, PIT availability, revisions
    and current quota terms? The 250 OddsPapi allowance is unverified.
 3. What separately reviewed deployment boundary will host real protected labels?
@@ -235,5 +264,5 @@ implementation claims:
 
 The original R10 handoff stopped for its independent audit. That audit returned
 HOLD; S1–S5 locally addressed A1–A8, and the post-S5 audit returned HOLD with
-B1–B8. T1 addresses B1/B2/B3/B7 and T2 addresses B6 locally. B4/B5/B8
-remain. No next Genesis product phase is authorized.
+B1–B8. T1 addresses B1/B2/B3/B7, T2 addresses B6 and T3 addresses B4/B5
+locally. B8 remains. No next Genesis product phase is authorized.

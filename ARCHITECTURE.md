@@ -11,9 +11,11 @@ process/address-space defect under approved ADR-0003 v1. The independent
 post-S5 hostile audit of commit `27dd525` then returned **HOLD / NOT APPROVED**
 with B1-B8. T1 locally repairs B1, B2, B3 and B7. T2 locally repairs B6's
 circular approval construction without changing the approved binding preimage.
-B4, B5 and B8 remain open, and T1/T2 still require hostile review. This diagram is a
-foundation map, not an adapter, shadow-research, protected-campaign or
-live-money GO.
+T3 locally repairs B4/B5's protected-program executable-integrity and reachable-
+state defects under unchanged ADR-0003 v1 identity and topology. B8 remains
+open, and T1/T2/T3 still require integrated hostile review. This diagram is a
+foundation map, not an adapter, shadow-research, protected-campaign or live-
+money GO.
 
 ## Remediated V0.4 foundation flow
 
@@ -83,6 +85,13 @@ subsequent exact human grant binds that stable reference to the final binding
 hash. Qualification, risk, intent, pending and send fence the approval ledger
 head with their durable append. Historical raw-64-hex v1 approval-note meaning
 and all binding/candidate/output hash algorithms are unchanged.
+T3 resolves each protected research source below exactly one declared import
+root without importing a cached target, reads and hashes the source once, and
+compiles and executes those same bytes in a fresh unregistered namespace. A
+cycle-safe reachable-capability audit rejects raw labels and unsupported opaque,
+reflective or custom imported state before predictions are accepted. Program-
+reference, campaign, certificate, process, IPC and attempt identities are
+unchanged.
 Recovery must not silently heal, truncate, choose a branch, or infer missing
 identity.
 
@@ -97,7 +106,8 @@ Label-owning trusted launcher
 Isolated research process (distinct PID/address space)
   starts before label materialization and evaluator-channel creation
   receives no raw labels, label path, label store or evaluator endpoint
-  imports the exact hashed top-level stateless program
+  executes the exact verified source bytes in a fresh module namespace
+  audits the callback's complete reachable state and fails closed on ambiguity
   returns only an exact frozen-prediction artifact or generic failure
                  |
                  | prediction artifact identity only
@@ -229,8 +239,9 @@ SettlementLedger
   policy, test-only B, atomic reserve authority and immutable exact cache proof.
 - `protected.py`, `protected_research_worker.py`, `evaluation.py`: sealed
   frames, exact hashed research-program references, isolated research execution,
-  frozen predictions, durable attempt accounting, trusted evaluator IPC and an
-  explicit legacy test harness.
+  exact verified-byte loading, fail-closed reachable-state validation, frozen
+  predictions, durable attempt accounting, trusted evaluator IPC and an explicit
+  legacy test harness.
 - `candidate_runs.py`, `coverage.py`, `selection_evaluation.py`: complete
   candidate retention, non-quota search telemetry and aggregate evaluation.
 

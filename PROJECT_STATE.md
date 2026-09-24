@@ -10,9 +10,11 @@ S5 locally repaired A1–A8, ending at clean commit `27dd525`. The independent
 post-S5 hostile audit then returned **HOLD / NOT APPROVED** with B1–B8. T1
 locally repairs B1, B2, B3 and B7 over that exact base. T2 locally repairs B6
 over sealed T1 commit `d130c21668b769c371cfa4a4a75c3f382af1af71`; the
-resulting full suite is 273/273 green. B4, B5 and B8 remain open, and T1/T2
-still require hostile review. The original R0–R10 and S1–S5 histories and all failed
-reproduction evidence are preserved.
+resulting sealed T2 commit is `4214f38886d5046f76a3fa8002889f02a701187f`.
+T3 locally repairs B4/B5 over that exact T2 base; its pre-seal full suite is
+288/288 green. B8 remains open, and T1/T2/T3 still require integrated hostile
+review. The original R0–R10 and S1–S5 histories and all failed reproduction
+evidence are preserved.
 
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
 read-only sport/source adapter** until an independent audit finds no unresolved
@@ -299,6 +301,33 @@ Detailed traceability and results are under `remediation_evidence/R0` through
   HOLD remain. No actual strategy binding/model/rule, adapter, shadow research,
   protected campaign or live-money GO is granted.
 
+## T3 verification (local B4/B5 checkpoint)
+
+- T3 begins at sealed T2 commit
+  `4214f38886d5046f76a3fa8002889f02a701187f`, tree
+  `31f00dabaaf320835f8aaf7d041ab5c75bc1b83c`. T1 and T2 history is unchanged.
+- Astra's original unmodified B4/B5 probes are preserved RED on T2: two intended
+  assertion failures and zero errors. The independent pre-production module ran
+  12 tests with ten assertion failures, zero errors and two legal controls green.
+  Pre-seal review added two class-state adversaries; both failed by assertion on
+  sealed T2 and the then-current worker, with zero errors.
+- `T3_B4_B5_AUTHORITY_MEMO.md` classifies the repair as A: implementation of the
+  already-approved ADR-0003 contract. The ADR, approval note,
+  `ResearchProgramRef-v1`, program digest, process topology and attempt lifecycle
+  are unchanged.
+- The worker now verifies one exact source origin and source-byte hash before
+  target import-time execution, then compiles and executes those same bytes in a
+  fresh namespace. It never reuses a cached target callable. A cycle-safe,
+  no-depth-cutoff audit rejects labels reachable through object dictionaries,
+  slots, function attributes, custom imported holders and deep/cyclic state;
+  unsupported opaque or dynamic-reflection capabilities fail closed.
+- The final T3 suite passed 15/15; the original probes passed 2/2; retained
+  S5/R9/protected tests passed 25/25; the full repository passed 288/288 in
+  178.191 seconds; and `python -m compileall -q src tests` passed.
+- This is local B4/B5 closure only. B8 and the overall hostile-audit HOLD remain.
+  No adapter, strategy, shadow research, protected campaign or live-money GO is
+  granted.
+
 ## Compatibility and migration state
 
 Legacy records remain readable only where an explicit deterministic migration is
@@ -311,8 +340,9 @@ settlement, or quota intent is inferred.
 
 - The independent R10 hostile audit occurred and returned HOLD. A fresh
   A-finding re-audit occurred after S5 and returned HOLD with B1–B8. T1 locally
-  repairs B1/B2/B3/B7 and T2 locally repairs B6; B4/B5/B8 remain unresolved
-  and neither checkpoint has received hostile approval.
+  repairs B1/B2/B3/B7, T2 locally repairs B6 and T3 locally repairs B4/B5; B8
+  remains unresolved and none of these checkpoints has received integrated
+  hostile approval.
 - The OddsPapi 250-call ceiling is a planning assumption, not verified provider
   evidence; no provider integration exists.
 - S5 establishes the local test-harness research/evaluator process boundary,
@@ -325,7 +355,7 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Review the exact T1 and T2 commits/evidence, then hostile-test their composition.
-Continue only with the still-open B4/B5/B8 remediation under
-their dependency and authority constraints. Explicit audit/checkpoint approval
-remains mandatory before any adapter or later Genesis phase.
+Seal T3 independently, then repair B8's evidence-representation defect as a
+separate T4 checkpoint. After T4, assemble one byte-explicit integrated re-audit
+package for fresh hostile review of T1–T4 composition. Explicit audit/checkpoint
+approval remains mandatory before any adapter or later Genesis phase.

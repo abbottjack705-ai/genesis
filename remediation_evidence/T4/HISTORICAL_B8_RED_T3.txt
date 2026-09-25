@@ -1,0 +1,24 @@
+Command (clean sealed T3 HEAD 39a21328f76cb522bb5b198af1c1e76485d6fe5f):
+python remediation_evidence/T4/red_before_probe.py --repo . --archive ..\..\outputs\GENESIS_V04_S5_REAUDIT_REPOSITORY_27dd525.zip --manifest ..\..\outputs\GENESIS_V04_S5_REAUDIT_MANIFEST.json
+
+Exit code: 1
+
+Observed exact representation facts:
+
+B8_TRACKED=192 BYTE_MISMATCHES=192 AFTER_CRLF_TO_LF=0
+B8_ADRS={"DECISIONS/ADR-0002-s3-manifest-and-candidate-v3.md":{"approved_git_blob_sha256":"7e851df9898f3a257a87b602bc1a7f6011ebae1397d42c17b8727c84e554ae00","archive_member_sha256":"4e9f40c124d1557ecf4959bc9d2afd6878b83a3119f79a3d9ca81aa025a1efab"},"DECISIONS/ADR-0003-s5-protected-process-boundary.md":{"approved_git_blob_sha256":"0fd4c63deb7a8431c41d7869163ccf79ce0295b63b585c8e4c3a0695f1dafaad","archive_member_sha256":"b735e0805588d6f994bf9d6ea6aa8a4a19b0c84f4d4a469ede26f6b600f24aea"}}
+
+unittest result:
+
+Ran 4 tests in 22.305s
+FAILED (failures=5)
+
+The five failures were intentional invariant assertions: the all-files mismatch,
+two ADR subtest mismatches, missing representation labels for repository rows,
+and absent/seemingly conflated raw-transcript representation. There were zero
+errors, collection failures, import failures or setup failures. The probe read
+the original producer archive/manifest and Git objects without modifying them.
+
+An initial local invocation found and corrected a syntax typo in this newly
+written probe before evidence collection. That invocation reached no test and
+is not claimed as RED. The command and result above are the clean RED evidence.

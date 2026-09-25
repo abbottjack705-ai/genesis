@@ -91,6 +91,22 @@ Full discovery passed 288/288 in 178.191 seconds;
 `compileall` passed. Exact evidence is under `remediation_evidence/T3/`.
 **B8 and the overall HOLD remain; no GO is granted.**
 
+T4 starts from sealed T3 `39a21328f76cb522bb5b198af1c1e76485d6fe5f`
+and addresses B8 only. Its historical probe reproduced 192/192 exact-byte
+mismatches, zero after CRLF-to-LF comparison, both ADR archive/hash mismatches
+and unlabeled repository/transcript representations: four methods, five
+assertion failures, zero errors. The independent five-test future-package suite
+was also RED on T3 with five assertion failures and zero errors. After the
+audit-only repair, targeted T4 passed 5/5 and full discovery 293/293. Verifier
+hardening then added four tests: caller-pinned authorities and closed manifest
+fields were RED on the inherited tool (eight tests, five assertion failures,
+zero errors), and ignored-file exclusion was RED on the next tool (one assertion
+failure). On the final bytes targeted T4 passed 9/9; full discovery passed
+297/297 in 153.972 seconds; and `compileall` passed over `src`, `tests` and
+`tools`.
+The external final package must still be built from the sealed T4 commit and
+freshly verified. **Local B1–B8 green is not hostile approval or GO.**
+
 ## Deterministic gate
 
 Command:
@@ -145,6 +161,7 @@ protected external dataset or historical outcome source.
 | T1 B7 strategy/mode fencing and composition | `test_astra_t1_strategy.py`, `test_astra_t1_mode.py`, `test_astra_t1_composition.py` — 18 tests |
 | T2 B6 acyclic exact human approval | `test_astra_t2_b6_approval.py` — 7 tests |
 | T3 B4/B5 exact protected bytes and reachable state | `test_astra_t3_protected_integrity.py` — 15 tests |
+| T4 B8 byte-explicit evidence package | `test_astra_t4_evidence_package.py` — 9 tests |
 
 Individual test methods combine closely related rows of the binding T-F01
 through T-F15 matrix. Each batch checkpoint records the exact matrix rows it
@@ -184,6 +201,15 @@ the production functions and primary tests.
   outside-root positive-hardening case and two assertion-RED class-state cases
   expand the final module to 15 tests without replacing or inflating the
   historical RED claims.
+- T4 preserves the producer's original S5 archive/manifest and reproduces their
+  exact representation mismatch with a standalone four-method probe. It then
+  adds five RED-before acceptance tests for an exact Git-blob snapshot, separate
+  raw/historical representations, authority pins, deterministic output, fresh
+  extraction, Git cross-check and fail-closed tamper handling. Four later tests
+  add caller-pinned authorities, closed manifest rows/fields, ignored-file
+  exclusion and positive content/unsafe-path/sidecar tamper coverage; the three
+  RED claims are preserved in separate transcripts without replacing the
+  original five-test RED.
 
 ## Concurrency and fault stress
 
@@ -272,6 +298,6 @@ cloud cost, sport/market semantics, venue reconciliation, deployed protected
 service isolation, or live readiness. No strategy search, outcome experiment,
 external call or real protected campaign was run.
 
-The implementation remains NO-GO for a read-only adapter. T1/T2/T3 local green
-does not resolve B8 or replace integrated hostile review and explicit checkpoint
-approval.
+The implementation remains NO-GO for a read-only adapter. T1–T4 local green and
+the forthcoming exact package do not replace integrated hostile review and
+explicit checkpoint approval.

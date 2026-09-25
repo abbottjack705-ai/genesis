@@ -12,9 +12,11 @@ locally repairs B1, B2, B3 and B7 over that exact base. T2 locally repairs B6
 over sealed T1 commit `d130c21668b769c371cfa4a4a75c3f382af1af71`; the
 resulting sealed T2 commit is `4214f38886d5046f76a3fa8002889f02a701187f`.
 T3 locally repairs B4/B5 over that exact T2 base; its pre-seal full suite is
-288/288 green. B8 remains open, and T1/T2/T3 still require integrated hostile
-review. The original R0–R10 and S1–S5 histories and all failed reproduction
-evidence are preserved.
+288/288 green. T4 locally repairs B8's evidence representation over sealed T3;
+the complete pre-seal suite is 297/297 green. All B1–B8 findings now have local
+repair checkpoints, but T1–T4 still require integrated hostile review. The
+original R0–R10 and S1–S5 histories and all failed reproduction evidence are
+preserved.
 
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
 read-only sport/source adapter** until an independent audit finds no unresolved
@@ -328,6 +330,36 @@ Detailed traceability and results are under `remediation_evidence/R0` through
   No adapter, strategy, shadow research, protected campaign or live-money GO is
   granted.
 
+## T4 verification (local B8 checkpoint)
+
+- T4 begins at sealed T3 commit
+  `39a21328f76cb522bb5b198af1c1e76485d6fe5f`, tree
+  `b730ee8423accaaa56308558cf8d3d513e948670`. T1–T3 history is unchanged.
+- The standalone historical probe reproduced exactly 192/192 Git-blob/archive
+  byte mismatches, zero mismatches after CRLF-to-LF comparison, both approved
+  ADR hash mismatches and missing representation labels. It ran four methods
+  with five assertion failures and zero errors. Five independent acceptance
+  tests were also RED on T3 because no compliant packager existed.
+- `T4_B8_AUTHORITY_MEMO.md` classifies the repair as A: the audit explicitly
+  requires this packaging correction. No ADR, product identity, source module or
+  historical evidence is edited.
+- The audit-only tool packages exact target Git blobs, separately labeled raw
+  worktree bytes and unchanged historical artifacts. Its closed manifest pins
+  approved ADR hashes; deterministic ZIP/sidecar output verifies without Git
+  after fresh extraction and optionally cross-checks every source byte against
+  the target Git tree. Duplicates, unsafe paths, tampering and representation or
+  authority disagreement fail closed.
+- Adversarial review of the inherited tool added RED-first hardening: verify
+  requires caller-pinned ADR authorities, non-Git manifest rows and fixed fields
+  are closed, and raw worktree evidence is limited to Git-tracked files.
+- On the final bytes targeted T4 passed 9/9; the full repository passed 297/297
+  in 153.972 seconds; and `python -m compileall -q src tests tools` passed. The
+  earlier 293/293 run preceded the hardening and is history only.
+- This is local B8 closure only. The external package is generated from the
+  sealed T4 commit to avoid self-reference, then requires fresh hostile review.
+  No adapter, strategy, shadow research, protected campaign or live-money GO is
+  granted.
+
 ## Compatibility and migration state
 
 Legacy records remain readable only where an explicit deterministic migration is
@@ -340,9 +372,9 @@ settlement, or quota intent is inferred.
 
 - The independent R10 hostile audit occurred and returned HOLD. A fresh
   A-finding re-audit occurred after S5 and returned HOLD with B1–B8. T1 locally
-  repairs B1/B2/B3/B7, T2 locally repairs B6 and T3 locally repairs B4/B5; B8
-  remains unresolved and none of these checkpoints has received integrated
-  hostile approval.
+  repairs B1/B2/B3/B7, T2 locally repairs B6, T3 locally repairs B4/B5 and T4
+  locally repairs B8. None of these checkpoints has received integrated hostile
+  approval.
 - The OddsPapi 250-call ceiling is a planning assumption, not verified provider
   evidence; no provider integration exists.
 - S5 establishes the local test-harness research/evaluator process boundary,
@@ -355,7 +387,7 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Seal T3 independently, then repair B8's evidence-representation defect as a
-separate T4 checkpoint. After T4, assemble one byte-explicit integrated re-audit
-package for fresh hostile review of T1–T4 composition. Explicit audit/checkpoint
-approval remains mandatory before any adapter or later Genesis phase.
+Seal T4 independently, generate and freshly verify its byte-explicit external
+package, then submit the exact T1–T4 composition for a new hostile audit.
+Explicit audit/checkpoint approval remains mandatory before any adapter or later
+Genesis phase.

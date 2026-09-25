@@ -1,7 +1,7 @@
 # Project Genesis V0.4 remediation handoff
 
 Date: 2026-09-25
-Status: **Post-S5 Astra HOLD; T1 B1/B2/B3/B7, T2 B6 and T3 B4/B5 locally green; B8 open; adapter NO-GO**
+Status: **Post-S5 Astra HOLD; T1–T4 locally repair B1–B8; integrated hostile re-audit pending; adapter NO-GO**
 
 ## S1 continuation notice
 
@@ -137,13 +137,43 @@ decision memo are in `remediation_evidence/T3/`.
 T3 is not overall audit closure. B8 remains HOLD, and no adapter, shadow
 research, protected campaign or live-money GO is granted.
 
+## T4 B8 checkpoint
+
+T4 starts from immutable T3 commit
+`39a21328f76cb522bb5b198af1c1e76485d6fe5f`, tree
+`b730ee8423accaaa56308558cf8d3d513e948670`. It changes only audit packaging,
+tests, evidence and truthful documentation; no `src/genesis` file or historical
+artifact changes.
+
+The preserved historical RED proves that all 192 S5 producer-archive source
+members differ from their Git blobs but normalize equal, both archived ADRs
+differ from their approved hashes, and repository/transcript hashes lack exact
+representation labels. The old archive, manifest, failed evidence and approved
+ADR bytes remain untouched.
+
+The new audit-only tool reads every source member directly from the exact Git
+object database; packages raw worktree evidence and historical artifacts in
+separate namespaces; labels every representation; pins approved ADR Git-blob
+hashes; writes deterministic ZIP and sidecar bytes; and verifies member/path/
+hash/authority integrity both after fresh extraction and against Git. Later
+verifier hardening, each part RED first, requires caller-pinned ADR authorities,
+closes manifest rows and fixed fields, and limits raw worktree evidence to Git-
+tracked files. On the final bytes the T4 acceptance suite passed 9/9, the
+complete repository passed 297/297 in 153.972 seconds, and `compileall` passed
+over `src`, `tests` and `tools`. The earlier 293/293 run preceded that hardening
+and is retained only as history.
+
+The final integrated package is intentionally generated only after the T4
+commit exists, so the commit can be its exact target without self-reference.
+T4 local green is not hostile approval and grants no GO.
+
 ## Review decision requested
 
-Review the exact committed T1, T2 and T3 trees. Repair B8 separately in T4, then
-hostile-test the complete composition. Do not approve later strategy, provider,
-cloud, venue or live work through these local results. Until B8, hostile re-
-audit and explicit checkpoint approval are complete, the adapter decision
-remains NO-GO.
+Verify the sealed T4 commit/tree, external package/sidecar and fresh-extraction
+report, then hostile-test the complete T1–T4 composition. Do not approve later
+strategy, provider, cloud, venue or live work through these local results.
+Until hostile re-audit and explicit checkpoint approval are complete, the
+adapter decision remains NO-GO.
 
 ## Authority and exact identity
 
@@ -213,13 +243,15 @@ Read in this order:
    `GREEN_FINAL.md`;
 8. `remediation_evidence/T3/T3_B4_B5_AUTHORITY_MEMO.md`, both RED transcripts
    and `GREEN_FINAL.md`;
-9. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle.
+9. `remediation_evidence/T4/T4_B8_AUTHORITY_MEMO.md`, both RED transcripts,
+   package-tool tests and `GREEN_FINAL.md`;
+10. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle.
 
 Re-run:
 
 ```text
 python -m unittest discover -s tests -t . -v
-python -m compileall -q src tests
+python -m compileall -q src tests tools
 git diff --check
 git status --short --branch
 ```
@@ -250,8 +282,8 @@ canary was implemented or run. The objective and V0.4 risk laws were not changed
 These are deliberately unresolved external or later-phase facts, not hidden
 implementation claims:
 
-1. Does B8 remain a CRITICAL/HIGH blocker after T4, and does hostile review
-   approve the complete T1/T2/T3/T4 composition?
+1. Does fresh hostile review approve the complete T1/T2/T3/T4 composition and
+   its exact byte-representation package with no unresolved CRITICAL/HIGH issue?
 2. Which real provider/source can prove entitlement, PIT availability, revisions
    and current quota terms? The 250 OddsPapi allowance is unverified.
 3. What separately reviewed deployment boundary will host real protected labels?
@@ -264,5 +296,6 @@ implementation claims:
 
 The original R10 handoff stopped for its independent audit. That audit returned
 HOLD; S1–S5 locally addressed A1–A8, and the post-S5 audit returned HOLD with
-B1–B8. T1 addresses B1/B2/B3/B7, T2 addresses B6 and T3 addresses B4/B5
-locally. B8 remains. No next Genesis product phase is authorized.
+B1–B8. T1 addresses B1/B2/B3/B7, T2 addresses B6, T3 addresses B4/B5 and T4
+addresses B8 locally. Integrated hostile approval is still absent. No next
+Genesis product phase is authorized.

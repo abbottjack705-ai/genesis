@@ -1,0 +1,86 @@
+Command (sealed T3 HEAD 39a21328f76cb522bb5b198af1c1e76485d6fe5f; inherited
+Codex T4 WIP tool unchanged; extended T4 acceptance tests added by Claude Code):
+python -m unittest tests.test_astra_t4_evidence_package -v
+
+Date: 2026-09-25 (Europe/London)
+Tool under test SHA-256 (inherited handoff bytes):
+7a3e6b59acb367fbd598455e8052a91fbcf580e7affa9f9927460127988d4c91  tools/genesis_audit_package.py
+Test module SHA-256 at this run:
+c4eb9f633a290b6e36436037c4c483d88902a8afbd316ed71636787b3d1ca1d8  tests/test_astra_t4_evidence_package.py
+
+Purpose: assertion-based RED for three verifier gaps found in the inherited
+WIP: (1) verify has no caller-pinned approved-authority check, so a package
+whose manifest omits/strips authorities verifies; (2) raw-worktree/historical
+member rows accept undeclared fields; (3) repository_status,
+non_authorizations and self_reference_note values are not checked.
+The content-tamper/unsafe-path/stale-or-missing-sidecar test is positive
+hardening coverage and already passes; it is not claimed as RED.
+
+Verbatim transcript:
+
+test_content_tamper_unsafe_path_and_stale_or_missing_sidecar_fail_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_content_tamper_unsafe_path_and_stale_or_missing_sidecar_fail_closed) ... ok
+test_fresh_extraction_verifies_without_repository (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_fresh_extraction_verifies_without_repository) ... ok
+test_git_blob_snapshot_preserves_exact_bytes_and_approved_adr (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_git_blob_snapshot_preserves_exact_bytes_and_approved_adr) ... ok
+test_manifest_rows_and_fixed_fields_are_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_manifest_rows_and_fixed_fields_are_closed) ... 
+  test_manifest_rows_and_fixed_fields_are_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_manifest_rows_and_fixed_fields_are_closed) [extra-row-field] ... FAIL
+  test_manifest_rows_and_fixed_fields_are_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_manifest_rows_and_fixed_fields_are_closed) [dirty-status] ... FAIL
+  test_manifest_rows_and_fixed_fields_are_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_manifest_rows_and_fixed_fields_are_closed) [dropped-non-authorization] ... FAIL
+  test_manifest_rows_and_fixed_fields_are_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_manifest_rows_and_fixed_fields_are_closed) [changed-self-reference-note] ... FAIL
+test_raw_worktree_and_historical_bytes_are_distinct_labeled_representations (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_raw_worktree_and_historical_bytes_are_distinct_labeled_representations) ... ok
+test_repeated_build_is_byte_deterministic_and_sidecar_exact (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_repeated_build_is_byte_deterministic_and_sidecar_exact) ... ok
+test_repository_cross_check_passes_and_archive_tamper_fails_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_repository_cross_check_passes_and_archive_tamper_fails_closed) ... C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\zipfile\__init__.py:1611: UserWarning: Duplicate name: 'git-blobs/source/program.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
+ok
+test_verifier_enforces_caller_pinned_authorities_without_repository (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_verifier_enforces_caller_pinned_authorities_without_repository) ... FAIL
+
+======================================================================
+FAIL: test_manifest_rows_and_fixed_fields_are_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_manifest_rows_and_fixed_fields_are_closed) [extra-row-field]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t4_evidence_package.py", line 305, in test_manifest_rows_and_fixed_fields_are_closed
+    self.assertNotEqual(denied.returncode, 0, denied.stdout)
+AssertionError: 0 == 0 : {"archive": "C:\\Users\\abbot\\Documents\\Codex\\2026-09-21\\goal-complete-the-project-genesis-v0\\work\\genesis-remediation\\work\\test_runtime\\4c6562f4908446678e1d30a44d034e8c\\extra-row-field.zip", "bytes": 5093, "fresh_extraction_verified": false, "git_cross_check": false, "manifest_sha256": "ed2aaf47b6c650420755464ce90dd6135ca1d359c0de57c524a74bbe0bab4d97", "members": 5, "sha256": "1649d86e7b48590bfb3536a8534e33bc4b3c628e4928a270ba5665180b1a1a84", "sidecar_verified": true, "source_files": 3, "target_commit": "48fb50de211e9f28d4c7f6eae967ae459632f9ac", "target_tree": "55e2153f97d9ef84637542ced1539566cbd3dbea"}
+
+
+======================================================================
+FAIL: test_manifest_rows_and_fixed_fields_are_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_manifest_rows_and_fixed_fields_are_closed) [dirty-status]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t4_evidence_package.py", line 305, in test_manifest_rows_and_fixed_fields_are_closed
+    self.assertNotEqual(denied.returncode, 0, denied.stdout)
+AssertionError: 0 == 0 : {"archive": "C:\\Users\\abbot\\Documents\\Codex\\2026-09-21\\goal-complete-the-project-genesis-v0\\work\\genesis-remediation\\work\\test_runtime\\4c6562f4908446678e1d30a44d034e8c\\dirty-status.zip", "bytes": 5027, "fresh_extraction_verified": false, "git_cross_check": false, "manifest_sha256": "6b697888956443d911b7f3c22715397f3f9691cc0c1298bd609a03204c42637c", "members": 5, "sha256": "d4f3c1d36a999c3b513431c478ee87e96d08ca7bbd8df197069a08e202c46d5a", "sidecar_verified": true, "source_files": 3, "target_commit": "48fb50de211e9f28d4c7f6eae967ae459632f9ac", "target_tree": "55e2153f97d9ef84637542ced1539566cbd3dbea"}
+
+
+======================================================================
+FAIL: test_manifest_rows_and_fixed_fields_are_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_manifest_rows_and_fixed_fields_are_closed) [dropped-non-authorization]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t4_evidence_package.py", line 305, in test_manifest_rows_and_fixed_fields_are_closed
+    self.assertNotEqual(denied.returncode, 0, denied.stdout)
+AssertionError: 0 == 0 : {"archive": "C:\\Users\\abbot\\Documents\\Codex\\2026-09-21\\goal-complete-the-project-genesis-v0\\work\\genesis-remediation\\work\\test_runtime\\4c6562f4908446678e1d30a44d034e8c\\dropped-non-authorization.zip", "bytes": 4960, "fresh_extraction_verified": false, "git_cross_check": false, "manifest_sha256": "16af1e87fc00f9364666067ee1455864c3ab1aaa6009235cbe7ebe8077885d78", "members": 5, "sha256": "e57049541ef26c515f52f94a1d9cf31123fd31ef59dac791a01224424a075ec5", "sidecar_verified": true, "source_files": 3, "target_commit": "48fb50de211e9f28d4c7f6eae967ae459632f9ac", "target_tree": "55e2153f97d9ef84637542ced1539566cbd3dbea"}
+
+
+======================================================================
+FAIL: test_manifest_rows_and_fixed_fields_are_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_manifest_rows_and_fixed_fields_are_closed) [changed-self-reference-note]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t4_evidence_package.py", line 305, in test_manifest_rows_and_fixed_fields_are_closed
+    self.assertNotEqual(denied.returncode, 0, denied.stdout)
+AssertionError: 0 == 0 : {"archive": "C:\\Users\\abbot\\Documents\\Codex\\2026-09-21\\goal-complete-the-project-genesis-v0\\work\\genesis-remediation\\work\\test_runtime\\4c6562f4908446678e1d30a44d034e8c\\changed-self-reference-note.zip", "bytes": 4908, "fresh_extraction_verified": false, "git_cross_check": false, "manifest_sha256": "e4cf3b2d02a2ab1c1e273ad657fefd0ecd30a051d051593f4ae0465a880bfed9", "members": 5, "sha256": "e014dac49c6d76aa073de65caff89c01c438f794c75901d0ee935c8ed3b8e22a", "sidecar_verified": true, "source_files": 3, "target_commit": "48fb50de211e9f28d4c7f6eae967ae459632f9ac", "target_tree": "55e2153f97d9ef84637542ced1539566cbd3dbea"}
+
+
+======================================================================
+FAIL: test_verifier_enforces_caller_pinned_authorities_without_repository (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_verifier_enforces_caller_pinned_authorities_without_repository)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t4_evidence_package.py", line 267, in test_verifier_enforces_caller_pinned_authorities_without_repository
+    self.assertEqual(accepted.returncode, 0, accepted.stdout + accepted.stderr)
+AssertionError: 2 != 0 : usage: genesis_audit_package.py [-h] {build,verify} ...
+genesis_audit_package.py: error: unrecognized arguments: --authority DECISIONS/ADR.md=55e5b20ac857a9bed8cdcea42be82bc075a750f2a33f78c00deae0a4d1f56adc
+
+
+----------------------------------------------------------------------
+Ran 8 tests in 10.816s
+
+FAILED (failures=5)
+exit=1

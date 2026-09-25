@@ -12,10 +12,11 @@ post-S5 hostile audit of commit `27dd525` then returned **HOLD / NOT APPROVED**
 with B1-B8. T1 locally repairs B1, B2, B3 and B7. T2 locally repairs B6's
 circular approval construction without changing the approved binding preimage.
 T3 locally repairs B4/B5's protected-program executable-integrity and reachable-
-state defects under unchanged ADR-0003 v1 identity and topology. B8 remains
-open, and T1/T2/T3 still require integrated hostile review. This diagram is a
-foundation map, not an adapter, shadow-research, protected-campaign or live-
-money GO.
+state defects under unchanged ADR-0003 v1 identity and topology. T4 locally
+repairs B8's package-representation defect without changing historical bytes.
+All B1–B8 findings now have local repair checkpoints, but T1–T4 still require
+integrated hostile review. This diagram is a foundation map, not an adapter,
+shadow-research, protected-campaign or live-money GO.
 
 ## Remediated V0.4 foundation flow
 
@@ -92,6 +93,14 @@ cycle-safe reachable-capability audit rejects raw labels and unsupported opaque,
 reflective or custom imported state before predictions are accepted. Program-
 reference, campaign, certificate, process, IPC and attempt identities are
 unchanged.
+T4's audit-only packager reads source bytes from exact Git objects, never from a
+newline-converting checkout. It stores Git blobs, raw worktree evidence and
+historical external artifacts under different paths and representation labels,
+pins approved ADR Git-blob SHA-256 values, and verifies a deterministic package
+both against Git and after fresh extraction. Verification can require caller-
+pinned authorities, rejects undeclared manifest fields, and takes raw worktree
+evidence only from Git-tracked paths. The old S5 archive and mismatches
+remain immutable evidence rather than being normalized or replaced.
 Recovery must not silently heal, truncate, choose a branch, or infer missing
 identity.
 
@@ -244,6 +253,9 @@ SettlementLedger
   legacy test harness.
 - `candidate_runs.py`, `coverage.py`, `selection_evaluation.py`: complete
   candidate retention, non-quota search telemetry and aggregate evaluation.
+- `tools/genesis_audit_package.py`: audit-only exact-Git/raw/historical package
+  construction, closed representation manifests, fresh extraction and optional
+  Git-object verification. It is not a runtime or product path.
 
 ## Legacy and deferred boundaries
 

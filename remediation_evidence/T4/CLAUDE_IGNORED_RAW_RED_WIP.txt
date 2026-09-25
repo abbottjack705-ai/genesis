@@ -1,0 +1,31 @@
+Command (T3 HEAD 39a21328f76cb522bb5b198af1c1e76485d6fe5f + T4 WIP after the
+first Claude verifier hardening; new ignored-file test added):
+python -m unittest tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_raw_worktree_members_exclude_git_ignored_files -v
+
+Date: 2026-09-25 (Europe/London)
+Tool under test SHA-256:
+05f8e7ecdd223e7962a51c492c90c872166cd6497b346c7f02954193fbe1f345  tools/genesis_audit_package.py
+
+Finding: the builder's clean-repository check uses git status, which omits
+ignored files, but raw-worktree roots were collected with rglob. The live
+repository has ignored __pycache__ directories under remediation_evidence/R8,
+R9 and T4, so volatile .pyc caches would have entered the raw_worktree_bytes
+namespace as if they were evidence. One assertion failure, zero errors.
+
+Verbatim transcript:
+
+test_raw_worktree_members_exclude_git_ignored_files (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_raw_worktree_members_exclude_git_ignored_files) ... FAIL
+
+======================================================================
+FAIL: test_raw_worktree_members_exclude_git_ignored_files (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_raw_worktree_members_exclude_git_ignored_files)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\work\genesis-remediation\tests\test_astra_t4_evidence_package.py", line 296, in test_raw_worktree_members_exclude_git_ignored_files
+    self.assertFalse(
+AssertionError: ['raw-worktree/evidence/__pycache__/probe.cpython-312.pyc'] is not false : Git-ignored worktree files must not enter the raw evidence namespace
+
+----------------------------------------------------------------------
+Ran 1 test in 1.185s
+
+FAILED (failures=1)
+exit=1

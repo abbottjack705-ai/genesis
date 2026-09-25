@@ -1,0 +1,23 @@
+Command (sealed T3 production; acceptance tests present, packager absent):
+python -m unittest tests.test_astra_t4_evidence_package -v
+
+Exit code: 1
+
+test_fresh_extraction_verifies_without_repository ... FAIL
+test_git_blob_snapshot_preserves_exact_bytes_and_approved_adr ... FAIL
+test_raw_worktree_and_historical_bytes_are_distinct_labeled_representations ... FAIL
+test_repeated_build_is_byte_deterministic_and_sidecar_exact ... FAIL
+test_repository_cross_check_passes_and_archive_tamper_fails_closed ... FAIL
+
+----------------------------------------------------------------------
+Ran 5 tests in 3.954s
+
+FAILED (failures=5)
+
+Every failure was the explicit invariant assertion:
+
+`B8 RED: no byte-preserving, representation-labeled audit packager exists`
+
+There were zero errors, skips, collection failures, import failures or setup
+failures. Each synthetic Git fixture was successfully created and committed
+before the missing packaging contract was asserted.

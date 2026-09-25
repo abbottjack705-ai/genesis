@@ -2,3 +2,6 @@
 # whitespace exact while retaining normal whitespace checks for code and prose.
 remediation_evidence/T1/*.txt whitespace=-trailing-space
 remediation_evidence/T1/*.patch whitespace=-trailing-space
+# Raw T4 transcripts mix captured CRLF output with LF headers. Store them
+# without end-of-line conversion so Git blob, checkout and hashed bytes agree.
+remediation_evidence/T4/*.txt -text whitespace=-trailing-space

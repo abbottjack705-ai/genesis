@@ -961,6 +961,24 @@ def _research_reader(
         messages.put(None)
 
 
+def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value = dict(pairs)
+    if len(value) != len(pairs):
+        raise ValueError("duplicate IPC object key")
+    return value
+
+
+def decode_ipc_message(raw: bytes) -> dict[str, Any]:
+    """Accept only one exact canonical JSON object line, as the sender writes it."""
+
+    if len(raw) > MAX_IPC_BYTES or not raw.endswith(b"\n"):
+        raise ValueError("IPC message is incomplete or oversized")
+    value = json.loads(raw, object_pairs_hook=_unique_object)
+    if not isinstance(value, dict) or canonical_json(value) != raw:
+        raise ValueError("IPC message is not one canonical object")
+    return value
+
+
 def _take_research_message(
     messages: "queue.Queue[bytes | None]",
     *,
@@ -970,15 +988,12 @@ def _take_research_message(
         raw = messages.get(timeout=timeout)
     except queue.Empty as exc:
         raise ProtectedEvaluationError("protected research unavailable") from exc
-    if raw is None or len(raw) > MAX_IPC_BYTES or not raw.endswith(b"\n"):
+    if raw is None:
         raise ProtectedEvaluationError("protected research unavailable")
     try:
-        value = json.loads(raw)
+        return decode_ipc_message(raw)
     except Exception as exc:
         raise ProtectedEvaluationError("protected research unavailable") from exc
-    if not isinstance(value, dict):
-        raise ProtectedEvaluationError("protected research unavailable")
-    return value
 
 
 def _start_research_process(
@@ -1094,6 +1109,7 @@ class ProtectedEvaluationClient:
         self._research_reader = research_reader
         self._research_boundary = dict(research_boundary)
         self._research_lock = threading.Lock()
+        self._evaluator_lock = threading.Lock()
         self._last_research_pid: int | None = None
         self._allow_fault_injection = allow_fault_injection
         self._closed = False
@@ -1123,21 +1139,29 @@ class ProtectedEvaluationClient:
         return dict(self._research_boundary)
 
     def _roundtrip(self, payload: dict[str, Any], timeout: float = 10.0) -> dict[str, Any]:
-        if self._closed or not self._process.is_alive():
-            raise ProtectedEvaluationError("protected evaluator unavailable") from None
-        try:
-            raw = canonical_json(payload)
-            if len(raw) > MAX_IPC_BYTES:
-                raise ValueError
-            self._connection.send_bytes(raw)
-            if not self._connection.poll(timeout):
-                raise TimeoutError
-            response = json.loads(self._connection.recv_bytes(MAX_IPC_BYTES))
-            if not isinstance(response, dict):
-                raise ValueError
-            return response
-        except Exception:
-            raise ProtectedEvaluationError("protected evaluator unavailable") from None
+        # One request is outstanding at a time, so each reply pairs with the
+        # request that caused it. A failed exchange may leave a late reply in
+        # the pipe, so the evaluator is stopped rather than let that reply
+        # pair with a later request.
+        with self._evaluator_lock:
+            if self._closed or not self._process.is_alive():
+                raise ProtectedEvaluationError("protected evaluator unavailable") from None
+            try:
+                raw = canonical_json(payload)
+                if len(raw) > MAX_IPC_BYTES:
+                    raise ValueError
+                self._connection.send_bytes(raw)
+                if not self._connection.poll(timeout):
+                    raise TimeoutError
+                response = json.loads(self._connection.recv_bytes(MAX_IPC_BYTES))
+                if not isinstance(response, dict):
+                    raise ValueError
+                return response
+            except Exception:
+                if self._process.is_alive():
+                    self._process.terminate()
+                    self._process.join(10)
+                raise ProtectedEvaluationError("protected evaluator unavailable") from None
 
     def _research_roundtrip(
         self,
@@ -1150,6 +1174,11 @@ class ProtectedEvaluationClient:
             try:
                 raw = canonical_json(payload)
                 if len(raw) > MAX_IPC_BYTES or self._research_process.stdin is None:
+                    raise ValueError
+                # Exactly one reply follows each request. A line already
+                # waiting was never requested (stale, duplicated or injected),
+                # so the stream can no longer pair replies with requests.
+                if not self._research_messages.empty():
                     raise ValueError
                 self._research_process.stdin.write(raw)
                 self._research_process.stdin.flush()
@@ -1227,9 +1256,10 @@ class ProtectedEvaluationClient:
         if not isinstance(program, ResearchProgramRef) or request.strategy_digest != program.program_digest:
             raise ProtectedEvaluationError("protected request rejected") from None
         attempt_id = self._reserve(request)
-        # A fresh per-request nonce authenticates the worker's own reply. The
-        # research callback never sees it, so bytes a callback writes into the
-        # IPC channel cannot pass as the response (ADR-0003: callback output
+        # A fresh per-request nonce authenticates the worker's own reply,
+        # success or error. The research callback never sees it, so bytes a
+        # callback writes into the IPC channel, or a reply to any other
+        # request, cannot pass as this response (ADR-0003: callback output
         # must not corrupt the protocol).
         nonce = secrets.token_hex(32)
         try:
@@ -1241,7 +1271,7 @@ class ProtectedEvaluationClient:
                     "nonce": nonce,
                 }
             )
-            if response.get("status") != "error" and response.get("nonce") != nonce:
+            if response.get("nonce") != nonce:
                 self._terminate_research_after_protocol_violation()
                 raise ValueError
             if set(response) != {"status", "artifact", "research_pid", "nonce"}:

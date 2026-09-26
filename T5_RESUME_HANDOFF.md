@@ -9,6 +9,13 @@ adapter/production/live ready.** The foundation disposition remains
 Do not restart the analysis or re-plan from scratch. Resume from section
 "Exact recommended next-action sequence".
 
+> **Update 2026-09-26 (second WIP checkpoint, on top of `220c4d0`).** The
+> PA-1 parent/worker request-binding work (§7 items 2–7, and item 1 for the
+> defined research interface) is now implemented and green — see **§7a**. §2's
+> file list/hashes and §4's table describe the first WIP checkpoint and are
+> kept as history; §7a has the current delta and results. Next action is §13
+> step 3 (stronger N1 architecture). Still NOT the T5 candidate.
+
 ---
 
 ## 1. Exact repository identity
@@ -212,6 +219,59 @@ The user explicitly required attacking the new auth design before closing it.
    *later* request to be consumed early (queue desync). If a desync is possible,
    move research IPC off the shared stdout to a dedicated pipe/fd.
 
+## 7a. PA-1 request binding — IMPLEMENTED and green (second WIP checkpoint)
+
+Scope was deliberately limited to parent/worker correctness of the research
+IPC and evaluator channels. New suite `tests/test_astra_t5_ipc_request_binding.py`
+(13 tests) states the properties P1–P8 in its docstring: reply belongs to the
+exact current request; an earlier result is never accepted as current; result
+bound to the intended program identity; restart carries no request state;
+duplicated/incomplete/reordered/malformed messages fail closed; concurrent
+requests are never mis-paired; the parent validates before use; worker protocol
+state is absent from the research interface (module namespace + frame argument).
+Replies are injected deterministically through the parent's reply queue or
+research round trip with `secrets.token_hex` patched to known nonces.
+
+RED on `220c4d0` (10 failures): a line queued before a request was certified
+as its reply; unauthenticated error replies were accepted as the current
+request's result; the reply decoder accepted duplicate keys, non-canonical
+encodings and `NaN`; the worker accepted duplicate-key / non-canonical requests;
+concurrent `run()` calls failed because the evaluator pipe round trip was
+unserialized (threads could read each other's replies).
+
+Design changes (smallest set; only `protected.py` and the worker):
+- `decode_ipc_message` (shared by parent and worker): one exact canonical JSON
+  object line, unique keys, re-encoding must equal the received bytes.
+- Parent research round trip: before sending, any already-queued line is an
+  unrequested reply → worker killed, request fails closed.
+- Parent `run()`: every reply, including errors, must carry the current nonce;
+  otherwise the worker is killed (protocol violation). Artifact identity checks
+  are unchanged and still run before the evaluator sees anything.
+- Worker: once a request's nonce is validated (64 lowercase hex), its generic
+  error reply also carries that nonce; requests rejected before that point keep
+  the exact retained `{"status":"error","message":"protected evaluation failed"}`.
+- Evaluator `_roundtrip`: serialized by `_evaluator_lock`; a failed exchange
+  terminates the evaluator so a late reply can never pair with a later request.
+
+Observed, NOT changed (worker-internal N1 behaviour, out of this scope): after a
+program *raises during execution*, the worker's contamination latch refuses
+later programs on that worker (generic error). The P-suite therefore uses a
+pre-execution failure for the "authenticated error fails only its own request"
+case. Revisit under the §8 architecture.
+
+Results (short path `C:\Users\abbot\t5\w`, Python 3.12.10): new suite + retained
+protected suites (closure, S5 process, R9, T3) **66 OK**; full discovery
+**347 tests, 24 failures — the identical 24 pre-existing RED tests of the
+out-of-scope N2/N3/O-5/package suites** (baseline `220c4d0`: 334 tests, same 24).
+`compileall` and `git diff --check` clean. Evidence (outside repo):
+```
+b03a1fa1300950328f3048533911538f496d61d6dc89c6d79c6c1f91fd9c7d4b  C:\Users\abbot\t5\evidence\T5_PA1_IPC_BINDING_RED_ON_220c4d0.txt
+d848b1d4861a5baa0a68db8af114b5e5a1849e33cc9e018fdd62170df3bfe600  C:\Users\abbot\t5\evidence\T5_PA1_IPC_BINDING_GREEN_PROTECTED.txt
+4c15e2adb7c41cf93e667a4ef217cb7885973f7d0a8c12e3893c624402403bd8  C:\Users\abbot\t5\evidence\T5_PA1_IPC_BINDING_FULL_SUITE.txt
+```
+(The RED log's `test_authenticated_error_fails_only_its_own_request` failure
+came from the earlier, since-corrected test variant described above.)
+
 ## 8. Architectural decision made, and the REJECTED approach
 
 **Decision (recommended, NOT yet implemented): one worker process per program
@@ -359,6 +419,10 @@ chat (the next session should `git rev-parse HEAD` and diff against T4).
    GO.
 
 ---
+**Status line (2026-09-26, second WIP):** PA-1 request binding implemented and
+green (§7a, 13 tests); §13 step 2 done; resume at step 3. Everything below
+this line was the status at the first WIP checkpoint.
+
 **Status line:** N1+PA-1 implemented and green (15 tests); PA-1 hardening,
 stronger N1 architecture, and N2/N3/O-5/package pins NOT implemented; full
 regression/stress/hostile-pre-audit/evidence-audit NOT done. T5 is IN PROGRESS.

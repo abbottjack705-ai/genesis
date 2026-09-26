@@ -8,7 +8,6 @@ import dis
 import gc
 import importlib.abc
 import inspect
-import json
 import os
 import sys
 import types
@@ -32,6 +31,7 @@ from genesis.protected import (  # noqa: E402
     FrozenPredictionArtifact,
     ResearchProgramRef,
     SealedFrameSet,
+    decode_ipc_message,
 )
 from genesis.provenance import AvailabilityClass, ProvenanceRef  # noqa: E402
 from genesis.repro import canonical_json, sha256_bytes  # noqa: E402
@@ -47,12 +47,9 @@ def _send(stream: BinaryIO, payload: dict[str, Any]) -> None:
 
 def _recv(stream: BinaryIO) -> dict[str, Any]:
     raw = stream.readline(MAX_IPC_BYTES + 1)
-    if not raw or len(raw) > MAX_IPC_BYTES or not raw.endswith(b"\n"):
+    if not raw:
         raise ValueError("research IPC request is invalid")
-    value = json.loads(raw)
-    if not isinstance(value, dict):
-        raise ValueError("research IPC request must be an object")
-    return value
+    return decode_ipc_message(raw)
 
 
 def _provenance_from_dict(value: Any) -> ProvenanceRef:
@@ -808,6 +805,7 @@ def _main() -> int:
     poisoned = False
     while True:
         state: dict[str, Any] = {"executed": False, "program_path": None}
+        nonce: str | None = None
         try:
             message = _recv(ipc_input)
             operation = message.get("op")
@@ -816,10 +814,14 @@ def _main() -> int:
                 return 0
             if operation != "predict" or set(message) != {"op", "request", "program", "nonce"}:
                 raise ValueError("unsupported research operation")
-            nonce = message.pop("nonce")
-            if not isinstance(nonce, str) or len(nonce) != 64 or nonce.lower() != nonce:
+            candidate = message.pop("nonce")
+            if (
+                not isinstance(candidate, str)
+                or len(candidate) != 64
+                or any(character not in "0123456789abcdef" for character in candidate)
+            ):
                 raise ValueError("research request nonce is invalid")
-            int(nonce, 16)
+            nonce = candidate
             if not isinstance(message["request"], dict) or not isinstance(message["program"], dict):
                 raise ValueError("research request payload is invalid")
             request = EvaluationRequest.from_dict(message["request"])
@@ -852,7 +854,12 @@ def _main() -> int:
         except Exception as exc:
             if isinstance(exc, ResearchProcessContaminated):
                 poisoned = True
-            _send(ipc_output, {"status": "error", "message": "protected evaluation failed"})
+            # The error stays generic; once the request's nonce is known the
+            # error is bound to that request like any other reply.
+            failure = {"status": "error", "message": "protected evaluation failed"}
+            if nonce is not None:
+                failure["nonce"] = nonce
+            _send(ipc_output, failure)
         finally:
             if state.get("executed") and not poisoned:
                 try:

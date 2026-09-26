@@ -1,0 +1,72 @@
+# T6 F-2 static gates over the complete staged checkpoint change set (every F-2 file except this transcript and F2_EVIDENCE_HASHES.sha256, which are written after it)
+# started 2026-09-26T21:11:39Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\f2f HEAD 7a548ff52cd12ffec35bcb878b22255d1844968a branch t6-remediation core.autocrlf=false
+# uncommitted paths: 14
+#   A  remediation_evidence/T6/F2_AUDITOR_PROBE_DRIVER.py  sha256 951ea60d7a1a8e61b523fa6aa6816e5b63cadb8faa5bd243029f655981e8e4fe
+#   A  remediation_evidence/T6/F2_CAUSALITY_ENUMERATION.py  sha256 9ffe8e28e30f22009639113d62b0a1a72200fa34b16539d51a91cd74797b6597
+#   A  remediation_evidence/T6/F2_CAUSALITY_ENUMERATION.txt  sha256 9ef2b81a459d8d9e96075465c796a15edc4f1a1986f13d23badb5138109f8a98
+#   A  remediation_evidence/T6/F2_FULL_SUITE_AND_STATIC.txt  sha256 1d788f3cb834534b193798140a08ea96ff520e384015235f3ef8968919c8fd7f
+#   A  remediation_evidence/T6/F2_GREEN_ADJACENT_SUITES.txt  sha256 306c9f6a93926f2aa6ee85c0d9a6ad1bcee5632e5f55c4412d22ad3e1f4ce553
+#   A  remediation_evidence/T6/F2_GREEN_AUDITOR_PROBE.txt  sha256 bd1c88fc1535edda615807a5fcfdef978a41a0f59b76cc00725de45e93aacf23
+#   A  remediation_evidence/T6/F2_RED_AUDITOR_PROBE.txt  sha256 3f268500d3f2dbf611f3a6d255087407bd8e3ec44e195c97a150e2c6726ffe53
+#   A  remediation_evidence/T6/F2_RED_T6_TESTS_ON_F3_CHECKPOINT.txt  sha256 e4f4345683c637d0a1390cfaed9073b9c6981beab854cec07bb76911d2f6a935
+#   A  remediation_evidence/T6/T6_F2_AUTHORITY_MEMO.md  sha256 ae7a8a209e199be5aede2e31eaceb46be6f913204d795fbd9f56976e1e3880dd
+#   A  remediation_evidence/T6/T6_WIP_F2_CHECKPOINT.md  sha256 a7ebe67e814c5f9b7189f4d2d6eefe8734ad417bc6576e03a9e3012912247099
+#   M  src/genesis/execution.py  sha256 ee39348ff93340355505d64451868a7ffa5594154fb1788263fe7ba04befd483
+#   M  src/genesis/risk.py  sha256 4b42b9f4805182a7346c78f34e5a6c0a33f346dbb613deba86c09f3f4750327f
+#   M  src/genesis/selection.py  sha256 d02e357a8b534bd20d21a987904e1c31dbeef47110cb4db5ea406f07c9e6ad4b
+#   A  tests/test_astra_t6_approval_causality.py  sha256 456f8438a039c4bde62b7fd2cffc585979292bb770f94691ba219b2e204ae2b6
+# tools/genesis_audit_package.py sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+# runner sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+
+$ git diff --cached --check 7a548ff52cd12ffec35bcb878b22255d1844968a
+
+exit=0 elapsed=0.1s
+
+$ git diff --cached --stat 7a548ff52cd12ffec35bcb878b22255d1844968a
+ remediation_evidence/T6/F2_AUDITOR_PROBE_DRIVER.py | 132 +++++++
+ .../T6/F2_CAUSALITY_ENUMERATION.py                 | 228 +++++++++++
+ .../T6/F2_CAUSALITY_ENUMERATION.txt                |  49 +++
+ .../T6/F2_FULL_SUITE_AND_STATIC.txt                | 436 +++++++++++++++++++++
+ .../T6/F2_GREEN_ADJACENT_SUITES.txt                | 240 ++++++++++++
+ remediation_evidence/T6/F2_GREEN_AUDITOR_PROBE.txt | 121 ++++++
+ remediation_evidence/T6/F2_RED_AUDITOR_PROBE.txt   | 107 +++++
+ .../T6/F2_RED_T6_TESTS_ON_F3_CHECKPOINT.txt        | 188 +++++++++
+ remediation_evidence/T6/T6_F2_AUTHORITY_MEMO.md    | 166 ++++++++
+ remediation_evidence/T6/T6_WIP_F2_CHECKPOINT.md    | 152 +++++++
+ src/genesis/execution.py                           |   5 +-
+ src/genesis/risk.py                                |   4 +-
+ src/genesis/selection.py                           | 192 ++++++++-
+ tests/test_astra_t6_approval_causality.py          | 392 ++++++++++++++++++
+ 14 files changed, 2393 insertions(+), 19 deletions(-)
+exit=0 elapsed=0.0s
+
+$ git diff --cached --name-status 7a548ff52cd12ffec35bcb878b22255d1844968a
+A	remediation_evidence/T6/F2_AUDITOR_PROBE_DRIVER.py
+A	remediation_evidence/T6/F2_CAUSALITY_ENUMERATION.py
+A	remediation_evidence/T6/F2_CAUSALITY_ENUMERATION.txt
+A	remediation_evidence/T6/F2_FULL_SUITE_AND_STATIC.txt
+A	remediation_evidence/T6/F2_GREEN_ADJACENT_SUITES.txt
+A	remediation_evidence/T6/F2_GREEN_AUDITOR_PROBE.txt
+A	remediation_evidence/T6/F2_RED_AUDITOR_PROBE.txt
+A	remediation_evidence/T6/F2_RED_T6_TESTS_ON_F3_CHECKPOINT.txt
+A	remediation_evidence/T6/T6_F2_AUTHORITY_MEMO.md
+A	remediation_evidence/T6/T6_WIP_F2_CHECKPOINT.md
+M	src/genesis/execution.py
+M	src/genesis/risk.py
+M	src/genesis/selection.py
+A	tests/test_astra_t6_approval_causality.py
+exit=0 elapsed=0.0s
+
+$ git diff --cached --name-only 7a548ff52cd12ffec35bcb878b22255d1844968a -- DECISIONS v04_pack config V04_MIGRATION_PLAN.md requirements.lock pyproject.toml tools src/genesis/protected.py src/genesis/protected_research_worker.py src/genesis/decision_output.py src/genesis/registry.py src/genesis/owner_binding.py remediation_evidence :(exclude)remediation_evidence/T6/F2_* :(exclude)remediation_evidence/T6/T6_F2_AUTHORITY_MEMO.md :(exclude)remediation_evidence/T6/T6_WIP_F2_CHECKPOINT.md
+
+exit=0 elapsed=0.0s
+
+$ python -m compileall -q src tests tools remediation_evidence/T6
+
+exit=0 elapsed=0.2s
+
+# commands 5, nonzero exits 0
+# finished 2026-09-26T21:11:39Z

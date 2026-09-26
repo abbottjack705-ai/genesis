@@ -1254,7 +1254,7 @@ class RiskEngine:
             read_locks=(
                 self.bankrolls.log, self.safety.log, self.qualifications.log,
                 self.qualifications.bindings.log,
-                self.qualifications.approvals.log,
+                self.qualifications.approvals.log, self.qualifications.witnesses,
                 *((self.strategies.log,) if self.strategies is not None else ()),
                 *self._mode_lock_for(mode_states),
                 *self._release_read_locks_for(release_proofs),
@@ -1357,7 +1357,7 @@ class RiskEngine:
         self.audit_log.log.transaction(
             self._replay_checked(build), read_locks=(
                 self.qualifications.log, self.qualifications.bindings.log,
-                self.qualifications.approvals.log,
+                self.qualifications.approvals.log, self.qualifications.witnesses,
                 self.bankrolls.log, self.safety.log,
                 *((self.strategies.log,) if self.strategies is not None else ()),
                 *self._mode_lock_for(mode_states),

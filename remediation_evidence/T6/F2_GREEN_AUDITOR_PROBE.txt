@@ -1,0 +1,121 @@
+# T6 F-2 auditor probe transcript (GREEN on the repaired source (work clone))
+# started 2026-09-26T20:43:51Z
+# python 3.12.10; Windows-11-10.0.26200-SP0
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\f2w HEAD 7a548ff52cd12ffec35bcb878b22255d1844968a branch t6-remediation core.autocrlf=false
+# uncommitted paths: 6
+#    M src/genesis/execution.py  sha256 ee39348ff93340355505d64451868a7ffa5594154fb1788263fe7ba04befd483
+#    M src/genesis/risk.py  sha256 4b42b9f4805182a7346c78f34e5a6c0a33f346dbb613deba86c09f3f4750327f
+#    M src/genesis/selection.py  sha256 d02e357a8b534bd20d21a987904e1c31dbeef47110cb4db5ea406f07c9e6ad4b
+#   ?? remediation_evidence/T6/F2_AUDITOR_PROBE_DRIVER.py  sha256 951ea60d7a1a8e61b523fa6aa6816e5b63cadb8faa5bd243029f655981e8e4fe
+#   ?? remediation_evidence/T6/F2_CAUSALITY_ENUMERATION.py  sha256 9ffe8e28e30f22009639113d62b0a1a72200fa34b16539d51a91cd74797b6597
+#   ?? tests/test_astra_t6_approval_causality.py  sha256 456f8438a039c4bde62b7fd2cffc585979292bb770f94691ba219b2e204ae2b6
+# src/genesis/selection.py sha256 d02e357a8b534bd20d21a987904e1c31dbeef47110cb4db5ea406f07c9e6ad4b
+# src/genesis/decision_output.py sha256 6e6ab35165ee7b16ebc5385a449374de97038afeb084174c4224646058483faa
+# src/genesis/risk.py sha256 4b42b9f4805182a7346c78f34e5a6c0a33f346dbb613deba86c09f3f4750327f
+# driver sha256 951ea60d7a1a8e61b523fa6aa6816e5b63cadb8faa5bd243029f655981e8e4fe
+# auditor probe_o5_composed_store.py sha256 88875c555f8725b8746c4b0e74ca1dacd1108dbbd97bb2a75747ac034c0f4d8f (equals review hash list: True)
+# auditor recorded T5 result probe_o5_composed_store_t5.txt sha256 41334c0869d9c1b06af2bd174fad50019ece3d4fa5965f03795882faf9ec8b00 (equals review hash list: True)
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f2w PYTHONPATH=C:\Users\abbot\t6\f2w\src python C:\Users\abbot\t6\f2green\driver\probes\probe_o5_composed_store.py   (run 1)
+exit=0
+[
+ {
+  "variant": "control_default_store",
+  "qualification_recorded": false
+ },
+ {
+  "variant": "copied_ledger_store",
+  "qualification_recorded": true,
+  "risk_before_real_grant": [
+   false,
+   "authority_unavailable"
+  ],
+  "real_grant_appended_after_qualification": true,
+  "risk_after_backdated_grant": [
+   false,
+   "authority_unavailable"
+  ],
+  "VIOLATION_o5_ordering_circumvented": false
+ },
+ {
+  "variant": "raw_log_append",
+  "qualification_recorded": true,
+  "risk_before_real_grant": [
+   false,
+   "authority_unavailable"
+  ],
+  "real_grant_appended_after_qualification": true,
+  "risk_after_backdated_grant": [
+   false,
+   "authority_unavailable"
+  ],
+  "VIOLATION_o5_ordering_circumvented": false
+ }
+]
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f2w PYTHONPATH=C:\Users\abbot\t6\f2w\src python C:\Users\abbot\t6\f2green\driver\probes\probe_o5_composed_store.py   (run 2)
+exit=0
+[
+ {
+  "variant": "control_default_store",
+  "qualification_recorded": false
+ },
+ {
+  "variant": "copied_ledger_store",
+  "qualification_recorded": true,
+  "risk_before_real_grant": [
+   false,
+   "authority_unavailable"
+  ],
+  "real_grant_appended_after_qualification": true,
+  "risk_after_backdated_grant": [
+   false,
+   "authority_unavailable"
+  ],
+  "VIOLATION_o5_ordering_circumvented": false
+ },
+ {
+  "variant": "raw_log_append",
+  "qualification_recorded": true,
+  "risk_before_real_grant": [
+   false,
+   "authority_unavailable"
+  ],
+  "real_grant_appended_after_qualification": true,
+  "risk_after_backdated_grant": [
+   false,
+   "authority_unavailable"
+  ],
+  "VIOLATION_o5_ordering_circumvented": false
+ }
+]
+
+## determinism: identical exit, stdout and stderr across runs: True
+
+## comparison with the review's recorded T5 result
+  control_default_store.qualification_recorded: same
+  control_default_store.variant: same
+  copied_ledger_store.VIOLATION_o5_ordering_circumvented: CHANGED
+    T5 review: true
+    now      : false
+  copied_ledger_store.qualification_recorded: same
+  copied_ledger_store.real_grant_appended_after_qualification: same
+  copied_ledger_store.risk_after_backdated_grant: CHANGED
+    T5 review: [true, "risk_approved"]
+    now      : [false, "authority_unavailable"]
+  copied_ledger_store.risk_before_real_grant: same
+  copied_ledger_store.variant: same
+  raw_log_append.VIOLATION_o5_ordering_circumvented: CHANGED
+    T5 review: true
+    now      : false
+  raw_log_append.qualification_recorded: same
+  raw_log_append.real_grant_appended_after_qualification: same
+  raw_log_append.risk_after_backdated_grant: CHANGED
+    T5 review: [true, "risk_approved"]
+    now      : [false, "authority_unavailable"]
+  raw_log_append.risk_before_real_grant: same
+  raw_log_append.variant: same
+
+VERDICT F-2 (GREEN on the repaired source (work clone)): control recorded=False; circumvented copied_ledger_store=False, raw_log_append=False -> GREEN
+# finished 2026-09-26T20:43:56Z

@@ -1,0 +1,49 @@
+# T6 F-2 qualification causality enumeration
+# started 2026-09-26T21:04:20Z
+# python 3.12.10; Windows-11-10.0.26200-SP0
+# clone C:\Users\abbot\t6\f2f HEAD 7a548ff52cd12ffec35bcb878b22255d1844968a
+# uncommitted paths: 6
+#    M src/genesis/execution.py  sha256 ee39348ff93340355505d64451868a7ffa5594154fb1788263fe7ba04befd483
+#    M src/genesis/risk.py  sha256 4b42b9f4805182a7346c78f34e5a6c0a33f346dbb613deba86c09f3f4750327f
+#    M src/genesis/selection.py  sha256 d02e357a8b534bd20d21a987904e1c31dbeef47110cb4db5ea406f07c9e6ad4b
+#   ?? remediation_evidence/T6/F2_AUDITOR_PROBE_DRIVER.py  sha256 951ea60d7a1a8e61b523fa6aa6816e5b63cadb8faa5bd243029f655981e8e4fe
+#   ?? remediation_evidence/T6/F2_CAUSALITY_ENUMERATION.py  sha256 9ffe8e28e30f22009639113d62b0a1a72200fa34b16539d51a91cd74797b6597
+#   ?? tests/test_astra_t6_approval_causality.py  sha256 456f8438a039c4bde62b7fd2cffc585979292bb770f94691ba219b2e204ae2b6
+# script sha256 9ffe8e28e30f22009639113d62b0a1a72200fa34b16539d51a91cd74797b6597
+# dynamic scope: full discovery of tests/
+
+## static inventory of src/genesis
+### qualification / witness append and transaction calls in selection.py and callers
+  selection.py:324 in _ApprovalWitnessLog.transaction: super().transaction(...)
+  selection.py:413 in QualificationRecordStore.append: self.log.transaction(...)
+  selection.py:441 in QualificationRecordStore._record_witness: self.witnesses.transaction(...)
+  selection.py:1001 in QualificationAuthority.evaluate: self.qualification_records.append(...)
+### callers of get_for_new_risk (the risk-time admission check)
+  execution.py:632 in PaperExecutionAdapter.bind_risk: self.risk.qualifications.get_for_new_risk(...)
+  execution.py:868 in PaperExecutionAdapter._recertify_record: self.risk.qualifications.get_for_new_risk(...)
+  execution.py:555 in PaperExecutionAdapter.create_intent.build: self.risk.qualifications.get_for_new_risk(...)
+  risk.py:1323 in RiskEngine.consume_for_order.build: self.qualifications.get_for_new_risk(...)
+  risk.py:1545 in RiskEngine.approval_still_valid: self.qualifications.get_for_new_risk(...)
+  risk.py:1098 in RiskEngine.approve.build: self.qualifications.get_for_new_risk(...)
+  selection.py:1073 in rank_qualified_v3: qualification_records.get_for_new_risk(...)
+### read-lock sets naming the approval ledger
+  execution.py:753 in PaperExecutionAdapter.transition: witness log locked: True
+  execution.py:585 in PaperExecutionAdapter.create_intent: witness log locked: True
+  execution.py:821 in PaperExecutionAdapter.recertify: witness log locked: True
+  risk.py:1252 in RiskEngine.approve: witness log locked: True
+  risk.py:1357 in RiskEngine.consume_for_order: witness log locked: True
+  selection.py:324 in _ApprovalWitnessLog.transaction: witness log locked: True (it is the append target)
+  selection.py:413 in QualificationRecordStore.append: witness log locked: True
+### QualificationRecordStore constructions in src
+  (none: stores are composed by callers)
+
+## dynamic trace
+tests run 387, failures 0, errors 0, skipped 1
+      5  V3 qualification row, raw storage writer, witness already present: False
+      1  V3 qualification row, raw storage writer, witness already present: True
+    305  V3 qualification row, recording path, witness already present: True
+   1343  get_for_new_risk admitted a V3 record, witness present: True
+    308  witness row, guarded storage: True, before its record: True
+causality violations: 0
+
+# finished 2026-09-26T21:09:14Z

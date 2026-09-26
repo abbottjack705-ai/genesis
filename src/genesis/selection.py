@@ -17,6 +17,7 @@ from .decision_output import (
 from .evidence import StructuredEvidenceStore
 from .evidence_pack import EvidencePackStore
 from .feature_manifest import FeatureInputManifestStore
+from .owner_binding import owner_identity
 from .pit import PITStore
 from .policy import (
     PolicySet,
@@ -284,13 +285,69 @@ class QualificationRecord:
         )
 
 
+APPROVAL_WITNESS_SCHEMA = "qualification-approval-witness-v1"
+_WITNESS_FIELDS = frozenset({
+    "record_type", "schema_version", "qualification_record_id", "decision_output_hash",
+    "decision_at", "binding_hash", "approval_reference", "approval_ledger",
+    "grant_record_hash", "grant_sequence",
+})
+_CHAIN_FIELDS = frozenset({"previous_hash", "sequence", "record_hash"})
+
+
+class _ApprovalWitnessLog(AppendOnlyJsonl):
+    """Witness storage that appends only the recording path's own witness (F-2).
+
+    Every append, through this object or not, runs under the qualification-log
+    and ledger locks. It must be the first witness for its record and ledger,
+    for a record that does not exist yet, and exactly the witness of a grant
+    that exists now. A witness can therefore never follow its record.
+    """
+
+    def __init__(self, path: str | Path, store: QualificationRecordStore):
+        super().__init__(path)
+        self._store = store
+
+    def transaction(
+        self,
+        build_record: Callable[[tuple[dict[str, Any], ...]], dict[str, Any] | None],
+        *,
+        read_locks: tuple[AppendOnlyJsonl, ...] = (),
+    ) -> str | None:
+        store = self._store
+
+        def checked(rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
+            row = build_record(rows)
+            if row is not None:
+                store._require_new_witness(rows, row)
+            return row
+
+        return super().transaction(checked, read_locks=(
+            *read_locks, store.log, store.bindings.log, store.approvals.log,
+        ))
+
+
 class QualificationRecordStore:
+    """Qualification records plus the durable witness of each V3 record's grant.
+
+    T6 F-2: a V3 record admits new risk only with its approval witness. The
+    recording path writes it, under the qualification-log and ledger locks,
+    only while the record does not yet exist and its exact unrevoked grant
+    does. The witness names that grant row and the ledger it is in, relative to
+    this log. Risk requires the witness for the risk-bound ledger to equal that
+    grant as the ledger holds it, so a grant appended after the record, even a
+    byte-identical copy of one made in another ledger, never admits it. The
+    witness is a sidecar, so qualification rows and identities are unchanged.
+    """
+
     def __init__(
         self, path: str | Path, *, outputs: DecisionOutputStore | None = None,
         bindings: StrategyOutputRuleBindingStore | None = None,
         approvals: StrategyOutputApprovalStore | None = None,
     ):
         self.log = AppendOnlyJsonl(path)
+        self.witnesses = _ApprovalWitnessLog(
+            Path(path).with_name(f"{Path(path).name}.approval-witness.jsonl"), self,
+        )
         self.outputs = outputs or DecisionOutputStore(Path(path).parent / "decision-outputs")
         self.bindings = bindings or StrategyOutputRuleBindingStore(
             Path(path).parent / "strategy-output-bindings.jsonl"
@@ -331,6 +388,8 @@ class QualificationRecordStore:
         read_locks: tuple[AppendOnlyJsonl, ...] = (),
     ) -> QualificationRecord:
         payload = {"record_type": "qualification_record", **record.to_dict()}
+        if record.schema_version == "qualification-record-v3":
+            self._record_witness(record)
 
         def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
             if verify is not None and not verify():
@@ -343,7 +402,7 @@ class QualificationRecordStore:
             ]
             if not matches:
                 if record.schema_version == "qualification-record-v3":
-                    self._require_prior_grant(record)
+                    self._require_witnessed(self._require_prior_grant(record))
                 return payload
             if all(item == record for item in matches):
                 return None
@@ -352,26 +411,73 @@ class QualificationRecordStore:
         # The binding and approval ledgers are fenced with the append, so the
         # grant checked here is the grant that exists when the record exists.
         self.log.transaction(
-            build, read_locks=(*read_locks, self.bindings.log, self.approvals.log),
+            build, read_locks=(
+                *read_locks, self.bindings.log, self.approvals.log, self.witnesses,
+            ),
         )
         return record
 
-    def _require_prior_grant(self, record: QualificationRecord) -> None:
+    def _recorded(self, record_id: str) -> bool:
+        return any(
+            row.get("record_type") == "qualification_record"
+            and row.get("qualification_record_id") == record_id
+            for row in self.log.records()
+        )
+
+    def _record_witness(self, record: QualificationRecord) -> None:
+        """F-2: witness the exact prior grant while the record does not exist yet."""
+
+        def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
+            if self._recorded(record.qualification_record_id):
+                return None
+            witness = self._require_prior_grant(record)
+            existing = self._witnesses_like(rows, witness)
+            if existing:
+                if existing == [witness]:
+                    return None
+                raise RegistryConflict("conflicting qualification approval witness")
+            return witness
+
+        self.witnesses.transaction(build)
+
+    def _require_new_witness(
+        self, rows: tuple[dict[str, Any], ...], row: dict[str, Any],
+    ) -> None:
+        """Witness-storage guard: only the recording path's witness, before its record."""
+
+        if not isinstance(row, dict) or set(row) != _WITNESS_FIELDS:
+            raise RegistryConflict("qualification approval witness is malformed")
+        if self._recorded(row["qualification_record_id"]):
+            raise RegistryConflict("a qualification approval witness cannot follow its record")
+        if self._witnesses_like(rows, row):
+            raise RegistryConflict("qualification approval is already witnessed")
+        if row != self._prior_grant_witness(
+            row["qualification_record_id"], row["decision_output_hash"], row["decision_at"],
+        ):
+            raise RegistryConflict("qualification approval witness is not the exact prior grant")
+
+    def _require_prior_grant(self, record: QualificationRecord) -> dict[str, Any]:
         """O-5: a V3 record needs its exact unrevoked human grant to exist first.
 
-        A grant appended later, even with a backdated ``approved_at``, can then
-        never be the grant that admits this qualification to new risk.
+        Returns the approval witness of that grant. A grant appended later,
+        even with a backdated ``approved_at``, can never be the grant that
+        admits this qualification to new risk.
         """
 
+        return self._prior_grant_witness(
+            record.qualification_record_id, record.decision_output_hash, record.decision_at,
+        )
+
+    def _prior_grant_witness(
+        self, record_id: str, output_hash: str | None, decision_at: str,
+    ) -> dict[str, Any]:
         try:
-            assert record.decision_output_hash is not None
-            output = self.outputs.get(record.decision_output_hash)
+            output = self.outputs.get(output_hash)
             binding_hash = output["resolver_binding_hash"]
-            binding = self.bindings.require_active(binding_hash, record.decision_at)
-            self._require_separate_approval(
-                binding["human_approval_reference"],
-                binding_hash=binding_hash,
-                decision_at=record.decision_at,
+            binding = self.bindings.require_active(binding_hash, decision_at)
+            return self._approval_witness(
+                record_id, output_hash, decision_at, binding_hash=binding_hash,
+                reference=binding["human_approval_reference"],
             )
         except RegistryConflict:
             raise
@@ -379,6 +485,59 @@ class QualificationRecordStore:
             raise RegistryConflict(
                 "V3 qualification has no exact prior human approval grant"
             ) from exc
+
+    def _approval_witness(
+        self, record_id: str, output_hash: str | None, decision_at: str, *,
+        binding_hash: str, reference: str,
+    ) -> dict[str, Any]:
+        """The exact approval a V3 record relies on, as this store's ledger holds it."""
+
+        self._require_separate_approval(
+            reference, binding_hash=binding_hash, decision_at=decision_at,
+        )
+        ledger = grant_hash = grant_sequence = None
+        if reference.startswith(APPROVAL_V2_PREFIX):
+            grant = StrategyOutputApprovalStore._replay(
+                self.approvals.log.records()
+            )["grants"].get(reference)
+            if grant is None:
+                raise RegistryConflict("V3 qualification has no exact prior human approval grant")
+            ledger = owner_identity(self.approvals.log.path, self.log.path.parent)
+            grant_hash, grant_sequence = grant["record_hash"], grant["sequence"]
+        return {
+            "record_type": "qualification_approval_witnessed",
+            "schema_version": APPROVAL_WITNESS_SCHEMA,
+            "qualification_record_id": record_id,
+            "decision_output_hash": output_hash,
+            "decision_at": iso_utc(decision_at),
+            "binding_hash": binding_hash,
+            "approval_reference": reference,
+            "approval_ledger": ledger,
+            "grant_record_hash": grant_hash,
+            "grant_sequence": grant_sequence,
+        }
+
+    @staticmethod
+    def _witnesses_like(
+        rows: tuple[dict[str, Any], ...] | list[dict[str, Any]], witness: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        """Witnesses for ``witness``'s record that name the same ledger."""
+
+        found = []
+        for row in rows:
+            if (set(row) != _WITNESS_FIELDS | _CHAIN_FIELDS
+                    or row.get("record_type") != "qualification_approval_witnessed"
+                    or row.get("schema_version") != APPROVAL_WITNESS_SCHEMA):
+                raise RegistryConflict("unsupported qualification approval witness history")
+            if (row["qualification_record_id"], row["approval_ledger"]) == (
+                witness["qualification_record_id"], witness["approval_ledger"],
+            ):
+                found.append({key: row[key] for key in _WITNESS_FIELDS})
+        return found
+
+    def _require_witnessed(self, expected: dict[str, Any]) -> None:
+        if self._witnesses_like(self.witnesses.records(), expected) != [expected]:
+            raise RegistryConflict("V3 qualification lacks its exact prior approval witness")
 
     def get(self, record_id: str) -> QualificationRecord:
         matches = [
@@ -402,11 +561,12 @@ class QualificationRecordStore:
         binding = self.bindings.require_active(
             output["resolver_binding_hash"], at or record.evaluated_at,
         )
-        self._require_separate_approval(
-            binding["human_approval_reference"],
+        # F-2: the grant must be the one witnessed before the record existed.
+        self._require_witnessed(self._approval_witness(
+            record.qualification_record_id, record.decision_output_hash, record.decision_at,
             binding_hash=output["resolver_binding_hash"],
-            decision_at=record.decision_at,
-        )
+            reference=binding["human_approval_reference"],
+        ))
         expected_hash = candidate_v3_decision_hash(
             strategy_decision_contract_hash=record.strategy_decision_contract_hash,
             feature_manifest_hash=record.feature_manifest_hash,

@@ -1,0 +1,188 @@
+# T6 F-2 RED: the permanent F-2 regression tests against the unchanged F-3 checkpoint source (7a548ff)
+# started 2026-09-26T20:43:31Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\f2rt HEAD 7a548ff52cd12ffec35bcb878b22255d1844968a branch t6-remediation core.autocrlf=false
+# uncommitted paths: 1
+#   ?? tests/test_astra_t6_approval_causality.py  sha256 456f8438a039c4bde62b7fd2cffc585979292bb770f94691ba219b2e204ae2b6
+# tools/genesis_audit_package.py sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+# runner sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+
+$ python -m unittest -v tests.test_astra_t6_approval_causality
+test_t6_concurrent_recording_of_one_qualification_has_one_witness (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_concurrent_recording_of_one_qualification_has_one_witness) ... ERROR
+test_t6_copied_ledger_witness_neither_admits_nor_blocks_the_real_grant (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_copied_ledger_witness_neither_admits_nor_blocks_the_real_grant) ... ERROR
+test_t6_crash_after_the_witness_resumes_to_one_witness_and_one_record (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_crash_after_the_witness_resumes_to_one_witness_and_one_record) ... ERROR
+test_t6_grant_reproduced_from_a_copied_ledger_never_admits_risk (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_grant_reproduced_from_a_copied_ledger_never_admits_risk) ... FAIL
+test_t6_pre_witness_v3_qualification_is_audit_only_for_new_risk (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_pre_witness_v3_qualification_is_audit_only_for_new_risk) ... FAIL
+test_t6_prior_grant_is_witnessed_and_admits_risk_after_relocation (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_prior_grant_is_witnessed_and_admits_risk_after_relocation) ... ERROR
+test_t6_raw_written_qualification_never_admits_risk_after_a_later_grant (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_raw_written_qualification_never_admits_risk_after_a_later_grant) ... FAIL
+test_t6_recording_path_rerun_after_the_record_exists_adds_no_witness (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_recording_path_rerun_after_the_record_exists_adds_no_witness) ... FAIL
+test_t6_revoked_grant_blocks_new_risk_after_recording (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_revoked_grant_blocks_new_risk_after_recording) ... ok
+test_t6_witness_storage_refuses_a_forged_or_late_witness (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_forged_or_late_witness) ... 
+  test_t6_witness_storage_refuses_a_forged_or_late_witness (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_forged_or_late_witness) [append] ... ERROR
+  test_t6_witness_storage_refuses_a_forged_or_late_witness (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_forged_or_late_witness) [transaction] ... ERROR
+test_t6_witness_storage_refuses_a_forged_or_late_witness (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_forged_or_late_witness) ... ERROR
+test_t6_witness_storage_refuses_a_wrong_grant_before_the_record (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_wrong_grant_before_the_record) ... 
+  test_t6_witness_storage_refuses_a_wrong_grant_before_the_record (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_wrong_grant_before_the_record) [grant_record_hash] ... ERROR
+  test_t6_witness_storage_refuses_a_wrong_grant_before_the_record (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_wrong_grant_before_the_record) [grant_sequence] ... ERROR
+  test_t6_witness_storage_refuses_a_wrong_grant_before_the_record (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_wrong_grant_before_the_record) [approval_ledger] ... ERROR
+test_t6_witness_storage_refuses_a_wrong_grant_before_the_record (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_wrong_grant_before_the_record) ... ERROR
+
+======================================================================
+ERROR: test_t6_concurrent_recording_of_one_qualification_has_one_witness (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_concurrent_recording_of_one_qualification_has_one_witness)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 387, in test_t6_concurrent_recording_of_one_qualification_has_one_witness
+    self.assertEqual(len(witnesses_for(root, record.qualification_record_id)), 1)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 110, in witnesses_for
+    return [row for row in store.witnesses.records()
+                           ^^^^^^^^^^^^^^^
+AttributeError: 'QualificationRecordStore' object has no attribute 'witnesses'
+
+======================================================================
+ERROR: test_t6_copied_ledger_witness_neither_admits_nor_blocks_the_real_grant (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_copied_ledger_witness_neither_admits_nor_blocks_the_real_grant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 247, in test_t6_copied_ledger_witness_neither_admits_nor_blocks_the_real_grant
+    )._record_witness(record)
+      ^^^^^^^^^^^^^^^
+AttributeError: 'QualificationRecordStore' object has no attribute '_record_witness'
+
+======================================================================
+ERROR: test_t6_crash_after_the_witness_resumes_to_one_witness_and_one_record (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_crash_after_the_witness_resumes_to_one_witness_and_one_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 345, in test_t6_crash_after_the_witness_resumes_to_one_witness_and_one_record
+    self.assertEqual(len(witnesses_for(root, record.qualification_record_id)), 1)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 110, in witnesses_for
+    return [row for row in store.witnesses.records()
+                           ^^^^^^^^^^^^^^^
+AttributeError: 'QualificationRecordStore' object has no attribute 'witnesses'
+
+======================================================================
+ERROR: test_t6_prior_grant_is_witnessed_and_admits_risk_after_relocation (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_prior_grant_is_witnessed_and_admits_risk_after_relocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 282, in test_t6_prior_grant_is_witnessed_and_admits_risk_after_relocation
+    [witness] = witnesses_for(deploy, record_id)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 110, in witnesses_for
+    return [row for row in store.witnesses.records()
+                           ^^^^^^^^^^^^^^^
+AttributeError: 'QualificationRecordStore' object has no attribute 'witnesses'
+
+======================================================================
+ERROR: test_t6_witness_storage_refuses_a_forged_or_late_witness (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_forged_or_late_witness) [append]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 197, in test_t6_witness_storage_refuses_a_forged_or_late_witness
+    write()
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 192, in <lambda>
+    ("append", lambda: store.witnesses.append(dict(late))),
+                       ^^^^^^^^^^^^^^^
+AttributeError: 'QualificationRecordStore' object has no attribute 'witnesses'
+
+======================================================================
+ERROR: test_t6_witness_storage_refuses_a_forged_or_late_witness (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_forged_or_late_witness) [transaction]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 197, in test_t6_witness_storage_refuses_a_forged_or_late_witness
+    write()
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 193, in <lambda>
+    ("transaction", lambda: store.witnesses.transaction(lambda _rows: dict(late))),
+                            ^^^^^^^^^^^^^^^
+AttributeError: 'QualificationRecordStore' object has no attribute 'witnesses'
+
+======================================================================
+ERROR: test_t6_witness_storage_refuses_a_forged_or_late_witness (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_forged_or_late_witness)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 198, in test_t6_witness_storage_refuses_a_forged_or_late_witness
+    self.assertEqual(witnesses_for(root, record.qualification_record_id), [])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 110, in witnesses_for
+    return [row for row in store.witnesses.records()
+                           ^^^^^^^^^^^^^^^
+AttributeError: 'QualificationRecordStore' object has no attribute 'witnesses'
+
+======================================================================
+ERROR: test_t6_witness_storage_refuses_a_wrong_grant_before_the_record (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_wrong_grant_before_the_record) [grant_record_hash]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 218, in test_t6_witness_storage_refuses_a_wrong_grant_before_the_record
+    store.witnesses.append(dict(witness, **{field: value}))
+    ^^^^^^^^^^^^^^^
+AttributeError: 'QualificationRecordStore' object has no attribute 'witnesses'
+
+======================================================================
+ERROR: test_t6_witness_storage_refuses_a_wrong_grant_before_the_record (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_wrong_grant_before_the_record) [grant_sequence]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 218, in test_t6_witness_storage_refuses_a_wrong_grant_before_the_record
+    store.witnesses.append(dict(witness, **{field: value}))
+    ^^^^^^^^^^^^^^^
+AttributeError: 'QualificationRecordStore' object has no attribute 'witnesses'
+
+======================================================================
+ERROR: test_t6_witness_storage_refuses_a_wrong_grant_before_the_record (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_wrong_grant_before_the_record) [approval_ledger]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 218, in test_t6_witness_storage_refuses_a_wrong_grant_before_the_record
+    store.witnesses.append(dict(witness, **{field: value}))
+    ^^^^^^^^^^^^^^^
+AttributeError: 'QualificationRecordStore' object has no attribute 'witnesses'
+
+======================================================================
+ERROR: test_t6_witness_storage_refuses_a_wrong_grant_before_the_record (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_witness_storage_refuses_a_wrong_grant_before_the_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 219, in test_t6_witness_storage_refuses_a_wrong_grant_before_the_record
+    self.assertEqual(witnesses_for(root, state["record"].qualification_record_id), [])
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 110, in witnesses_for
+    return [row for row in store.witnesses.records()
+                           ^^^^^^^^^^^^^^^
+AttributeError: 'QualificationRecordStore' object has no attribute 'witnesses'
+
+======================================================================
+FAIL: test_t6_grant_reproduced_from_a_copied_ledger_never_admits_risk (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_grant_reproduced_from_a_copied_ledger_never_admits_risk)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 141, in test_t6_grant_reproduced_from_a_copied_ledger_never_admits_risk
+    self.assertFalse(
+AssertionError: True is not false : F-2: a grant reproduced after the qualification admitted risk
+
+======================================================================
+FAIL: test_t6_pre_witness_v3_qualification_is_audit_only_for_new_risk (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_pre_witness_v3_qualification_is_audit_only_for_new_risk)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 271, in test_t6_pre_witness_v3_qualification_is_audit_only_for_new_risk
+    self.assertFalse(admitted(lambda: engine.approve(r5.request(f))))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_t6_raw_written_qualification_never_admits_risk_after_a_later_grant (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_raw_written_qualification_never_admits_risk_after_a_later_grant)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 157, in test_t6_raw_written_qualification_never_admits_risk_after_a_later_grant
+    self.assertFalse(
+AssertionError: True is not false : F-2: a backdated grant admitted a raw-written qualification
+
+======================================================================
+FAIL: test_t6_recording_path_rerun_after_the_record_exists_adds_no_witness (tests.test_astra_t6_approval_causality.T6ApprovalCausalityTests.test_t6_recording_path_rerun_after_the_record_exists_adds_no_witness)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f2rt\tests\test_astra_t6_approval_causality.py", line 174, in test_t6_recording_path_rerun_after_the_record_exists_adds_no_witness
+    self.assertFalse(
+AssertionError: True is not false : F-2: re-running the recording path admitted a grant-later qualification
+
+----------------------------------------------------------------------
+Ran 11 tests in 4.620s
+
+FAILED (failures=4, errors=11)
+exit=1 elapsed=6.2s
+
+# commands 1, nonzero exits 1
+# finished 2026-09-26T20:43:38Z

@@ -1,0 +1,302 @@
+# T6 F-3 auditor probe transcript (RED on F-4 checkpoint c3d27d9)
+# started 2026-09-26T18:11:49Z
+# python 3.12.10; Windows-11-10.0.26200-SP0
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\f3r HEAD c3d27d91cf9108dce3ddce084b11c532ce4ab99d branch t6-remediation core.autocrlf=false
+# uncommitted paths: 0
+# src/genesis/registry.py sha256 aee1863c79d2e7be758b3a4e4ebfd14053e3fba45431b9b8e1f97c659415a69b
+# src/genesis/risk.py sha256 fcec440879c9d92637d416584451a5c1949baef677c80b96dae1e2e9e5a71535
+# src/genesis/owner_binding.py sha256 0ca453a8432c0aeba53162b58d82509bbe7eed888ccc8156961b93698291cfe1
+# driver sha256 a28ec80089d5fa6aebeb735330cb8ba396f8cc5d74a6d6beb6c371d9559539ef
+# auditor probe_owner_alias.py sha256 1e9501e6715bef2a25b1b59f457b5ce852762f612bf257d9bb5388937c4c0ecf (equals review hash list: True)
+# auditor recorded T5 result probe_owner_alias_t5.txt sha256 34e64b2ef3118a57f66f683ea01ddf0ec491ee378cfa1a01a773ad0379e7d057 (equals review hash list: True)
+# auditor probe_hardlink_mirror.py sha256 bbcc6017777ecf15bce9585c0212994280e100667c4fde3ee2153d4ec6770129 (equals review hash list: True)
+# auditor recorded T5 result probe_hardlink_mirror_t5.txt sha256 96befea26fb76df75bc8af4bbc05893de8c3d39c1d3ea64876b696e044bea140 (equals review hash list: True)
+# variant probe_owner_alias_t6_wrapped_append.py sha256 a94190ccf903cfafc6a0d5f641513c13ae4cc044d04c7cd3d6594bfd4142b441 (one block changed: the colliding append is wrapped; see driver docstring)
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f3r PYTHONPATH=C:\Users\abbot\t6\f3r\src python C:\Users\abbot\t6\f3red\driver\probes\probe_owner_alias.py   (run 1)
+exit=0
+{
+ "junction_created": true,
+ "junction_alias_owner_mismatches": [],
+ "junction_alias_approve": [
+  true,
+  "risk_approved"
+ ],
+ "junction_alias_same_lock": true,
+ "hardlinked_bankroll_mismatches": [
+  "bankroll"
+ ],
+ "hardlinked_bankroll_approve": [
+  false,
+  "owner_authority_mismatch"
+ ],
+ "hardlink_mirror_owner_mismatches": [],
+ "hardlink_mirror_approve": [
+  true,
+  "risk_approved"
+ ],
+ "hardlink_mirror_row_visible_in_real_log": 0,
+ "hardlink_mirror_distinct_lock_files": true,
+ "hardlink_concurrent_append": "both appended",
+ "hardlink_log_after": "verifies",
+ "tofu_note": "see memo residual 1; build_risk constructs the legit engine first",
+ "copy_after_legit_mismatches": [
+  "bankroll"
+ ],
+ "tofu_copy_first_mismatches": [],
+ "tofu_copy_first_approve": [
+  true,
+  "risk_approved"
+ ],
+ "tofu_legit_after_copy_mismatches": [
+  "bankroll"
+ ],
+ "tofu_legit_after_copy_approve": [
+  false,
+  "owner_authority_mismatch"
+ ],
+ "riskauditlog_append_collision_then_replay": "RegistryConflict: duplicate risk exposure identity",
+ "riskauditlog_append_then_record_exposure": "RegistryConflict: duplicate risk exposure identity"
+}
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f3r PYTHONPATH=C:\Users\abbot\t6\f3r\src python C:\Users\abbot\t6\f3red\driver\probes\probe_owner_alias.py   (run 2)
+exit=0
+{
+ "junction_created": true,
+ "junction_alias_owner_mismatches": [],
+ "junction_alias_approve": [
+  true,
+  "risk_approved"
+ ],
+ "junction_alias_same_lock": true,
+ "hardlinked_bankroll_mismatches": [
+  "bankroll"
+ ],
+ "hardlinked_bankroll_approve": [
+  false,
+  "owner_authority_mismatch"
+ ],
+ "hardlink_mirror_owner_mismatches": [],
+ "hardlink_mirror_approve": [
+  true,
+  "risk_approved"
+ ],
+ "hardlink_mirror_row_visible_in_real_log": 0,
+ "hardlink_mirror_distinct_lock_files": true,
+ "hardlink_concurrent_append": "both appended",
+ "hardlink_log_after": "verifies",
+ "tofu_note": "see memo residual 1; build_risk constructs the legit engine first",
+ "copy_after_legit_mismatches": [
+  "bankroll"
+ ],
+ "tofu_copy_first_mismatches": [],
+ "tofu_copy_first_approve": [
+  true,
+  "risk_approved"
+ ],
+ "tofu_legit_after_copy_mismatches": [
+  "bankroll"
+ ],
+ "tofu_legit_after_copy_approve": [
+  false,
+  "owner_authority_mismatch"
+ ],
+ "riskauditlog_append_collision_then_replay": "RegistryConflict: duplicate risk exposure identity",
+ "riskauditlog_append_then_record_exposure": "RegistryConflict: duplicate risk exposure identity"
+}
+
+## determinism probe_owner_alias.py: identical exit, stdout and stderr across runs: True
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f3r PYTHONPATH=C:\Users\abbot\t6\f3r\src python C:\Users\abbot\t6\f3red\driver\variant\probe_owner_alias_t6_wrapped_append.py   (run 1)
+exit=0
+{
+ "junction_created": true,
+ "junction_alias_owner_mismatches": [],
+ "junction_alias_approve": [
+  true,
+  "risk_approved"
+ ],
+ "junction_alias_same_lock": true,
+ "hardlinked_bankroll_mismatches": [
+  "bankroll"
+ ],
+ "hardlinked_bankroll_approve": [
+  false,
+  "owner_authority_mismatch"
+ ],
+ "hardlink_mirror_owner_mismatches": [],
+ "hardlink_mirror_approve": [
+  true,
+  "risk_approved"
+ ],
+ "hardlink_mirror_row_visible_in_real_log": 0,
+ "hardlink_mirror_distinct_lock_files": true,
+ "hardlink_concurrent_append": "both appended",
+ "hardlink_log_after": "verifies",
+ "tofu_note": "see memo residual 1; build_risk constructs the legit engine first",
+ "copy_after_legit_mismatches": [
+  "bankroll"
+ ],
+ "tofu_copy_first_mismatches": [],
+ "tofu_copy_first_approve": [
+  true,
+  "risk_approved"
+ ],
+ "tofu_legit_after_copy_mismatches": [
+  "bankroll"
+ ],
+ "tofu_legit_after_copy_approve": [
+  false,
+  "owner_authority_mismatch"
+ ],
+ "t6_colliding_append_RiskAuditLog.append": "appended",
+ "riskauditlog_append_collision_then_replay": "RegistryConflict: duplicate risk exposure identity",
+ "riskauditlog_append_then_record_exposure": "RegistryConflict: duplicate risk exposure identity"
+}
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f3r PYTHONPATH=C:\Users\abbot\t6\f3r\src python C:\Users\abbot\t6\f3red\driver\variant\probe_owner_alias_t6_wrapped_append.py   (run 2)
+exit=0
+{
+ "junction_created": true,
+ "junction_alias_owner_mismatches": [],
+ "junction_alias_approve": [
+  true,
+  "risk_approved"
+ ],
+ "junction_alias_same_lock": true,
+ "hardlinked_bankroll_mismatches": [
+  "bankroll"
+ ],
+ "hardlinked_bankroll_approve": [
+  false,
+  "owner_authority_mismatch"
+ ],
+ "hardlink_mirror_owner_mismatches": [],
+ "hardlink_mirror_approve": [
+  true,
+  "risk_approved"
+ ],
+ "hardlink_mirror_row_visible_in_real_log": 0,
+ "hardlink_mirror_distinct_lock_files": true,
+ "hardlink_concurrent_append": "both appended",
+ "hardlink_log_after": "verifies",
+ "tofu_note": "see memo residual 1; build_risk constructs the legit engine first",
+ "copy_after_legit_mismatches": [
+  "bankroll"
+ ],
+ "tofu_copy_first_mismatches": [],
+ "tofu_copy_first_approve": [
+  true,
+  "risk_approved"
+ ],
+ "tofu_legit_after_copy_mismatches": [
+  "bankroll"
+ ],
+ "tofu_legit_after_copy_approve": [
+  false,
+  "owner_authority_mismatch"
+ ],
+ "t6_colliding_append_RiskAuditLog.append": "appended",
+ "riskauditlog_append_collision_then_replay": "RegistryConflict: duplicate risk exposure identity",
+ "riskauditlog_append_then_record_exposure": "RegistryConflict: duplicate risk exposure identity"
+}
+
+## determinism probe_owner_alias_t6_wrapped_append.py: identical exit, stdout and stderr across runs: True
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f3r PYTHONPATH=C:\Users\abbot\t6\f3r\src python C:\Users\abbot\t6\f3red\driver\probes\probe_hardlink_mirror.py   (run 1)
+exit=0
+{
+ "mirror_owner_mismatches": [],
+ "mirror_approve": [
+  true,
+  "risk_approved"
+ ],
+ "real_log_rows_after_mirror_approval": 2,
+ "real_engine_same_request": [
+  false,
+  "duplicate_order_intent"
+ ],
+ "append_inside_real_critical_section": "both appended (no mutual exclusion)",
+ "risk_log_after": "RegistryConflict: registry hash chain is broken",
+ "real_engine_after": "RegistryConflict: registry hash chain is broken"
+}
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f3r PYTHONPATH=C:\Users\abbot\t6\f3r\src python C:\Users\abbot\t6\f3red\driver\probes\probe_hardlink_mirror.py   (run 2)
+exit=0
+{
+ "mirror_owner_mismatches": [],
+ "mirror_approve": [
+  true,
+  "risk_approved"
+ ],
+ "real_log_rows_after_mirror_approval": 2,
+ "real_engine_same_request": [
+  false,
+  "duplicate_order_intent"
+ ],
+ "append_inside_real_critical_section": "both appended (no mutual exclusion)",
+ "risk_log_after": "RegistryConflict: registry hash chain is broken",
+ "real_engine_after": "RegistryConflict: registry hash chain is broken"
+}
+
+## determinism probe_hardlink_mirror.py: identical exit, stdout and stderr across runs: True
+
+## comparison with the review's recorded T5 results
+### probe_owner_alias.py vs probe_owner_alias_t5.txt
+  copy_after_legit_mismatches: same
+  hardlink_concurrent_append: same
+  hardlink_log_after: same
+  hardlink_mirror_approve: same
+  hardlink_mirror_distinct_lock_files: same
+  hardlink_mirror_owner_mismatches: same
+  hardlink_mirror_row_visible_in_real_log: same
+  hardlinked_bankroll_approve: same
+  hardlinked_bankroll_mismatches: same
+  junction_alias_approve: same
+  junction_alias_owner_mismatches: same
+  junction_alias_same_lock: same
+  junction_created: same
+  riskauditlog_append_collision_then_replay: same
+  riskauditlog_append_then_record_exposure: same
+  tofu_copy_first_approve: same
+  tofu_copy_first_mismatches: same
+  tofu_legit_after_copy_approve: same
+  tofu_legit_after_copy_mismatches: same
+  tofu_note: same
+### probe_owner_alias_t6_wrapped_append.py vs probe_owner_alias_t5.txt
+  copy_after_legit_mismatches: same
+  hardlink_concurrent_append: same
+  hardlink_log_after: same
+  hardlink_mirror_approve: same
+  hardlink_mirror_distinct_lock_files: same
+  hardlink_mirror_owner_mismatches: same
+  hardlink_mirror_row_visible_in_real_log: same
+  hardlinked_bankroll_approve: same
+  hardlinked_bankroll_mismatches: same
+  junction_alias_approve: same
+  junction_alias_owner_mismatches: same
+  junction_alias_same_lock: same
+  junction_created: same
+  riskauditlog_append_collision_then_replay: same
+  riskauditlog_append_then_record_exposure: same
+  t6_colliding_append_RiskAuditLog.append: CHANGED
+    T5 review: "<absent>"
+    now      : "appended"
+  tofu_copy_first_approve: same
+  tofu_copy_first_mismatches: same
+  tofu_legit_after_copy_approve: same
+  tofu_legit_after_copy_mismatches: same
+  tofu_note: same
+### probe_hardlink_mirror.py vs probe_hardlink_mirror_t5.txt
+  append_inside_real_critical_section: same
+  mirror_approve: same
+  mirror_owner_mismatches: same
+  real_engine_after: same
+  real_engine_same_request: same
+  real_log_rows_after_mirror_approval: same
+  risk_log_after: same
+
+VERDICT F-3a (RED on F-4 checkpoint c3d27d9): colliding public append 'appended' / storage 'not attempted'; replay 'RegistryConflict: duplicate risk exposure identity'; later exposure 'RegistryConflict: duplicate risk exposure identity' -> VIOLATION PRESENT (RED)
+VERDICT F-3b (RED on F-4 checkpoint c3d27d9): interleaved hard-link append 'both appended (no mutual exclusion)'; real risk log after 'RegistryConflict: registry hash chain is broken' -> VIOLATION PRESENT (RED)
+# finished 2026-09-26T18:12:01Z

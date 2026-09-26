@@ -1,0 +1,220 @@
+# T6 F-3 RED: the permanent F-3 regression tests against the unchanged F-4 checkpoint source (c3d27d9)
+# started 2026-09-26T18:38:22Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\f3rt HEAD c3d27d91cf9108dce3ddce084b11c532ce4ab99d branch t6-remediation core.autocrlf=false
+# uncommitted paths: 1
+#   ?? tests/test_astra_t6_risk_log_integrity.py  sha256 0bbe88baf38c3f2e182453d26cb24087aa32a96da67b7089542f7a9a888e686d
+# tools/genesis_audit_package.py sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+# runner sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+
+$ python -m unittest -v tests.test_astra_t6_risk_log_integrity
+test_t6_alias_appearing_inside_an_open_engine_transaction_is_refused (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_alias_appearing_inside_an_open_engine_transaction_is_refused) ... FAIL
+test_t6_alias_appearing_inside_its_own_writers_transaction_is_refused (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_alias_appearing_inside_its_own_writers_transaction_is_refused) ... FAIL
+test_t6_alias_append_inside_the_real_critical_section_is_refused (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_alias_append_inside_the_real_critical_section_is_refused) ... FAIL
+test_t6_concurrent_writers_through_a_toggled_hard_link_keep_one_valid_chain (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_concurrent_writers_through_a_toggled_hard_link_keep_one_valid_chain) ... ERROR
+test_t6_directory_junction_and_equivalent_path_stay_one_owner_and_one_lock (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_directory_junction_and_equivalent_path_stay_one_owner_and_one_lock) ... ok
+test_t6_hard_linked_owner_of_a_risk_transaction_is_refused (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_hard_linked_owner_of_a_risk_transaction_is_refused) ... FAIL
+test_t6_hard_linked_owners_cannot_serve_a_second_risk_log (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_hard_linked_owners_cannot_serve_a_second_risk_log) ... FAIL
+test_t6_hard_linked_risk_log_alias_mutates_nothing_until_removed (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_hard_linked_risk_log_alias_mutates_nothing_until_removed) ... FAIL
+test_t6_short_name_alias_of_the_risk_log_is_refused (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_short_name_alias_of_the_risk_log_is_refused) ... FAIL
+test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) ... 
+  test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='audit_log.log.append', row='exposure-reuses-approval-id') ... FAIL
+  test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='audit_log.log.append', row='exposure-reuses-exposure-id') ... FAIL
+  test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='audit_log.log.append', row='unsupported-active-schema') ... FAIL
+  test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='audit_log.log.transaction', row='exposure-reuses-approval-id') ... FAIL
+  test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='audit_log.log.transaction', row='exposure-reuses-exposure-id') ... FAIL
+  test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='audit_log.log.transaction', row='unsupported-active-schema') ... FAIL
+  test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='RiskAuditLog.append', row='exposure-reuses-approval-id') ... FAIL
+  test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='RiskAuditLog.append', row='exposure-reuses-exposure-id') ... FAIL
+  test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='RiskAuditLog.append', row='unsupported-active-schema') ... FAIL
+test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) ... FAIL
+test_t6_risk_log_storage_without_its_engine_appends_nothing (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_risk_log_storage_without_its_engine_appends_nothing) ... FAIL
+test_t6_valid_engine_writes_commit_and_replay_after_restart (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_valid_engine_writes_commit_and_replay_after_restart) ... ok
+
+======================================================================
+ERROR: test_t6_concurrent_writers_through_a_toggled_hard_link_keep_one_valid_chain (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_concurrent_writers_through_a_toggled_hard_link_keep_one_valid_chain)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 550, in test_t6_concurrent_writers_through_a_toggled_hard_link_keep_one_valid_chain
+    restarted = risk_like(real)
+                ^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t5_owner_binding.py", line 81, in risk_like
+    return RiskEngine(action_clock=lambda requested_at: requested_at, **owners)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3rt\src\genesis\risk.py", line 464, in __init__
+    self._exposures(self.audit_log.log.records())
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3rt\src\genesis\registry.py", line 152, in records
+    return self._verified_records()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3rt\src\genesis\registry.py", line 54, in _verified_records
+    raise RegistryConflict("registry hash chain is broken")
+genesis.registry.RegistryConflict: registry hash chain is broken
+
+======================================================================
+FAIL: test_t6_alias_appearing_inside_an_open_engine_transaction_is_refused (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_alias_appearing_inside_an_open_engine_transaction_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 360, in test_t6_alias_appearing_inside_an_open_engine_transaction_is_refused
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_t6_alias_appearing_inside_its_own_writers_transaction_is_refused (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_alias_appearing_inside_its_own_writers_transaction_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 386, in test_t6_alias_appearing_inside_its_own_writers_transaction_is_refused
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_t6_alias_append_inside_the_real_critical_section_is_refused (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_alias_append_inside_the_real_critical_section_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 335, in test_t6_alias_append_inside_the_real_critical_section_is_refused
+    with self.assertRaises(RegistryConflict):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised
+
+======================================================================
+FAIL: test_t6_hard_linked_owner_of_a_risk_transaction_is_refused (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_hard_linked_owner_of_a_risk_transaction_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 397, in test_t6_hard_linked_owner_of_a_risk_transaction_is_refused
+    self.assertFalse(
+AssertionError: True is not false : F-3b: risk was admitted over a bankroll with a second name
+
+======================================================================
+FAIL: test_t6_hard_linked_owners_cannot_serve_a_second_risk_log (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_hard_linked_owners_cannot_serve_a_second_risk_log)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 299, in test_t6_hard_linked_owners_cannot_serve_a_second_risk_log
+    self.assertFalse(
+AssertionError: True is not false : F-3b: hard-linked exclusive owners served a second risk log
+
+======================================================================
+FAIL: test_t6_hard_linked_risk_log_alias_mutates_nothing_until_removed (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_hard_linked_risk_log_alias_mutates_nothing_until_removed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 253, in test_t6_hard_linked_risk_log_alias_mutates_nothing_until_removed
+    self.assertFalse(
+AssertionError: True is not false : F-3b: a hard-linked alias admitted risk on the shared log
+
+======================================================================
+FAIL: test_t6_short_name_alias_of_the_risk_log_is_refused (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_short_name_alias_of_the_risk_log_is_refused)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 416, in test_t6_short_name_alias_of_the_risk_log_is_refused
+    with self.assertRaises(RegistryConflict, msg="F-3b: a short-name writer appended"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : F-3b: a short-name writer appended
+
+======================================================================
+FAIL: test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='audit_log.log.append', row='exposure-reuses-approval-id')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 181, in test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : F-3a: audit_log.log.append appended exposure-reuses-approval-id
+
+======================================================================
+FAIL: test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='audit_log.log.append', row='exposure-reuses-exposure-id')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 181, in test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : F-3a: audit_log.log.append appended exposure-reuses-exposure-id
+
+======================================================================
+FAIL: test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='audit_log.log.append', row='unsupported-active-schema')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 181, in test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : F-3a: audit_log.log.append appended unsupported-active-schema
+
+======================================================================
+FAIL: test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='audit_log.log.transaction', row='exposure-reuses-approval-id')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 181, in test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : F-3a: audit_log.log.transaction appended exposure-reuses-approval-id
+
+======================================================================
+FAIL: test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='audit_log.log.transaction', row='exposure-reuses-exposure-id')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 181, in test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : F-3a: audit_log.log.transaction appended exposure-reuses-exposure-id
+
+======================================================================
+FAIL: test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='audit_log.log.transaction', row='unsupported-active-schema')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 181, in test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : F-3a: audit_log.log.transaction appended unsupported-active-schema
+
+======================================================================
+FAIL: test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='RiskAuditLog.append', row='exposure-reuses-approval-id')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 181, in test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : F-3a: RiskAuditLog.append appended exposure-reuses-approval-id
+
+======================================================================
+FAIL: test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='RiskAuditLog.append', row='exposure-reuses-exposure-id')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 181, in test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : F-3a: RiskAuditLog.append appended exposure-reuses-exposure-id
+
+======================================================================
+FAIL: test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row) (writer='RiskAuditLog.append', row='unsupported-active-schema')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 181, in test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : F-3a: RiskAuditLog.append appended unsupported-active-schema
+
+======================================================================
+FAIL: test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 191, in test_t6_every_public_risk_log_writer_refuses_an_unreplayable_row
+    self.assertEqual(storage.path.read_bytes(), before)
+AssertionError: b'{"a[1779 chars]d"}\n{"affected_scope":null,"candidate_decisio[4802 chars]"}\n' != b'{"a[1779 chars]d"}\n'
+
+======================================================================
+FAIL: test_t6_risk_log_storage_without_its_engine_appends_nothing (tests.test_astra_t6_risk_log_integrity.T6RiskLogWriterTests.test_t6_risk_log_storage_without_its_engine_appends_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3rt\tests\test_astra_t6_risk_log_integrity.py", line 202, in test_t6_risk_log_storage_without_its_engine_appends_nothing
+    with self.assertRaises(RegistryConflict, msg="F-3a: engineless risk log appended"):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: RegistryConflict not raised : F-3a: engineless risk log appended
+
+----------------------------------------------------------------------
+Ran 12 tests in 5.550s
+
+FAILED (failures=18, errors=1)
+exit=1 elapsed=6.5s
+
+# commands 1, nonzero exits 1
+# finished 2026-09-26T18:38:29Z

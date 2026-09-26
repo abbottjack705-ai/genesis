@@ -1,0 +1,22 @@
+# T6 F-3b concurrent hard-link stress (RED on F-4 checkpoint c3d27d9)
+# started 2026-09-26T18:36:28Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# clone C:\Users\abbot\t6\f3r HEAD c3d27d91cf9108dce3ddce084b11c532ce4ab99d
+# src/genesis/registry.py sha256 aee1863c79d2e7be758b3a4e4ebfd14053e3fba45431b9b8e1f97c659415a69b
+# src/genesis/risk.py sha256 fcec440879c9d92637d416584451a5c1949baef677c80b96dae1e2e9e5a71535
+# driver sha256 26182d23836d80d93b1fdb676631227a5dd7cdcd237db5dbf79a4d7bddc7f135
+# runs 10: writers real-0, real-1 (real name), alias-0, alias-1 (mirror name), 20 record_exposure attempts each; toggler 80 link/unlink cycles
+
+run  1: {'link_cycles': 59, 'real_appended': 6, 'real_refused': 34, 'alias_appended': 26, 'alias_refused': 14, 'worker_errors': {}, 'real_log': 'CORRUPTED: registry hash chain is broken'}
+run  2: {'link_cycles': 57, 'real_appended': 2, 'real_refused': 38, 'alias_appended': 25, 'alias_refused': 15, 'worker_errors': {}, 'real_log': 'CORRUPTED: registry contains an invalid record'}
+run  3: {'link_cycles': 57, 'real_appended': 1, 'real_refused': 39, 'alias_appended': 26, 'alias_refused': 14, 'worker_errors': {}, 'real_log': 'CORRUPTED: registry hash chain is broken'}
+run  4: {'link_cycles': 58, 'real_appended': 1, 'real_refused': 39, 'alias_appended': 23, 'alias_refused': 17, 'worker_errors': {}, 'real_log': 'CORRUPTED: registry hash chain is broken'}
+run  5: {'link_cycles': 60, 'real_appended': 2, 'real_refused': 38, 'alias_appended': 25, 'alias_refused': 15, 'worker_errors': {}, 'real_log': 'CORRUPTED: registry hash chain is broken'}
+run  6: {'link_cycles': 60, 'real_appended': 5, 'real_refused': 35, 'alias_appended': 24, 'alias_refused': 16, 'worker_errors': {}, 'real_log': 'CORRUPTED: registry contains an invalid record'}
+run  7: {'link_cycles': 62, 'real_appended': 3, 'real_refused': 37, 'alias_appended': 24, 'alias_refused': 16, 'worker_errors': {}, 'real_log': 'CORRUPTED: registry hash chain is broken'}
+run  8: {'link_cycles': 59, 'real_appended': 2, 'real_refused': 38, 'alias_appended': 26, 'alias_refused': 14, 'worker_errors': {}, 'real_log': 'CORRUPTED: registry hash chain is broken'}
+run  9: {'link_cycles': 58, 'real_appended': 6, 'real_refused': 34, 'alias_appended': 26, 'alias_refused': 14, 'worker_errors': {}, 'real_log': 'CORRUPTED: registry hash chain is broken'}
+run 10: {'link_cycles': 58, 'real_appended': 7, 'real_refused': 33, 'alias_appended': 26, 'alias_refused': 14, 'worker_errors': {}, 'real_log': 'CORRUPTED: registry contains an invalid record'}
+
+VERDICT (RED on F-4 checkpoint c3d27d9): real risk log not intact in 10 of 10 runs
+# finished 2026-09-26T18:36:45Z

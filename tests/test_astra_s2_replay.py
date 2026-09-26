@@ -13,7 +13,7 @@ from genesis.execution import (
 )
 from genesis.ledger import SettlementLedger
 from genesis.release_proof import OfflinePaperReleaseProofStore
-from genesis.registry import RegistryConflict, StrategyRegistry
+from genesis.registry import AppendOnlyJsonl, RegistryConflict, StrategyRegistry
 from genesis.risk import (
     BankrollSnapshot,
     BankrollSnapshotStore,
@@ -61,7 +61,9 @@ class AstraStrictReplayTests(unittest.TestCase):
         with scratch_directory() as root:
             fixture = build_risk(root)
             req = request(fixture)
-            fixture["audit"].log.append({
+            # T6 F-3a: the risk log's own storage replays every append, so this
+            # file plants invalid history with a raw writer over the same path.
+            AppendOnlyJsonl(fixture["audit"].log.path).append({
                 "record_type": "risk_approval_created",
                 "schema_version": "unsupported-active-schema",
                 "approval_id": "a" * 64,
@@ -91,7 +93,7 @@ class AstraStrictReplayTests(unittest.TestCase):
                     case = root / str(index)
                     fixture = build_risk(case)
                     req = request(fixture)
-                    fixture["audit"].log.append(row)
+                    AppendOnlyJsonl(fixture["audit"].log.path).append(row)
                     self.assertEqual(fixture["audit"].verify(), 1)
                     self.assert_admission_blocked(fixture["engine"], req)
                     self.assert_restart_blocked(case, fixture, req)
@@ -128,7 +130,7 @@ class AstraStrictReplayTests(unittest.TestCase):
                     if owner == "risk":
                         approval = fixture["engine"].approve(req)
                         self.assertTrue(approval.passed)
-                        fixture["audit"].log.append({
+                        AppendOnlyJsonl(fixture["audit"].log.path).append({
                             "record_type": "risk_reservation_transition",
                             "schema_version": "risk-reservation-v2",
                             "approval_id": approval.approval_id,
@@ -176,7 +178,7 @@ class AstraStrictReplayTests(unittest.TestCase):
                 nonlocal inserted
                 if not inserted:
                     inserted = True
-                    original(lambda _rows: {
+                    AppendOnlyJsonl(log.path).transaction(lambda _rows: {
                         "record_type": "risk_approval_created",
                         "schema_version": "unsupported-active-schema",
                         "approval_id": "a" * 64,
@@ -233,7 +235,7 @@ class AstraStrictReplayTests(unittest.TestCase):
                             proof_hash,
                             occurred_at="2026-01-01T00:15:30Z",
                         )
-                    fixture["audit"].log.append({
+                    AppendOnlyJsonl(fixture["audit"].log.path).append({
                         "record_type": "risk_approval_consumed",
                         "schema_version": "risk-approval-v2",
                         "approval_id": approval.approval_id,

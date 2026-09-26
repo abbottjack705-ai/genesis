@@ -18,7 +18,7 @@ from genesis.accounting import BetSide
 from genesis.decision import candidate_v3_decision_hash
 from genesis.execution import ModeStateStore
 from genesis.policy import PolicySet
-from genesis.registry import RegistryConflict, StrategyRegistry
+from genesis.registry import AppendOnlyJsonl, RegistryConflict, StrategyRegistry
 from genesis.risk import (
     BankrollSnapshotStore,
     Exposure,
@@ -326,7 +326,9 @@ class AstraB1DependenceTests(unittest.TestCase):
                       if key not in {"sequence", "previous_hash", "record_hash"}}
             forged["correlation_cluster_ids"] = []
             tampered_audit = RiskAuditLog(root / "tampered-risk.jsonl")
-            tampered_audit.log.append(forged)
+            # T6 F-3a: a risk log without its engine appends nothing, so the
+            # forged history is planted with a raw writer over the same path.
+            AppendOnlyJsonl(tampered_audit.log.path).append(forged)
             with self.assertRaises(RegistryConflict,
                                    msg="replay accepted a reservation detached from decision output"):
                 RiskEngine(

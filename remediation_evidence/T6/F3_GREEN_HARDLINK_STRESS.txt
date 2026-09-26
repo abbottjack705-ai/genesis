@@ -1,0 +1,32 @@
+# T6 F-3b concurrent hard-link stress (GREEN on the repaired work clone)
+# started 2026-09-26T18:36:46Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# clone C:\Users\abbot\t6\f3w HEAD c3d27d91cf9108dce3ddce084b11c532ce4ab99d
+#   M src/genesis/owner_binding.py  sha256 -
+#    M src/genesis/registry.py  sha256 47c71926f1d72eb92f5dcbc5281486017f1f3294ca5d40a85ccba60eb1ae36bf
+#    M src/genesis/risk.py  sha256 acc1b43016ff20cdc4c576bf40f900a0124d30860d57292386f74b79263e5577
+#    M tests/test_astra_s1_reservation.py  sha256 8af41635431f0da7644de0db4042f97220d82b4f9756b43fe44ff6300a605bf7
+#    M tests/test_astra_s2_replay.py  sha256 a051227b7ce8e3dec888b66e81f99e907ad7d875a777798c3492176a82b2cc73
+#    M tests/test_astra_t1_dependence.py  sha256 1acc0784a1ebb9ea8608672031ed1ec3da9a2bffdb81a2c8de3deea3bc133e62
+#   ?? remediation_evidence/T6/F3_AUDITOR_PROBES_DRIVER.py  sha256 a28ec80089d5fa6aebeb735330cb8ba396f8cc5d74a6d6beb6c371d9559539ef
+#   ?? remediation_evidence/T6/F3_HARDLINK_STRESS_DRIVER.py  sha256 26182d23836d80d93b1fdb676631227a5dd7cdcd237db5dbf79a4d7bddc7f135
+#   ?? remediation_evidence/T6/F3_WRITE_PATH_ENUMERATION.py  sha256 dbddeb0a727f9f15464d37f7fd1637b0c76db4bcd32962db387fb0e02337c38e
+#   ?? tests/test_astra_t6_risk_log_integrity.py  sha256 0bbe88baf38c3f2e182453d26cb24087aa32a96da67b7089542f7a9a888e686d
+# src/genesis/registry.py sha256 47c71926f1d72eb92f5dcbc5281486017f1f3294ca5d40a85ccba60eb1ae36bf
+# src/genesis/risk.py sha256 acc1b43016ff20cdc4c576bf40f900a0124d30860d57292386f74b79263e5577
+# driver sha256 26182d23836d80d93b1fdb676631227a5dd7cdcd237db5dbf79a4d7bddc7f135
+# runs 10: writers real-0, real-1 (real name), alias-0, alias-1 (mirror name), 20 record_exposure attempts each; toggler 80 link/unlink cycles
+
+run  1: {'link_cycles': 55, 'real_appended': 31, 'real_refused': 9, 'alias_appended': 26, 'alias_refused': 14, 'worker_errors': {}, 'alias_rows_in_real_log': [], 'real_log': 'intact'}
+run  2: {'link_cycles': 55, 'real_appended': 28, 'real_refused': 12, 'alias_appended': 26, 'alias_refused': 14, 'worker_errors': {}, 'alias_rows_in_real_log': [], 'real_log': 'intact'}
+run  3: {'link_cycles': 55, 'real_appended': 33, 'real_refused': 7, 'alias_appended': 31, 'alias_refused': 9, 'worker_errors': {}, 'alias_rows_in_real_log': [], 'real_log': 'intact'}
+run  4: {'link_cycles': 59, 'real_appended': 28, 'real_refused': 12, 'alias_appended': 24, 'alias_refused': 16, 'worker_errors': {}, 'alias_rows_in_real_log': [], 'real_log': 'intact'}
+run  5: {'link_cycles': 60, 'real_appended': 22, 'real_refused': 18, 'alias_appended': 22, 'alias_refused': 18, 'worker_errors': {}, 'alias_rows_in_real_log': [], 'real_log': 'intact'}
+run  6: {'link_cycles': 60, 'real_appended': 28, 'real_refused': 12, 'alias_appended': 25, 'alias_refused': 15, 'worker_errors': {}, 'alias_rows_in_real_log': [], 'real_log': 'intact'}
+run  7: {'link_cycles': 59, 'real_appended': 30, 'real_refused': 10, 'alias_appended': 22, 'alias_refused': 18, 'worker_errors': {}, 'alias_rows_in_real_log': [], 'real_log': 'intact'}
+run  8: {'link_cycles': 56, 'real_appended': 23, 'real_refused': 17, 'alias_appended': 26, 'alias_refused': 14, 'worker_errors': {}, 'alias_rows_in_real_log': [], 'real_log': 'intact'}
+run  9: {'link_cycles': 62, 'real_appended': 30, 'real_refused': 10, 'alias_appended': 19, 'alias_refused': 21, 'worker_errors': {}, 'alias_rows_in_real_log': [], 'real_log': 'intact'}
+run 10: {'link_cycles': 59, 'real_appended': 27, 'real_refused': 13, 'alias_appended': 23, 'alias_refused': 17, 'worker_errors': {}, 'alias_rows_in_real_log': [], 'real_log': 'intact'}
+
+VERDICT (GREEN on the repaired work clone): real risk log not intact in 0 of 10 runs
+# finished 2026-09-26T18:37:06Z

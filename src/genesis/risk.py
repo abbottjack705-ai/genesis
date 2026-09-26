@@ -408,12 +408,61 @@ class RebaseDecision:
     snapshot_id: str
 
 
-class RiskAuditLog:
-    def __init__(self, path: str | Path):
-        self.log = AppendOnlyJsonl(path)
+class _ReplayChecked:
+    """A risk-log builder whose row its engine replays with the history first (N3)."""
 
-    def append(self, event_type: str, payload: dict) -> str:
-        return self.log.append({"record_type": event_type, **payload})
+    def __init__(self, engine: RiskEngine, build: Callable[[tuple[dict, ...]], dict | None]):
+        self.engine = engine
+        self.build = build
+
+    def __call__(self, rows: tuple[dict, ...]) -> dict | None:
+        record = self.build(rows)
+        if isinstance(record, dict):
+            self.engine._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
+        return record
+
+
+class _RiskLogStorage(AppendOnlyJsonl):
+    """Risk-log storage that appends only rows its engine has replayed (F-3a).
+
+    RiskEngine actions pass their own replay-checked builders. Any other
+    builder, such as a direct ``append``, is replayed by the engine composed
+    over this storage before a byte is written; with no engine the storage
+    appends nothing.
+    """
+
+    def __init__(self, path: str | Path):
+        super().__init__(path)
+        self._engine: RiskEngine | None = None
+
+    def transaction(
+        self,
+        build_record: Callable[[tuple[dict, ...]], dict | None],
+        *,
+        read_locks: tuple[AppendOnlyJsonl, ...] = (),
+    ) -> str | None:
+        engine = self._engine
+        if isinstance(build_record, _ReplayChecked) and build_record.engine is engine:
+            checked = build_record
+        elif engine is not None:
+            checked = _ReplayChecked(engine, build_record)
+        else:
+            def checked(rows: tuple[dict, ...]) -> None:
+                if build_record(rows) is not None:
+                    raise RegistryConflict("risk log without its risk engine appends nothing")
+                return None
+        return super().transaction(checked, read_locks=read_locks)
+
+
+class RiskAuditLog:
+    """The durable risk log. It has no generic event append (T6 F-3a).
+
+    Risk rows are written by RiskEngine actions; its storage appends no row
+    that the log's engine has not first replayed with the exact history.
+    """
+
+    def __init__(self, path: str | Path):
+        self.log = _RiskLogStorage(path)
 
     def verify(self) -> int:
         return self.log.verify()
@@ -439,6 +488,8 @@ class RiskEngine:
             raise TypeError("RiskEngine requires all durable authority dependencies")
         if not isinstance(policy, PolicySet):
             raise TypeError("risk policy must be a PolicySet")
+        if not isinstance(audit_log.log, _RiskLogStorage):
+            raise TypeError("risk audit log must be a replay-checked RiskAuditLog")
         self.policy_set = policy
         self.policy = policy.risk
         self.bankrolls = bankrolls
@@ -466,6 +517,10 @@ class RiskEngine:
         # verifies its owners against this durable binding.
         self.owner_binding = RiskOwnerBinding(self.audit_log.log)
         self.owner_binding.register(self._risk_owner_paths())
+        # F-3a: the first engine composed over this log object replays every
+        # append made through its storage by anyone other than itself.
+        if self.audit_log.log._engine is None:
+            self.audit_log.log._engine = self
 
     def _risk_owner_paths(self) -> dict[str, Path | None]:
         from .execution import ModeStateStore
@@ -980,15 +1035,10 @@ class RiskEngine:
         coordinator locks and before any byte is written, so a collision in
         either order is refused instead of committing a row that permanently
         bricks admission, consumption, send, release and exposure recording.
+        The log's storage applies the same check to every other writer (F-3a).
         """
 
-        def checked(rows: tuple[dict, ...]) -> dict | None:
-            record = build(rows)
-            if isinstance(record, dict):
-                self._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
-            return record
-
-        return checked
+        return _ReplayChecked(self, build)
 
     def stake_for_units(self, bankroll: str, units: str) -> str:
         return canonical_decimal(self.policy.stake_amount(bankroll, parse_tier(units, policy=self.policy)))

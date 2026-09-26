@@ -1,0 +1,49 @@
+# T6 F-3 retained-test neutrality (a): the three amended retained test files against the unchanged F-4 checkpoint source; at the checkpoint RiskAuditLog.log is exactly AppendOnlyJsonl over the same path, so the raw writer they now use runs the identical code and writes identical bytes
+# started 2026-09-26T18:43:40Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\f3na HEAD c3d27d91cf9108dce3ddce084b11c532ce4ab99d branch t6-remediation core.autocrlf=false
+# uncommitted paths: 3
+#    M tests/test_astra_s1_reservation.py  sha256 8af41635431f0da7644de0db4042f97220d82b4f9756b43fe44ff6300a605bf7
+#    M tests/test_astra_s2_replay.py  sha256 a051227b7ce8e3dec888b66e81f99e907ad7d875a777798c3492176a82b2cc73
+#    M tests/test_astra_t1_dependence.py  sha256 1acc0784a1ebb9ea8608672031ed1ec3da9a2bffdb81a2c8de3deea3bc133e62
+# tools/genesis_audit_package.py sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+# runner sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+
+$ python -c import sys; sys.path.insert(0, 'src'); from pathlib import Path; from genesis.registry import AppendOnlyJsonl; from genesis.risk import RiskAuditLog; audit = RiskAuditLog(Path('work') / 'risk.jsonl'); print('type(RiskAuditLog(p).log) is AppendOnlyJsonl:', type(audit.log) is AppendOnlyJsonl); print('same path:', audit.log.path == AppendOnlyJsonl(Path('work') / 'risk.jsonl').path)
+type(RiskAuditLog(p).log) is AppendOnlyJsonl: True
+same path: True
+exit=0 elapsed=0.6s
+
+$ python -m unittest -v tests.test_astra_s1_reservation tests.test_astra_s2_replay tests.test_astra_t1_dependence
+test_missing_or_conflicting_exact_reservation_never_certifies (tests.test_astra_s1_reservation.AstraReservationGateTests.test_missing_or_conflicting_exact_reservation_never_certifies) ... ok
+test_other_unknown_blocks_affected_continuation (tests.test_astra_s1_reservation.AstraReservationGateTests.test_other_unknown_blocks_affected_continuation) ... ok
+test_own_unknown_void_and_settled_block_both_submission_phases (tests.test_astra_s1_reservation.AstraReservationGateTests.test_own_unknown_void_and_settled_block_both_submission_phases) ... ok
+test_reservation_transition_at_order_transaction_entry_blocks (tests.test_astra_s1_reservation.AstraReservationGateTests.test_reservation_transition_at_order_transaction_entry_blocks) ... ok
+test_restart_keeps_released_and_unknown_reservations_blocking (tests.test_astra_s1_reservation.AstraReservationGateTests.test_restart_keeps_released_and_unknown_reservations_blocking) ... ok
+test_valid_reservation_and_later_terminal_release_preserve_history (tests.test_astra_s1_reservation.AstraReservationGateTests.test_valid_reservation_and_later_terminal_release_preserve_history) ... ok
+test_consumption_after_expiry_or_release_is_not_valid_history (tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history) ... ok
+test_hash_valid_unsupported_active_approval_blocks_existing_and_restart (tests.test_astra_s2_replay.AstraStrictReplayTests.test_hash_valid_unsupported_active_approval_blocks_existing_and_restart) ... ok
+test_incompatible_event_arriving_at_transaction_entry_blocks (tests.test_astra_s2_replay.AstraStrictReplayTests.test_incompatible_event_arriving_at_transaction_entry_blocks) ... ok
+test_invalid_known_transitions_and_missing_owner_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_invalid_known_transitions_and_missing_owner_fields_block) ... ok
+test_known_valid_history_still_approves_once (tests.test_astra_s2_replay.AstraStrictReplayTests.test_known_valid_history_still_approves_once) ... ok
+test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) ... ok
+test_unsupported_bankroll_and_safety_heads_cannot_be_skipped (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unsupported_bankroll_and_safety_heads_cannot_be_skipped) ... ok
+test_d01_original_shared_cluster_caller_omission_cannot_approve (tests.test_astra_t1_dependence.AstraB1DependenceTests.test_d01_original_shared_cluster_caller_omission_cannot_approve) ... ok
+test_d02_nonempty_wrong_subset_and_superset_copies_are_denied (tests.test_astra_t1_dependence.AstraB1DependenceTests.test_d02_nonempty_wrong_subset_and_superset_copies_are_denied) ... ok
+test_d02_reordered_equal_copy_and_omission_persist_canonical_output (tests.test_astra_t1_dependence.AstraB1DependenceTests.test_d02_reordered_equal_copy_and_omission_persist_canonical_output) ... ok
+test_d03_missing_output_binding_and_legacy_v2_do_not_default_empty (tests.test_astra_t1_dependence.AstraB1DependenceTests.test_d03_missing_output_binding_and_legacy_v2_do_not_default_empty) ... ok
+test_d04_trusted_empty_dependence_can_pass_without_other_blocker (tests.test_astra_t1_dependence.AstraB1DependenceTests.test_d04_trusted_empty_dependence_can_pass_without_other_blocker) ... ok
+test_d05_exact_cluster_boundary_and_one_cent_above (tests.test_astra_t1_dependence.AstraB1DependenceTests.test_d05_exact_cluster_boundary_and_one_cent_above) ... ok
+test_d06_replay_rejects_approval_clusters_that_disagree_with_bound_output (tests.test_astra_t1_dependence.AstraB1DependenceTests.test_d06_replay_rejects_approval_clusters_that_disagree_with_bound_output) ... ok
+test_d06_restart_replays_exact_output_membership_and_identity (tests.test_astra_t1_dependence.AstraB1DependenceTests.test_d06_restart_replays_exact_output_membership_and_identity) ... ok
+test_d06_two_processes_contend_for_same_last_cluster_capacity (tests.test_astra_t1_dependence.AstraB1DependenceTests.test_d06_two_processes_contend_for_same_last_cluster_capacity) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 22.308s
+
+OK
+exit=0 elapsed=22.9s
+
+# commands 2, nonzero exits 0
+# finished 2026-09-26T18:44:04Z

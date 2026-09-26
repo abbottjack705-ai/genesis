@@ -1,0 +1,246 @@
+# T6 F-3 auditor probe transcript (GREEN on the repaired source (work clone))
+# started 2026-09-26T18:38:38Z
+# python 3.12.10; Windows-11-10.0.26200-SP0
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\f3w HEAD c3d27d91cf9108dce3ddce084b11c532ce4ab99d branch t6-remediation core.autocrlf=false
+# uncommitted paths: 10
+#    M src/genesis/owner_binding.py  sha256 f7f210bd518a8b8d1efd8f9dd0fb989beec2ea53a18063ff3d47f03450baa065
+#    M src/genesis/registry.py  sha256 47c71926f1d72eb92f5dcbc5281486017f1f3294ca5d40a85ccba60eb1ae36bf
+#    M src/genesis/risk.py  sha256 acc1b43016ff20cdc4c576bf40f900a0124d30860d57292386f74b79263e5577
+#    M tests/test_astra_s1_reservation.py  sha256 8af41635431f0da7644de0db4042f97220d82b4f9756b43fe44ff6300a605bf7
+#    M tests/test_astra_s2_replay.py  sha256 a051227b7ce8e3dec888b66e81f99e907ad7d875a777798c3492176a82b2cc73
+#    M tests/test_astra_t1_dependence.py  sha256 1acc0784a1ebb9ea8608672031ed1ec3da9a2bffdb81a2c8de3deea3bc133e62
+#   ?? remediation_evidence/T6/F3_AUDITOR_PROBES_DRIVER.py  sha256 a28ec80089d5fa6aebeb735330cb8ba396f8cc5d74a6d6beb6c371d9559539ef
+#   ?? remediation_evidence/T6/F3_HARDLINK_STRESS_DRIVER.py  sha256 26182d23836d80d93b1fdb676631227a5dd7cdcd237db5dbf79a4d7bddc7f135
+#   ?? remediation_evidence/T6/F3_WRITE_PATH_ENUMERATION.py  sha256 dbddeb0a727f9f15464d37f7fd1637b0c76db4bcd32962db387fb0e02337c38e
+#   ?? tests/test_astra_t6_risk_log_integrity.py  sha256 0bbe88baf38c3f2e182453d26cb24087aa32a96da67b7089542f7a9a888e686d
+# src/genesis/registry.py sha256 47c71926f1d72eb92f5dcbc5281486017f1f3294ca5d40a85ccba60eb1ae36bf
+# src/genesis/risk.py sha256 acc1b43016ff20cdc4c576bf40f900a0124d30860d57292386f74b79263e5577
+# src/genesis/owner_binding.py sha256 f7f210bd518a8b8d1efd8f9dd0fb989beec2ea53a18063ff3d47f03450baa065
+# driver sha256 a28ec80089d5fa6aebeb735330cb8ba396f8cc5d74a6d6beb6c371d9559539ef
+# auditor probe_owner_alias.py sha256 1e9501e6715bef2a25b1b59f457b5ce852762f612bf257d9bb5388937c4c0ecf (equals review hash list: True)
+# auditor recorded T5 result probe_owner_alias_t5.txt sha256 34e64b2ef3118a57f66f683ea01ddf0ec491ee378cfa1a01a773ad0379e7d057 (equals review hash list: True)
+# auditor probe_hardlink_mirror.py sha256 bbcc6017777ecf15bce9585c0212994280e100667c4fde3ee2153d4ec6770129 (equals review hash list: True)
+# auditor recorded T5 result probe_hardlink_mirror_t5.txt sha256 96befea26fb76df75bc8af4bbc05893de8c3d39c1d3ea64876b696e044bea140 (equals review hash list: True)
+# variant probe_owner_alias_t6_wrapped_append.py sha256 a94190ccf903cfafc6a0d5f641513c13ae4cc044d04c7cd3d6594bfd4142b441 (one block changed: the colliding append is wrapped; see driver docstring)
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f3w PYTHONPATH=C:\Users\abbot\t6\f3w\src python C:\Users\abbot\t6\f3green\driver\probes\probe_owner_alias.py   (run 1)
+exit=1
+stderr:
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3green\driver\probes\probe_owner_alias.py", line 163, in <module>
+    main()
+  File "C:\Users\abbot\t6\f3green\driver\probes\probe_owner_alias.py", line 144, in main
+    e.audit_log.append("risk_exposure_recorded", {
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'RiskAuditLog' object has no attribute 'append'
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f3w PYTHONPATH=C:\Users\abbot\t6\f3w\src python C:\Users\abbot\t6\f3green\driver\probes\probe_owner_alias.py   (run 2)
+exit=1
+stderr:
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3green\driver\probes\probe_owner_alias.py", line 163, in <module>
+    main()
+  File "C:\Users\abbot\t6\f3green\driver\probes\probe_owner_alias.py", line 144, in main
+    e.audit_log.append("risk_exposure_recorded", {
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'RiskAuditLog' object has no attribute 'append'
+
+## determinism probe_owner_alias.py: identical exit, stdout and stderr across runs: True
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f3w PYTHONPATH=C:\Users\abbot\t6\f3w\src python C:\Users\abbot\t6\f3green\driver\variant\probe_owner_alias_t6_wrapped_append.py   (run 1)
+exit=0
+{
+ "junction_created": true,
+ "junction_alias_owner_mismatches": [],
+ "junction_alias_approve": [
+  true,
+  "risk_approved"
+ ],
+ "junction_alias_same_lock": true,
+ "hardlinked_bankroll_mismatches": [
+  "bankroll"
+ ],
+ "hardlinked_bankroll_approve": [
+  false,
+  "owner_authority_mismatch"
+ ],
+ "hardlink_mirror_owner_mismatches": [],
+ "hardlink_mirror_approve": [
+  "raised",
+  "RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name"
+ ],
+ "hardlink_mirror_row_visible_in_real_log": 0,
+ "hardlink_mirror_distinct_lock_files": true,
+ "hardlink_concurrent_append": "both appended",
+ "hardlink_log_after": "verifies",
+ "tofu_note": "see memo residual 1; build_risk constructs the legit engine first",
+ "copy_after_legit_mismatches": [
+  "bankroll"
+ ],
+ "tofu_copy_first_mismatches": [],
+ "tofu_copy_first_approve": [
+  true,
+  "risk_approved"
+ ],
+ "tofu_legit_after_copy_mismatches": [
+  "bankroll"
+ ],
+ "tofu_legit_after_copy_approve": [
+  false,
+  "owner_authority_mismatch"
+ ],
+ "t6_colliding_append_RiskAuditLog.append": "refused: AttributeError: 'RiskAuditLog' object has no attribute 'append'",
+ "t6_colliding_append_audit_log.log.append": "refused: RegistryConflict: duplicate risk exposure identity",
+ "riskauditlog_append_collision_then_replay": "ok",
+ "riskauditlog_append_then_record_exposure": "ok"
+}
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f3w PYTHONPATH=C:\Users\abbot\t6\f3w\src python C:\Users\abbot\t6\f3green\driver\variant\probe_owner_alias_t6_wrapped_append.py   (run 2)
+exit=0
+{
+ "junction_created": true,
+ "junction_alias_owner_mismatches": [],
+ "junction_alias_approve": [
+  true,
+  "risk_approved"
+ ],
+ "junction_alias_same_lock": true,
+ "hardlinked_bankroll_mismatches": [
+  "bankroll"
+ ],
+ "hardlinked_bankroll_approve": [
+  false,
+  "owner_authority_mismatch"
+ ],
+ "hardlink_mirror_owner_mismatches": [],
+ "hardlink_mirror_approve": [
+  "raised",
+  "RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name"
+ ],
+ "hardlink_mirror_row_visible_in_real_log": 0,
+ "hardlink_mirror_distinct_lock_files": true,
+ "hardlink_concurrent_append": "both appended",
+ "hardlink_log_after": "verifies",
+ "tofu_note": "see memo residual 1; build_risk constructs the legit engine first",
+ "copy_after_legit_mismatches": [
+  "bankroll"
+ ],
+ "tofu_copy_first_mismatches": [],
+ "tofu_copy_first_approve": [
+  true,
+  "risk_approved"
+ ],
+ "tofu_legit_after_copy_mismatches": [
+  "bankroll"
+ ],
+ "tofu_legit_after_copy_approve": [
+  false,
+  "owner_authority_mismatch"
+ ],
+ "t6_colliding_append_RiskAuditLog.append": "refused: AttributeError: 'RiskAuditLog' object has no attribute 'append'",
+ "t6_colliding_append_audit_log.log.append": "refused: RegistryConflict: duplicate risk exposure identity",
+ "riskauditlog_append_collision_then_replay": "ok",
+ "riskauditlog_append_then_record_exposure": "ok"
+}
+
+## determinism probe_owner_alias_t6_wrapped_append.py: identical exit, stdout and stderr across runs: True
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f3w PYTHONPATH=C:\Users\abbot\t6\f3w\src python C:\Users\abbot\t6\f3green\driver\probes\probe_hardlink_mirror.py   (run 1)
+exit=0
+{
+ "mirror_owner_mismatches": [],
+ "mirror_approve": [
+  "raised",
+  "RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name"
+ ],
+ "real_log_rows_after_mirror_approval": 1,
+ "real_engine_same_request": [
+  "raised",
+  "RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name"
+ ],
+ "append_inside_real_critical_section": "RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name",
+ "risk_log_after": "verifies",
+ "real_engine_after": "ok"
+}
+
+$ AUDIT_REPO=C:\Users\abbot\t6\f3w PYTHONPATH=C:\Users\abbot\t6\f3w\src python C:\Users\abbot\t6\f3green\driver\probes\probe_hardlink_mirror.py   (run 2)
+exit=0
+{
+ "mirror_owner_mismatches": [],
+ "mirror_approve": [
+  "raised",
+  "RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name"
+ ],
+ "real_log_rows_after_mirror_approval": 1,
+ "real_engine_same_request": [
+  "raised",
+  "RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name"
+ ],
+ "append_inside_real_critical_section": "RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name",
+ "risk_log_after": "verifies",
+ "real_engine_after": "ok"
+}
+
+## determinism probe_hardlink_mirror.py: identical exit, stdout and stderr across runs: True
+
+## comparison with the review's recorded T5 results
+### probe_owner_alias.py vs probe_owner_alias_t5.txt
+  no JSON result (the probe stopped; see its stderr above)
+### probe_owner_alias_t6_wrapped_append.py vs probe_owner_alias_t5.txt
+  copy_after_legit_mismatches: same
+  hardlink_concurrent_append: same
+  hardlink_log_after: same
+  hardlink_mirror_approve: CHANGED
+    T5 review: [true, "risk_approved"]
+    now      : ["raised", "RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name"]
+  hardlink_mirror_distinct_lock_files: same
+  hardlink_mirror_owner_mismatches: same
+  hardlink_mirror_row_visible_in_real_log: same
+  hardlinked_bankroll_approve: same
+  hardlinked_bankroll_mismatches: same
+  junction_alias_approve: same
+  junction_alias_owner_mismatches: same
+  junction_alias_same_lock: same
+  junction_created: same
+  riskauditlog_append_collision_then_replay: CHANGED
+    T5 review: "RegistryConflict: duplicate risk exposure identity"
+    now      : "ok"
+  riskauditlog_append_then_record_exposure: CHANGED
+    T5 review: "RegistryConflict: duplicate risk exposure identity"
+    now      : "ok"
+  t6_colliding_append_RiskAuditLog.append: CHANGED
+    T5 review: "<absent>"
+    now      : "refused: AttributeError: 'RiskAuditLog' object has no attribute 'append'"
+  t6_colliding_append_audit_log.log.append: CHANGED
+    T5 review: "<absent>"
+    now      : "refused: RegistryConflict: duplicate risk exposure identity"
+  tofu_copy_first_approve: same
+  tofu_copy_first_mismatches: same
+  tofu_legit_after_copy_approve: same
+  tofu_legit_after_copy_mismatches: same
+  tofu_note: same
+### probe_hardlink_mirror.py vs probe_hardlink_mirror_t5.txt
+  append_inside_real_critical_section: CHANGED
+    T5 review: "both appended (no mutual exclusion)"
+    now      : "RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name"
+  mirror_approve: CHANGED
+    T5 review: [true, "risk_approved"]
+    now      : ["raised", "RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name"]
+  mirror_owner_mismatches: same
+  real_engine_after: CHANGED
+    T5 review: "RegistryConflict: registry hash chain is broken"
+    now      : "ok"
+  real_engine_same_request: CHANGED
+    T5 review: [false, "duplicate_order_intent"]
+    now      : ["raised", "RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name"]
+  real_log_rows_after_mirror_approval: CHANGED
+    T5 review: 2
+    now      : 1
+  risk_log_after: CHANGED
+    T5 review: "RegistryConflict: registry hash chain is broken"
+    now      : "verifies"
+
+VERDICT F-3a (GREEN on the repaired source (work clone)): colliding public append "refused: AttributeError: 'RiskAuditLog' object has no attribute 'append'" / storage 'refused: RegistryConflict: duplicate risk exposure identity'; replay 'ok'; later exposure 'ok' -> GREEN
+VERDICT F-3b (GREEN on the repaired source (work clone)): interleaved hard-link append 'RegistryConflict: registry file has another name (hard link, symlink or short name); an authority log is written only through its single name'; real risk log after 'verifies' -> GREEN
+# finished 2026-09-26T18:38:50Z

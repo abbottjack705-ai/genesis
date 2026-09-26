@@ -11,7 +11,10 @@ An owner's identity is its resolved location relative to the risk log's
 directory. The same owner reopened through another object or an equivalent
 path is therefore the same owner, and a complete deployment relocated as one
 tree keeps its bindings. A copy at another path is a different owner even when
-its bytes are identical.
+its bytes are identical. A file with a second name (hard link), or reached
+through a file symlink or its Windows short name, is not an owner under
+either name: no transaction writes while its target or any read-lock
+participant is or has such an alias (registry single-name rule, T6 F-3b).
 
 The binding is kept in a sidecar append-only JSONL next to the risk log, not in
 the risk log itself, so risk history and its row counts are unchanged. Each

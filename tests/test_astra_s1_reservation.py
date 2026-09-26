@@ -8,7 +8,7 @@ from genesis.accounting import SettlementKind
 from genesis.execution import OrderState
 from genesis.ledger import FillRecord, SettlementLedger
 from genesis.release_proof import OfflinePaperReleaseProofStore
-from genesis.registry import RegistryConflict
+from genesis.registry import AppendOnlyJsonl, RegistryConflict
 from genesis.risk import Exposure, ExposureState
 from genesis.time import iso_utc
 
@@ -157,7 +157,11 @@ class AstraReservationGateTests(unittest.TestCase):
             # T5/N3 refuses this colliding append through record_exposure. Seed
             # the byte-identical row the pre-T5 API appended (a hash-chain-valid
             # poisoned history) so the send gate is still exercised against it.
-            conflicting["risk_fixture"]["engine"].audit_log.log.append({
+            # T6 F-3a: the risk log's storage now refuses it too, so it is
+            # planted with a raw writer over the same path.
+            AppendOnlyJsonl(
+                conflicting["risk_fixture"]["engine"].audit_log.log.path
+            ).append({
                 "record_type": "risk_exposure_recorded",
                 "schema_version": "risk-exposure-v2",
                 **Exposure(

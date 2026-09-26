@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+import stat
 from dataclasses import MISSING, asdict, dataclass, replace
 from enum import StrEnum
 from pathlib import Path
@@ -32,14 +33,56 @@ class StrategyLifecycle(StrEnum):
     RETIRED = "retired"
 
 
+def _lstat(path: Path) -> os.stat_result | None:
+    try:
+        return os.lstat(path)
+    except FileNotFoundError:
+        return None
+
+
+_ALIASED = (
+    "registry file has another name (hard link, symlink or short name); "
+    "an authority log is written only through its single name"
+)
+
+
+def _own_name(path: Path) -> bool:
+    """The path's final name is the file's own name, not a symlink or 8.3 alias."""
+
+    return os.path.normcase(os.path.realpath(path)) == os.path.normcase(
+        os.path.join(os.path.realpath(path.parent), path.name)
+    )
+
+
+def _require_single_name(path: Path) -> None:
+    """One authority file, one name, one lock (T6 F-3b).
+
+    The coordinator lock is derived from the name a log is opened by, so a
+    file with a second name (a hard link), reached through a file symlink or
+    opened by its Windows short name could be written under two locks. No
+    write happens while any participant is such an alias or has one.
+    """
+
+    status = _lstat(path)
+    if status is not None and (
+        stat.S_ISLNK(status.st_mode) or status.st_nlink != 1 or not _own_name(path)
+    ):
+        raise RegistryConflict(_ALIASED)
+
+
 class AppendOnlyJsonl:
     def __init__(self, path: str | Path):
         self.path = Path(path)
         self.coordinator_path = self.path.with_name(f"{self.path.name}.coordinator.sqlite3")
 
     def _verified_records(self) -> list[dict[str, Any]]:
+        return self._read_verified()[1]
+
+    def _read_verified(self) -> tuple[bytes | None, list[dict[str, Any]]]:
+        """The log's bytes (None when absent) and their verified records."""
+
         if not self.path.exists():
-            return []
+            return None, []
         raw = self.path.read_bytes()
         if raw and not raw.endswith(b"\n"):
             raise RegistryConflict("registry has a truncated final record")
@@ -61,7 +104,43 @@ class AppendOnlyJsonl:
                 raise RegistryConflict("registry sequence is not monotonic")
             previous = actual
             records.append(row)
-        return records
+        return raw, records
+
+    def _append_exactly(
+        self, verified: bytes | None, start: os.stat_result | None, line: bytes,
+    ) -> None:
+        """Append right after the verified bytes of the same single-named file (F-3b).
+
+        A log absent when the transaction read it is created exclusively; an
+        existing one is opened without creation and must still be the file
+        that was read, have one name and hold exactly the verified bytes.
+        """
+
+        flags = os.O_WRONLY | os.O_APPEND | getattr(os, "O_BINARY", 0)
+        if start is None:
+            flags |= os.O_CREAT | os.O_EXCL
+        try:
+            descriptor = os.open(self.path, flags, 0o666)
+        except (FileExistsError, FileNotFoundError) as exc:
+            raise RegistryConflict(
+                "registry file appeared or vanished during its transaction"
+            ) from exc
+        with open(descriptor, "ab") as handle:
+            status = os.fstat(handle.fileno())
+            if (
+                status.st_nlink != 1
+                or (start is not None and stat.S_ISLNK(start.st_mode))
+                or not _own_name(self.path)
+            ):
+                raise RegistryConflict(_ALIASED)
+            if status.st_size != len(verified or b"") or (
+                start is not None
+                and (status.st_dev, status.st_ino) != (start.st_dev, start.st_ino)
+            ):
+                raise RegistryConflict("registry file changed during its transaction")
+            handle.write(line)
+            handle.flush()
+            os.fsync(handle.fileno())
 
     def transaction(
         self,
@@ -72,7 +151,10 @@ class AppendOnlyJsonl:
         """Serialize verified read/check/append/fsync across processes.
 
         SQLite coordinates the critical section only.  The verified JSONL
-        remains the sole authoritative business and audit history.
+        remains the sole authoritative business and audit history.  A row is
+        appended only if the append target and every read-lock participant is
+        its file's single name (F-3b), so the name-derived locks are the files'
+        only locks, and only right after the exact bytes that were verified.
         """
 
         # Every participant, including the append target, is acquired in the
@@ -101,7 +183,8 @@ class AppendOnlyJsonl:
             connection.execute(
                 "INSERT OR IGNORE INTO coordination(singleton, generation) VALUES (1, 0)"
             )
-            records = self._verified_records()
+            start = _lstat(self.path)
+            raw, records = self._read_verified()
             record = build_record(tuple(dict(row) for row in records))
             if record is None:
                 connection.commit()
@@ -111,10 +194,9 @@ class AppendOnlyJsonl:
             chained = self.chained(records, record)
             record_hash = chained["record_hash"]
             line = canonical_json(chained)
-            with self.path.open("ab") as handle:
-                handle.write(line)
-                handle.flush()
-                os.fsync(handle.fileno())
+            for log in read_locks:
+                _require_single_name(log.path)
+            self._append_exactly(raw, start, line)
             connection.execute("UPDATE coordination SET generation = generation + 1 WHERE singleton = 1")
             connection.commit()
             return record_hash

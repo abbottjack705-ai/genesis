@@ -1,0 +1,93 @@
+# T6 F-3 static gates over the complete staged checkpoint change set (every F-3 file except this transcript and F3_EVIDENCE_HASHES.sha256, which are written after it)
+# started 2026-09-26T19:52:32Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\f3f HEAD c3d27d91cf9108dce3ddce084b11c532ce4ab99d branch t6-remediation core.autocrlf=false
+# uncommitted paths: 21
+#   A  remediation_evidence/T6/F3_AUDITOR_PROBES_DRIVER.py  sha256 a28ec80089d5fa6aebeb735330cb8ba396f8cc5d74a6d6beb6c371d9559539ef
+#   A  remediation_evidence/T6/F3_FULL_SUITE_AND_STATIC.txt  sha256 c04107687ad17a4ebaa093a0219378ae796945172dc1d29431cdfe4ecf7eadc0
+#   A  remediation_evidence/T6/F3_GREEN_AUDITOR_PROBES.txt  sha256 a268240187af6bf2c1916f5b13767279a0bda5a576958c41dba7f9f5037dd2e3
+#   A  remediation_evidence/T6/F3_GREEN_HARDLINK_STRESS.txt  sha256 7fe8bf6007cd22a11ca2aa0abf89b6a9d8597eccab778866aab1a1953ff21802
+#   A  remediation_evidence/T6/F3_GREEN_RISK_SUITES.txt  sha256 a5a140290b605f733dafcc62a596b386bc7af646d9bd273265068160c19dcacf
+#   A  remediation_evidence/T6/F3_HARDLINK_STRESS_DRIVER.py  sha256 26182d23836d80d93b1fdb676631227a5dd7cdcd237db5dbf79a4d7bddc7f135
+#   A  remediation_evidence/T6/F3_NEUTRALITY_A_AMENDED_TESTS_ON_F4_CHECKPOINT.txt  sha256 83ca34cbee9016af95ca55aebdac63dd31d461fc7adfae11d7d1ad0c03d440f9
+#   A  remediation_evidence/T6/F3_NEUTRALITY_B_ORIGINAL_TESTS_ON_T6_SOURCE.txt  sha256 81701e53e66d5ebf5d92c3fab173b8c0a8e3430cbec381c7efe962461953760e
+#   A  remediation_evidence/T6/F3_RED_AUDITOR_PROBES.txt  sha256 797bbdfbc14d376ca50b0aa520907e436d8d8ffccbc2d51058c88ac1412b0eb8
+#   A  remediation_evidence/T6/F3_RED_HARDLINK_STRESS.txt  sha256 7a2d90e4785d810636a1de8d94dd9d1d2cdefac4500dc3a7d8d417531f1fe023
+#   A  remediation_evidence/T6/F3_RED_T6_TESTS_ON_F4_CHECKPOINT.txt  sha256 94a56cd62ce7ccf89fe7ef37530774f381120d0bd2a8a4ccdd4136f1a5a38f7a
+#   A  remediation_evidence/T6/F3_WRITE_PATH_ENUMERATION.py  sha256 4c2f3e65308aa044e32cf263403c3fbf4ddd984c76582ab248e46a43fb3de598
+#   A  remediation_evidence/T6/F3_WRITE_PATH_ENUMERATION.txt  sha256 f1e043ad700ce2829618126916da1eda5c669d5c06babd57ef76af5062082332
+#   A  remediation_evidence/T6/T6_WIP_F3_CHECKPOINT.md  sha256 f5401f1190cb68acd8a3e3c347aa5ae45b8e6906e3155466f78cb9a133803374
+#   M  src/genesis/owner_binding.py  sha256 f7f210bd518a8b8d1efd8f9dd0fb989beec2ea53a18063ff3d47f03450baa065
+#   M  src/genesis/registry.py  sha256 47c71926f1d72eb92f5dcbc5281486017f1f3294ca5d40a85ccba60eb1ae36bf
+#   M  src/genesis/risk.py  sha256 acc1b43016ff20cdc4c576bf40f900a0124d30860d57292386f74b79263e5577
+#   M  tests/test_astra_s1_reservation.py  sha256 8af41635431f0da7644de0db4042f97220d82b4f9756b43fe44ff6300a605bf7
+#   M  tests/test_astra_s2_replay.py  sha256 a051227b7ce8e3dec888b66e81f99e907ad7d875a777798c3492176a82b2cc73
+#   M  tests/test_astra_t1_dependence.py  sha256 1acc0784a1ebb9ea8608672031ed1ec3da9a2bffdb81a2c8de3deea3bc133e62
+#   A  tests/test_astra_t6_risk_log_integrity.py  sha256 0bbe88baf38c3f2e182453d26cb24087aa32a96da67b7089542f7a9a888e686d
+# tools/genesis_audit_package.py sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+# runner sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+
+$ git diff --cached --check c3d27d91cf9108dce3ddce084b11c532ce4ab99d
+
+exit=0 elapsed=0.0s
+
+$ git diff --cached --stat c3d27d91cf9108dce3ddce084b11c532ce4ab99d
+ .../T6/F3_AUDITOR_PROBES_DRIVER.py                 | 223 ++++++++
+ .../T6/F3_FULL_SUITE_AND_STATIC.txt                | 429 ++++++++++++++++
+ .../T6/F3_GREEN_AUDITOR_PROBES.txt                 | 246 +++++++++
+ .../T6/F3_GREEN_HARDLINK_STRESS.txt                |  32 ++
+ remediation_evidence/T6/F3_GREEN_RISK_SUITES.txt   | 260 ++++++++++
+ .../T6/F3_HARDLINK_STRESS_DRIVER.py                | 209 ++++++++
+ ...NEUTRALITY_A_AMENDED_TESTS_ON_F4_CHECKPOINT.txt |  49 ++
+ ...F3_NEUTRALITY_B_ORIGINAL_TESTS_ON_T6_SOURCE.txt | 249 +++++++++
+ remediation_evidence/T6/F3_RED_AUDITOR_PROBES.txt  | 302 +++++++++++
+ remediation_evidence/T6/F3_RED_HARDLINK_STRESS.txt |  22 +
+ .../T6/F3_RED_T6_TESTS_ON_F4_CHECKPOINT.txt        | 220 ++++++++
+ .../T6/F3_WRITE_PATH_ENUMERATION.py                | 238 +++++++++
+ .../T6/F3_WRITE_PATH_ENUMERATION.txt               | 150 ++++++
+ remediation_evidence/T6/T6_WIP_F3_CHECKPOINT.md    | 312 ++++++++++++
+ src/genesis/owner_binding.py                       |   5 +-
+ src/genesis/registry.py                            |  98 +++-
+ src/genesis/risk.py                                |  72 ++-
+ tests/test_astra_s1_reservation.py                 |   8 +-
+ tests/test_astra_s2_replay.py                      |  14 +-
+ tests/test_astra_t1_dependence.py                  |   6 +-
+ tests/test_astra_t6_risk_log_integrity.py          | 558 +++++++++++++++++++++
+ 21 files changed, 3672 insertions(+), 30 deletions(-)
+exit=0 elapsed=0.1s
+
+$ git diff --cached --name-status c3d27d91cf9108dce3ddce084b11c532ce4ab99d
+A	remediation_evidence/T6/F3_AUDITOR_PROBES_DRIVER.py
+A	remediation_evidence/T6/F3_FULL_SUITE_AND_STATIC.txt
+A	remediation_evidence/T6/F3_GREEN_AUDITOR_PROBES.txt
+A	remediation_evidence/T6/F3_GREEN_HARDLINK_STRESS.txt
+A	remediation_evidence/T6/F3_GREEN_RISK_SUITES.txt
+A	remediation_evidence/T6/F3_HARDLINK_STRESS_DRIVER.py
+A	remediation_evidence/T6/F3_NEUTRALITY_A_AMENDED_TESTS_ON_F4_CHECKPOINT.txt
+A	remediation_evidence/T6/F3_NEUTRALITY_B_ORIGINAL_TESTS_ON_T6_SOURCE.txt
+A	remediation_evidence/T6/F3_RED_AUDITOR_PROBES.txt
+A	remediation_evidence/T6/F3_RED_HARDLINK_STRESS.txt
+A	remediation_evidence/T6/F3_RED_T6_TESTS_ON_F4_CHECKPOINT.txt
+A	remediation_evidence/T6/F3_WRITE_PATH_ENUMERATION.py
+A	remediation_evidence/T6/F3_WRITE_PATH_ENUMERATION.txt
+A	remediation_evidence/T6/T6_WIP_F3_CHECKPOINT.md
+M	src/genesis/owner_binding.py
+M	src/genesis/registry.py
+M	src/genesis/risk.py
+M	tests/test_astra_s1_reservation.py
+M	tests/test_astra_s2_replay.py
+M	tests/test_astra_t1_dependence.py
+A	tests/test_astra_t6_risk_log_integrity.py
+exit=0 elapsed=0.0s
+
+$ git diff --cached --name-only c3d27d91cf9108dce3ddce084b11c532ce4ab99d -- DECISIONS v04_pack config V04_MIGRATION_PLAN.md requirements.lock pyproject.toml tools src/genesis/protected.py remediation_evidence :(exclude)remediation_evidence/T6/F3_* :(exclude)remediation_evidence/T6/T6_WIP_F3_CHECKPOINT.md
+
+exit=0 elapsed=0.0s
+
+$ python -m compileall -q src tests tools remediation_evidence/T6
+
+exit=0 elapsed=0.2s
+
+# commands 5, nonzero exits 0
+# finished 2026-09-26T19:52:33Z

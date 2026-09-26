@@ -1,0 +1,249 @@
+# T6 F-3 retained-test neutrality (b): the three retained test files exactly as committed at the F-4 checkpoint, against the repaired source; each failure is the new refusal of planting invalid or engineless history through the risk log's own storage
+# started 2026-09-26T18:44:04Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\f3nb HEAD c3d27d91cf9108dce3ddce084b11c532ce4ab99d branch t6-remediation core.autocrlf=false
+# uncommitted paths: 3
+#    M src/genesis/owner_binding.py  sha256 f7f210bd518a8b8d1efd8f9dd0fb989beec2ea53a18063ff3d47f03450baa065
+#    M src/genesis/registry.py  sha256 47c71926f1d72eb92f5dcbc5281486017f1f3294ca5d40a85ccba60eb1ae36bf
+#    M src/genesis/risk.py  sha256 acc1b43016ff20cdc4c576bf40f900a0124d30860d57292386f74b79263e5577
+# tools/genesis_audit_package.py sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+# runner sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+
+$ python -m unittest tests.test_astra_s1_reservation tests.test_astra_s2_replay tests.test_astra_t1_dependence
+E.....EEEFE.EEEE.......E..
+======================================================================
+ERROR: test_missing_or_conflicting_exact_reservation_never_certifies (tests.test_astra_s1_reservation.AstraReservationGateTests.test_missing_or_conflicting_exact_reservation_never_certifies)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3nb\tests\test_astra_s1_reservation.py", line 160, in test_missing_or_conflicting_exact_reservation_never_certifies
+    conflicting["risk_fixture"]["engine"].audit_log.log.append({
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 224, in append
+    result = self.transaction(lambda _records: record)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 454, in transaction
+    return super().transaction(checked, read_locks=read_locks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 188, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 421, in __call__
+    self.engine._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 792, in _exposures
+    raise RegistryConflict("duplicate risk exposure identity")
+genesis.registry.RegistryConflict: duplicate risk exposure identity
+
+======================================================================
+ERROR: test_consumption_after_expiry_or_release_is_not_valid_history (tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history) (cause='expired')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3nb\tests\test_astra_s2_replay.py", line 236, in test_consumption_after_expiry_or_release_is_not_valid_history
+    fixture["audit"].log.append({
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 224, in append
+    result = self.transaction(lambda _records: record)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 454, in transaction
+    return super().transaction(checked, read_locks=read_locks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 188, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 421, in __call__
+    self.engine._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 839, in _exposures
+    raise RegistryConflict("risk approval was consumed after expiry")
+genesis.registry.RegistryConflict: risk approval was consumed after expiry
+
+======================================================================
+ERROR: test_consumption_after_expiry_or_release_is_not_valid_history (tests.test_astra_s2_replay.AstraStrictReplayTests.test_consumption_after_expiry_or_release_is_not_valid_history) (cause='released')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3nb\tests\test_astra_s2_replay.py", line 236, in test_consumption_after_expiry_or_release_is_not_valid_history
+    fixture["audit"].log.append({
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 224, in append
+    result = self.transaction(lambda _records: record)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 454, in transaction
+    return super().transaction(checked, read_locks=read_locks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 188, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 421, in __call__
+    self.engine._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 836, in _exposures
+    raise RegistryConflict("risk approval consumption replay is invalid")
+genesis.registry.RegistryConflict: risk approval consumption replay is invalid
+
+======================================================================
+ERROR: test_hash_valid_unsupported_active_approval_blocks_existing_and_restart (tests.test_astra_s2_replay.AstraStrictReplayTests.test_hash_valid_unsupported_active_approval_blocks_existing_and_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3nb\tests\test_astra_s2_replay.py", line 64, in test_hash_valid_unsupported_active_approval_blocks_existing_and_restart
+    fixture["audit"].log.append({
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 224, in append
+    result = self.transaction(lambda _records: record)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 454, in transaction
+    return super().transaction(checked, read_locks=read_locks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 188, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 421, in __call__
+    self.engine._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 786, in _exposures
+    raise RegistryConflict("unsupported or missing active risk event schema")
+genesis.registry.RegistryConflict: unsupported or missing active risk event schema
+
+======================================================================
+ERROR: test_invalid_known_transitions_and_missing_owner_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_invalid_known_transitions_and_missing_owner_fields_block) (owner='risk')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3nb\tests\test_astra_s2_replay.py", line 131, in test_invalid_known_transitions_and_missing_owner_fields_block
+    fixture["audit"].log.append({
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 224, in append
+    result = self.transaction(lambda _records: record)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 454, in transaction
+    return super().transaction(checked, read_locks=read_locks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 188, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 421, in __call__
+    self.engine._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 856, in _exposures
+    raise RegistryConflict("reservation transition is invalid")
+genesis.registry.RegistryConflict: reservation transition is invalid
+
+======================================================================
+ERROR: test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) (index=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3nb\tests\test_astra_s2_replay.py", line 94, in test_unknown_type_missing_schema_and_missing_material_fields_block
+    fixture["audit"].log.append(row)
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 224, in append
+    result = self.transaction(lambda _records: record)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 454, in transaction
+    return super().transaction(checked, read_locks=read_locks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 188, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 421, in __call__
+    self.engine._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 786, in _exposures
+    raise RegistryConflict("unsupported or missing active risk event schema")
+genesis.registry.RegistryConflict: unsupported or missing active risk event schema
+
+======================================================================
+ERROR: test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) (index=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3nb\tests\test_astra_s2_replay.py", line 94, in test_unknown_type_missing_schema_and_missing_material_fields_block
+    fixture["audit"].log.append(row)
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 224, in append
+    result = self.transaction(lambda _records: record)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 454, in transaction
+    return super().transaction(checked, read_locks=read_locks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 188, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 421, in __call__
+    self.engine._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 786, in _exposures
+    raise RegistryConflict("unsupported or missing active risk event schema")
+genesis.registry.RegistryConflict: unsupported or missing active risk event schema
+
+======================================================================
+ERROR: test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) (index=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 795, in _exposures
+    approval = self._approval_from_row(row)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 705, in _approval_from_row
+    fields = {key: row[key] for key in RiskApproval.__dataclass_fields__}
+                   ~~~^^^^^
+KeyError: 'qualification_record_id'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3nb\tests\test_astra_s2_replay.py", line 94, in test_unknown_type_missing_schema_and_missing_material_fields_block
+    fixture["audit"].log.append(row)
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 224, in append
+    result = self.transaction(lambda _records: record)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 454, in transaction
+    return super().transaction(checked, read_locks=read_locks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 188, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 421, in __call__
+    self.engine._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 962, in _exposures
+    raise RegistryConflict("incomplete or invalid active risk event") from exc
+genesis.registry.RegistryConflict: incomplete or invalid active risk event
+
+======================================================================
+ERROR: test_unknown_type_missing_schema_and_missing_material_fields_block (tests.test_astra_s2_replay.AstraStrictReplayTests.test_unknown_type_missing_schema_and_missing_material_fields_block) (index=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3nb\tests\test_astra_s2_replay.py", line 94, in test_unknown_type_missing_schema_and_missing_material_fields_block
+    fixture["audit"].log.append(row)
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 224, in append
+    result = self.transaction(lambda _records: record)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 454, in transaction
+    return super().transaction(checked, read_locks=read_locks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 188, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 421, in __call__
+    self.engine._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 786, in _exposures
+    raise RegistryConflict("unsupported or missing active risk event schema")
+genesis.registry.RegistryConflict: unsupported or missing active risk event schema
+
+======================================================================
+ERROR: test_d06_replay_rejects_approval_clusters_that_disagree_with_bound_output (tests.test_astra_t1_dependence.AstraB1DependenceTests.test_d06_replay_rejects_approval_clusters_that_disagree_with_bound_output)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3nb\tests\test_astra_t1_dependence.py", line 329, in test_d06_replay_rejects_approval_clusters_that_disagree_with_bound_output
+    tampered_audit.log.append(forged)
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 224, in append
+    result = self.transaction(lambda _records: record)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 454, in transaction
+    return super().transaction(checked, read_locks=read_locks)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\registry.py", line 188, in transaction
+    record = build_record(tuple(dict(row) for row in records))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\f3nb\src\genesis\risk.py", line 452, in checked
+    raise RegistryConflict("risk log without its risk engine appends nothing")
+genesis.registry.RegistryConflict: risk log without its risk engine appends nothing
+
+======================================================================
+FAIL: test_incompatible_event_arriving_at_transaction_entry_blocks (tests.test_astra_s2_replay.AstraStrictReplayTests.test_incompatible_event_arriving_at_transaction_entry_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\f3nb\tests\test_astra_s2_replay.py", line 191, in test_incompatible_event_arriving_at_transaction_entry_blocks
+    self.assertEqual(fixture["audit"].verify(), 1)
+AssertionError: 0 != 1
+
+----------------------------------------------------------------------
+Ran 22 tests in 62.704s
+
+FAILED (failures=1, errors=10)
+exit=1 elapsed=66.2s
+
+# commands 1, nonzero exits 1
+# finished 2026-09-26T18:45:11Z

@@ -1,0 +1,150 @@
+# T6 F-3 risk-log write-path enumeration
+# started 2026-09-26T19:44:44Z
+# python 3.12.10; Windows-11-10.0.26200-SP0
+# clone C:\Users\abbot\t6\f3f HEAD c3d27d91cf9108dce3ddce084b11c532ce4ab99d
+# uncommitted paths: 10
+#    M src/genesis/owner_binding.py  sha256 f7f210bd518a8b8d1efd8f9dd0fb989beec2ea53a18063ff3d47f03450baa065
+#    M src/genesis/registry.py  sha256 47c71926f1d72eb92f5dcbc5281486017f1f3294ca5d40a85ccba60eb1ae36bf
+#    M src/genesis/risk.py  sha256 acc1b43016ff20cdc4c576bf40f900a0124d30860d57292386f74b79263e5577
+#    M tests/test_astra_s1_reservation.py  sha256 8af41635431f0da7644de0db4042f97220d82b4f9756b43fe44ff6300a605bf7
+#    M tests/test_astra_s2_replay.py  sha256 a051227b7ce8e3dec888b66e81f99e907ad7d875a777798c3492176a82b2cc73
+#    M tests/test_astra_t1_dependence.py  sha256 1acc0784a1ebb9ea8608672031ed1ec3da9a2bffdb81a2c8de3deea3bc133e62
+#   ?? remediation_evidence/T6/F3_AUDITOR_PROBES_DRIVER.py  sha256 a28ec80089d5fa6aebeb735330cb8ba396f8cc5d74a6d6beb6c371d9559539ef
+#   ?? remediation_evidence/T6/F3_HARDLINK_STRESS_DRIVER.py  sha256 26182d23836d80d93b1fdb676631227a5dd7cdcd237db5dbf79a4d7bddc7f135
+#   ?? remediation_evidence/T6/F3_WRITE_PATH_ENUMERATION.py  sha256 4c2f3e65308aa044e32cf263403c3fbf4ddd984c76582ab248e46a43fb3de598
+#   ?? tests/test_astra_t6_risk_log_integrity.py  sha256 0bbe88baf38c3f2e182453d26cb24087aa32a96da67b7089542f7a9a888e686d
+# script sha256 4c2f3e65308aa044e32cf263403c3fbf4ddd984c76582ab248e46a43fb3de598
+# dynamic scope: full discovery of tests/
+
+## static inventory of src/genesis
+### calls that write or inspect a risk audit log
+  risk.py:1070 in RiskEngine.record_exposure: self.audit_log.log.transaction(self._replay_checked(build), read_locks=no)
+  risk.py:1252 in RiskEngine.approve: self.audit_log.log.transaction(self._replay_checked(build), read_locks=yes)
+  risk.py:1357 in RiskEngine.consume_for_order: self.audit_log.log.transaction(self._replay_checked(build), read_locks=yes)
+  risk.py:1386 in RiskEngine.reserved_exposures: self.audit_log.log.transaction(inspect, read_locks=yes)
+  risk.py:1424 in RiskEngine.transition_reservation: self.audit_log.log.transaction(self._replay_checked(build), read_locks=no)
+  risk.py:1529 in RiskEngine.release_with_proof: self.audit_log.log.transaction(self._replay_checked(build), read_locks=yes)
+  risk.py:610 in RiskEngine.attach_release_proofs: self.audit_log.log.transaction(bind, read_locks=yes)
+  risk.py:1681 in RiskEngine.risk_ok: self.audit_log.log.transaction(inspect, read_locks=yes)
+### named builders passed to those calls, with every return value
+  risk.py RiskEngine.attach_release_proofs.bind: returns ['None']
+  risk.py RiskEngine.reserved_exposures.inspect: returns ['None']
+  risk.py RiskEngine.risk_ok.inspect: returns ['None']
+### AppendOnlyJsonl subclasses
+  risk.py:425 class _RiskLogStorage
+### AppendOnlyJsonl / risk storage constructions
+  candidate_runs.py:46 in CandidateRunStore.__init__: AppendOnlyJsonl(path)
+  capabilities.py:69 in MarketCapabilityRegistry.__init__: AppendOnlyJsonl(path)
+  coverage.py:46 in CoverageLedger.__init__: AppendOnlyJsonl(path)
+  decision_output.py:201 in StrategyOutputRuleBindingStore.__init__: AppendOnlyJsonl(path)
+  decision_output.py:325 in StrategyOutputApprovalStore.__init__: AppendOnlyJsonl(path)
+  evidence.py:122 in EvidenceStore.__init__: AppendOnlyJsonl(self.manifest)
+  evidence_pack.py:142 in EvidencePackStore.__init__: AppendOnlyJsonl(self.manifest)
+  execution.py:133 in CriticalEvidenceRefreshStore.__init__: AppendOnlyJsonl(path)
+  execution.py:205 in ExecutionMarketStateStore.__init__: AppendOnlyJsonl(path)
+  execution.py:405 in PaperExecutionAdapter.__init__: AppendOnlyJsonl(audit_path)
+  execution.py:1019 in ModeStateStore.__init__: AppendOnlyJsonl(path)
+  feature_manifest.py:62 in SourceInputBindingStore.__init__: AppendOnlyJsonl(path)
+  ledger.py:148 in SettlementLedger.__init__: AppendOnlyJsonl(path)
+  owner_binding.py:110 in claim_log: AppendOnlyJsonl(path.with_name(f'{path.name}.risk-authority.jsonl'))
+  owner_binding.py:137 in RiskOwnerBinding.__init__: AppendOnlyJsonl(risk_log.path.with_name(f'{risk_log.path.name}.owners.jsonl'))
+  pit.py:59 in SourceCapabilityRegistry.__init__: AppendOnlyJsonl(path)
+  pit.py:193 in PITStore.__init__: AppendOnlyJsonl(path)
+  protected.py:403 in ProtectedCampaignRegistry.__init__: AppendOnlyJsonl(path)
+  protected.py:462 in ProtectedAttemptLedger.__init__: AppendOnlyJsonl(path)
+  provenance.py:65 in SourceContractRegistry.__init__: AppendOnlyJsonl(path)
+  quota.py:393 in VerifiedCacheStore.__init__: AppendOnlyJsonl(self.root / 'cache-authority.jsonl')
+  quota.py:579 in QuotaLedger.__init__: AppendOnlyJsonl(path)
+  registry.py:264 in DatasetRegistry.__init__: AppendOnlyJsonl(path)
+  registry.py:316 in ExperimentRegistry.__init__: AppendOnlyJsonl(path)
+  registry.py:505 in StrategyRegistry.__init__: AppendOnlyJsonl(path)
+  release_proof.py:84 in OfflinePaperReleaseProofStore.__init__: AppendOnlyJsonl(path)
+  risk.py:112 in BankrollSnapshotStore.__init__: AppendOnlyJsonl(path)
+  risk.py:228 in SafetyStateStore.__init__: AppendOnlyJsonl(path)
+  risk.py:465 in RiskAuditLog.__init__: _RiskLogStorage(path)
+  selection.py:293 in QualificationRecordStore.__init__: AppendOnlyJsonl(path)
+### byte-level write primitives
+  logging.py:59 in JsonlAuditLogger.emit: self.path.open('ab')
+  protected_research_worker.py:882 in _main: os.fdopen(ipc_fd, 'wb', buffering=0)
+  protected_research_worker.py:883 in _main: open(os.devnull, 'wb', buffering=0)
+  registry.py:123 in AppendOnlyJsonl._append_exactly: os.open(self.path, flags, 438)
+  registry.py:128 in AppendOnlyJsonl._append_exactly: open(descriptor, 'ab')
+  repro.py:74 in immutable_write: tempfile.mkstemp(prefix=f'.{destination.name}.', suffix='.pending', dir=str(destination.parent))
+  repro.py:78 in immutable_write: os.fdopen(fd, 'wb')
+  repro.py:85 in immutable_write: os.link(temporary, destination)
+  repro.py:90 in immutable_write: Path(temporary).unlink(missing_ok=True)
+  repro.py:92 in immutable_write: Path(temporary).unlink(missing_ok=True)
+
+## dynamic trace: every write that reached a risk log during the run
+tests run 376, failures 0, errors 0, skipped 1
+      4  AppendOnlyJsonl  not replayed    refused at write  entry raw AppendOnlyJsonl writer
+           e.g. test_astra_t6_risk_log_integrity.py:test_t6_alias_appearing_inside_its_own_writers_transaction_is_refused
+           e.g. test_astra_t6_risk_log_integrity.py:test_t6_alias_append_inside_the_real_critical_section_is_refused
+           e.g. test_astra_t6_risk_log_integrity.py:test_t6_hard_linked_risk_log_alias_mutates_nothing_until_removed
+     10  AppendOnlyJsonl  not replayed    written           entry raw AppendOnlyJsonl writer
+           e.g. test_astra_s1_reservation.py:test_missing_or_conflicting_exact_reservation_never_certifies
+           e.g. test_astra_s2_replay.py:test_consumption_after_expiry_or_release_is_not_valid_history
+           e.g. test_astra_s2_replay.py:test_hash_valid_unsupported_active_approval_blocks_existing_and_restart
+           e.g. test_astra_s2_replay.py:test_invalid_known_transitions_and_missing_owner_fields_block
+           e.g. test_astra_s2_replay.py:test_unknown_type_missing_schema_and_missing_material_fields_block
+           e.g. test_astra_t1_dependence.py:test_d06_replay_rejects_approval_clusters_that_disagree_with_bound_output
+      1  AppendOnlyJsonl  not replayed    written           entry risk.py:approve
+           e.g. test_astra_s2_replay.py:test_incompatible_event_arriving_at_transaction_entry_blocks
+      1  AppendOnlyJsonl  not replayed    refused at write  entry risk.py:record_exposure
+           e.g. test_astra_t6_risk_log_integrity.py:test_t6_alias_appearing_inside_an_open_engine_transaction_is_refused
+    138  _RiskLogStorage  replay-checked  written           entry execution.py:bind_risk
+           e.g. test_astra_s1_reservation.py:test_missing_or_conflicting_exact_reservation_never_certifies
+           e.g. test_astra_s1_reservation.py:test_other_unknown_blocks_affected_continuation
+           e.g. test_astra_s1_reservation.py:test_own_unknown_void_and_settled_block_both_submission_phases
+           e.g. test_astra_s1_reservation.py:test_reservation_transition_at_order_transaction_entry_blocks
+           e.g. test_astra_s1_reservation.py:test_restart_keeps_released_and_unknown_reservations_blocking
+           e.g. test_astra_s1_reservation.py:test_valid_reservation_and_later_terminal_release_preserve_history
+      1  _RiskLogStorage  replay-checked  written           entry execution.py:transition
+           e.g. test_astra_s1_reservation.py:test_reservation_transition_at_order_transaction_entry_blocks
+    188  _RiskLogStorage  replay-checked  written           entry risk.py:approve
+           e.g. <outside a test method>
+           e.g. test_astra_s1_reservation.py:test_missing_or_conflicting_exact_reservation_never_certifies
+           e.g. test_astra_s1_reservation.py:test_other_unknown_blocks_affected_continuation
+           e.g. test_astra_s1_reservation.py:test_own_unknown_void_and_settled_block_both_submission_phases
+           e.g. test_astra_s1_reservation.py:test_reservation_transition_at_order_transaction_entry_blocks
+           e.g. test_astra_s1_reservation.py:test_restart_keeps_released_and_unknown_reservations_blocking
+      2  _RiskLogStorage  replay-checked  written           entry risk.py:consume_for_order
+           e.g. test_astra_t6_risk_log_integrity.py:test_t6_valid_engine_writes_commit_and_replay_after_restart
+           e.g. test_v04_foundation.py:test_risk_counts_pending_and_unknown_and_approvals_are_single_use
+      4  _RiskLogStorage  replay-checked  refused at write  entry risk.py:record_exposure
+           e.g. test_astra_t6_risk_log_integrity.py:test_t6_alias_appearing_inside_an_open_engine_transaction_is_refused
+           e.g. test_astra_t6_risk_log_integrity.py:test_t6_hard_linked_risk_log_alias_mutates_nothing_until_removed
+           e.g. test_astra_t6_risk_log_integrity.py:test_t6_short_name_alias_of_the_risk_log_is_refused
+     48  _RiskLogStorage  replay-checked  written           entry risk.py:record_exposure
+           e.g. test_astra_s1_reservation.py:test_other_unknown_blocks_affected_continuation
+           e.g. test_astra_s2_admission.py:test_unknown_exposure_at_entry_and_competing_last_capacity_block
+           e.g. test_astra_t1_composition.py:test_c01_erased_caller_clusters_and_late_correlated_exposure_block_sent
+           e.g. test_astra_t1_composition.py:test_c02_bare_release_cannot_fabricate_capacity_for_second_approval
+           e.g. test_astra_t1_composition.py:test_c04_late_exposure_and_durable_withdrawal_both_precede_send
+           e.g. test_astra_t1_dependence.py:test_d01_original_shared_cluster_caller_omission_cannot_approve
+     30  _RiskLogStorage  replay-checked  written           entry risk.py:release_with_proof
+           e.g. <outside a test method>
+           e.g. test_astra_s1_reservation.py:test_own_unknown_void_and_settled_block_both_submission_phases
+           e.g. test_astra_s1_reservation.py:test_restart_keeps_released_and_unknown_reservations_blocking
+           e.g. test_astra_s1_reservation.py:test_valid_reservation_and_later_terminal_release_preserve_history
+           e.g. test_astra_s2_replay.py:test_consumption_after_expiry_or_release_is_not_valid_history
+           e.g. test_astra_s3_v3_adversarial.py:test_legacy_order_is_audit_replay_only_but_can_finish_settlement
+      1  _RiskLogStorage  replay-checked  refused at write  entry risk.py:transaction
+           e.g. test_astra_t6_risk_log_integrity.py:test_t6_hard_linked_risk_log_alias_mutates_nothing_until_removed
+     12  _RiskLogStorage  replay-checked  written           entry risk.py:transaction
+           e.g. test_astra_s3_v3_adversarial.py:test_legacy_order_is_audit_replay_only_but_can_finish_settlement
+           e.g. test_astra_t1_legacy_release.py:test_late_fill_invalidates_legacy_release_and_restores_full_charge
+           e.g. test_astra_t1_legacy_release.py:test_missing_fill_or_terminal_head_never_creates_legacy_release
+           e.g. test_astra_t1_legacy_release.py:test_v2_and_v3_proof_paths_never_cross_or_fabricate_lineage
+           e.g. test_astra_t1_legacy_release.py:test_valid_legacy_full_settlement_releases_once_and_restarts
+           e.g. test_astra_t1_release.py:test_l11_legacy_v2_terminal_row_cannot_create_spendable_capacity_on_restart
+      7  _RiskLogStorage  replay-checked  written           entry risk.py:transition_reservation
+           e.g. <outside a test method>
+           e.g. test_astra_s1_reservation.py:test_own_unknown_void_and_settled_block_both_submission_phases
+           e.g. test_astra_s1_reservation.py:test_restart_keeps_released_and_unknown_reservations_blocking
+           e.g. test_astra_t1_composition.py:test_c05_unknown_rebase_withdrawal_restart_preserves_lineage
+           e.g. test_astra_t1_release.py:test_l07_unknown_cannot_be_cleared_by_bare_terminal_label
+           e.g. test_astra_t6_risk_log_integrity.py:test_t6_valid_engine_writes_commit_and_replay_after_restart
+writes through the risk log storage that were not replay-checked: 0
+
+# finished 2026-09-26T19:51:20Z

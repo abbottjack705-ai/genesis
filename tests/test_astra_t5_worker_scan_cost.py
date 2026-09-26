@@ -53,10 +53,16 @@ def main():
     files = {item.__code__.co_filename for item in live if isinstance(item, FunctionType)}
     files |= {vars(item).get("__file__") for item in live if isinstance(item, ModuleType)}
     files = {value for value in files if isinstance(value, str)}
-    print(json.dumps({"realpath_calls": len(calls), "distinct_paths": len(set(calls)),
-                      "root_checks": len(inside_calls), "distinct_checked": len(set(inside_calls)),
-                      "live_functions": sum(isinstance(item, FunctionType) for item in live),
-                      "distinct_source_files": len(files)}))
+    first = {"realpath_calls": len(calls), "distinct_paths": len(set(calls)),
+             "root_checks": len(inside_calls), "distinct_checked": len(set(inside_calls)),
+             "live_functions": sum(isinstance(item, FunctionType) for item in live),
+             "distinct_source_files": len(files)}
+    calls.clear()
+    inside_calls.clear()
+    baseline.require_clean(None)
+    first["repeat_realpath_calls"] = len(calls)
+    first["repeat_root_checks"] = len(inside_calls)
+    print(json.dumps(first))
 main()
 """
 
@@ -78,6 +84,11 @@ class T5WorkerScanCostTests(unittest.TestCase):
         self.assertEqual(
             observed["root_checks"], observed["distinct_checked"],
             f"clean-process scan re-checked a source path against the roots: {observed}",
+        )
+        self.assertGreater(observed["repeat_realpath_calls"], 0)
+        self.assertEqual(
+            observed["repeat_root_checks"], 0,
+            f"unchanged canonical source paths were re-checked across scans: {observed}",
         )
 
 

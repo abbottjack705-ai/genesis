@@ -417,6 +417,18 @@ class _InterpreterBaseline:
         self.recursion_limit = sys.getrecursionlimit()
         random = self.modules.get("random")
         self.random_state = random.getstate() if random is not None else None
+        # Cache only containment of already-canonical paths across scans.  Each
+        # scan still resolves the live source path afresh, so a symlink or path
+        # that resolves differently cannot inherit an earlier classification.
+        self._inside_cache: dict[Path, bool] = {}
+
+    def _inside_research_root(self, path: Path) -> bool:
+        try:
+            return self._inside_cache[path]
+        except KeyError:
+            inside = _inside(path, self.roots)
+            self._inside_cache[path] = inside
+            return inside
 
     def research_builtins(self) -> dict[str, Any]:
         namespace = {
@@ -448,7 +460,7 @@ class _InterpreterBaseline:
             if value not in unbound:
                 origin = _real_path(value)
                 unbound[value] = (
-                    origin is not None and _inside(origin, self.roots)
+                    origin is not None and self._inside_research_root(origin)
                     and origin != program_path
                 )
             return unbound[value]

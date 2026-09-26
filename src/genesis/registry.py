@@ -70,6 +70,25 @@ def _require_single_name(path: Path) -> None:
         raise RegistryConflict(_ALIASED)
 
 
+def _verified_row(raw_line: bytes, sequence: int, previous: str) -> dict[str, Any]:
+    """One JSONL line exactly as the log's reader verifies it at ``sequence``."""
+
+    try:
+        row = json.loads(raw_line)
+    except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+        raise RegistryConflict("registry contains an invalid record") from exc
+    if not isinstance(row, dict) or row.get("previous_hash") != previous:
+        raise RegistryConflict("registry hash chain is broken")
+    actual = row.get("record_hash")
+    body = {key: value for key, value in row.items() if key != "record_hash"}
+    if actual != sha256_bytes(canonical_json(body)):
+        raise RegistryConflict("registry record was tampered")
+    recorded_sequence = row.get("sequence")
+    if recorded_sequence is not None and recorded_sequence != sequence:
+        raise RegistryConflict("registry sequence is not monotonic")
+    return row
+
+
 class AppendOnlyJsonl:
     def __init__(self, path: str | Path):
         self.path = Path(path)
@@ -89,20 +108,8 @@ class AppendOnlyJsonl:
         previous = "0" * 64
         records: list[dict[str, Any]] = []
         for expected_sequence, raw_line in enumerate(raw.splitlines(), start=1):
-            try:
-                row = json.loads(raw_line)
-            except (json.JSONDecodeError, UnicodeDecodeError) as exc:
-                raise RegistryConflict("registry contains an invalid record") from exc
-            if not isinstance(row, dict) or row.get("previous_hash") != previous:
-                raise RegistryConflict("registry hash chain is broken")
-            actual = row.get("record_hash")
-            body = {key: value for key, value in row.items() if key != "record_hash"}
-            if actual != sha256_bytes(canonical_json(body)):
-                raise RegistryConflict("registry record was tampered")
-            sequence = row.get("sequence")
-            if sequence is not None and sequence != expected_sequence:
-                raise RegistryConflict("registry sequence is not monotonic")
-            previous = actual
+            row = _verified_row(raw_line, expected_sequence, previous)
+            previous = row["record_hash"]
             records.append(row)
         return raw, records
 
@@ -219,6 +226,26 @@ class AppendOnlyJsonl:
         previous = records[-1]["record_hash"] if records else "0" * 64
         body = {"previous_hash": previous, "sequence": len(records) + 1, **record}
         return {**body, "record_hash": sha256_bytes(canonical_json(body))}
+
+    @classmethod
+    def appended_row(
+        cls, records: tuple[dict[str, Any], ...] | list[dict[str, Any]], record: dict[str, Any],
+    ) -> dict[str, Any]:
+        """The row ``transaction`` appends after ``records``, as every reader reads it.
+
+        It is parsed and verified from the exact line the append writes, so a
+        record whose line this log's own reader would refuse (a chain field it
+        overrides, a value that does not re-serialize to its hashed bytes) is
+        refused here instead of being appended (T6 F-3).
+        """
+
+        if "record_hash" in record or "previous_hash" in record:
+            raise RegistryConflict("record payload contains reserved hash-chain fields")
+        lines = canonical_json(cls.chained(records, record)).splitlines()
+        if len(lines) != 1:
+            raise RegistryConflict("registry contains an invalid record")
+        previous = records[-1]["record_hash"] if records else "0" * 64
+        return _verified_row(lines[0], len(records) + 1, previous)
 
     def append(self, record: dict[str, Any]) -> str:
         result = self.transaction(lambda _records: record)

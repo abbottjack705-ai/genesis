@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import asdict, dataclass, replace
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -409,17 +410,28 @@ class RebaseDecision:
 
 
 class _ReplayChecked:
-    """A risk-log builder whose row its engine replays with the history first (N3)."""
+    """A risk-log builder whose row its engine replays with the history first (N3).
+
+    The replayed row is the one every later reader gets: parsed and verified
+    from the exact line the append writes. That same row, not the builder's
+    object, is what the storage then appends, and it is replayed after the
+    verified history, not a copy the builder was handed (T6 F-3).
+    """
 
     def __init__(self, engine: RiskEngine, build: Callable[[tuple[dict, ...]], dict | None]):
         self.engine = engine
         self.build = build
 
     def __call__(self, rows: tuple[dict, ...]) -> dict | None:
-        record = self.build(rows)
-        if isinstance(record, dict):
-            self.engine._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
-        return record
+        record = self.build(deepcopy(rows))
+        if not isinstance(record, dict):
+            return record
+        row = AppendOnlyJsonl.appended_row(rows, record)
+        self.engine._exposures((*rows, row))
+        return {
+            key: value for key, value in row.items()
+            if key not in {"previous_hash", "record_hash"}
+        }
 
 
 class _RiskLogStorage(AppendOnlyJsonl):
@@ -1035,7 +1047,8 @@ class RiskEngine:
         coordinator locks and before any byte is written, so a collision in
         either order is refused instead of committing a row that permanently
         bricks admission, consumption, send, release and exposure recording.
-        The log's storage applies the same check to every other writer (F-3a).
+        The replayed row is parsed and verified from the exact appended line,
+        and the log's storage applies the same check to every other writer (F-3).
         """
 
         return _ReplayChecked(self, build)

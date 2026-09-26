@@ -25,6 +25,7 @@ import multiprocessing
 import os
 import subprocess
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 from genesis.registry import AppendOnlyJsonl, RegistryConflict
@@ -49,6 +50,19 @@ def exposure_row(exposure_id: str, candidate: str, *, schema: str = "risk-exposu
         **Exposure(exposure_id, candidate, "1", MATCHED).to_dict(),
         "recorded_at": "2026-01-01T00:20:00Z",
     }
+
+
+class _Disguised(str):
+    """Serializes as its text, but hashes and compares as another ID in memory."""
+
+    def __hash__(self):
+        return hash("t6-disguised")
+
+    def __eq__(self, other):
+        return other is self
+
+    def __ne__(self, other):
+        return other is not self
 
 
 def hard_link_tree(source: Path, target: Path, *, skip: tuple[str, ...] = ()) -> list[Path]:
@@ -190,6 +204,76 @@ class T6RiskLogWriterTests(unittest.TestCase):
                 )
             self.assertEqual(storage.path.read_bytes(), before)
             self.assert_replay_and_restart_intact(engine, root, "t6-after-refusal")
+
+    def test_t6_replay_check_covers_the_exact_bytes_every_reader_verifies(self):
+        # The replay check must certify the line the append writes, parsed and
+        # verified as every later reader reads it, not the in-memory row. An
+        # int-keyed mapping hashes in numeric key order but re-reads in text
+        # order ('registry record was tampered'); a record's own "sequence"
+        # overrides the chain's ('registry sequence is not monotonic'); an ID
+        # distinct only in memory re-reads as a duplicate ('duplicate risk
+        # exposure identity'), as does a row whose builder edited the history
+        # it was handed. Each, once appended, fails every later replay.
+        int_keyed = {10: "t6", 9: "t6"}
+
+        def hides_the_seed(rows):
+            for row in rows:
+                if row.get("exposure_id") == "t6-seed":
+                    row["exposure_id"] = "t6-hidden"
+            return exposure_row("t6-seed", "d" * 64)
+
+        writes = {
+            "record_exposure ID duplicate once read back": (
+                lambda f, engine, storage: engine.record_exposure(
+                    Exposure(_Disguised("t6-seed"), "d" * 64, "1", MATCHED),
+                    recorded_at="2026-01-01T00:02:00Z",
+                )
+            ),
+            "approve affected_scope": lambda f, engine, storage: engine.approve(
+                replace(request(f), affected_scope=int_keyed),
+            ),
+            "record_exposure affected_scope": lambda f, engine, storage: engine.record_exposure(
+                Exposure("t6-x", "d" * 64, "1", MATCHED, affected_scope=int_keyed),
+                recorded_at="2026-01-01T00:02:00Z",
+            ),
+            "record_exposure dependency_group": lambda f, engine, storage: engine.record_exposure(
+                Exposure("t6-x", "d" * 64, "1", MATCHED, dependency_group=int_keyed),
+                recorded_at="2026-01-01T00:02:00Z",
+            ),
+            "audit_log.log.append int-keyed field": lambda f, engine, storage: storage.append(
+                {**exposure_row("t6-x", "d" * 64), "affected_scope": int_keyed},
+            ),
+            "audit_log.log.append sequence override": lambda f, engine, storage: storage.append(
+                {**exposure_row("t6-x", "d" * 64), "sequence": 99},
+            ),
+            "audit_log.log.transaction sequence override": (
+                lambda f, engine, storage: storage.transaction(
+                    lambda _rows: {**exposure_row("t6-x", "d" * 64), "sequence": 99},
+                )
+            ),
+            "audit_log.log.transaction builder edits its history": (
+                lambda f, engine, storage: storage.transaction(hides_the_seed)
+            ),
+        }
+        for label, write in writes.items():
+            with self.subTest(label), scratch_directory() as root:
+                f = build_risk(root)
+                engine = f["engine"]
+                engine.record_exposure(
+                    Exposure("t6-seed", "e" * 64, "1", MATCHED),
+                    recorded_at="2026-01-01T00:01:00Z",
+                )
+                storage = engine.audit_log.log
+                before = storage.path.read_bytes()
+                with self.assertRaises(
+                    RegistryConflict, msg=f"F-3a: {label} appended a row that fails replay",
+                ):
+                    write(f, engine, storage)
+                self.assertEqual(storage.path.read_bytes(), before)
+                self.assertEqual(storage.verify(), 1)
+                decision = engine.approve(request(f))
+                self.assertTrue(decision.passed, decision.reason)
+                self.assert_replay_and_restart_intact(engine, root, "t6-after-refusal")
 
     def test_t6_risk_log_storage_without_its_engine_appends_nothing(self):
         with scratch_directory() as root:

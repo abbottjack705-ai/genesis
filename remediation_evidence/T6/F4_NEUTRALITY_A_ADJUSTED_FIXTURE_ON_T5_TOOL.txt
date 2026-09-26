@@ -1,0 +1,40 @@
+# T6 F-4 fixture neutrality (a): retained package tests with the adjusted T4 fixture against the frozen T5 tool; the fixture change alone changes no outcome
+# started 2026-09-26T17:26:53Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\rt HEAD 6c2464e470fd5f82f53839492593a0c0ac1cd51f branch t6-remediation core.autocrlf=false
+# uncommitted paths: 5
+#    M .gitattributes  sha256 3230aa01b1b66eec645c02a7a765446d6a3cee84fde43065dd3739678b528deb
+#    M tests/test_astra_t4_evidence_package.py  sha256 bbf30414600284988f30f9f22b774d62b0e2a406dac29c0e40649c18513f38fa
+#   ?? remediation_evidence/T6/F4_AUDITOR_P1_DRIVER.py  sha256 2c3c862d61a721a3b56abbc256b15cfc8be3caecae91897fc3f50ec452d72ad4
+#   ?? remediation_evidence/T6/F4_GATE_RUNNER.py  sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+#   ?? tests/test_astra_t6_raw_evidence_git_binding.py  sha256 8c551e9b42af7432d3822d34168ea2c0b8c45348fe0c8e0cb4b7d9f43f6951cd
+# tools/genesis_audit_package.py sha256 0b32c9ca4e0ab945290b836f5de8870757329c13c4279fe5d583d881d53367a4
+# runner sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+
+$ python -m unittest -v tests.test_astra_t4_evidence_package tests.test_astra_t5_package_evidence tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests
+test_content_tamper_unsafe_path_and_stale_or_missing_sidecar_fail_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_content_tamper_unsafe_path_and_stale_or_missing_sidecar_fail_closed) ... ok
+test_fresh_extraction_verifies_without_repository (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_fresh_extraction_verifies_without_repository) ... ok
+test_git_blob_snapshot_preserves_exact_bytes_and_approved_adr (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_git_blob_snapshot_preserves_exact_bytes_and_approved_adr) ... ok
+test_manifest_rows_and_fixed_fields_are_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_manifest_rows_and_fixed_fields_are_closed) ... ok
+test_raw_worktree_and_historical_bytes_are_distinct_labeled_representations (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_raw_worktree_and_historical_bytes_are_distinct_labeled_representations) ... ok
+test_raw_worktree_members_exclude_git_ignored_files (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_raw_worktree_members_exclude_git_ignored_files) ... ok
+test_repeated_build_is_byte_deterministic_and_sidecar_exact (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_repeated_build_is_byte_deterministic_and_sidecar_exact) ... ok
+test_repository_cross_check_passes_and_archive_tamper_fails_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_repository_cross_check_passes_and_archive_tamper_fails_closed) ... C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\zipfile\__init__.py:1611: UserWarning: Duplicate name: 'git-blobs/source/program.py'
+  return self._open_to_write(zinfo, force_zip64=force_zip64)
+ok
+test_verifier_enforces_caller_pinned_authorities_without_repository (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_verifier_enforces_caller_pinned_authorities_without_repository) ... ok
+test_t5_duplicate_manifest_keys_are_rejected (tests.test_astra_t5_package_evidence.T5PackageEvidenceTests.test_t5_duplicate_manifest_keys_are_rejected) ... ok
+test_t5_expected_commit_pin_rejects_a_valid_package_for_another_commit (tests.test_astra_t5_package_evidence.T5PackageEvidenceTests.test_t5_expected_commit_pin_rejects_a_valid_package_for_another_commit) ... ok
+test_t5_omitted_raw_member_and_row_is_rejected (tests.test_astra_t5_package_evidence.T5PackageEvidenceTests.test_t5_omitted_raw_member_and_row_is_rejected) ... ok
+test_t5_required_raw_root_and_historical_pins_reject_substitution (tests.test_astra_t5_package_evidence.T5PackageEvidenceTests.test_t5_required_raw_root_and_historical_pins_reject_substitution) ... ok
+test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 23.080s
+
+OK
+exit=0 elapsed=23.6s
+
+# commands 1, nonzero exits 0
+# finished 2026-09-26T17:27:17Z

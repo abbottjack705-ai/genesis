@@ -1,0 +1,44 @@
+# T6 F-4: the T6 builder (raw==blob refusal before writing) rebuilds the genuine T5 package from a clean autocrlf=false checkout of 6c2464e; ZIP and sidecar must be byte-identical to the T5 package
+# started 2026-09-26T17:29:17Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\w HEAD 6c2464e470fd5f82f53839492593a0c0ac1cd51f branch t6-remediation core.autocrlf=false
+# uncommitted paths: 6
+#    M .gitattributes  sha256 3230aa01b1b66eec645c02a7a765446d6a3cee84fde43065dd3739678b528deb
+#    M tests/test_astra_t4_evidence_package.py  sha256 bbf30414600284988f30f9f22b774d62b0e2a406dac29c0e40649c18513f38fa
+#    M tools/genesis_audit_package.py  sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+#   ?? remediation_evidence/T6/F4_AUDITOR_P1_DRIVER.py  sha256 2c3c862d61a721a3b56abbc256b15cfc8be3caecae91897fc3f50ec452d72ad4
+#   ?? remediation_evidence/T6/F4_GATE_RUNNER.py  sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+#   ?? tests/test_astra_t6_raw_evidence_git_binding.py  sha256 8c551e9b42af7432d3822d34168ea2c0b8c45348fe0c8e0cb4b7d9f43f6951cd
+# tools/genesis_audit_package.py sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+# runner sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+
+$ python tools/genesis_audit_package.py build --repo C:/Users/abbot/t6/r --commit 6c2464e470fd5f82f53839492593a0c0ac1cd51f --output C:/Users/abbot/t6/green/rebuild/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip --raw-worktree-root remediation_evidence --historical producer/GENESIS_V04_S5_REAUDIT_REPOSITORY_27dd525.zip=C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_S5_REAUDIT_REPOSITORY_27dd525.zip --historical producer/GENESIS_V04_S5_REAUDIT_MANIFEST.json=C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_S5_REAUDIT_MANIFEST.json --historical producer/GENESIS_V04_S5_REAUDIT_HANDOFF.md=C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_S5_REAUDIT_HANDOFF.md --historical producer/GENESIS_V04_S5_REAUDIT_VERIFICATION.txt=C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_S5_REAUDIT_VERIFICATION.txt --historical audit/GENESIS_V04_S5_ASTRA_AUDIT_REPORT.md=C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_S5_ASTRA_AUDIT_REPORT.md --historical audit/GENESIS_V04_S5_ASTRA_AUDIT_EVIDENCE.zip=C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_S5_ASTRA_AUDIT_EVIDENCE.zip --historical audit/GENESIS_V04_T1_T4_INDEPENDENT_HOSTILE_REAUDIT_REPORT.md=C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_T1_T4_INDEPENDENT_HOSTILE_REAUDIT_REPORT.md --historical audit/GENESIS_V04_T1_T4_INDEPENDENT_HOSTILE_REAUDIT_EVIDENCE.zip=C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_T1_T4_INDEPENDENT_HOSTILE_REAUDIT_EVIDENCE.zip --historical audit/GENESIS_V04_T1_T4_INDEPENDENT_HOSTILE_REAUDIT_EVIDENCE.zip.sha256=C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_T1_T4_INDEPENDENT_HOSTILE_REAUDIT_EVIDENCE.zip.sha256 --historical audit/GENESIS_V04_T1_T4_INDEPENDENT_HOSTILE_REAUDIT_EVIDENCE_MANIFEST.json=C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_T1_T4_INDEPENDENT_HOSTILE_REAUDIT_EVIDENCE_MANIFEST.json --authority DECISIONS/ADR-0002-s3-manifest-and-candidate-v3.md=7e851df9898f3a257a87b602bc1a7f6011ebae1397d42c17b8727c84e554ae00 --authority DECISIONS/ADR-0003-s5-protected-process-boundary.md=0fd4c63deb7a8431c41d7869163ccf79ce0295b63b585c8e4c3a0695f1dafaad
+{"archive": "C:\\Users\\abbot\\t6\\green\\rebuild\\GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip", "bytes": 4365692, "manifest_sha256": "216a6a021bd6b84557af338dd707bed9d39863fa9dbbae10b854fc7bbbae278b", "members": 486, "sha256": "04becfb939863d967306e3ea472ca557f86f28127b7c040ab5e8a6dbb1683217", "sidecar": "C:\\Users\\abbot\\t6\\green\\rebuild\\GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip.sha256", "source_files": 308, "target_commit": "6c2464e470fd5f82f53839492593a0c0ac1cd51f", "target_tree": "9731b581310e0244ea40323bdad54f949c835dc0"}
+exit=0 elapsed=26.2s
+
+$ git -C C:/Users/abbot/t6/r status --porcelain=v1 --untracked-files=all
+
+exit=0 elapsed=0.0s
+
+$ git -C C:/Users/abbot/t6/r rev-parse HEAD
+6c2464e470fd5f82f53839492593a0c0ac1cd51f
+exit=0 elapsed=0.0s
+
+$ sha256sum C:/Users/abbot/t6/green/rebuild/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip C:/Users/abbot/t6/green/rebuild/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip.sha256 C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip.sha256
+04becfb939863d967306e3ea472ca557f86f28127b7c040ab5e8a6dbb1683217 *C:/Users/abbot/t6/green/rebuild/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip
+80fd677572b743808b5ca1d2a06cf2c49d43381ed31febe29503ff31f41f80a5 *C:/Users/abbot/t6/green/rebuild/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip.sha256
+04becfb939863d967306e3ea472ca557f86f28127b7c040ab5e8a6dbb1683217 *C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip
+80fd677572b743808b5ca1d2a06cf2c49d43381ed31febe29503ff31f41f80a5 *C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip.sha256
+exit=0 elapsed=0.1s
+
+$ cmp C:/Users/abbot/t6/green/rebuild/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip
+
+exit=0 elapsed=0.1s
+
+$ cmp C:/Users/abbot/t6/green/rebuild/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip.sha256 C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip.sha256
+
+exit=0 elapsed=0.0s
+
+# commands 6, nonzero exits 0
+# finished 2026-09-26T17:29:44Z

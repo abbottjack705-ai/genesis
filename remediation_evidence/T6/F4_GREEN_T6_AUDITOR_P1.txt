@@ -1,0 +1,226 @@
+# T6 F-4 reproducer transcript (GREEN on the T6 tool (work clone, final bytes))
+# started 2026-09-26T17:30:16Z
+# python 3.12.10; Windows-11-10.0.26200-SP0
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\w
+#   HEAD 6c2464e470fd5f82f53839492593a0c0ac1cd51f branch t6-remediation
+#   core.autocrlf=false
+#   status entries: 6
+#      M .gitattributes  sha256 3230aa01b1b66eec645c02a7a765446d6a3cee84fde43065dd3739678b528deb
+#      M tests/test_astra_t4_evidence_package.py  sha256 bbf30414600284988f30f9f22b774d62b0e2a406dac29c0e40649c18513f38fa
+#      M tools/genesis_audit_package.py  sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+#     ?? remediation_evidence/T6/F4_AUDITOR_P1_DRIVER.py  sha256 2c3c862d61a721a3b56abbc256b15cfc8be3caecae91897fc3f50ec452d72ad4
+#     ?? remediation_evidence/T6/F4_GATE_RUNNER.py  sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+#     ?? tests/test_astra_t6_raw_evidence_git_binding.py  sha256 8c551e9b42af7432d3822d34168ea2c0b8c45348fe0c8e0cb4b7d9f43f6951cd
+# tool under test sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052 C:\Users\abbot\t6\w\tools\genesis_audit_package.py
+# driver sha256 2c3c862d61a721a3b56abbc256b15cfc8be3caecae91897fc3f50ec452d72ad4
+# auditor probe sha256 e2543a5a3c3ea95a827934a266e92fa3a0605650e5701bab32487e6bf6a01669 C:\Users\abbot\gv\out\probe_pkg_t5_pins.py
+# auditor pins sha256 2c0089eec162290c66dde697a560be63ee581558cd2188e328fed5317968d207 C:\Users\abbot\gv\out\pins.txt
+# auditor recorded result sha256 aedfa531da0df83c88f806d356e4a9f1015a3d0657ebff77397def5ec27c28b8 C:\Users\abbot\gv\out\probe_pkg_t5_pins.txt
+# T5 package sha256 04becfb939863d967306e3ea472ca557f86f28127b7c040ab5e8a6dbb1683217 (expected 04becfb939863d967306e3ea472ca557f86f28127b7c040ab5e8a6dbb1683217: True)
+# W3 package sha256 7d0da810b64bc155305be3dfa4d702297e140325dbd2a6765f02a354e77faa18 C:\Users\abbot\gv\w3pkg\w3.zip
+
+$ python C:\Users\abbot\gv\out\probe_pkg_t5_pins.py C:\Users\abbot\t6\w C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\outputs C:\Users\abbot\t6\green\driver\probe_run1 C:\Users\abbot\gv\w3pkg\w3.zip
+exit=0
+{
+ "P1_raw_content_forged_repo_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/remediation_evidence/T5/GREEN_FINAL.md"
+ },
+ "P1_raw_content_forged_gitfree_all_pins": {
+  "exit": 0,
+  "msg": "target_commit\": \"6c2464e470fd5f82f53839492593a0c0ac1cd51f\", \"target_tree\": \"9731b581310e0244ea40323bdad54f949c835dc0\", \"trust_mode\": \"git_free_self_consistent\"}"
+ },
+ "P1_out_of_band_hash_differs": true,
+ "P2_t4_v1_package_no_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package manifest has unknown or missing top-level fields"
+ },
+ "P2_t4_v1_package_repo": {
+  "exit": 1,
+  "msg": "audit package rejected: package manifest has unknown or missing top-level fields"
+ },
+ "P3_genuine_expect_t4_commit": {
+  "exit": 1,
+  "msg": "audit package rejected: package target commit differs from the caller-pinned commit"
+ },
+ "P4_other_commit_repo_no_commit_pin": {
+  "exit": 0,
+  "msg": "_files\": 285, \"target_commit\": \"42e46c7c0cbe0eee725172f9f56586c91f8040e5\", \"target_tree\": \"26e584da584a799db867d0f720fd18ffc67386a2\", \"trust_mode\": \"git_bound\"}"
+ },
+ "P4_other_commit_repo_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package target commit differs from the caller-pinned commit"
+ },
+ "P5_alt_encoding_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package manifest bytes are not the canonical encoding"
+ },
+ "P5b_unicode_escape": {
+  "exit": 1,
+  "msg": "audit package rejected: package manifest bytes are not the canonical encoding"
+ },
+ "P6_extra_historical_repo_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package historical artifacts differ from caller-pinned hashes"
+ },
+ "P6_extra_historical_repo_no_hist_pins": {
+  "exit": 0,
+  "msg": "_files\": 308, \"target_commit\": \"6c2464e470fd5f82f53839492593a0c0ac1cd51f\", \"target_tree\": \"9731b581310e0244ea40323bdad54f949c835dc0\", \"trust_mode\": \"git_bound\"}"
+ },
+ "P7_relabel_historical_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package historical artifacts differ from caller-pinned hashes"
+ },
+ "P8_drop_raw_root_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package raw worktree roots differ from caller-pinned roots"
+ },
+ "P8_drop_raw_root_repo_no_root_pin": {
+  "exit": 0,
+  "msg": "_files\": 308, \"target_commit\": \"6c2464e470fd5f82f53839492593a0c0ac1cd51f\", \"target_tree\": \"9731b581310e0244ea40323bdad54f949c835dc0\", \"trust_mode\": \"git_bound\"}"
+ },
+ "P9_raw_outside_root_gitfree_no_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package raw worktree member lies outside every declared root"
+ },
+ "P10_target_swapped_repo_no_commit_pin": {
+  "exit": 1,
+  "msg": "audit package rejected: package source inventory differs from Git tree"
+ },
+ "P10_target_swapped_gitfree_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package target commit differs from the caller-pinned commit"
+ }
+}
+P1 forged package sha256 a429e4fe454acb5b2b57a913f17cd3fd3aef73b16c13448db4eeb096207b8c71 sidecar sha256 57dd119747add62914155bc91e95527d45f5f5aa01d2526d09135265b531d2fb
+
+$ python C:\Users\abbot\gv\out\probe_pkg_t5_pins.py C:\Users\abbot\t6\w C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\outputs C:\Users\abbot\t6\green\driver\probe_run2 C:\Users\abbot\gv\w3pkg\w3.zip
+exit=0
+{
+ "P1_raw_content_forged_repo_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/remediation_evidence/T5/GREEN_FINAL.md"
+ },
+ "P1_raw_content_forged_gitfree_all_pins": {
+  "exit": 0,
+  "msg": "target_commit\": \"6c2464e470fd5f82f53839492593a0c0ac1cd51f\", \"target_tree\": \"9731b581310e0244ea40323bdad54f949c835dc0\", \"trust_mode\": \"git_free_self_consistent\"}"
+ },
+ "P1_out_of_band_hash_differs": true,
+ "P2_t4_v1_package_no_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package manifest has unknown or missing top-level fields"
+ },
+ "P2_t4_v1_package_repo": {
+  "exit": 1,
+  "msg": "audit package rejected: package manifest has unknown or missing top-level fields"
+ },
+ "P3_genuine_expect_t4_commit": {
+  "exit": 1,
+  "msg": "audit package rejected: package target commit differs from the caller-pinned commit"
+ },
+ "P4_other_commit_repo_no_commit_pin": {
+  "exit": 0,
+  "msg": "_files\": 285, \"target_commit\": \"42e46c7c0cbe0eee725172f9f56586c91f8040e5\", \"target_tree\": \"26e584da584a799db867d0f720fd18ffc67386a2\", \"trust_mode\": \"git_bound\"}"
+ },
+ "P4_other_commit_repo_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package target commit differs from the caller-pinned commit"
+ },
+ "P5_alt_encoding_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package manifest bytes are not the canonical encoding"
+ },
+ "P5b_unicode_escape": {
+  "exit": 1,
+  "msg": "audit package rejected: package manifest bytes are not the canonical encoding"
+ },
+ "P6_extra_historical_repo_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package historical artifacts differ from caller-pinned hashes"
+ },
+ "P6_extra_historical_repo_no_hist_pins": {
+  "exit": 0,
+  "msg": "_files\": 308, \"target_commit\": \"6c2464e470fd5f82f53839492593a0c0ac1cd51f\", \"target_tree\": \"9731b581310e0244ea40323bdad54f949c835dc0\", \"trust_mode\": \"git_bound\"}"
+ },
+ "P7_relabel_historical_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package historical artifacts differ from caller-pinned hashes"
+ },
+ "P8_drop_raw_root_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package raw worktree roots differ from caller-pinned roots"
+ },
+ "P8_drop_raw_root_repo_no_root_pin": {
+  "exit": 0,
+  "msg": "_files\": 308, \"target_commit\": \"6c2464e470fd5f82f53839492593a0c0ac1cd51f\", \"target_tree\": \"9731b581310e0244ea40323bdad54f949c835dc0\", \"trust_mode\": \"git_bound\"}"
+ },
+ "P9_raw_outside_root_gitfree_no_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package raw worktree member lies outside every declared root"
+ },
+ "P10_target_swapped_repo_no_commit_pin": {
+  "exit": 1,
+  "msg": "audit package rejected: package source inventory differs from Git tree"
+ },
+ "P10_target_swapped_gitfree_all_pins": {
+  "exit": 1,
+  "msg": "audit package rejected: package target commit differs from the caller-pinned commit"
+ }
+}
+P1 forged package sha256 a429e4fe454acb5b2b57a913f17cd3fd3aef73b16c13448db4eeb096207b8c71 sidecar sha256 57dd119747add62914155bc91e95527d45f5f5aa01d2526d09135265b531d2fb
+
+## determinism
+P1 forged package identical across runs: True
+probe reports identical across runs: True
+
+## P1 forged raw member against Git
+Git blob 6c2464e470fd5f82f53839492593a0c0ac1cd51f:remediation_evidence/T5/GREEN_FINAL.md sha256 add692e25542d84465bcb472f1f82e9795827ee58200fda7305136bfb6d37373
+genuine raw-worktree member sha256 add692e25542d84465bcb472f1f82e9795827ee58200fda7305136bfb6d37373 equals Git blob: True
+forged raw-worktree member sha256 4d220a321769aa296b11e07ad970174061bd27fcb1c7438cadb3b28765472dac equals Git blob: False
+forged git-blobs member unchanged: True
+$ verify P1 --repo C:\Users\abbot\t6\w <all auditor pins>
+exit=1
+audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/remediation_evidence/T5/GREEN_FINAL.md
+$ verify P1 <all auditor pins> (Git-free)
+exit=0
+{"archive": "C:\\Users\\abbot\\t6\\green\\driver\\probe_run1\\P1_raw_content_forged\\GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip", "authorities_pinned": true, "bytes": 4365692, "commit_pinned": true, "fresh_extraction_verified": false, "git_cross_check": false, "historical_pinned": true, "manifest_sha256": "db2ce525b2a757a4f9da7826e3c2a61cc0a3d0b28fd31e4111875ddffe7ae32b", "members": 486, "raw_evidence_git_bound": false, "raw_roots_pinned": true, "raw_worktree_roots": ["remediation_evidence"], "sha256": "a429e4fe454acb5b2b57a913f17cd3fd3aef73b16c13448db4eeb096207b8c71", "sidecar_verified": true, "source_files": 308, "target_commit": "6c2464e470fd5f82f53839492593a0c0ac1cd51f", "target_tree": "9731b581310e0244ea40323bdad54f949c835dc0", "trust_mode": "git_free_self_consistent"}
+
+## genuine T5 package under the tool under test
+$ verify C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\outputs\GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip --repo C:\Users\abbot\t6\w <all auditor pins>
+exit=0
+{"archive": "C:\\Users\\abbot\\Documents\\Codex\\2026-09-21\\goal-complete-the-project-genesis-v0\\outputs\\GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip", "authorities_pinned": true, "bytes": 4365692, "commit_pinned": true, "fresh_extraction_verified": false, "git_cross_check": true, "historical_pinned": true, "manifest_sha256": "216a6a021bd6b84557af338dd707bed9d39863fa9dbbae10b854fc7bbbae278b", "members": 486, "raw_evidence_git_bound": true, "raw_roots_pinned": true, "raw_worktree_roots": ["remediation_evidence"], "sha256": "04becfb939863d967306e3ea472ca557f86f28127b7c040ab5e8a6dbb1683217", "sidecar_verified": true, "source_files": 308, "target_commit": "6c2464e470fd5f82f53839492593a0c0ac1cd51f", "target_tree": "9731b581310e0244ea40323bdad54f949c835dc0", "trust_mode": "git_bound"}
+$ verify C:\Users\abbot\Documents\Codex\2026-09-21\goal-complete-the-project-genesis-v0\outputs\GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip <all auditor pins> (Git-free)
+exit=0
+{"archive": "C:\\Users\\abbot\\Documents\\Codex\\2026-09-21\\goal-complete-the-project-genesis-v0\\outputs\\GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip", "authorities_pinned": true, "bytes": 4365692, "commit_pinned": true, "fresh_extraction_verified": false, "git_cross_check": false, "historical_pinned": true, "manifest_sha256": "216a6a021bd6b84557af338dd707bed9d39863fa9dbbae10b854fc7bbbae278b", "members": 486, "raw_evidence_git_bound": false, "raw_roots_pinned": true, "raw_worktree_roots": ["remediation_evidence"], "sha256": "04becfb939863d967306e3ea472ca557f86f28127b7c040ab5e8a6dbb1683217", "sidecar_verified": true, "source_files": 308, "target_commit": "6c2464e470fd5f82f53839492593a0c0ac1cd51f", "target_tree": "9731b581310e0244ea40323bdad54f949c835dc0", "trust_mode": "git_free_self_consistent"}
+
+## driver cases on the same raw member
+D1_raw_line_endings_only: forged package sha256 35277738cc9bc652bb9e06d2a2750f1c705cbb27a3502c12cc6d11da1f0e652b
+  repo_all_pins: exit=1 audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/remediation_evidence/T5/GREEN_FINAL.md
+  gitfree_all_pins: exit=0 _verified": true, "source_files": 308, "target_commit": "6c2464e470fd5f82f53839492593a0c0ac1cd51f", "target_tree": "9731b581310e0244ea40323bdad54f949c835dc0", "trust_mode": "git_free_self_consistent"}
+D2_raw_and_git_blob_member_together: forged package sha256 34409345e026a6ce0091d2e15394c017fb605b6a50649d76ff7e096b39ddf873
+  repo_all_pins: exit=1 audit package rejected: package source inventory differs from Git tree
+  gitfree_all_pins: exit=0 _verified": true, "source_files": 308, "target_commit": "6c2464e470fd5f82f53839492593a0c0ac1cd51f", "target_tree": "9731b581310e0244ea40323bdad54f949c835dc0", "trust_mode": "git_free_self_consistent"}
+
+## comparison with the auditor's recorded T5 result
+P10_target_swapped_gitfree_all_pins: auditor=1 now=1 same
+P10_target_swapped_repo_no_commit_pin: auditor=1 now=1 same
+P1_out_of_band_hash_differs: auditor=True now=True same
+P1_raw_content_forged_gitfree_all_pins: auditor=0 now=0 same
+P1_raw_content_forged_repo_all_pins: auditor=0 now=1 CHANGED
+P2_t4_v1_package_no_pins: auditor=1 now=1 same
+P2_t4_v1_package_repo: auditor=1 now=1 same
+P3_genuine_expect_t4_commit: auditor=1 now=1 same
+P4_other_commit_repo_all_pins: auditor=1 now=1 same
+P4_other_commit_repo_no_commit_pin: auditor=0 now=0 same
+P5_alt_encoding_all_pins: auditor=1 now=1 same
+P5b_unicode_escape: auditor=1 now=1 same
+P6_extra_historical_repo_all_pins: auditor=1 now=1 same
+P6_extra_historical_repo_no_hist_pins: auditor=0 now=0 same
+P7_relabel_historical_all_pins: auditor=1 now=1 same
+P8_drop_raw_root_all_pins: auditor=1 now=1 same
+P8_drop_raw_root_repo_no_root_pin: auditor=0 now=0 same
+P9_raw_outside_root_gitfree_no_pins: auditor=1 now=1 same
+
+VERDICT F-4 (GREEN on the T6 tool (work clone, final bytes)): P1_raw_content_forged_repo_all_pins exit=1 -> rejected (GREEN)
+# finished 2026-09-26T17:33:32Z

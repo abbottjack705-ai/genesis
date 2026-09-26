@@ -1,0 +1,55 @@
+# T6 F-4: prior auditor's unmodified 23-case B8 tamper suite against the T6 tool, compared case by case with the T5 review's recorded results (the suite exits 1 for its two T4-era expectations 09/11, exactly as in the T5 review)
+# started 2026-09-26T17:28:07Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\w HEAD 6c2464e470fd5f82f53839492593a0c0ac1cd51f branch t6-remediation core.autocrlf=false
+# uncommitted paths: 6
+#    M .gitattributes  sha256 3230aa01b1b66eec645c02a7a765446d6a3cee84fde43065dd3739678b528deb
+#    M tests/test_astra_t4_evidence_package.py  sha256 bbf30414600284988f30f9f22b774d62b0e2a406dac29c0e40649c18513f38fa
+#    M tools/genesis_audit_package.py  sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+#   ?? remediation_evidence/T6/F4_AUDITOR_P1_DRIVER.py  sha256 2c3c862d61a721a3b56abbc256b15cfc8be3caecae91897fc3f50ec452d72ad4
+#   ?? remediation_evidence/T6/F4_GATE_RUNNER.py  sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+#   ?? tests/test_astra_t6_raw_evidence_git_binding.py  sha256 8c551e9b42af7432d3822d34168ea2c0b8c45348fe0c8e0cb4b7d9f43f6951cd
+# tools/genesis_audit_package.py sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+# runner sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+
+$ python C:/Users/abbot/gv/prev/probes/AUDIT_B8_TAMPER_SUITE.py C:/Users/abbot/t6/w/tools/genesis_audit_package.py C:/Users/abbot/Documents/Codex/2026-09-21/goal-complete-the-project-genesis-v0/outputs/GENESIS_V04_T5_INTEGRATED_REAUDIT_6c2464e.zip C:/Users/abbot/t6/r C:/Users/abbot/t6/green/tamper C:/Users/abbot/t6/green/tamper_results_t6.json
+{
+  "cases": 23,
+  "not_as_expected": [
+    "09_raw_member_omitted_repo_pins",
+    "11_manifest_duplicate_key_repo_pins"
+  ]
+}
+exit=1 elapsed=69.3s
+
+$ python -c import json,hashlib;p='C:/Users/abbot/gv/prev/probes/AUDIT_B8_TAMPER_SUITE.py';print('suite sha256',hashlib.sha256(open(p,'rb').read()).hexdigest());a=json.load(open('C:/Users/abbot/gv/out/t5_b8_tamper_results.json'));b=json.load(open('C:/Users/abbot/t6/green/tamper_results_t6.json'));ks=sorted(set(a)|set(b));c=[k for k in ks if (a.get(k,{}).get('exit'),a.get(k,{}).get('as_expected'))!=(b.get(k,{}).get('exit'),b.get(k,{}).get('as_expected'))];[print(k,'T5-review',a.get(k,{}).get('exit'),a.get(k,{}).get('as_expected'),'| T6',b.get(k,{}).get('exit'),b.get(k,{}).get('as_expected')) for k in ks];print('cases T5-review',len(a),'T6',len(b),'changed',c)
+suite sha256 3f36c4aec41e43a88fb17cfd45ceeed9082e1c441a81e11ce210ca2db4bf2c5f
+00_genuine_fresh_extract_no_repo_pins T5-review 0 True | T6 0 True
+00_genuine_repo_pins T5-review 0 True | T6 0 True
+00_independent_fresh_extraction_rehash T5-review None True | T6 None True
+01_old_adr3_archive_hash_as_pin T5-review 1 True | T6 1 True
+01b_missing_one_pin T5-review 1 True | T6 1 True
+02_flip_member_fresh_sidecar T5-review 1 True | T6 1 True
+03a_forgery_verify_no_repo_with_pins T5-review 0 True | T6 0 True
+03b_forgery_verify_with_repo T5-review 1 True | T6 1 True
+03c_forgery_vs_out_of_band_hash T5-review None True | T6 None True
+04a_crlf_adr_no_pins_no_repo T5-review 0 True | T6 0 True
+04b_crlf_adr_with_pins T5-review 1 True | T6 1 True
+04c_crlf_adr_with_repo_no_pins T5-review 1 True | T6 1 True
+05a_stale_sidecar T5-review 1 True | T6 1 True
+05b_missing_sidecar T5-review 1 True | T6 1 True
+06_duplicate_member T5-review 1 True | T6 1 True
+07_dotdot_path T5-review 1 True | T6 1 True
+07b_backslash_path T5-review 1 True | T6 1 True
+07c_absolute_path T5-review 1 True | T6 1 True
+07d_drive_path T5-review 1 True | T6 1 True
+08_extra_member T5-review 1 True | T6 1 True
+09_raw_member_omitted_repo_pins T5-review 1 False | T6 1 False
+10_historical_replaced_repo_pins T5-review 0 True | T6 0 True
+11_manifest_duplicate_key_repo_pins T5-review 1 False | T6 1 False
+cases T5-review 23 T6 23 changed []
+exit=0 elapsed=0.1s
+
+# commands 2, nonzero exits 1
+# finished 2026-09-26T17:29:17Z

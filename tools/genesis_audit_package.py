@@ -242,6 +242,8 @@ def build_package(
             "sha256": sha256(raw),
             "_raw": raw,
         })
+    # Refuse before writing: such a package could never verify against Git.
+    _require_raw_equals_git(list(rows.values()), source, lambda name: rows[name]["_raw"])
 
     source_by_path = {row["repository_path"]: row for row in source}
     authority_rows: list[dict[str, str]] = []
@@ -431,6 +433,28 @@ def _validate_raw_roots(
         raise ValueError("package raw worktree member lies outside every declared root")
 
 
+def _require_raw_equals_git(
+    members: list[dict[str, Any]], source: list[dict[str, Any]], read,
+) -> None:
+    """Every raw member is byte-identical to its Git blob at the target (F-4).
+
+    O-3 makes every raw member a tracked file of the target commit, so its
+    bytes are Git-backed; no normalization or line-ending relation is accepted.
+    """
+
+    blobs = {row["repository_path"]: row["_raw"] for row in source}
+    for row in members:
+        if row["representation"] != "raw_worktree_bytes":
+            continue
+        blob = blobs.get(row["source_path"])
+        if blob is None:
+            raise ValueError(f"package raw evidence member has no Git blob: {row['archive_path']}")
+        if read(row["archive_path"]) != blob:
+            raise ValueError(
+                f"package raw evidence member differs from its Git blob: {row['archive_path']}"
+            )
+
+
 def _require_commit(target: dict[str, Any], expected: str) -> None:
     if target["commit"] != _git_sha1(expected, "expected commit pin"):
         raise ValueError("package target commit differs from the caller-pinned commit")
@@ -488,8 +512,12 @@ def verify_package(
 ) -> dict[str, Any]:
     """Verify one package; caller pins bind it to facts from outside it (O-1/O-3).
 
-    Without an out-of-band package hash, a self-consistent forgery can still
-    pass: pins and ``--repo`` narrow what a forger can change, never more.
+    Two trust modes. ``git_bound`` (``repo`` given): every Git-blob member and
+    every raw-worktree member must equal its blob at the target commit (F-4);
+    historical artifacts are bound only by caller pins. ``git_free_self_consistent``
+    is weaker: nothing is bound to Git, so a self-consistent forgery of any
+    member, raw evidence content included, passes unless the package SHA-256 is
+    checked against an out-of-band value.
     """
 
     archive_path = archive_path.resolve(strict=True)
@@ -542,6 +570,7 @@ def verify_package(
             for row in source:
                 if archive.read(row["archive_path"]) != row["_raw"]:
                     raise ValueError("package Git member differs from object database")
+            _require_raw_equals_git(members, source, archive.read)
             git_cross_check = True
 
         fresh_verified = False
@@ -579,6 +608,8 @@ def verify_package(
         "historical_pinned": required_historical is not None,
         "raw_worktree_roots": manifest["raw_worktree_roots"],
         "git_cross_check": git_cross_check,
+        "raw_evidence_git_bound": git_cross_check,
+        "trust_mode": "git_bound" if git_cross_check else "git_free_self_consistent",
         "fresh_extraction_verified": fresh_verified,
     }
 

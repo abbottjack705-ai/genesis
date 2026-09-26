@@ -1,0 +1,74 @@
+# T6 F-4 RED: permanent T6 regression tests against the frozen T5 tool (tools/genesis_audit_package.py unchanged at 6c2464e)
+# started 2026-09-26T17:26:46Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\rt HEAD 6c2464e470fd5f82f53839492593a0c0ac1cd51f branch t6-remediation core.autocrlf=false
+# uncommitted paths: 5
+#    M .gitattributes  sha256 3230aa01b1b66eec645c02a7a765446d6a3cee84fde43065dd3739678b528deb
+#    M tests/test_astra_t4_evidence_package.py  sha256 bbf30414600284988f30f9f22b774d62b0e2a406dac29c0e40649c18513f38fa
+#   ?? remediation_evidence/T6/F4_AUDITOR_P1_DRIVER.py  sha256 2c3c862d61a721a3b56abbc256b15cfc8be3caecae91897fc3f50ec452d72ad4
+#   ?? remediation_evidence/T6/F4_GATE_RUNNER.py  sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+#   ?? tests/test_astra_t6_raw_evidence_git_binding.py  sha256 8c551e9b42af7432d3822d34168ea2c0b8c45348fe0c8e0cb4b7d9f43f6951cd
+# tools/genesis_audit_package.py sha256 0b32c9ca4e0ab945290b836f5de8870757329c13c4279fe5d583d881d53367a4
+# runner sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+
+$ python -m unittest -v tests.test_astra_t6_raw_evidence_git_binding
+test_t6_builder_refuses_raw_evidence_that_differs_from_git (tests.test_astra_t6_raw_evidence_git_binding.T6RawEvidenceGitBindingTests.test_t6_builder_refuses_raw_evidence_that_differs_from_git) ... FAIL
+test_t6_genuine_raw_evidence_equals_git_and_verifies_git_bound (tests.test_astra_t6_raw_evidence_git_binding.T6RawEvidenceGitBindingTests.test_t6_genuine_raw_evidence_equals_git_and_verifies_git_bound) ... ERROR
+test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin (tests.test_astra_t6_raw_evidence_git_binding.T6RawEvidenceGitBindingTests.test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin) ... 
+  test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin (tests.test_astra_t6_raw_evidence_git_binding.T6RawEvidenceGitBindingTests.test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin) [content] ... FAIL
+  test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin (tests.test_astra_t6_raw_evidence_git_binding.T6RawEvidenceGitBindingTests.test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin) [line-endings] ... FAIL
+  test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin (tests.test_astra_t6_raw_evidence_git_binding.T6RawEvidenceGitBindingTests.test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin) [appended] ... FAIL
+
+======================================================================
+ERROR: test_t6_genuine_raw_evidence_equals_git_and_verifies_git_bound (tests.test_astra_t6_raw_evidence_git_binding.T6RawEvidenceGitBindingTests.test_t6_genuine_raw_evidence_equals_git_and_verifies_git_bound)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\rt\tests\test_astra_t6_raw_evidence_git_binding.py", line 90, in test_t6_genuine_raw_evidence_equals_git_and_verifies_git_bound
+    self.assertEqual(report["trust_mode"], "git_bound")
+                     ~~~~~~^^^^^^^^^^^^^^
+KeyError: 'trust_mode'
+
+======================================================================
+FAIL: test_t6_builder_refuses_raw_evidence_that_differs_from_git (tests.test_astra_t6_raw_evidence_git_binding.T6RawEvidenceGitBindingTests.test_t6_builder_refuses_raw_evidence_that_differs_from_git)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\rt\tests\test_astra_t6_raw_evidence_git_binding.py", line 181, in test_t6_builder_refuses_raw_evidence_that_differs_from_git
+    self.assertNotEqual(refused.returncode, 0, "F-4: package built from non-Git raw bytes")
+AssertionError: 0 == 0 : F-4: package built from non-Git raw bytes
+
+======================================================================
+FAIL: test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin (tests.test_astra_t6_raw_evidence_git_binding.T6RawEvidenceGitBindingTests.test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin) [content]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\rt\tests\test_astra_t6_raw_evidence_git_binding.py", line 126, in test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin
+    self.assertNotEqual(
+AssertionError: 0 == 0 : F-4 content: forged raw evidence verified: {"archive": "C:\\Users\\abbot\\t6\\rt\\work\\test_runtime\\11945c37a06f4ea3aec397ad64c967e8\\content.zip", "authorities_pinned": true, "bytes": 5985, "commit_pinned": true, "fresh_extraction_verified": false, "git_cross_check": true, "historical_pinned": true, "manifest_sha256": "be7171c870f984fc04d8e339c74f37a8bf26b3719dead1ad15881f7d47e43b07", "members": 6, "raw_roots_pinned": true, "raw_worktree_roots": ["evidence"], "sha256": "55138b05a3a599db4e8648df9368283b564004044702e0180770052af0e91235", "sidecar_verified": true, "source_files": 4, "target_commit": "3439d9c7426fcce87c871e45b9b392e89c4c32fa", "target_tree": "93005583ee9c26ed39d8f40941527fbe42c85bd4"}
+
+
+======================================================================
+FAIL: test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin (tests.test_astra_t6_raw_evidence_git_binding.T6RawEvidenceGitBindingTests.test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin) [line-endings]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\rt\tests\test_astra_t6_raw_evidence_git_binding.py", line 126, in test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin
+    self.assertNotEqual(
+AssertionError: 0 == 0 : F-4 line-endings: forged raw evidence verified: {"archive": "C:\\Users\\abbot\\t6\\rt\\work\\test_runtime\\11945c37a06f4ea3aec397ad64c967e8\\line-endings.zip", "authorities_pinned": true, "bytes": 5981, "commit_pinned": true, "fresh_extraction_verified": false, "git_cross_check": true, "historical_pinned": true, "manifest_sha256": "bd3f1e3823797267829ea4ab28620f987493428d7e80567a90d07330cebe5556", "members": 6, "raw_roots_pinned": true, "raw_worktree_roots": ["evidence"], "sha256": "2f457e22223e91079c869a25f2cb8c604af89d7fd5ecefa56107b7daa867b014", "sidecar_verified": true, "source_files": 4, "target_commit": "3439d9c7426fcce87c871e45b9b392e89c4c32fa", "target_tree": "93005583ee9c26ed39d8f40941527fbe42c85bd4"}
+
+
+======================================================================
+FAIL: test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin (tests.test_astra_t6_raw_evidence_git_binding.T6RawEvidenceGitBindingTests.test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin) [appended]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\rt\tests\test_astra_t6_raw_evidence_git_binding.py", line 126, in test_t6_self_consistent_raw_rewrites_fail_against_git_with_every_pin
+    self.assertNotEqual(
+AssertionError: 0 == 0 : F-4 appended: forged raw evidence verified: {"archive": "C:\\Users\\abbot\\t6\\rt\\work\\test_runtime\\11945c37a06f4ea3aec397ad64c967e8\\appended.zip", "authorities_pinned": true, "bytes": 6000, "commit_pinned": true, "fresh_extraction_verified": false, "git_cross_check": true, "historical_pinned": true, "manifest_sha256": "a3fd668b5ace93f46bfe595123071e308cf8a97c650952a7f401bddd701fafec", "members": 6, "raw_roots_pinned": true, "raw_worktree_roots": ["evidence"], "sha256": "02c5631d6df08ceb09cfb557ba82df46b71ced2b8e5ffd35ec087b6f6da6c97b", "sidecar_verified": true, "source_files": 4, "target_commit": "3439d9c7426fcce87c871e45b9b392e89c4c32fa", "target_tree": "93005583ee9c26ed39d8f40941527fbe42c85bd4"}
+
+
+----------------------------------------------------------------------
+Ran 3 tests in 5.694s
+
+FAILED (failures=4, errors=1)
+exit=1 elapsed=6.1s
+
+# commands 1, nonzero exits 1
+# finished 2026-09-26T17:26:53Z

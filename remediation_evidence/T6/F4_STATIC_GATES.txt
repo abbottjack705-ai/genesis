@@ -1,0 +1,78 @@
+# T6 F-4 static gates over the complete staged checkpoint change set (all T6 files except this transcript and F4_EVIDENCE_HASHES.sha256, which are written after it)
+# started 2026-09-26T17:39:22Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\f HEAD 6c2464e470fd5f82f53839492593a0c0ac1cd51f branch t6-remediation core.autocrlf=false
+# uncommitted paths: 16
+#   M  .gitattributes  sha256 3230aa01b1b66eec645c02a7a765446d6a3cee84fde43065dd3739678b528deb
+#   A  remediation_evidence/T6/F4_AUDITOR_P1_DRIVER.py  sha256 2c3c862d61a721a3b56abbc256b15cfc8be3caecae91897fc3f50ec452d72ad4
+#   A  remediation_evidence/T6/F4_FULL_SUITE_AND_STATIC.txt  sha256 b17f83d8b6d1864c44230ecd854410932cdc043b30cb4b1cf36c1fd58b8c52a6
+#   A  remediation_evidence/T6/F4_GATE_RUNNER.py  sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+#   A  remediation_evidence/T6/F4_GREEN_PACKAGE_TESTS.txt  sha256 91c32d375468630fe4e7bcef6b7bd847a202727d9697eada2d68260ab971df46
+#   A  remediation_evidence/T6/F4_GREEN_PRIOR_B8_TAMPER_SUITE.txt  sha256 eede14c1254b5e3d5f5ce9083455c68eba93d47f0e1da1cb7bb997bbbd59f2d3
+#   A  remediation_evidence/T6/F4_GREEN_T5_PACKAGE_REBUILD.txt  sha256 92d2f6c64fd72c06d829e69151b28aa2b8b3e5a47d4bd0c0abe240f4ba54f362
+#   A  remediation_evidence/T6/F4_GREEN_T6_AUDITOR_P1.txt  sha256 c765b94eab731b31a42556d491d64ad636e51d063b55dd01a84e8c6193ce622c
+#   A  remediation_evidence/T6/F4_NEUTRALITY_A_ADJUSTED_FIXTURE_ON_T5_TOOL.txt  sha256 f9217a2c86a3ee4853792b345d9a1295410a188328037b0bcaa68199485eb6e2
+#   A  remediation_evidence/T6/F4_NEUTRALITY_B_T5_TESTS_ON_T6_TOOL.txt  sha256 fb7d84fd96db39fcad3178216054a3241080ff91258f9b82517d053317c9fe76
+#   A  remediation_evidence/T6/F4_RED_T5_AUDITOR_P1.txt  sha256 6706cbcb4c591620fca4f05b4e758502a6c57ae191cb7a9255fac2133c89d28c
+#   A  remediation_evidence/T6/F4_RED_T6_TESTS_ON_T5_TOOL.txt  sha256 d62d8855d24974e858fa2ab6af3033d9563908fe8012cde8af5e688053097bca
+#   A  remediation_evidence/T6/T6_WIP_F4_CHECKPOINT.md  sha256 bd5b742638b0e6c486cbbfcdfa8ea30c6417ac688235ca87529796ac4fb2f732
+#   M  tests/test_astra_t4_evidence_package.py  sha256 bbf30414600284988f30f9f22b774d62b0e2a406dac29c0e40649c18513f38fa
+#   A  tests/test_astra_t6_raw_evidence_git_binding.py  sha256 8c551e9b42af7432d3822d34168ea2c0b8c45348fe0c8e0cb4b7d9f43f6951cd
+#   M  tools/genesis_audit_package.py  sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+# tools/genesis_audit_package.py sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+# runner sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+
+$ git diff --cached --check 6c2464e470fd5f82f53839492593a0c0ac1cd51f
+
+exit=0 elapsed=0.0s
+
+$ git diff --cached --stat 6c2464e470fd5f82f53839492593a0c0ac1cd51f
+ .gitattributes                                     |   3 +
+ remediation_evidence/T6/F4_AUDITOR_P1_DRIVER.py    | 236 ++++++++++++
+ .../T6/F4_FULL_SUITE_AND_STATIC.txt                | 424 +++++++++++++++++++++
+ remediation_evidence/T6/F4_GATE_RUNNER.py          |  87 +++++
+ remediation_evidence/T6/F4_GREEN_PACKAGE_TESTS.txt |  44 +++
+ .../T6/F4_GREEN_PRIOR_B8_TAMPER_SUITE.txt          |  55 +++
+ .../T6/F4_GREEN_T5_PACKAGE_REBUILD.txt             |  44 +++
+ remediation_evidence/T6/F4_GREEN_T6_AUDITOR_P1.txt | 226 +++++++++++
+ ...F4_NEUTRALITY_A_ADJUSTED_FIXTURE_ON_T5_TOOL.txt |  40 ++
+ .../T6/F4_NEUTRALITY_B_T5_TESTS_ON_T6_TOOL.txt     | 188 +++++++++
+ remediation_evidence/T6/F4_RED_T5_AUDITOR_P1.txt   | 220 +++++++++++
+ .../T6/F4_RED_T6_TESTS_ON_T5_TOOL.txt              |  74 ++++
+ remediation_evidence/T6/T6_WIP_F4_CHECKPOINT.md    | 216 +++++++++++
+ tests/test_astra_t4_evidence_package.py            |   8 +-
+ tests/test_astra_t6_raw_evidence_git_binding.py    | 192 ++++++++++
+ tools/genesis_audit_package.py                     |  35 +-
+ 16 files changed, 2088 insertions(+), 4 deletions(-)
+exit=0 elapsed=0.0s
+
+$ git diff --cached --name-status 6c2464e470fd5f82f53839492593a0c0ac1cd51f
+M	.gitattributes
+A	remediation_evidence/T6/F4_AUDITOR_P1_DRIVER.py
+A	remediation_evidence/T6/F4_FULL_SUITE_AND_STATIC.txt
+A	remediation_evidence/T6/F4_GATE_RUNNER.py
+A	remediation_evidence/T6/F4_GREEN_PACKAGE_TESTS.txt
+A	remediation_evidence/T6/F4_GREEN_PRIOR_B8_TAMPER_SUITE.txt
+A	remediation_evidence/T6/F4_GREEN_T5_PACKAGE_REBUILD.txt
+A	remediation_evidence/T6/F4_GREEN_T6_AUDITOR_P1.txt
+A	remediation_evidence/T6/F4_NEUTRALITY_A_ADJUSTED_FIXTURE_ON_T5_TOOL.txt
+A	remediation_evidence/T6/F4_NEUTRALITY_B_T5_TESTS_ON_T6_TOOL.txt
+A	remediation_evidence/T6/F4_RED_T5_AUDITOR_P1.txt
+A	remediation_evidence/T6/F4_RED_T6_TESTS_ON_T5_TOOL.txt
+A	remediation_evidence/T6/T6_WIP_F4_CHECKPOINT.md
+M	tests/test_astra_t4_evidence_package.py
+A	tests/test_astra_t6_raw_evidence_git_binding.py
+M	tools/genesis_audit_package.py
+exit=0 elapsed=0.0s
+
+$ git diff --cached --name-only 6c2464e470fd5f82f53839492593a0c0ac1cd51f -- DECISIONS v04_pack config V04_MIGRATION_PLAN.md requirements.lock pyproject.toml src remediation_evidence :(exclude)remediation_evidence/T6
+
+exit=0 elapsed=0.0s
+
+$ python -m compileall -q src tests tools remediation_evidence/T6
+
+exit=0 elapsed=0.2s
+
+# commands 5, nonzero exits 0
+# finished 2026-09-26T17:39:23Z

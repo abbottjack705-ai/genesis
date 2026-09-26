@@ -1,0 +1,188 @@
+# T6 F-4 fixture neutrality (b): unmodified T5 package test bytes against the T6 tool. The T5 fixture's raw evidence differs from its Git blob (core.autocrlf=true CRLF->LF), which the T6 builder now refuses; this is why the T4 fixture stores evidence/** -text
+# started 2026-09-26T17:29:51Z
+# python 3.12.10; Windows-11-10.0.26200-SP0; cpus 8
+# git version 2.55.0.windows.3
+# clone C:\Users\abbot\t6\n HEAD 6c2464e470fd5f82f53839492593a0c0ac1cd51f branch t6-remediation core.autocrlf=false
+# uncommitted paths: 2
+#    M tools/genesis_audit_package.py  sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+#   ?? remediation_evidence/T6/F4_GATE_RUNNER.py  sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+# tools/genesis_audit_package.py sha256 4206b6313312c6cb669350059807c63bbe8d057583af99bdd80de9a71c4a1052
+# runner sha256 933fe0c39e70802b6eec31941676a22ff98b22725d0c6cbaf1500386b5e994d3
+
+$ python -m unittest tests.test_astra_t4_evidence_package tests.test_astra_t5_package_evidence tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests
+FFFFFFFFFFFFFF
+======================================================================
+FAIL: test_content_tamper_unsafe_path_and_stale_or_missing_sidecar_fail_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_content_tamper_unsafe_path_and_stale_or_missing_sidecar_fail_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 230, in test_content_tamper_unsafe_path_and_stale_or_missing_sidecar_fail_closed
+    self.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_fresh_extraction_verifies_without_repository (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_fresh_extraction_verifies_without_repository)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 139, in test_fresh_extraction_verifies_without_repository
+    self.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_git_blob_snapshot_preserves_exact_bytes_and_approved_adr (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_git_blob_snapshot_preserves_exact_bytes_and_approved_adr)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 100, in test_git_blob_snapshot_preserves_exact_bytes_and_approved_adr
+    self.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_manifest_rows_and_fixed_fields_are_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_manifest_rows_and_fixed_fields_are_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 305, in test_manifest_rows_and_fixed_fields_are_closed
+    self.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_raw_worktree_and_historical_bytes_are_distinct_labeled_representations (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_raw_worktree_and_historical_bytes_are_distinct_labeled_representations)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 118, in test_raw_worktree_and_historical_bytes_are_distinct_labeled_representations
+    self.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_raw_worktree_members_exclude_git_ignored_files (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_raw_worktree_members_exclude_git_ignored_files)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 292, in test_raw_worktree_members_exclude_git_ignored_files
+    self.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_repeated_build_is_byte_deterministic_and_sidecar_exact (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_repeated_build_is_byte_deterministic_and_sidecar_exact)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 184, in test_repeated_build_is_byte_deterministic_and_sidecar_exact
+    first_report = self.build(fixture, first)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_repository_cross_check_passes_and_archive_tamper_fails_closed (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_repository_cross_check_passes_and_archive_tamper_fails_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 158, in test_repository_cross_check_passes_and_archive_tamper_fails_closed
+    self.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_verifier_enforces_caller_pinned_authorities_without_repository (tests.test_astra_t4_evidence_package.AstraT4EvidencePackageTests.test_verifier_enforces_caller_pinned_authorities_without_repository)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 264, in test_verifier_enforces_caller_pinned_authorities_without_repository
+    self.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_t5_duplicate_manifest_keys_are_rejected (tests.test_astra_t5_package_evidence.T5PackageEvidenceTests.test_t5_duplicate_manifest_keys_are_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t5_package_evidence.py", line 70, in test_t5_duplicate_manifest_keys_are_rejected
+    self.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t5_package_evidence.py", line 33, in build
+    return self.t4.build(fixture, output)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_t5_expected_commit_pin_rejects_a_valid_package_for_another_commit (tests.test_astra_t5_package_evidence.T5PackageEvidenceTests.test_t5_expected_commit_pin_rejects_a_valid_package_for_another_commit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t5_package_evidence.py", line 54, in test_t5_expected_commit_pin_rejects_a_valid_package_for_another_commit
+    self.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t5_package_evidence.py", line 33, in build
+    return self.t4.build(fixture, output)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_t5_omitted_raw_member_and_row_is_rejected (tests.test_astra_t5_package_evidence.T5PackageEvidenceTests.test_t5_omitted_raw_member_and_row_is_rejected)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t5_package_evidence.py", line 86, in test_t5_omitted_raw_member_and_row_is_rejected
+    self.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t5_package_evidence.py", line 33, in build
+    return self.t4.build(fixture, output)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_t5_required_raw_root_and_historical_pins_reject_substitution (tests.test_astra_t5_package_evidence.T5PackageEvidenceTests.test_t5_required_raw_root_and_historical_pins_reject_substitution)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t5_package_evidence.py", line 105, in test_t5_required_raw_root_and_historical_pins_reject_substitution
+    self.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t5_package_evidence.py", line 33, in build
+    return self.t4.build(fixture, output)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+======================================================================
+FAIL: test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t6\n\tests\test_astra_t5_hostile_preaudit.py", line 285, in test_h5_package_alternate_representations_and_omissions_fail_closed
+    self.t4.build(fixture, archive)
+  File "C:\Users\abbot\t6\n\tests\test_astra_t4_evidence_package.py", line 89, in build
+    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+AssertionError: 1 != 0 : audit package rejected: package raw evidence member differs from its Git blob: raw-worktree/evidence/raw.txt
+
+
+----------------------------------------------------------------------
+Ran 14 tests in 13.347s
+
+FAILED (failures=14)
+exit=1 elapsed=13.7s
+
+# commands 1, nonzero exits 1
+# finished 2026-09-26T17:30:05Z

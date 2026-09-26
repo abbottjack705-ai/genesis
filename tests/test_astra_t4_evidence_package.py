@@ -47,6 +47,9 @@ class AstraT4EvidencePackageTests(unittest.TestCase):
         (repo / "DECISIONS").mkdir()
         (repo / "source").mkdir()
         (repo / "evidence").mkdir()
+        # T6 F-4: raw evidence must equal its Git blob, so the CRLF transcript
+        # is stored without end-of-line conversion, as the repository does.
+        (repo / ".gitattributes").write_bytes(b"evidence/** -text\n")
         adr = repo / "DECISIONS" / "ADR.md"
         source = repo / "source" / "program.py"
         transcript = repo / "evidence" / "raw.txt"
@@ -128,9 +131,10 @@ class AstraT4EvidencePackageTests(unittest.TestCase):
                     "historical_raw_artifact_bytes",
                 )
                 self.assertEqual(packaged.read(historical_path), fixture["historical"].read_bytes())
+                # T6 F-4: Git-backed raw bytes equal their blob, unnormalized.
                 git_raw = packaged.read("git-blobs/evidence/raw.txt")
-                self.assertNotEqual(git_raw, packaged.read(raw_path))
-                self.assertEqual(git_raw.replace(b"\r\n", b"\n"), packaged.read(raw_path).replace(b"\r\n", b"\n"))
+                self.assertEqual(git_raw, packaged.read(raw_path))
+                self.assertIn(b"\r\n", packaged.read(raw_path))
 
     def test_fresh_extraction_verifies_without_repository(self) -> None:
         with scratch_directory() as root:

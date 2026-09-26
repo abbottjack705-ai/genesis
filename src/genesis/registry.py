@@ -108,10 +108,9 @@ class AppendOnlyJsonl:
                 return None
             if not isinstance(record, dict) or "record_hash" in record or "previous_hash" in record:
                 raise RegistryConflict("record payload contains reserved hash-chain fields")
-            previous = records[-1]["record_hash"] if records else "0" * 64
-            body = {"previous_hash": previous, "sequence": len(records) + 1, **record}
-            record_hash = sha256_bytes(canonical_json(body))
-            line = canonical_json({**body, "record_hash": record_hash})
+            chained = self.chained(records, record)
+            record_hash = chained["record_hash"]
+            line = canonical_json(chained)
             with self.path.open("ab") as handle:
                 handle.write(line)
                 handle.flush()
@@ -128,6 +127,16 @@ class AppendOnlyJsonl:
             for coordinator_path in reversed(coordinator_paths):
                 if coordinator_path in connections:
                     connections[coordinator_path].close()
+
+    @staticmethod
+    def chained(
+        records: tuple[dict[str, Any], ...] | list[dict[str, Any]], record: dict[str, Any],
+    ) -> dict[str, Any]:
+        """The exact row ``transaction`` appends after ``records``, chain fields included."""
+
+        previous = records[-1]["record_hash"] if records else "0" * 64
+        body = {"previous_hash": previous, "sequence": len(records) + 1, **record}
+        return {**body, "record_hash": sha256_bytes(canonical_json(body))}
 
     def append(self, record: dict[str, Any]) -> str:
         result = self.transaction(lambda _records: record)

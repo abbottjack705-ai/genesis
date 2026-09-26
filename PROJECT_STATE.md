@@ -1,6 +1,6 @@
 # Project Genesis state
 
-Updated: 2026-09-25
+Updated: 2026-09-26
 
 ## Current milestone
 
@@ -13,10 +13,13 @@ over sealed T1 commit `d130c21668b769c371cfa4a4a75c3f382af1af71`; the
 resulting sealed T2 commit is `4214f38886d5046f76a3fa8002889f02a701187f`.
 T3 locally repairs B4/B5 over that exact T2 base; its pre-seal full suite is
 288/288 green. T4 locally repairs B8's evidence representation over sealed T3;
-the complete pre-seal suite is 297/297 green. All B1–B8 findings now have local
-repair checkpoints, but T1–T4 still require integrated hostile review. The
-original R0–R10 and S1–S5 histories and all failed reproduction evidence are
-preserved.
+the complete pre-seal suite is 297/297 green. The independent hostile re-audit
+of T1–T4 at `ac6b66b` then returned **HOLD / adapter NO-GO** with N1 (HIGH),
+N2 (MEDIUM), N3 (LOW) and observations O-1/O-2/O-3/O-5. The T5 candidate locally
+repairs all of them (plus H1 and PA-1, found in T5's own hostile review) over
+sealed T4 through three WIP resume commits and one candidate commit. T1–T5
+still require integrated hostile review. The original R0–R10, S1–S5 and T1–T4
+histories and all failed reproduction evidence are preserved.
 
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
 read-only sport/source adapter** until an independent audit finds no unresolved
@@ -360,6 +363,36 @@ Detailed traceability and results are under `remediation_evidence/R0` through
   No adapter, strategy, shadow research, protected campaign or live-money GO is
   granted.
 
+## T5 verification (local N1/N2/N3/O-5/package candidate)
+
+- T5 begins at sealed T4 `ac6b66be9dc119a75a0dfb772890cfd2c3919c52`; WIP resume
+  commits `220c4d0`, `582459b` and `42e46c7` are kept unmodified, and the
+  candidate is one further commit. `T5_AUTHORITY_MEMO.md` classifies every
+  change as A or B; none needs a new ADR version.
+- N1/PA-1 (WIP): hashed-program closure, restricted execution, origin guard,
+  runtime audit hook, post-execution state checks, one digest per research
+  worker and nonce-authenticated canonical IPC. The Windows / CPython 3.12.10
+  rerun found an intermittent research timeout caused by the worker's
+  per-function path resolution; a RED-first per-scan cache removed it without
+  changing what the scan accepts. All 71 protected/retained tests pass there.
+- N2: a sidecar owner manifest binds one owner per kind to each risk log by
+  lock-equivalent relative location; admission, consumption, send, proof,
+  attach, release and rebase refuse split, copied or swapped owners, while
+  reopened, equivalent-path, restarted and relocated owners still work. H1
+  adds a write-once claim so the bankroll, qualification log and output store
+  serve exactly one risk log.
+- N3: each risk append replays the exact new row before it is written. O-5: a
+  V3 qualification needs its exact unrevoked prior grant at record time.
+  O-1/O-2/O-3: package schema v2 with raw-root completeness, canonical manifest
+  bytes and commit/raw-root/historical pins.
+- Baseline at `42e46c7` on Windows: 351 tests, 24 failures, 0 errors — exactly
+  the N2/N3/O-5/package RED inventory. The T5 hostile suite was RED on the WIP
+  for H1 and is RED on sealed T4 for H1/H2/H4/H5/H6. Final gates are in
+  `remediation_evidence/T5/GREEN_FINAL.md`.
+- This is local closure only; the external package is generated from the
+  candidate commit. No adapter, strategy, shadow research, protected campaign
+  or live-money GO is granted.
+
 ## Compatibility and migration state
 
 Legacy records remain readable only where an explicit deterministic migration is
@@ -373,8 +406,12 @@ settlement, or quota intent is inferred.
 - The independent R10 hostile audit occurred and returned HOLD. A fresh
   A-finding re-audit occurred after S5 and returned HOLD with B1–B8. T1 locally
   repairs B1/B2/B3/B7, T2 locally repairs B6, T3 locally repairs B4/B5 and T4
-  locally repairs B8. None of these checkpoints has received integrated hostile
-  approval.
+  locally repairs B8. The T1–T4 hostile re-audit returned HOLD with N1–N3, which
+  the T5 candidate repairs locally. None of these checkpoints has received
+  integrated hostile approval.
+- T5 owner binding is trust-on-first-use per owner kind; a deliberate fork of a
+  whole deployment, or of content into separate stores, is outside what local
+  binding can detect.
 - The OddsPapi 250-call ceiling is a planning assumption, not verified provider
   evidence; no provider integration exists.
 - S5 establishes the local test-harness research/evaluator process boundary,
@@ -387,7 +424,8 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Seal T4 independently, generate and freshly verify its byte-explicit external
-package, then submit the exact T1–T4 composition for a new hostile audit.
+Build and freshly verify the byte-explicit package of the exact T5 candidate
+commit, then submit the complete T1–T5 composition for a new independent
+hostile audit.
 Explicit audit/checkpoint approval remains mandatory before any adapter or later
 Genesis phase.

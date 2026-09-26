@@ -435,16 +435,34 @@ class _InterpreterBaseline:
 
         gc.unfreeze()
         gc.collect()
+        # One resolution and root classification per distinct source path per
+        # scan. No research code runs during the scan, so equal path strings
+        # classify equally; doing both per live function (thousands) made each
+        # scan cost most of a second on Windows and pushed trivial requests past
+        # the fixed research timeout under load.
+        unbound: dict[str, bool] = {}
+
+        def unbound_origin(value: object) -> bool:
+            if not isinstance(value, str):
+                return False
+            if value not in unbound:
+                origin = _real_path(value)
+                unbound[value] = (
+                    origin is not None and _inside(origin, self.roots)
+                    and origin != program_path
+                )
+            return unbound[value]
+
         for item in gc.get_objects():
             if isinstance(item, FutureOutcomeLabel):
                 raise ResearchProcessContaminated("raw label present in research process")
             if isinstance(item, FunctionType):
-                origin = _real_path(item.__code__.co_filename)
+                source = item.__code__.co_filename
             elif isinstance(item, ModuleType):
-                origin = _real_path(vars(item).get("__file__"))
+                source = vars(item).get("__file__")
             else:
                 continue
-            if origin is not None and _inside(origin, self.roots) and origin != program_path:
+            if unbound_origin(source):
                 raise ResearchProcessContaminated("unbound research code is live")
         for name, module in self.modules.items():
             if sys.modules.get(name) is not module:

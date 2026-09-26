@@ -96,6 +96,16 @@ class OfflinePaperReleaseProofStore:
             ledger.log,
         )
         self._proofs(tuple(self.log.records()))
+        # N2: one proof log and settlement ledger per risk authority. Issuance,
+        # attachment and release refuse any other proof, ledger or order owner.
+        risk.register_owners({
+            "release_proof": self.log.path,
+            "ledger": ledger.log.path,
+            "order": execution._audit.path,
+        }, anchors=("order",))
+
+    def _issue_read_locks(self) -> tuple[AppendOnlyJsonl, ...]:
+        return (*self.authority_logs, self.risk.owner_binding.log)
 
     @staticmethod
     def _proofs(rows: tuple[dict[str, Any], ...]) -> dict[str, dict[str, Any]]:
@@ -671,6 +681,7 @@ class OfflinePaperReleaseProofStore:
         result: dict[str, str] = {}
 
         def build(proof_rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
+            self.risk.require_bound_owners(release_proofs=self)
             existing = self._proofs(proof_rows).get(order_id)
             risk_rows = tuple(self.risk.audit_log.log.records())
             qualification_rows = tuple(self.risk.qualifications.log.records())
@@ -713,7 +724,7 @@ class OfflinePaperReleaseProofStore:
             payload["proof_id"] = sha256_bytes(canonical_json(payload))
             return payload
 
-        appended = self.log.transaction(build, read_locks=self.authority_logs)
+        appended = self.log.transaction(build, read_locks=self._issue_read_locks())
         if appended is not None:
             return appended
         return result["proof_record_hash"]
@@ -727,6 +738,7 @@ class OfflinePaperReleaseProofStore:
         result: dict[str, str] = {}
 
         def build(proof_rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
+            self.risk.require_bound_owners(release_proofs=self)
             existing = self._proofs(proof_rows).get(f"approval:{approval_id}")
             risk_rows = tuple(self.risk.audit_log.log.records())
             qualification_rows = tuple(self.risk.qualifications.log.records())
@@ -755,7 +767,7 @@ class OfflinePaperReleaseProofStore:
             payload["proof_id"] = sha256_bytes(canonical_json(payload))
             return payload
 
-        appended = self.log.transaction(build, read_locks=self.authority_logs)
+        appended = self.log.transaction(build, read_locks=self._issue_read_locks())
         if appended is not None:
             return appended
         return result["proof_record_hash"]

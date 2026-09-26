@@ -1,0 +1,30 @@
+# N1 research run() latency A/B on Windows-11-10.0.26200-SP0 python 3.12.10, 8 CPUs, 2026-09-26T12:24:31Z
+# old = protected_research_worker.py at 42e46c7 (per-function realpath); new = per-scan memoized realpath
+== ab_old, unloaded (10 runs)
+run() seconds: min=2.05 median=2.53 max=2.58
+== ab_old, under 8 busy CPU processes (10 runs)
+run  0 launch=  3.35s run=  7.36s result=0.01
+run  1 launch=  2.98s run=  7.26s result=0.01
+run  2 launch=  3.32s run=  7.42s result=0.01
+run  3 launch=  3.34s run=  8.07s result=0.01
+run  4 launch=  3.52s run=  8.04s result=0.01
+run  5 launch=  3.17s run=  7.52s result=0.01
+run  6 launch=  3.26s run=  7.54s result=0.01
+run  7 launch=  3.75s run=  6.95s result=0.01
+run  8 launch=  0.53s run=  2.44s result=0.01
+run  9 launch=  0.54s run=  2.15s result=0.01
+run() seconds: min=2.15 median=7.42 max=8.07
+== m55, unloaded (10 runs)
+run() seconds: min=0.80 median=0.84 max=0.96
+== m55, under 8 busy CPU processes (10 runs)
+run  0 launch=  3.92s run=  3.05s result=0.01
+run  1 launch=  2.76s run=  3.16s result=0.01
+run  2 launch=  3.98s run=  3.18s result=0.01
+run  3 launch=  3.24s run=  3.11s result=0.01
+run  4 launch=  2.65s run=  3.16s result=0.01
+run  5 launch=  2.88s run=  3.13s result=0.01
+run  6 launch=  2.91s run=  3.15s result=0.01
+run  7 launch=  3.37s run=  3.10s result=0.01
+run  8 launch=  3.97s run=  3.05s result=0.01
+run  9 launch=  3.08s run=  3.20s result=0.01
+run() seconds: min=3.05 median=3.15 max=3.20

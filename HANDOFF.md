@@ -1,7 +1,7 @@
 # Project Genesis V0.4 remediation handoff
 
-Date: 2026-09-25
-Status: **Post-S5 Astra HOLD; T1–T4 locally repair B1–B8; integrated hostile re-audit pending; adapter NO-GO**
+Date: 2026-09-26
+Status: **T1–T4 hostile re-audit HOLD (N1–N3); T5 candidate locally repairs N1/N2/N3, O-5 and O-1/O-2/O-3; independent re-audit pending; adapter NO-GO**
 
 ## S1 continuation notice
 
@@ -167,10 +167,55 @@ The final integrated package is intentionally generated only after the T4
 commit exists, so the commit can be its exact target without self-reference.
 T4 local green is not hostile approval and grants no GO.
 
+## T5 N1/N2/N3/O-5/package checkpoint (candidate)
+
+The independent hostile re-audit of T4 (`ac6b66b`) returned **foundation HOLD /
+adapter NO-GO**: N1 (HIGH) protected-research closure bypass, N2 (MEDIUM)
+unbound composed-owner identity, N3 (LOW) replay-bricking exposure collision,
+and observations O-1/O-2/O-3/O-5. T5 closes them over sealed T4 through three
+unmodified WIP resume commits (`220c4d0`, `582459b`, `42e46c7`) plus one
+candidate commit. Classification and construction are in
+`remediation_evidence/T5/T5_AUTHORITY_MEMO.md`; exact gates are in
+`remediation_evidence/T5/GREEN_FINAL.md`.
+
+- **N1 / PA-1** (WIP): statically audited, restricted, origin-guarded and
+  audit-hooked research execution; import roots only locate the one hashed
+  module; one research worker per client bound to the first program digest;
+  nonce-authenticated canonical research IPC. ADR-0003 v1 identity and topology
+  are unchanged. The rerun on the target Windows / CPython 3.12.10 found that
+  the worker's clean-process scan resolved every live function's source path,
+  so under load a trivial request neared the 10 s research timeout (failing
+  closed and consuming an attempt). The scan now resolves and classifies each
+  path once: median `run()` fell from 2.16 s to 0.15 s unloaded, and the
+  lifecycle sequence under eight busy CPU processes went from 11/12 failures to
+  0/12.
+- **N2**: `owner_binding.py` binds one owner per authority kind to each risk
+  log in a sidecar `<risk log>.owners.jsonl`, by lock-equivalent relative
+  location. Admission, consumption, submission, proof issuance, attachment,
+  release and rebase refuse any other owner; reopened, equivalent-path,
+  restarted and relocated owners still work.
+- **H1** (new, found in T5 hostile pre-audit): a second risk log could reuse
+  the same qualification/bankroll and approve the same candidate again. Capacity
+  and lineage owners now carry a write-once claim naming their one risk log.
+- **N3**: every risk append replays the exact new row with the verified history
+  before any byte is written; collisions are refused, never committed.
+- **O-5**: a V3 qualification is recorded only while its exact unrevoked prior
+  grant exists, checked under the binding/approval ledger locks.
+- **O-1/O-2/O-3**: package schema v2 declares raw roots, rejects duplicate keys
+  and non-canonical manifests, detects omitted raw members, and verifies
+  `--expect-commit`, `--require-raw-root` and `--require-historical` pins.
+
+Two retained tests now seed, byte for byte, the hash-chain-valid rows that the
+pre-T5 API wrote, because N3/O-5 refuse the API calls they used; every assertion
+is unchanged and neutrality is proven on sealed T4. The T5 integrated package is
+generated only after the candidate commit exists. T5 local green is not hostile
+approval and grants no GO.
+
 ## Review decision requested
 
-Verify the sealed T4 commit/tree, external package/sidecar and fresh-extraction
-report, then hostile-test the complete T1–T4 composition. Do not approve later
+Verify the T5 candidate commit/tree/parent chain back to T4, the external
+package with out-of-band hash and pins, then hostile-test the complete T1–T5
+composition, including the residual limits in the T5 memo. Do not approve later
 strategy, provider, cloud, venue or live work through these local results.
 Until hostile re-audit and explicit checkpoint approval are complete, the
 adapter decision remains NO-GO.
@@ -245,7 +290,10 @@ Read in this order:
    and `GREEN_FINAL.md`;
 9. `remediation_evidence/T4/T4_B8_AUTHORITY_MEMO.md`, both RED transcripts,
    package-tool tests and `GREEN_FINAL.md`;
-10. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle.
+10. `T5_RESUME_HANDOFF.md` (WIP history), then
+    `remediation_evidence/T5/T5_AUTHORITY_MEMO.md`, the `N1_*` and `T5_*`
+    transcripts and `GREEN_FINAL.md`;
+11. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle.
 
 Re-run:
 
@@ -282,8 +330,8 @@ canary was implemented or run. The objective and V0.4 risk laws were not changed
 These are deliberately unresolved external or later-phase facts, not hidden
 implementation claims:
 
-1. Does fresh hostile review approve the complete T1/T2/T3/T4 composition and
-   its exact byte-representation package with no unresolved CRITICAL/HIGH issue?
+1. Does fresh hostile review approve the complete T1–T5 composition and its
+   exact byte-representation package with no unresolved CRITICAL/HIGH issue?
 2. Which real provider/source can prove entitlement, PIT availability, revisions
    and current quota terms? The 250 OddsPapi allowance is unverified.
 3. What separately reviewed deployment boundary will host real protected labels?
@@ -297,5 +345,6 @@ implementation claims:
 The original R10 handoff stopped for its independent audit. That audit returned
 HOLD; S1–S5 locally addressed A1–A8, and the post-S5 audit returned HOLD with
 B1–B8. T1 addresses B1/B2/B3/B7, T2 addresses B6, T3 addresses B4/B5 and T4
-addresses B8 locally. Integrated hostile approval is still absent. No next
-Genesis product phase is authorized.
+addresses B8 locally. The T1–T4 hostile re-audit returned HOLD with N1–N3; the
+T5 candidate addresses N1–N3 and O-1/O-2/O-3/O-5 locally. Integrated hostile
+approval is still absent. No next Genesis product phase is authorized.

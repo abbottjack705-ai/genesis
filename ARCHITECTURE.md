@@ -1,6 +1,6 @@
 # Project Genesis architecture
 
-## Audit disposition (2026-09-25)
+## Audit disposition (2026-09-26)
 
 Astra's independent audit of R10 commit `166f923` returned **HOLD / NOT
 APPROVED**. S1 locally closed A1/A2; S2a/S2b locally closed A3/A7; S3a
@@ -14,9 +14,11 @@ circular approval construction without changing the approved binding preimage.
 T3 locally repairs B4/B5's protected-program executable-integrity and reachable-
 state defects under unchanged ADR-0003 v1 identity and topology. T4 locally
 repairs B8's package-representation defect without changing historical bytes.
-All B1–B8 findings now have local repair checkpoints, but T1–T4 still require
-integrated hostile review. This diagram is a foundation map, not an adapter,
-shadow-research, protected-campaign or live-money GO.
+All B1–B8 findings now have local repair checkpoints. The independent hostile
+re-audit of T1–T4 returned HOLD with N1–N3; the T5 candidate locally repairs
+N1–N3 and O-1/O-2/O-3/O-5, and T1–T5 still require integrated hostile review.
+This diagram is a foundation map, not an adapter, shadow-research,
+protected-campaign or live-money GO.
 
 ## Remediated V0.4 foundation flow
 
@@ -101,6 +103,19 @@ both against Git and after fresh extraction. Verification can require caller-
 pinned authorities, rejects undeclared manifest fields, and takes raw worktree
 evidence only from Git-tracked paths. The old S5 archive and mismatches
 remain immutable evidence rather than being normalized or replaced.
+T5 closes the protected-research import/builtins bypass (N1): the one hashed
+module is statically audited and executed with restricted builtins, an origin
+guard and a runtime audit hook; import roots only locate that module; each
+research worker is bound to one program digest; research IPC is
+nonce-authenticated canonical JSON; and the post-execution clean-process scan
+resolves and classifies each source path once, so its cost does not grow with
+the number of live functions. T5 binds every risk-composed owner to one
+authority (N2): a sidecar `<risk log>.owners.jsonl` records one lock-equivalent
+relative owner per kind, and capacity/lineage owners carry a write-once claim
+naming their single risk log. Every risk append replays its exact new row before
+writing (N3); a V3 qualification requires its prior human grant at record time
+(O-5); and audit packages (schema v2) declare raw roots and verify caller pins
+for commit, raw roots and historical artifacts (O-1/O-2/O-3).
 Recovery must not silently heal, truncate, choose a branch, or infer missing
 identity.
 
@@ -242,6 +257,8 @@ SettlementLedger
   replay and kill control.
 - `release_proof.py`: exact PAPER order/fill/settlement proof ownership,
   including the separate legacy-v2 audit-settlement-only proof schema.
+- `owner_binding.py`: durable one-owner-per-kind binding of a risk authority
+  and write-once exclusive claims of its capacity/lineage owners.
 - `ledger.py`, `accounting.py`: authoritative fills, settlement lineages and
   deterministic Decimal payoff primitives.
 - `quota.py`, `config/oddspapi_quota_policy_v2.json`: digest-pinned approved A
@@ -254,8 +271,10 @@ SettlementLedger
 - `candidate_runs.py`, `coverage.py`, `selection_evaluation.py`: complete
   candidate retention, non-quota search telemetry and aggregate evaluation.
 - `tools/genesis_audit_package.py`: audit-only exact-Git/raw/historical package
-  construction, closed representation manifests, fresh extraction and optional
-  Git-object verification. It is not a runtime or product path.
+  construction, closed canonical v2 manifests with declared raw roots, fresh
+  extraction, optional Git-object verification and caller pins for authorities,
+  commit, raw roots and historical artifacts. It is not a runtime or product
+  path.
 
 ## Legacy and deferred boundaries
 

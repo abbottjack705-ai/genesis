@@ -342,13 +342,43 @@ class QualificationRecordStore:
                 and row.get("qualification_record_id") == record.qualification_record_id
             ]
             if not matches:
+                if record.schema_version == "qualification-record-v3":
+                    self._require_prior_grant(record)
                 return payload
             if all(item == record for item in matches):
                 return None
             raise RegistryConflict("qualification record ID conflict")
 
-        self.log.transaction(build, read_locks=read_locks)
+        # The binding and approval ledgers are fenced with the append, so the
+        # grant checked here is the grant that exists when the record exists.
+        self.log.transaction(
+            build, read_locks=(*read_locks, self.bindings.log, self.approvals.log),
+        )
         return record
+
+    def _require_prior_grant(self, record: QualificationRecord) -> None:
+        """O-5: a V3 record needs its exact unrevoked human grant to exist first.
+
+        A grant appended later, even with a backdated ``approved_at``, can then
+        never be the grant that admits this qualification to new risk.
+        """
+
+        try:
+            assert record.decision_output_hash is not None
+            output = self.outputs.get(record.decision_output_hash)
+            binding_hash = output["resolver_binding_hash"]
+            binding = self.bindings.require_active(binding_hash, record.decision_at)
+            self._require_separate_approval(
+                binding["human_approval_reference"],
+                binding_hash=binding_hash,
+                decision_at=record.decision_at,
+            )
+        except RegistryConflict:
+            raise
+        except Exception as exc:
+            raise RegistryConflict(
+                "V3 qualification has no exact prior human approval grant"
+            ) from exc
 
     def get(self, record_id: str) -> QualificationRecord:
         matches = [

@@ -28,6 +28,15 @@ Do not restart the analysis or re-plan from scratch. Resume from section
 > mutation. See **§8**. N2/N3/O-5/package REDs remain unchanged. This is still
 > NOT the T5 candidate.
 
+> **Update 2026-09-26 (T5 candidate, on top of `42e46c7`).** N2, N3, O-5 and
+> O-1/O-2/O-3 are implemented, plus H1 (a second risk log reusing the same
+> qualification/bankroll), found during T5's hostile pre-audit. The protected/N1
+> suites were rerun green on the target Windows / CPython 3.12.10. The current
+> state is `remediation_evidence/T5/T5_AUTHORITY_MEMO.md` and
+> `remediation_evidence/T5/GREEN_FINAL.md`; everything below is WIP history.
+> The candidate is ready for independent hostile review only; foundation HOLD /
+> adapter NO-GO stands until that review decides otherwise.
+
 ---
 
 ## 1. Exact repository identity

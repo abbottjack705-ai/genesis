@@ -211,9 +211,14 @@ class AstraB1DependenceTests(unittest.TestCase):
                 evidence_pack_hash=output["evidence_pack_hash"],
                 decision_output_hash=changed_hash,
             )
-            binding["qualification"] = binding["qualifications"].append(
-                QualificationRecord.create(**fields)
+            # T5/O-5 refuses to record a V3 qualification whose binding (and so
+            # its prior human grant) does not exist. Seed the byte-identical row
+            # the pre-T5 API appended so risk admission is still exercised.
+            record = QualificationRecord.create(**fields)
+            binding["qualifications"].log.append(
+                {"record_type": "qualification_record", **record.to_dict()}
             )
+            binding["qualification"] = record
             binding["candidate_hash"] = fields["candidate_decision_hash"]
             self.assertFalse(binding["engine"].approve(request(binding)).passed)
             self.assertEqual(binding["engine"].reserved_exposures(), ())

@@ -1,0 +1,56 @@
+# N1 research latency A/B on Windows-11-10.0.26200-SP0 python 3.12.10, 8 CPUs, 2026-09-26T12:56:36Z
+# old = protected_research_worker.py at 42e46c7 (per-function realpath and root check)
+# new = T5 candidate worker (per-scan cached resolution and root classification)
+49f25a1653e5ad81608dabb41f98d9be0d8e806152f29dae14738c871d8f0295 */c/Users/abbot/t5/ab_old/src/genesis/protected_research_worker.py
+797e1703e582fafc3c357b8a574c42e7e26688c49f00d0a96b8ac5b8cc839fdf */c/Users/abbot/t5/m55/src/genesis/protected_research_worker.py
+# probe: n1_latency.py = fresh client, one signal_program run (R9 fixture); lifecycle_probe.py = the retained lifecycle sequence signal/half/signal in one client
+== ab_old n1_latency unloaded (10 runs)
+run() seconds: min=2.05 median=2.16 max=2.21
+== ab_old lifecycle sequence under 8 busy CPU processes (12 iterations)
+iter  0 BAD  signal-1:0.01@7.81 | half:FAIL@0.00 ctx=None alive=True | signal-2:FAIL@10.11 ctx=ProtectedEvaluationError('protected research unavailable') alive=False
+iter  1 BAD  signal-1:0.01@7.71 | half:FAIL@0.00 ctx=None alive=True | signal-2:FAIL@10.14 ctx=ProtectedEvaluationError('protected research unavailable') alive=False
+iter  2 BAD  signal-1:0.01@7.78 | half:FAIL@0.00 ctx=None alive=True | signal-2:FAIL@10.11 ctx=ProtectedEvaluationError('protected research unavailable') alive=False
+iter  3 BAD  signal-1:FAIL@10.38 ctx=ProtectedEvaluationError('protected research unavailable') alive=False | half:FAIL@0.00 ctx=None alive=False | signal-2:FAIL@0.32 ctx=ProtectedEvaluationError('protected research unavailable') alive=False
+iter  4 ok   signal-1:0.01@5.57 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@9.60
+iter  5 BAD  signal-1:0.01@7.21 | half:FAIL@0.00 ctx=None alive=True | signal-2:FAIL@10.15 ctx=ProtectedEvaluationError('protected research unavailable') alive=False
+iter  6 BAD  signal-1:0.01@7.40 | half:FAIL@0.00 ctx=None alive=True | signal-2:FAIL@10.11 ctx=ProtectedEvaluationError('protected research unavailable') alive=False
+iter  7 BAD  signal-1:FAIL@10.08 ctx=ProtectedEvaluationError('protected research unavailable') alive=False | half:FAIL@0.00 ctx=None alive=False | signal-2:FAIL@0.09 ctx=ProtectedEvaluationError('protected research unavailable') alive=False
+iter  8 BAD  signal-1:0.01@7.93 | half:FAIL@0.00 ctx=None alive=True | signal-2:FAIL@10.10 ctx=ProtectedEvaluationError('protected research unavailable') alive=False
+iter  9 BAD  signal-1:0.01@7.67 | half:FAIL@0.00 ctx=None alive=True | signal-2:FAIL@10.11 ctx=ProtectedEvaluationError('protected research unavailable') alive=False
+iter 10 BAD  signal-1:0.01@7.84 | half:FAIL@0.00 ctx=None alive=True | signal-2:FAIL@10.10 ctx=ProtectedEvaluationError('protected research unavailable') alive=False
+iter 11 BAD  signal-1:0.01@7.40 | half:FAIL@0.00 ctx=None alive=True | signal-2:FAIL@10.11 ctx=ProtectedEvaluationError('protected research unavailable') alive=False
+bad=11/12
+== ab_old lifecycle sequence under 16 busy CPU processes (12 iterations)
+iter  0 BAD  signal-1:FAIL@10.73 ctx=ProtectedEvaluationError('protected research unavailable') alive=False | half:FAIL@0.00 ctx=None alive=False | signal-2:FAIL@0.33 ctx=ProtectedEvaluationError('protected research unavailable') alive=False
+    n = int(sys.argv[1]); bad = sum(once(i) for i in range(n)); print(f"bad={bad}/{n}")
+    n = int(sys.argv[1]); bad = sum(once(i) for i in range(n)); print(f"bad={bad}/{n}")
+== m55 n1_latency unloaded (10 runs)
+run() seconds: min=0.14 median=0.15 max=0.16
+== m55 lifecycle sequence under 8 busy CPU processes (12 iterations)
+iter  0 ok   signal-1:0.01@0.51 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@0.61
+iter  1 ok   signal-1:0.01@0.48 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@0.67
+iter  2 ok   signal-1:0.01@0.45 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@0.72
+iter  3 ok   signal-1:0.01@0.47 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@0.72
+iter  4 ok   signal-1:0.01@0.49 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@0.63
+iter  5 ok   signal-1:0.01@0.45 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@0.64
+iter  6 ok   signal-1:0.01@0.44 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@0.63
+iter  7 ok   signal-1:0.01@0.44 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@0.63
+iter  8 ok   signal-1:0.01@0.52 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@0.69
+iter  9 ok   signal-1:0.01@0.47 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@0.65
+iter 10 ok   signal-1:0.01@0.49 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@0.63
+iter 11 ok   signal-1:0.01@0.45 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@0.62
+bad=0/12
+== m55 lifecycle sequence under 16 busy CPU processes (12 iterations)
+iter  0 ok   signal-1:0.01@1.12 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@1.79
+iter  1 ok   signal-1:0.01@1.05 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@1.51
+iter  2 ok   signal-1:0.01@1.06 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@1.57
+iter  3 ok   signal-1:0.01@1.01 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@2.03
+iter  4 ok   signal-1:0.01@1.05 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@1.57
+iter  5 ok   signal-1:0.01@1.07 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@1.60
+iter  6 ok   signal-1:0.01@1.31 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@1.59
+iter  7 ok   signal-1:0.01@1.04 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@1.69
+iter  8 ok   signal-1:0.01@0.95 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@1.97
+iter  9 ok   signal-1:0.01@1.12 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@2.16
+iter 10 ok   signal-1:0.01@1.11 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@1.74
+iter 11 ok   signal-1:0.01@1.17 | half:FAIL@0.00 ctx=None alive=True | signal-2:0.01@1.73
+bad=0/12

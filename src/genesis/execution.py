@@ -11,6 +11,7 @@ from typing import Callable, Protocol
 
 from .accounting import BetSide, MatchedFragment, money
 from .config import OperationalMode
+from .owner_binding import log_path
 from .registry import AppendOnlyJsonl, RegistryConflict, StrategyRegistry
 from .repro import canonical_json, sha256_bytes
 from .risk import RiskEngine, SafetyState, SafetyStateStore
@@ -425,6 +426,29 @@ class PaperExecutionAdapter:
                         self._startup_blocked.add(record.order_id)
                 except Exception:
                     pass
+        # N2: one order log (with its market and refresh stores) per risk
+        # authority. A later adapter over another log is refused at action time.
+        self.risk.register_owners({
+            "order": self._audit.path,
+            "market": log_path(self.markets),
+            "refresh": log_path(self.refreshes),
+        }, anchors=("order",))
+
+    def _execution_owner_paths(
+        self,
+        strategy_view: StrategyExecutionReadView | RegistryStrategyExecutionView,
+        mode_states: ModeStateStore | None,
+    ) -> dict[str, Path | None]:
+        return {
+            "order": self._audit.path,
+            "market": log_path(self.markets),
+            "refresh": log_path(self.refreshes),
+            "strategy": (
+                strategy_view.log.path
+                if type(strategy_view) is RegistryStrategyExecutionView else None
+            ),
+            "mode": mode_states.log.path if type(mode_states) is ModeStateStore else None,
+        }
 
     @staticmethod
     def _intent_from_row(row: dict) -> OrderIntent:
@@ -523,6 +547,9 @@ class PaperExecutionAdapter:
 
         def build(rows: tuple[dict, ...]) -> dict | None:
             records = self._replay(rows)
+            self.risk.require_bound_owners(
+                self._execution_owner_paths(self.strategy_view, self.modes)
+            )
             try:
                 approval = self.risk.get_approval(intent.risk_approval_id)
                 qualification = self.risk.qualifications.get_for_new_risk(
@@ -560,6 +587,7 @@ class PaperExecutionAdapter:
                 self.risk.audit_log.log, self.risk.qualifications.log,
                 self.risk.qualifications.bindings.log,
                 self.risk.qualifications.approvals.log,
+                self.risk.owner_binding.log,
             ),
         )
         return result["value"]
@@ -617,6 +645,10 @@ class PaperExecutionAdapter:
         )
         if not all(expected):
             raise RegistryConflict("order intent does not exactly match risk approval")
+        # The consuming order log must be the one bound to this risk authority.
+        self.risk.require_bound_owners(
+            self._execution_owner_paths(self.strategy_view, self.modes)
+        )
         self.risk.consume_for_order(
             approval.approval_id, order_id=record.order_id, consumed_at=bound_at
         )
@@ -727,6 +759,7 @@ class PaperExecutionAdapter:
             self.markets.log,
             self.refreshes.log,
             *self.risk._release_read_locks_for(release_proofs),
+            self.risk.owner_binding.log,
         ) if state in {OrderState.SUBMISSION_PENDING, OrderState.SUBMISSION_SENT} else ()
         if read_locks and type(strategy_view) is RegistryStrategyExecutionView:
             read_locks += (strategy_view.log,)
@@ -792,6 +825,7 @@ class PaperExecutionAdapter:
                 self.risk.qualifications.approvals.log, self.markets.log,
                 self.refreshes.log, strategy_view.log, mode_states.log,
                 *self.risk._release_read_locks_for(release_proofs),
+                self.risk.owner_binding.log,
             ),
         )
         return result["value"]
@@ -815,6 +849,17 @@ class PaperExecutionAdapter:
             != modes.log.coordinator_path.resolve()
         ):
             return RecertificationResult(False, "mode_authority_mismatch")
+        try:
+            # N2: every owner this send reads (order, market, refresh,
+            # strategy, mode and risk's own owners, plus release owners when
+            # release-fenced) must be the risk authority's bound owner.
+            if self.risk.owner_mismatches(
+                self._execution_owner_paths(view, modes),
+                release_proofs=self.risk.release_proofs if release_fenced else None,
+            ):
+                return RecertificationResult(False, "owner_authority_mismatch")
+        except Exception:
+            return RecertificationResult(False, "authority_unavailable")
         try:
             approval = self.risk.get_approval(record.intent.risk_approval_id)
             qualification = self.risk.qualifications.get_for_new_risk(

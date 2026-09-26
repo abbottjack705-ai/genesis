@@ -1,0 +1,18 @@
+# N1 platform rerun: scan-cost test RED on unchanged worker (2026-09-26T12:23:20Z); python 3.12.10 Windows-11-10.0.26200-SP0
+# first probe variant assigned a __main__ global after the baseline and tripped require_clean itself (test setup error, corrected); this is the corrected test
+49f25a1653e5ad81608dabb41f98d9be0d8e806152f29dae14738c871d8f0295 *src/genesis/protected_research_worker.py
+67e165bbe62ccbd1db72e1c1614d69c0a4cbfa32936a030835511ff90ef11b6e *tests/test_astra_t5_worker_scan_cost.py
+test_clean_process_scan_resolves_each_source_path_once (tests.test_astra_t5_worker_scan_cost.T5WorkerScanCostTests.test_clean_process_scan_resolves_each_source_path_once) ... FAIL
+
+======================================================================
+FAIL: test_clean_process_scan_resolves_each_source_path_once (tests.test_astra_t5_worker_scan_cost.T5WorkerScanCostTests.test_clean_process_scan_resolves_each_source_path_once)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\m55\tests\test_astra_t5_worker_scan_cost.py", line 65, in test_clean_process_scan_resolves_each_source_path_once
+    self.assertEqual(
+AssertionError: 2974 != 112 : clean-process scan resolved a source path more than once: {'realpath_calls': 2974, 'distinct_paths': 112, 'live_functions': 3521, 'distinct_source_files': 124}
+
+----------------------------------------------------------------------
+Ran 1 test in 1.914s
+
+FAILED (failures=1)

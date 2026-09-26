@@ -1,0 +1,145 @@
+# T5 hostile pre-audit suite on sealed T4 ac6b66b source (2026-09-26T12:05:15Z); python 3.12.10 Windows-11-10.0.26200-SP0
+# test modules copied in (then removed): tests/test_astra_t5_hostile_preaudit.py and its helper module tests/test_astra_t5_owner_binding.py
+ac6b66be9dc119a75a0dfb772890cfd2c3919c52
+f40f18b623b25b2de1cf54820530aa51803af2daa6bfdf71e6af8a8f9beb7cd4 *tests/test_astra_t5_hostile_preaudit.py
+02c9c9ed076b815fdee2ebb60c9d09f6e78e104e09df54001e58b3ea3579b941 *tests/test_astra_t5_owner_binding.py
+test_h6_prior_grant_in_a_foreign_approval_ledger_cannot_record_a_qualification (tests.test_astra_t5_hostile_preaudit.T5HostileApprovalTests.test_h6_prior_grant_in_a_foreign_approval_ledger_cannot_record_a_qualification) ... FAIL
+test_h1_each_exclusive_owner_alone_refuses_a_second_authority (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h1_each_exclusive_owner_alone_refuses_a_second_authority) ... 
+  test_h1_each_exclusive_owner_alone_refuses_a_second_authority (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h1_each_exclusive_owner_alone_refuses_a_second_authority) (owner='bankroll') ... FAIL
+  test_h1_each_exclusive_owner_alone_refuses_a_second_authority (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h1_each_exclusive_owner_alone_refuses_a_second_authority) (owner='qualification') ... FAIL
+test_h1_one_qualification_and_bankroll_serve_one_risk_authority (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h1_one_qualification_and_bankroll_serve_one_risk_authority) ... FAIL
+test_h1_relocated_or_restarted_single_authority_still_approves (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h1_relocated_or_restarted_single_authority_still_approves) ... ok
+test_h2_swapped_order_log_cannot_create_bind_or_send (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h2_swapped_order_log_cannot_create_bind_or_send) ... FAIL
+test_h2_swapped_release_owner_cannot_release_or_mint_capacity (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h2_swapped_release_owner_cannot_release_or_mint_capacity) ... FAIL
+test_h3_directory_alias_is_the_same_owner_and_file_symlink_is_not (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h3_directory_alias_is_the_same_owner_and_file_symlink_is_not) ... skipped 'this platform cannot create symlinks'
+test_h4_every_risk_append_is_replay_checked (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h4_every_risk_append_is_replay_checked) ... FAIL
+test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) ... 
+  test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) [downgrade] ... ERROR
+  test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) [noncanonical] ... FAIL
+  test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) [source-path] ... FAIL
+  test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) [root-dropped-pinned] ... FAIL
+  test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) [extra-historical-pinned] ... FAIL
+test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) ... FAIL
+
+======================================================================
+ERROR: test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) [downgrade]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 350, in test_h5_package_alternate_representations_and_omissions_fail_closed
+    forged = self.forged(root, archive, f"{label}.zip", change)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 262, in forged
+    change(members)
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 289, in downgrade
+    self.rewrite_manifest(members, lambda m: (
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 275, in rewrite_manifest
+    mutate(manifest)
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 291, in <lambda>
+    m.pop("raw_worktree_roots"),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'raw_worktree_roots'
+
+======================================================================
+FAIL: test_h6_prior_grant_in_a_foreign_approval_ledger_cannot_record_a_qualification (tests.test_astra_t5_hostile_preaudit.T5HostileApprovalTests.test_h6_prior_grant_in_a_foreign_approval_ledger_cannot_record_a_qualification)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 245, in test_h6_prior_grant_in_a_foreign_approval_ledger_cannot_record_a_qualification
+    with self.assertRaises(
+         ^^^^^^^^^^^^^^^^^^
+AssertionError: (<class 'genesis.registry.RegistryConflict'>, <class 'ValueError'>) not raised : H6: a grant outside the store's own approval ledger admitted a qualification
+
+======================================================================
+FAIL: test_h1_each_exclusive_owner_alone_refuses_a_second_authority (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h1_each_exclusive_owner_alone_refuses_a_second_authority) (owner='bankroll')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 98, in test_h1_each_exclusive_owner_alone_refuses_a_second_authority
+    self.assertFalse(
+AssertionError: True is not false : H1: a bankroll owned by another risk authority admitted risk
+
+======================================================================
+FAIL: test_h1_each_exclusive_owner_alone_refuses_a_second_authority (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h1_each_exclusive_owner_alone_refuses_a_second_authority) (owner='qualification')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 98, in test_h1_each_exclusive_owner_alone_refuses_a_second_authority
+    self.assertFalse(
+AssertionError: True is not false : H1: a qualification owned by another risk authority admitted risk
+
+======================================================================
+FAIL: test_h1_one_qualification_and_bankroll_serve_one_risk_authority (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h1_one_qualification_and_bankroll_serve_one_risk_authority)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 64, in test_h1_one_qualification_and_bankroll_serve_one_risk_authority
+    self.assertFalse(
+AssertionError: True is not false : H1: a second risk log approved the same candidate from shared owners
+
+======================================================================
+FAIL: test_h2_swapped_order_log_cannot_create_bind_or_send (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h2_swapped_order_log_cannot_create_bind_or_send)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 145, in test_h2_swapped_order_log_cannot_create_bind_or_send
+    self.assertTrue(refused(lambda: adapter.create_intent(f["intent"])))
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_h2_swapped_release_owner_cannot_release_or_mint_capacity (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h2_swapped_release_owner_cannot_release_or_mint_capacity)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 134, in test_h2_swapped_release_owner_cannot_release_or_mint_capacity
+    self.assertTrue(refused(engine.reserved_exposures))
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_h4_every_risk_append_is_replay_checked (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h4_every_risk_append_is_replay_checked)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 214, in test_h4_every_risk_append_is_replay_checked
+    self.assertIn(before + 1, calls, "H4: approval append was not replay-checked")
+AssertionError: 2 not found in [1] : H4: approval append was not replay-checked
+
+======================================================================
+FAIL: test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) [noncanonical]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 352, in test_h5_package_alternate_representations_and_omissions_fail_closed
+    self.assertNotEqual(denied.returncode, 0, f"H5 {label}: {denied.stdout}")
+AssertionError: 0 == 0 : H5 noncanonical: {"archive": "C:\\Users\\abbot\\t5\\t4n\\work\\test_runtime\\760945600ee24703b4de8605eae22190\\noncanonical.zip", "authorities_pinned": false, "bytes": 5543, "fresh_extraction_verified": false, "git_cross_check": false, "manifest_sha256": "f0748a0f3288fef8b913bf98e505ad3653c3352781e926a62cff5e658e8babc1", "members": 5, "sha256": "ca68dd8c1edde1a69b9315860954171141dd5edd595b607e138d6683100c05e6", "sidecar_verified": true, "source_files": 3, "target_commit": "567d63ba1dc26cef869ea7b49649734b2d8b3f10", "target_tree": "55e2153f97d9ef84637542ced1539566cbd3dbea"}
+
+
+======================================================================
+FAIL: test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) [source-path]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 352, in test_h5_package_alternate_representations_and_omissions_fail_closed
+    self.assertNotEqual(denied.returncode, 0, f"H5 {label}: {denied.stdout}")
+AssertionError: 0 == 0 : H5 source-path: {"archive": "C:\\Users\\abbot\\t5\\t4n\\work\\test_runtime\\760945600ee24703b4de8605eae22190\\source-path.zip", "authorities_pinned": false, "bytes": 5028, "fresh_extraction_verified": false, "git_cross_check": false, "manifest_sha256": "1980e135580deb70a0455ec7cff4f9239305d38e18670f0ddf142ac6c5fb4b54", "members": 5, "sha256": "fc0a885354cadbeddd43040f145c905c935ab952572657bd4f01bf05fa7c99cc", "sidecar_verified": true, "source_files": 3, "target_commit": "567d63ba1dc26cef869ea7b49649734b2d8b3f10", "target_tree": "55e2153f97d9ef84637542ced1539566cbd3dbea"}
+
+
+======================================================================
+FAIL: test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) [root-dropped-pinned]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 353, in test_h5_package_alternate_representations_and_omissions_fail_closed
+    self.assertIn("audit package rejected", denied.stderr)
+AssertionError: 'audit package rejected' not found in 'usage: genesis_audit_package.py [-h] {build,verify} ...\ngenesis_audit_package.py: error: unrecognized arguments: --require-raw-root evidence --require-historical original-s5.zip=97243368cb7d1d23716eddaf15ecf1b45f3d8acb7b8cf56a1fd356f7fb067c28 --expect-commit 567d63ba1dc26cef869ea7b49649734b2d8b3f10\n'
+
+======================================================================
+FAIL: test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed) [extra-historical-pinned]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 353, in test_h5_package_alternate_representations_and_omissions_fail_closed
+    self.assertIn("audit package rejected", denied.stderr)
+AssertionError: 'audit package rejected' not found in 'usage: genesis_audit_package.py [-h] {build,verify} ...\ngenesis_audit_package.py: error: unrecognized arguments: --require-raw-root evidence --require-historical original-s5.zip=97243368cb7d1d23716eddaf15ecf1b45f3d8acb7b8cf56a1fd356f7fb067c28 --expect-commit 567d63ba1dc26cef869ea7b49649734b2d8b3f10\n'
+
+======================================================================
+FAIL: test_h5_package_alternate_representations_and_omissions_fail_closed (tests.test_astra_t5_hostile_preaudit.T5HostilePackageTests.test_h5_package_alternate_representations_and_omissions_fail_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\t4n\tests\test_astra_t5_hostile_preaudit.py", line 357, in test_h5_package_alternate_representations_and_omissions_fail_closed
+    self.assertEqual(self.t4.verify(dropped).returncode, 0)
+AssertionError: 1 != 0
+
+----------------------------------------------------------------------
+Ran 9 tests in 4.511s
+
+FAILED (failures=12, errors=1, skipped=1)
+t4n dirty files after cleanup: 0

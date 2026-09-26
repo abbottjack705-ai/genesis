@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Callable
 
 from .accounting import BetSide, MatchedFragment, money
 from .decision import candidate_v3_decision_hash
+from .owner_binding import RiskOwnerBinding, log_path
 from .policy import PolicySet, canonical_decimal, parse_tier
 from .registry import AppendOnlyJsonl, RegistryConflict, StrategyRegistry
 from .repro import canonical_json, sha256_bytes
@@ -461,13 +462,79 @@ class RiskEngine:
         if self.modes is not None:
             self.modes.current()
         self._exposures(self.audit_log.log.records())
+        # N2: bind each presented owner kind on first use; every later action
+        # verifies its owners against this durable binding.
+        self.owner_binding = RiskOwnerBinding(self.audit_log.log)
+        self.owner_binding.register(self._risk_owner_paths())
+
+    def _risk_owner_paths(self) -> dict[str, Path | None]:
+        from .execution import ModeStateStore
+
+        qualifications = self.qualifications
+        outputs = getattr(qualifications, "outputs", None)
+        return {
+            "bankroll": log_path(self.bankrolls),
+            "safety": log_path(self.safety),
+            "qualification": log_path(qualifications),
+            "qualification_binding": log_path(getattr(qualifications, "bindings", None)),
+            "qualification_approval": log_path(getattr(qualifications, "approvals", None)),
+            "decision_output": getattr(outputs, "root", None),
+            "strategy": log_path(self.strategies),
+            "mode": self.modes.log.path if type(self.modes) is ModeStateStore else None,
+        }
+
+    @staticmethod
+    def _release_owner_paths(
+        proofs: OfflinePaperReleaseProofStore | None,
+    ) -> dict[str, Path | None]:
+        if proofs is None:
+            return {}
+        return {
+            "release_proof": log_path(proofs),
+            "ledger": log_path(proofs.ledger),
+            "order": proofs.execution._audit.path,
+        }
+
+    def owner_mismatches(
+        self,
+        *owner_sets: dict[str, Path | None],
+        release_proofs: OfflinePaperReleaseProofStore | None = None,
+    ) -> tuple[str, ...]:
+        """Owner kinds an action would use that are not this authority's owners."""
+
+        if release_proofs is not None and release_proofs.risk is not self:
+            return ("release_proof",)
+        return self.owner_binding.mismatches(
+            self._risk_owner_paths(),
+            self._release_owner_paths(release_proofs),
+            *owner_sets,
+        )
+
+    def require_bound_owners(
+        self,
+        *owner_sets: dict[str, Path | None],
+        release_proofs: OfflinePaperReleaseProofStore | None = None,
+    ) -> None:
+        mismatched = self.owner_mismatches(*owner_sets, release_proofs=release_proofs)
+        if mismatched:
+            raise RegistryConflict(
+                f"risk authority owner is not the bound owner: {', '.join(mismatched)}"
+            )
+
+    def register_owners(
+        self, owners: dict[str, Path | None], *, anchors: tuple[str, ...] = (),
+    ) -> None:
+        """First-use binding for owners composed after risk construction."""
+
+        self.owner_binding.register(owners, anchors=anchors)
 
     def attach_release_proofs(self, proofs: OfflinePaperReleaseProofStore) -> None:
         """Install the exact PAPER proof owner after risk/execution construction.
 
         No release can create spendable capacity while this owner is absent.
         An owner may be installed only once, and its risk identity and audit
-        path must match this engine's durable risk log.
+        path must match this engine's durable risk log. Its proof log, ledger
+        and order log must be this authority's bound owners.
         """
         if proofs.risk is not self:
             raise RegistryConflict("release proof owner is mismatched")
@@ -475,6 +542,7 @@ class RiskEngine:
         def bind(rows: tuple[dict, ...]) -> None:
             if self.release_proofs is not None:
                 raise RegistryConflict("release proof owner is already installed")
+            self.require_bound_owners(release_proofs=proofs)
             self.release_proofs = proofs
             try:
                 self._exposures(rows, release_fenced=True)
@@ -485,7 +553,9 @@ class RiskEngine:
 
         try:
             self.audit_log.log.transaction(
-                bind, read_locks=self._release_read_locks_for(proofs),
+                bind, read_locks=(
+                    self.owner_binding.log, *self._release_read_locks_for(proofs),
+                ),
             )
         except BaseException:
             if self.release_proofs is proofs:
@@ -899,6 +969,27 @@ class RiskEngine:
                 )
         return list(latest.values())
 
+    def _replay_checked(
+        self, build: Callable[[tuple[dict, ...]], dict | None],
+    ) -> Callable[[tuple[dict, ...]], dict | None]:
+        """N3: refuse any risk append after which the log would not replay.
+
+        Factual exposures and approval-derived reservations share one identity
+        namespace. The exact row the append would write (chain fields
+        included) is replayed with the verified history, under the same
+        coordinator locks and before any byte is written, so a collision in
+        either order is refused instead of committing a row that permanently
+        bricks admission, consumption, send, release and exposure recording.
+        """
+
+        def checked(rows: tuple[dict, ...]) -> dict | None:
+            record = build(rows)
+            if isinstance(record, dict):
+                self._exposures((*rows, AppendOnlyJsonl.chained(rows, record)))
+            return record
+
+        return checked
+
     def stake_for_units(self, bankroll: str, units: str) -> str:
         return canonical_decimal(self.policy.stake_amount(bankroll, parse_tier(units, policy=self.policy)))
 
@@ -926,13 +1017,14 @@ class RiskEngine:
                 return None
             raise RegistryConflict("risk exposure ID conflict")
 
-        self.audit_log.log.transaction(build)
+        self.audit_log.log.transaction(self._replay_checked(build))
         return exposure
 
     def approve(self, request: RiskRequest) -> RiskDecision:
         decision_holder: dict[str, RiskDecision] = {}
         release_proofs = self.release_proofs
         mode_states = self.modes
+        owner_paths = self._risk_owner_paths()
 
         def build(rows: tuple[dict, ...]) -> dict | None:
             # No mutable authority fact is captured before the coordinator
@@ -943,6 +1035,13 @@ class RiskEngine:
                 raise RegistryConflict("release proof owner changed during risk admission")
             if self.modes is not mode_states:
                 raise RegistryConflict("mode owner changed during risk admission")
+            if self._risk_owner_paths() != owner_paths:
+                raise RegistryConflict("risk owner changed during risk admission")
+            if self.owner_mismatches(release_proofs=release_proofs):
+                decision_holder["value"] = RiskDecision(
+                    False, "owner_authority_mismatch", "0", "0"
+                )
+                return None
             all_exposures = self._exposures(rows, release_fenced=True)
             action_at = iso_utc(self._action_clock(request.requested_at))
             try:
@@ -1057,6 +1156,11 @@ class RiskEngine:
                     False, "duplicate_order_intent", "0", "0"
                 )
                 return None
+            if any(item.exposure_id == approval.approval_id for item in all_exposures):
+                decision_holder["value"] = RiskDecision(
+                    False, "risk_identity_collision", "0", "0"
+                )
+                return None
             open_exposures = [item for item in all_exposures if self._open(item)]
             if any(item.state == ExposureState.UNKNOWN for item in open_exposures):
                 decision_holder["value"] = RiskDecision(
@@ -1096,7 +1200,7 @@ class RiskEngine:
             }
 
         self.audit_log.log.transaction(
-            build,
+            self._replay_checked(build),
             read_locks=(
                 self.bankrolls.log, self.safety.log, self.qualifications.log,
                 self.qualifications.bindings.log,
@@ -1104,6 +1208,7 @@ class RiskEngine:
                 *((self.strategies.log,) if self.strategies is not None else ()),
                 *self._mode_lock_for(mode_states),
                 *self._release_read_locks_for(release_proofs),
+                self.owner_binding.log,
             ),
         )
         return decision_holder["value"]
@@ -1143,12 +1248,16 @@ class RiskEngine:
         result: dict[str, RiskApproval] = {}
         release_proofs = self.release_proofs
         mode_states = self.modes
+        owner_paths = self._risk_owner_paths()
 
         def build(rows: tuple[dict, ...]) -> dict | None:
             if self.release_proofs is not release_proofs:
                 raise RegistryConflict("release proof owner changed during consumption")
             if self.modes is not mode_states:
                 raise RegistryConflict("mode owner changed during consumption")
+            if self._risk_owner_paths() != owner_paths:
+                raise RegistryConflict("risk owner changed during consumption")
+            self.require_bound_owners(release_proofs=release_proofs)
             action_at = iso_utc(self._action_clock(consumed_at))
             self._exposures(rows, release_fenced=True)
             matches = [
@@ -1196,13 +1305,14 @@ class RiskEngine:
             }
 
         self.audit_log.log.transaction(
-            build, read_locks=(
+            self._replay_checked(build), read_locks=(
                 self.qualifications.log, self.qualifications.bindings.log,
                 self.qualifications.approvals.log,
                 self.bankrolls.log, self.safety.log,
                 *((self.strategies.log,) if self.strategies is not None else ()),
                 *self._mode_lock_for(mode_states),
                 *self._release_read_locks_for(release_proofs),
+                self.owner_binding.log,
             ),
         )
         return result["value"]
@@ -1214,6 +1324,9 @@ class RiskEngine:
         def inspect(rows: tuple[dict, ...]) -> None:
             if self.release_proofs is not release_proofs:
                 raise RegistryConflict("release proof owner changed during replay")
+            # Release capacity is derived from the proof, order and ledger
+            # owners; only the bound owners may mint it.
+            self.require_bound_owners(release_proofs=release_proofs)
             result["value"] = tuple(
                 item for item in self._exposures(rows, release_fenced=True)
                 if self._open(item)
@@ -1221,7 +1334,9 @@ class RiskEngine:
             return None
 
         self.audit_log.log.transaction(
-            inspect, read_locks=self._release_read_locks_for(release_proofs),
+            inspect, read_locks=(
+                *self._release_read_locks_for(release_proofs), self.owner_binding.log,
+            ),
         )
         return result["value"]
 
@@ -1256,7 +1371,7 @@ class RiskEngine:
                 "occurred_at": iso_utc(occurred_at),
             }
 
-        self.audit_log.log.transaction(build)
+        self.audit_log.log.transaction(self._replay_checked(build))
         return result["value"]
 
     def release_with_proof(self, proof_record_hash: str, *, occurred_at: str) -> Exposure:
@@ -1276,6 +1391,7 @@ class RiskEngine:
         def build(rows: tuple[dict, ...]) -> dict | None:
             if self.release_proofs is not release_proofs:
                 raise RegistryConflict("release proof owner changed during release")
+            self.require_bound_owners(release_proofs=release_proofs)
             proof_rows = tuple(release_proofs.log.records())
             proof = release_proofs.validate_current_locked(
                 proof_record_hash,
@@ -1361,7 +1477,9 @@ class RiskEngine:
             return payload
 
         self.audit_log.log.transaction(
-            build, read_locks=self._release_read_locks_for(release_proofs),
+            self._replay_checked(build), read_locks=(
+                *self._release_read_locks_for(release_proofs), self.owner_binding.log,
+            ),
         )
         return result["value"]
 
@@ -1369,6 +1487,10 @@ class RiskEngine:
         self, approval_id: str, *, at: str, release_fenced: bool = False,
     ) -> bool:
         try:
+            if self.owner_mismatches(
+                release_proofs=self.release_proofs if release_fenced else None,
+            ):
+                return False
             approval = self.get_approval(approval_id)
             qualification = self.qualifications.get_for_new_risk(
                 approval.qualification_record_id, at=at,
@@ -1443,6 +1565,8 @@ class RiskEngine:
         scheduled_weekly: bool,
         drawdown_triggered: bool,
     ) -> RebaseDecision:
+        # Only this authority's own bankroll may be rebased through it.
+        self.require_bound_owners()
         current = self.bankrolls.current()
         previous = Decimal(current.bankroll)
         new = Decimal(new_bankroll)
@@ -1480,6 +1604,7 @@ class RiskEngine:
                 raise RegistryConflict("release proof owner changed during risk gate")
             if self.modes is not mode_states:
                 raise RegistryConflict("mode owner changed during risk gate")
+            self.require_bound_owners(release_proofs=release_proofs)
             safety = self.safety.current()
             if safety.kill_switch_active:
                 result["value"] = False
@@ -1509,6 +1634,7 @@ class RiskEngine:
                     self.safety.log, self.bankrolls.log,
                     *self._mode_lock_for(mode_states),
                     *self._release_read_locks_for(release_proofs),
+                    self.owner_binding.log,
                 ),
             )
             return result["value"]

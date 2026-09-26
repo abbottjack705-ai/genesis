@@ -1,0 +1,156 @@
+# Independent auditor probes (unmodified copies from GENESIS_V04_T1_T4_INDEPENDENT_HOSTILE_REAUDIT_EVIDENCE.zip sha256 785109cb9310136eb72a8d8424fec011c2e6ff1b67e074d7a8a04143d53a91e8) on final T5 bytes
+# 2026-09-26T12:02:46Z; python 3.12.10 Windows-11-10.0.26200-SP0
+90f15d991b8fceda0789f1a53e63b5eb733a9b6f7212c95c975666ad4d8850ab *AUDIT_RECORD_EXPOSURE_COLLISION_PROBE.py
+c6a98c96518f76edf01d21752c1310232eb79643494114931f98a2e679a0fdc8 *AUDIT_SPLIT_ORDER_LOG_DOUBLE_SEND_PROBE.py
+964f25690b145f836ecfc66905fd49a0b9173477fb1282d21cbb123e5291547d *AUDIT_SEND_FENCE_PROBES.py
+d4b338421bff768006746d8056ff49fdd20cafb670f3c403f991d0567a351ba4 *AUDIT_B1_B2_B3_PROBES.py
+be61a720192fb04c53f2736f8ffc7a86d1f6f480b91c1a2eb8a7be9b48571f9f *AUDIT_B6_END_TO_END_PROBES.py
+7c17ebb3a92a6c7eaadf301ce959bfb2a4e13fc7f8a557300dc6ff44d5ce9bf9 *AUDIT_B4_B5_DYNAMIC_IMPORT_PROBES.py
+
+=== AUDIT_RECORD_EXPOSURE_COLLISION_PROBE (T5)
+{
+  "approved": true,
+  "colliding_record_exposure": "RegistryConflict: duplicate risk exposure identity",
+  "reserved_exposures": "ok",
+  "record_unrelated_exposure": "ok"
+}
+exit=0
+
+=== AUDIT_SPLIT_ORDER_LOG_DOUBLE_SEND_PROBE (T5)
+{
+  "first": "SUBMISSION_SENT",
+  "second": "RegistryConflict: submission recertification blocked: owner_authority_mismatch",
+  "risk_open_reservations": [
+    [
+      "pending",
+      "7.5"
+    ]
+  ],
+  "risk_consumption_rows": 1,
+  "order_id_in_both_logs": "ad1efca6ec90a7497b7b38963721e6cf04c81dc1eaa63cf4a110edb698ff3086",
+  "VIOLATION_one_approval_sent_twice": false
+}
+exit=0
+
+=== AUDIT_SEND_FENCE_PROBES (T5)
+test_submission_pending_bankroll_drawdown_rebase (__main__.SendFenceProbes.test_submission_pending_bankroll_drawdown_rebase) ... ok
+test_submission_pending_exposure_55_recorded (__main__.SendFenceProbes.test_submission_pending_exposure_55_recorded) ... ok
+test_submission_pending_kill_switch (__main__.SendFenceProbes.test_submission_pending_kill_switch) ... ok
+test_submission_pending_market_closed (__main__.SendFenceProbes.test_submission_pending_market_closed) ... ok
+test_submission_pending_mode_disabled (__main__.SendFenceProbes.test_submission_pending_mode_disabled) ... ok
+test_submission_pending_output_binding_revoked (__main__.SendFenceProbes.test_submission_pending_output_binding_revoked) ... ok
+test_submission_pending_refresh_invalid (__main__.SendFenceProbes.test_submission_pending_refresh_invalid) ... ok
+test_submission_pending_strategy_withdrawn (__main__.SendFenceProbes.test_submission_pending_strategy_withdrawn) ... ok
+test_submission_pending_strategy_withdrawn_split_registry (__main__.SendFenceProbes.test_submission_pending_strategy_withdrawn_split_registry) ... ok
+test_submission_sent_bankroll_drawdown_rebase (__main__.SendFenceProbes.test_submission_sent_bankroll_drawdown_rebase) ... ok
+test_submission_sent_exposure_55_recorded (__main__.SendFenceProbes.test_submission_sent_exposure_55_recorded) ... ok
+test_submission_sent_kill_switch (__main__.SendFenceProbes.test_submission_sent_kill_switch) ... ok
+test_submission_sent_market_closed (__main__.SendFenceProbes.test_submission_sent_market_closed) ... ok
+test_submission_sent_mode_disabled (__main__.SendFenceProbes.test_submission_sent_mode_disabled) ... ok
+test_submission_sent_output_binding_revoked (__main__.SendFenceProbes.test_submission_sent_output_binding_revoked) ... ok
+test_submission_sent_refresh_invalid (__main__.SendFenceProbes.test_submission_sent_refresh_invalid) ... ok
+test_submission_sent_strategy_withdrawn (__main__.SendFenceProbes.test_submission_sent_strategy_withdrawn) ... ok
+test_submission_sent_strategy_withdrawn_split_registry (__main__.SendFenceProbes.test_submission_sent_strategy_withdrawn_split_registry) ... ok
+Ran 18 tests in 58.304s
+OK
+exit=0
+
+=== AUDIT_B1_B2_B3_PROBES (T5)
+test_caller_membership_variants (__main__.B1Dependence.test_caller_membership_variants) ... ok
+test_raw_approval_row_with_dropped_clusters_poisons_replay_fail_closed (__main__.B1Dependence.test_raw_approval_row_with_dropped_clusters_poisons_replay_fail_closed) ... ok
+test_uncorrelated_positive_and_persisted_trusted_membership (__main__.B1Dependence.test_uncorrelated_positive_and_persisted_trusted_membership) ... ok
+test_cluster_cap_breach_after_approval_blocks_send (__main__.B2Capacity.test_cluster_cap_breach_after_approval_blocks_send) ... ok
+test_total_cap_breach_blocks_pending_and_sent_exact_cap_allows (__main__.B2Capacity.test_total_cap_breach_blocks_pending_and_sent_exact_cap_allows) ... ok
+test_invalid_submission_variants_block (__main__.A1A2Fixed.test_invalid_submission_variants_block) ... FAIL
+test_bare_terminal_refused_and_sent_order_cannot_be_proved (__main__.B3Release.test_bare_terminal_refused_and_sent_order_cannot_be_proved) ... ok
+test_forged_hash_valid_proof_and_release_rows_do_not_release (__main__.B3Release.test_forged_hash_valid_proof_and_release_rows_do_not_release) ... ok
+test_late_fill_after_release_restores_charge_and_blocks_new_risk (__main__.B3Release.test_late_fill_after_release_restores_charge_and_blocks_new_risk) ... ok
+Composition attack: proof owner bound to a copied order log, public APIs only. ... ok
+FAIL: test_invalid_submission_variants_block (__main__.A1A2Fixed.test_invalid_submission_variants_block)
+AssertionError: RegistryConflict not raised
+Ran 10 tests in 10.698s
+FAILED (failures=1)
+exit=1
+
+=== AUDIT_B6_END_TO_END_PROBES (T5)
+Observation probe: grant time is operator-asserted, not bound to append order. ... ERROR
+test_genuine_v2_approval_reaches_risk_and_send_without_override (__main__.B6EndToEnd.test_genuine_v2_approval_reaches_risk_and_send_without_override) ... ok
+test_missing_wrong_late_and_foreign_approval_block_risk (__main__.B6EndToEnd.test_missing_wrong_late_and_foreign_approval_block_risk) ... ERROR
+test_revocation_tamper_and_conflicting_raw_grant_block_pending_send (__main__.B6EndToEnd.test_revocation_tamper_and_conflicting_raw_grant_block_pending_send) ... ok
+ERROR: test_backdated_grant_appended_after_qualification_is_accepted (__main__.B6EndToEnd.test_backdated_grant_appended_after_qualification_is_accepted)
+genesis.registry.RegistryConflict: strategy-output approval is missing or mismatched
+ERROR: test_missing_wrong_late_and_foreign_approval_block_risk (__main__.B6EndToEnd.test_missing_wrong_late_and_foreign_approval_block_risk)
+genesis.registry.RegistryConflict: strategy-output approval is missing or mismatched
+Ran 4 tests in 2.439s
+FAILED (errors=2)
+exit=1
+
+=== AUDIT_B4_B5_DYNAMIC_IMPORT_PROBES (T5)
+test_b4_new_digest_must_not_execute_cached_helper_code (__main__.DynamicImportProbes.test_b4_new_digest_must_not_execute_cached_helper_code) ... ERROR
+test_b4_same_digest_must_not_certify_different_code (__main__.DynamicImportProbes.test_b4_same_digest_must_not_certify_different_code) ... ERROR
+test_b5_builtins_injected_labels_are_rejected (__main__.DynamicImportProbes.test_b5_builtins_injected_labels_are_rejected) ... ok
+test_b5_function_local_import_of_label_holder_is_rejected (__main__.DynamicImportProbes.test_b5_function_local_import_of_label_holder_is_rejected) ... ok
+test_b5_function_local_stdlib_stash_is_rejected (__main__.DynamicImportProbes.test_b5_function_local_stdlib_stash_is_rejected) ... ok
+test_b5_importlib_import_module_of_label_holder_is_rejected (__main__.DynamicImportProbes.test_b5_importlib_import_module_of_label_holder_is_rejected) ... ok
+ERROR: test_b4_new_digest_must_not_execute_cached_helper_code (__main__.DynamicImportProbes.test_b4_new_digest_must_not_execute_cached_helper_code)
+genesis.evaluation.ProtectedEvaluationError: protected evaluation failed
+ERROR: test_b4_same_digest_must_not_certify_different_code (__main__.DynamicImportProbes.test_b4_same_digest_must_not_certify_different_code)
+genesis.evaluation.ProtectedEvaluationError: protected evaluation failed
+Ran 6 tests in 3.957s
+FAILED (errors=2)
+exit=1
+
+=== comparison: same probes on sealed T4 ac6b66b (clean clone t4n)
+ac6b66be9dc119a75a0dfb772890cfd2c3919c52
+
+=== AUDIT_RECORD_EXPOSURE_COLLISION_PROBE (T4)
+{
+  "approved": true,
+  "colliding_record_exposure": "appended",
+  "reserved_exposures": "RegistryConflict: duplicate risk exposure identity",
+  "record_unrelated_exposure": "RegistryConflict: duplicate risk exposure identity"
+}
+exit=0
+
+=== AUDIT_SPLIT_ORDER_LOG_DOUBLE_SEND_PROBE (T4)
+{
+  "first": "SUBMISSION_SENT",
+  "second": "SUBMISSION_SENT",
+  "risk_open_reservations": [
+    [
+      "pending",
+      "7.5"
+    ]
+  ],
+  "risk_consumption_rows": 1,
+  "order_id_in_both_logs": "ad1efca6ec90a7497b7b38963721e6cf04c81dc1eaa63cf4a110edb698ff3086",
+  "VIOLATION_one_approval_sent_twice": true
+}
+exit=1
+
+=== AUDIT_B1_B2_B3_PROBES (T4)
+test_caller_membership_variants (__main__.B1Dependence.test_caller_membership_variants) ... ok
+test_raw_approval_row_with_dropped_clusters_poisons_replay_fail_closed (__main__.B1Dependence.test_raw_approval_row_with_dropped_clusters_poisons_replay_fail_closed) ... ok
+test_uncorrelated_positive_and_persisted_trusted_membership (__main__.B1Dependence.test_uncorrelated_positive_and_persisted_trusted_membership) ... ok
+test_cluster_cap_breach_after_approval_blocks_send (__main__.B2Capacity.test_cluster_cap_breach_after_approval_blocks_send) ... ok
+test_total_cap_breach_blocks_pending_and_sent_exact_cap_allows (__main__.B2Capacity.test_total_cap_breach_blocks_pending_and_sent_exact_cap_allows) ... ok
+test_invalid_submission_variants_block (__main__.A1A2Fixed.test_invalid_submission_variants_block) ... FAIL
+test_bare_terminal_refused_and_sent_order_cannot_be_proved (__main__.B3Release.test_bare_terminal_refused_and_sent_order_cannot_be_proved) ... ok
+test_forged_hash_valid_proof_and_release_rows_do_not_release (__main__.B3Release.test_forged_hash_valid_proof_and_release_rows_do_not_release) ... ok
+test_late_fill_after_release_restores_charge_and_blocks_new_risk (__main__.B3Release.test_late_fill_after_release_restores_charge_and_blocks_new_risk) ... ok
+Composition attack: proof owner bound to a copied order log, public APIs only. ... FAIL
+FAIL: test_invalid_submission_variants_block (__main__.A1A2Fixed.test_invalid_submission_variants_block)
+FAIL: test_shadow_order_owner_cannot_release_live_sent_order (__main__.B3Release.test_shadow_order_owner_cannot_release_live_sent_order)
+Ran 10 tests in 7.742s
+FAILED (failures=2)
+exit=1
+
+=== AUDIT_B6_END_TO_END_PROBES (T4)
+Observation probe: grant time is operator-asserted, not bound to append order. ... ok
+test_genuine_v2_approval_reaches_risk_and_send_without_override (__main__.B6EndToEnd.test_genuine_v2_approval_reaches_risk_and_send_without_override) ... ok
+test_missing_wrong_late_and_foreign_approval_block_risk (__main__.B6EndToEnd.test_missing_wrong_late_and_foreign_approval_block_risk) ... ok
+test_revocation_tamper_and_conflicting_raw_grant_block_pending_send (__main__.B6EndToEnd.test_revocation_tamper_and_conflicting_raw_grant_block_pending_send) ... ok
+Ran 4 tests in 2.581s
+OK
+exit=0
+0

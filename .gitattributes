@@ -5,3 +5,7 @@ remediation_evidence/T1/*.patch whitespace=-trailing-space
 # Raw T4 transcripts mix captured CRLF output with LF headers. Store them
 # without end-of-line conversion so Git blob, checkout and hashed bytes agree.
 remediation_evidence/T4/*.txt -text whitespace=-trailing-space
+# Raw T5 transcripts mix captured Windows CRLF test output with LF headers.
+# Store them without end-of-line conversion so Git blob, checkout and hashed
+# bytes agree (this does not change the committed LF N1 transcript blobs).
+remediation_evidence/T5/*.txt -text whitespace=-trailing-space

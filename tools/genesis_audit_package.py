@@ -12,7 +12,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 
-SCHEMA = "genesis-audit-evidence-package-v1"
+SCHEMA = "genesis-audit-evidence-package-v2"
 MANIFEST_NAME = "GENESIS_AUDIT_PACKAGE_MANIFEST.json"
 REPRESENTATIONS = {
     "git_blob_bytes": "exact bytes returned by Git object plumbing at target commit",
@@ -25,6 +25,7 @@ TOP_LEVEL_FIELDS = {
     "repository_status",
     "representation_contract",
     "source_snapshot",
+    "raw_worktree_roots",
     "authorities",
     "members",
     "non_authorizations",
@@ -63,6 +64,54 @@ def _safe_member(name: str) -> str:
     if path.as_posix() != name:
         raise ValueError("archive member path is not canonical")
     return name
+
+
+def _git_sha1(value: object, name: str) -> str:
+    if not isinstance(value, str) or len(value) != 40 or value.lower() != value:
+        raise ValueError(f"{name} is not lowercase Git SHA-1")
+    int(value, 16)
+    return value
+
+
+def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    result: dict[str, Any] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"package manifest has a duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
+def _reject_constant(value: str) -> None:
+    raise ValueError(f"package manifest has a non-finite JSON number: {value}")
+
+
+def _manifest_bytes(manifest: dict[str, Any]) -> bytes:
+    return (
+        json.dumps(manifest, sort_keys=True, indent=2, ensure_ascii=False) + "\n"
+    ).encode("utf-8")
+
+
+def _load_manifest(raw: bytes) -> dict[str, Any]:
+    """Parse exactly one canonical manifest representation (O-2).
+
+    Duplicate keys, non-finite numbers and any encoding other than the
+    builder's canonical bytes are rejected, so no conflicting value can hide
+    behind an alternative JSON representation.
+    """
+
+    manifest = json.loads(
+        raw.decode("utf-8"),
+        object_pairs_hook=_unique_object,
+        parse_constant=_reject_constant,
+    )
+    if not isinstance(manifest, dict) or _manifest_bytes(manifest) != raw:
+        raise ValueError("package manifest bytes are not the canonical encoding")
+    return manifest
+
+
+def _under(path: str, root: str) -> bool:
+    return path == root or path.startswith(root + "/")
 
 
 def _parse_pair(value: str, name: str) -> tuple[str, str]:
@@ -104,7 +153,7 @@ def _tree(repo: Path, revision: str) -> tuple[str, str, list[dict[str, Any]]]:
     return commit, tree, rows
 
 
-def _worktree_files(repo: Path, relative: str) -> list[tuple[str, Path]]:
+def _worktree_files(repo: Path, relative: str) -> tuple[str, list[tuple[str, Path]]]:
     requested = Path(relative)
     if requested.is_absolute():
         raise ValueError("raw worktree root must be repository-relative")
@@ -112,12 +161,13 @@ def _worktree_files(repo: Path, relative: str) -> list[tuple[str, Path]]:
     target = (root / requested).resolve(strict=True)
     if not target.is_relative_to(root):
         raise ValueError("raw worktree root escapes repository")
+    canonical = _safe_member(target.relative_to(root).as_posix())
     # Only Git-tracked paths: ignored caches are neither evidence nor clean-checked.
-    listed = _git(root, "ls-files", "-z", "--", target.relative_to(root).as_posix())
+    listed = _git(root, "ls-files", "-z", "--", canonical)
     paths = sorted(name.decode("utf-8") for name in listed.split(b"\x00") if name)
     if not paths:
         raise ValueError("raw worktree root contains no tracked files")
-    return [(_safe_member(path), root / path) for path in paths]
+    return canonical, [(_safe_member(path), root / path) for path in paths]
 
 
 def _public(row: dict[str, Any]) -> dict[str, Any]:
@@ -163,8 +213,14 @@ def build_package(
     rows: dict[str, dict[str, Any]] = {}
     for row in source:
         _add(rows, row)
+    declared_roots: list[str] = []
     for relative_root in raw_worktree_roots:
-        for relative, path in _worktree_files(repo, relative_root):
+        canonical_root, files = _worktree_files(repo, relative_root)
+        if any(_under(canonical_root, other) or _under(other, canonical_root)
+               for other in declared_roots):
+            raise ValueError(f"raw worktree roots overlap: {canonical_root}")
+        declared_roots.append(canonical_root)
+        for relative, path in files:
             raw = path.read_bytes()
             _add(rows, {
                 "archive_path": f"raw-worktree/{relative}",
@@ -214,14 +270,13 @@ def build_package(
         "repository_status": "clean",
         "representation_contract": REPRESENTATIONS,
         "source_snapshot": [_public(row) for row in source],
+        "raw_worktree_roots": sorted(declared_roots),
         "authorities": authority_rows,
         "members": public_members,
         "non_authorizations": NON_AUTHORIZATIONS,
         "self_reference_note": SELF_REFERENCE_NOTE,
     }
-    manifest_raw = (
-        json.dumps(manifest, sort_keys=True, indent=2, ensure_ascii=False) + "\n"
-    ).encode("utf-8")
+    manifest_raw = _manifest_bytes(manifest)
     output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(output, "x") as archive:
         _zip_write(archive, MANIFEST_NAME, manifest_raw)
@@ -232,6 +287,12 @@ def build_package(
     sidecar.write_bytes(f"{archive_hash}  {output.name}\n".encode("ascii"))
     verify_package(
         archive_path=output, repo=repo, extract_to=None, authorities=authorities,
+        expect_commit=commit, required_raw_roots=declared_roots,
+        required_historical=[
+            f"{row['source_path']}={row['sha256']}"
+            for row in public_members
+            if row["representation"] == "historical_raw_artifact_bytes"
+        ],
     )
     return {
         "archive": str(output),
@@ -308,6 +369,14 @@ def _validate_manifest(manifest: Any) -> tuple[list[dict[str, Any]], dict[str, A
             raise ValueError("Git source member row is malformed")
         if row["archive_path"] != f"git-blobs/{row['repository_path']}":
             raise ValueError("Git source archive path is inconsistent")
+    for row in members:
+        prefix = {
+            "raw_worktree_bytes": "raw-worktree/",
+            "historical_raw_artifact_bytes": "historical/",
+        }.get(row["representation"])
+        if prefix is not None and row["archive_path"] != prefix + _safe_member(row["source_path"]):
+            raise ValueError("package member source path disagrees with its archive path")
+    _validate_raw_roots(manifest["raw_worktree_roots"], members, source)
     authorities = manifest["authorities"]
     if not isinstance(authorities, list):
         raise ValueError("authority inventory is malformed")
@@ -329,6 +398,66 @@ def _validate_manifest(manifest: Any) -> tuple[list[dict[str, Any]], dict[str, A
         if member["sha256"] != approved:
             raise ValueError("authority member bytes differ from approved hash")
     return members, target
+
+
+def _validate_raw_roots(
+    roots: Any, members: list[dict[str, Any]], source: list[dict[str, Any]],
+) -> None:
+    """Every declared raw root carries exactly its tracked files (O-3).
+
+    The raw set under a root must equal the target commit's tracked files under
+    it, which the source snapshot lists, so an omitted raw member is detected
+    without Git. Omitting a whole root is visible only against a caller pin.
+    """
+
+    if not isinstance(roots, list) or roots != sorted(set(roots)):
+        raise ValueError("package raw worktree roots are not a sorted unique list")
+    for root in roots:
+        _safe_member(root)
+        if any(other != root and (_under(root, other) or _under(other, root))
+               for other in roots):
+            raise ValueError("package raw worktree roots overlap")
+    raw_paths = sorted(
+        row["source_path"] for row in members if row["representation"] == "raw_worktree_bytes"
+    )
+    tracked = [row["repository_path"] for row in source]
+    for root in roots:
+        expected = sorted(path for path in tracked if _under(path, root))
+        if not expected:
+            raise ValueError(f"package raw worktree root has no tracked files: {root}")
+        if [path for path in raw_paths if _under(path, root)] != expected:
+            raise ValueError(f"package raw worktree root is incomplete or altered: {root}")
+    if any(not any(_under(path, root) for root in roots) for path in raw_paths):
+        raise ValueError("package raw worktree member lies outside every declared root")
+
+
+def _require_commit(target: dict[str, Any], expected: str) -> None:
+    if target["commit"] != _git_sha1(expected, "expected commit pin"):
+        raise ValueError("package target commit differs from the caller-pinned commit")
+
+
+def _require_raw_roots(manifest: dict[str, Any], pins: list[str]) -> None:
+    expected = [_safe_member(pin) for pin in pins]
+    if len(expected) != len(set(expected)):
+        raise ValueError("duplicate raw worktree root pin")
+    if sorted(expected) != manifest["raw_worktree_roots"]:
+        raise ValueError("package raw worktree roots differ from caller-pinned roots")
+
+
+def _require_historical(members: list[dict[str, Any]], pins: list[str]) -> None:
+    expected: dict[str, str] = {}
+    for specification in pins:
+        label, digest = _parse_pair(specification, "historical pin")
+        label = _safe_member(label)
+        if label in expected:
+            raise ValueError(f"duplicate historical pin: {label}")
+        expected[label] = _digest(digest, "pinned historical hash")
+    actual = {
+        row["source_path"]: row["sha256"]
+        for row in members if row["representation"] == "historical_raw_artifact_bytes"
+    }
+    if actual != expected:
+        raise ValueError("package historical artifacts differ from caller-pinned hashes")
 
 
 def _require_authorities(manifest: dict[str, Any], pins: list[str]) -> None:
@@ -353,7 +482,16 @@ def verify_package(
     repo: Path | None,
     extract_to: Path | None,
     authorities: list[str] | None = None,
+    expect_commit: str | None = None,
+    required_raw_roots: list[str] | None = None,
+    required_historical: list[str] | None = None,
 ) -> dict[str, Any]:
+    """Verify one package; caller pins bind it to facts from outside it (O-1/O-3).
+
+    Without an out-of-band package hash, a self-consistent forgery can still
+    pass: pins and ``--repo`` narrow what a forger can change, never more.
+    """
+
     archive_path = archive_path.resolve(strict=True)
     archive_hash = sha256(archive_path.read_bytes())
     sidecar = Path(str(archive_path) + ".sha256")
@@ -374,10 +512,16 @@ def verify_package(
         if MANIFEST_NAME not in names:
             raise ValueError("package manifest is missing")
         manifest_raw = archive.read(MANIFEST_NAME)
-        manifest = json.loads(manifest_raw.decode("utf-8"))
+        manifest = _load_manifest(manifest_raw)
         members, target = _validate_manifest(manifest)
+        if expect_commit is not None:
+            _require_commit(target, expect_commit)
         if authorities is not None:
             _require_authorities(manifest, authorities)
+        if required_raw_roots is not None:
+            _require_raw_roots(manifest, required_raw_roots)
+        if required_historical is not None:
+            _require_historical(members, required_historical)
         expected_names = {MANIFEST_NAME, *(row["archive_path"] for row in members)}
         if set(names) != expected_names:
             raise ValueError("package ZIP membership differs from manifest")
@@ -430,6 +574,10 @@ def verify_package(
         "target_tree": target["tree"],
         "sidecar_verified": True,
         "authorities_pinned": authorities is not None,
+        "commit_pinned": expect_commit is not None,
+        "raw_roots_pinned": required_raw_roots is not None,
+        "historical_pinned": required_historical is not None,
+        "raw_worktree_roots": manifest["raw_worktree_roots"],
         "git_cross_check": git_cross_check,
         "fresh_extraction_verified": fresh_verified,
     }
@@ -450,6 +598,9 @@ def parser() -> argparse.ArgumentParser:
     verify.add_argument("--repo", type=Path)
     verify.add_argument("--extract-to", type=Path)
     verify.add_argument("--authority", action="append")
+    verify.add_argument("--expect-commit")
+    verify.add_argument("--require-raw-root", action="append")
+    verify.add_argument("--require-historical", action="append")
     return result
 
 
@@ -471,6 +622,9 @@ def main(argv: list[str] | None = None) -> int:
                 repo=args.repo,
                 extract_to=args.extract_to,
                 authorities=args.authority,
+                expect_commit=args.expect_commit,
+                required_raw_roots=args.require_raw_root,
+                required_historical=args.require_historical,
             )
     except (
         OSError,

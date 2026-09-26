@@ -107,6 +107,23 @@ failure). On the final bytes targeted T4 passed 9/9; full discovery passed
 The external final package must still be built from the sealed T4 commit and
 freshly verified. **Local B1–B8 green is not hostile approval or GO.**
 
+The independent hostile re-audit of T4 returned HOLD with N1–N3. T5 starts from
+sealed T4 through three unmodified WIP commits. On the target Windows /
+CPython 3.12.10 the WIP base `42e46c7` ran 351 tests with exactly the 24
+N2/N3/O-5/package RED failures and zero errors, while all 70 N1/PA-1/protected
+retained tests passed. Two later full runs failed R9 and lifecycle tests
+intermittently: the worker's per-function path resolution and root checks let a
+trivial request exceed the 10 s research timeout under load. A deterministic
+scan-cost test was RED twice (2,974 resolutions, then 2,975 root checks, for 112
+paths) and is green after caching both once per scan. The T5 hostile
+pre-audit suite then exposed H1 (a second
+risk log reusing the same qualification/bankroll) as RED on the WIP, and is RED
+on sealed T4 for its owner, replay, package and foreign-ledger invariants. The
+independent auditor's N2-a/N2-b/N2-c, N3, B6 and B4/B5 probes and 131-run stress
+campaign were rerun unmodified on the final bytes. Exact commands, counts and
+hashes are in `remediation_evidence/T5/GREEN_FINAL.md`.
+**Local T5 green is not hostile approval or GO.**
+
 ## Deterministic gate
 
 Command:
@@ -162,6 +179,12 @@ protected external dataset or historical outcome source.
 | T2 B6 acyclic exact human approval | `test_astra_t2_b6_approval.py` — 7 tests |
 | T3 B4/B5 exact protected bytes and reachable state | `test_astra_t3_protected_integrity.py` — 15 tests |
 | T4 B8 byte-explicit evidence package | `test_astra_t4_evidence_package.py` — 9 tests |
+| T5 N1/PA-1 protected closure, IPC binding, worker lifecycle, scan cost | `test_astra_t5_protected_closure.py`, `test_astra_t5_ipc_request_binding.py`, `test_astra_t5_worker_lifecycle.py`, `test_astra_t5_worker_scan_cost.py` — 33 tests |
+| T5 N2 composed-owner binding | `test_astra_t5_owner_binding.py` — 12 tests |
+| T5 N3 replay integrity | `test_astra_t5_risk_replay_integrity.py` — 3 tests |
+| T5 O-5 approval ordering | `test_astra_t5_approval_ordering.py` — 3 tests |
+| T5 O-1/O-2/O-3 package pins | `test_astra_t5_package_evidence.py` — 4 tests |
+| T5 hostile pre-audit (H1–H6) | `test_astra_t5_hostile_preaudit.py` — 9 tests (symlink case skips without privilege) |
 
 Individual test methods combine closely related rows of the binding T-F01
 through T-F15 matrix. Each batch checkpoint records the exact matrix rows it
@@ -210,6 +233,13 @@ the production functions and primary tests.
   exclusion and positive content/unsafe-path/sidecar tamper coverage; the three
   RED claims are preserved in separate transcripts without replacing the
   original five-test RED.
+- T5 keeps the WIP N1/PA-1 RED transcripts (`N1_LIFECYCLE_RED_582459b.txt` and
+  the resume handoff) and adds the Windows baseline RED of the four
+  N2/N3/O-5/package suites, the H1 RED on the WIP, the hostile suite on sealed
+  T4, and the auditor probes on both T4 and T5. Two retained tests were
+  amended only to seed their conflicting state with the byte-identical rows the
+  pre-T5 API wrote; neutrality on sealed T4 is in
+  `T5_RETAINED_AMENDMENT_NEUTRALITY.txt`.
 
 ## Concurrency and fault stress
 
@@ -298,6 +328,6 @@ cloud cost, sport/market semantics, venue reconciliation, deployed protected
 service isolation, or live readiness. No strategy search, outcome experiment,
 external call or real protected campaign was run.
 
-The implementation remains NO-GO for a read-only adapter. T1–T4 local green and
+The implementation remains NO-GO for a read-only adapter. T1–T5 local green and
 the forthcoming exact package do not replace integrated hostile review and
 explicit checkpoint approval.

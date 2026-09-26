@@ -1,0 +1,39 @@
+# T5 retained-test setup amendment neutrality (2026-09-26T11:50:49Z)
+# python: 3.12.10  platform: Windows-11-10.0.26200-SP0
+# amended test bytes (final, LF):
+04d3dd51da5672e13fba2fbed04eec534f79e51ef405a08f4f6044ac1d3d6fd1 *tests/test_astra_s1_reservation.py
+bea63ab5c95b01500861554004e78e3cd16d268381916fb289e63a4e171c510c *tests/test_astra_t1_dependence.py
+## 1. byte identity of seeded rows vs pre-T5 API rows, on sealed T4 ac6b66b source
+ac6b66be9dc119a75a0dfb772890cfd2c3919c52
+0
+s1-api b'{"affected_scope":null,"candidate_decision_hash":"9999999999999999999999999999999999999999999999999999999999999999","cor'
+s1-raw b'{"affected_scope":null,"candidate_decision_hash":"9999999999999999999999999999999999999999999999999999999999999999","cor'
+d03-api b'{"action":"QUALIFY","active_policy_digest":"dd0235f2d316d5cfa1fa9fbda532ea912e913803ac4b4483232714b8b77c2a20","approved_'
+d03-raw b'{"action":"QUALIFY","active_policy_digest":"dd0235f2d316d5cfa1fa9fbda532ea912e913803ac4b4483232714b8b77c2a20","approved_'
+s1 api==raw: True
+d03 api==raw: True
+## 2. ORIGINAL retained tests on sealed T4 (unmodified files)
+test_d03_missing_output_binding_and_legacy_v2_do_not_default_empty (tests.test_astra_t1_dependence.AstraB1DependenceTests.test_d03_missing_output_binding_and_legacy_v2_do_not_default_empty) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 1.804s
+
+OK
+## 3. AMENDED retained test modules on sealed T4 source (amended files copied in, then restored)
+04d3dd51da5672e13fba2fbed04eec534f79e51ef405a08f4f6044ac1d3d6fd1 *tests/test_astra_s1_reservation.py
+bea63ab5c95b01500861554004e78e3cd16d268381916fb289e63a4e171c510c *tests/test_astra_t1_dependence.py
+----------------------------------------------------------------------
+Ran 15 tests in 10.660s
+
+OK
+t4n restored; dirty files: 0
+## 4. ORIGINAL retained tests on T5 source (the old setup is exactly what N3/O-5 now refuse)
+genesis.registry.RegistryConflict: duplicate risk exposure identity
+genesis.registry.RegistryConflict: missing or ambiguous approved output binding
+Ran 2 tests in 2.119s
+FAILED (errors=2)
+## 5. AMENDED retained test modules on T5 source
+----------------------------------------------------------------------
+Ran 15 tests in 15.547s
+
+OK

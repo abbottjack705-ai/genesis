@@ -1,0 +1,17 @@
+# N1 platform rerun, second pass: extended scan-cost test RED on worker with only realpath cached (2026-09-26T12:51:32Z); python 3.12.10 Windows-11-10.0.26200-SP0
+375de3d30aa25c8976a9a367cd24cfb94bbe976d8b7c11e7612779a0dacd33dd *src/genesis/protected_research_worker.py
+38382777b90f6b95da320a18874301c4e95687ac9885cb75ffb43dbdb83263d4 *tests/test_astra_t5_worker_scan_cost.py
+test_clean_process_scan_resolves_each_source_path_once (tests.test_astra_t5_worker_scan_cost.T5WorkerScanCostTests.test_clean_process_scan_resolves_each_source_path_once) ... FAIL
+
+======================================================================
+FAIL: test_clean_process_scan_resolves_each_source_path_once (tests.test_astra_t5_worker_scan_cost.T5WorkerScanCostTests.test_clean_process_scan_resolves_each_source_path_once)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\t5\m55\tests\test_astra_t5_worker_scan_cost.py", line 79, in test_clean_process_scan_resolves_each_source_path_once
+    self.assertEqual(
+AssertionError: 2975 != 112 : clean-process scan re-checked a source path against the roots: {'realpath_calls': 112, 'distinct_paths': 112, 'root_checks': 2975, 'distinct_checked': 112, 'live_functions': 3522, 'distinct_source_files': 124}
+
+----------------------------------------------------------------------
+Ran 1 test in 0.912s
+
+FAILED (failures=1)

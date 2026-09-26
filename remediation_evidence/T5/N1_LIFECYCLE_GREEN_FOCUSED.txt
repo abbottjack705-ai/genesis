@@ -1,0 +1,10 @@
+test_client_binds_to_first_program_identity_and_fresh_client_allows_another (tests.test_astra_t5_worker_lifecycle.T5WorkerLifecycleTests.test_client_binds_to_first_program_identity_and_fresh_client_allows_another) ... ok
+test_first_requested_identity_stays_bound_even_when_preexecution_validation_fails (tests.test_astra_t5_worker_lifecycle.T5WorkerLifecycleTests.test_first_requested_identity_stays_bound_even_when_preexecution_validation_fails) ... ok
+test_runtime_audit_layer_blocks_process_creation_during_research (tests.test_astra_t5_worker_lifecycle.T5WorkerLifecycleTests.test_runtime_audit_layer_blocks_process_creation_during_research) ... ok
+test_worker_itself_rejects_a_second_program_identity (tests.test_astra_t5_worker_lifecycle.T5WorkerLifecycleTests.test_worker_itself_rejects_a_second_program_identity) ... ok
+test_changed_module_executes_new_verified_bytes_not_cached_callable (tests.test_astra_t3_protected_integrity.AstraT3VerifiedByteTests.test_changed_module_executes_new_verified_bytes_not_cached_callable) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 9.792s
+
+OK

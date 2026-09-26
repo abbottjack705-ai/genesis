@@ -192,6 +192,108 @@ class ResearchProcessContaminated(RuntimeError):
     """Research left state that later computations could not be bound to."""
 
 
+def _install_runtime_audit_hook(roots: tuple[Path, ...]):
+    """Install a permanent audit hook used only while research code executes.
+
+    The hook is defense in depth, not a replacement for the static program
+    audit or the post-execution interpreter-state checks.  Its mutable state is
+    closure-captured and the hook itself is registered permanently with CPython.
+    Trusted worker/runtime activity runs with the hook dormant.
+    """
+
+    research_roots = tuple(Path(os.path.realpath(root)) for root in roots)
+    trusted_runtime_root = Path(os.path.realpath(TRUSTED_RUNTIME_ROOT))
+    code_type = types.CodeType
+    control_modules = _CONTROL_MODULES
+    control_names = _CONTROL_MODULE_NAMES
+    sensitive_attrs = frozenset({
+        "f_back", "f_builtins", "f_code", "f_globals", "f_locals",
+        "tb_frame", "tb_next", "gi_code", "gi_frame", "cr_frame", "ag_frame",
+    })
+    denied_events = frozenset({
+        "builtins.breakpoint",
+        "code.__new__",
+        "ctypes.dlopen",
+        "ctypes.dlsym",
+        "function.__new__",
+        "gc.get_objects",
+        "gc.get_referents",
+        "gc.get_referrers",
+        "os.fork",
+        "os.forkpty",
+        "os.kill",
+        "os.posix_spawn",
+        "os.system",
+        "pickle.find_class",
+        "socket.__new__",
+        "subprocess.Popen",
+        "sys._getframe",
+        "sys._current_frames",
+        "sys.addaudithook",
+        "sys.setprofile",
+        "sys.settrace",
+    })
+    denied_prefixes = ("os.exec", "os.spawn", "ctypes.")
+    state: dict[str, Any] = {"mode": None, "allowed_exec": None}
+
+    def _trusted_origin(value: object) -> bool:
+        if not isinstance(value, str) or not value or value.startswith("<"):
+            return False
+        try:
+            path = Path(os.path.realpath(value))
+        except (OSError, ValueError):
+            return False
+        if path.is_relative_to(trusted_runtime_root):
+            return True
+        return not any(path.is_relative_to(root) for root in research_roots)
+
+    def _hook(event: str, args: tuple[Any, ...]) -> None:
+        if state["mode"] is None:
+            return
+        if event == "exec":
+            code = args[0] if args else None
+            if code is state["allowed_exec"]:
+                return
+            if isinstance(code, code_type) and _trusted_origin(code.co_filename):
+                return
+            raise RuntimeError("research runtime operation is unsupported")
+        if event == "compile":
+            filename = args[1] if len(args) > 1 else None
+            if _trusted_origin(filename):
+                return
+            raise RuntimeError("research runtime operation is unsupported")
+        if event == "import":
+            name = args[0] if args else None
+            if not isinstance(name, str) or not name:
+                raise RuntimeError("research runtime operation is unsupported")
+            if name.partition(".")[0] in control_modules or name in control_names:
+                raise RuntimeError("research runtime operation is unsupported")
+            return
+        if event == "object.__getattr__":
+            attribute = args[1] if len(args) > 1 else None
+            if attribute in sensitive_attrs:
+                raise RuntimeError("research runtime operation is unsupported")
+            return
+        if event in denied_events or event.startswith(denied_prefixes):
+            raise RuntimeError("research runtime operation is unsupported")
+
+    sys.addaudithook(_hook)
+
+    def enter_module(code: types.CodeType) -> None:
+        state["allowed_exec"] = code
+        state["mode"] = "module"
+
+    def enter_callback() -> None:
+        state["allowed_exec"] = None
+        state["mode"] = "callback"
+
+    def leave() -> None:
+        state["mode"] = None
+        state["allowed_exec"] = None
+
+    return enter_module, enter_callback, leave
+
+
 def _inside(path: Path, roots: tuple[Path, ...]) -> bool:
     """True only for unhashed research-root code; trusted runtime is exempt."""
 
@@ -700,6 +802,8 @@ def _resolve_program(
     roots: tuple[Path, ...],
     baseline: _InterpreterBaseline,
     state: dict[str, Any],
+    audit_enter_module,
+    audit_leave,
 ) -> FunctionType:
     module_path = _program_module_path(program.module, roots)
     source = module_path.read_bytes()
@@ -716,7 +820,11 @@ def _resolve_program(
     module.__dict__["__builtins__"] = baseline.research_builtins()
     state["program_path"] = Path(os.path.realpath(module_path))
     state["executed"] = True
-    exec(code, module.__dict__)
+    audit_enter_module(code)
+    try:
+        exec(code, module.__dict__)
+    finally:
+        audit_leave()
     baseline.require_clean(state["program_path"])
 
     target: Any = module
@@ -802,6 +910,8 @@ def _main() -> int:
 
     sys.meta_path.insert(0, _ResearchOriginGuard(roots))
     baseline = _InterpreterBaseline(roots)
+    audit_enter_module, audit_enter_callback, audit_leave = _install_runtime_audit_hook(roots)
+    bound_program_digest: str | None = None
     poisoned = False
     while True:
         state: dict[str, Any] = {"executed": False, "program_path": None}
@@ -828,13 +938,23 @@ def _main() -> int:
             program = ResearchProgramRef.from_dict(message["program"])
             if request.strategy_digest != program.program_digest:
                 raise ValueError("research request/program digest mismatch")
+            if bound_program_digest is None:
+                bound_program_digest = program.program_digest
+            elif bound_program_digest != program.program_digest:
+                raise ValueError("research worker program identity mismatch")
             if poisoned:
                 raise ResearchProcessContaminated("research process was contaminated earlier")
-            callback = _resolve_program(program, roots, baseline, state)
-            predictions = {
-                frame.decision_id: callback(frame)
-                for frame in sealed.frames
-            }
+            callback = _resolve_program(
+                program, roots, baseline, state, audit_enter_module, audit_leave,
+            )
+            audit_enter_callback()
+            try:
+                predictions = {
+                    frame.decision_id: callback(frame)
+                    for frame in sealed.frames
+                }
+            finally:
+                audit_leave()
             del callback
             baseline.require_clean(state["program_path"])
             artifact = FrozenPredictionArtifact.create(

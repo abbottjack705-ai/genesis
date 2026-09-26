@@ -1110,6 +1110,8 @@ class ProtectedEvaluationClient:
         self._research_boundary = dict(research_boundary)
         self._research_lock = threading.Lock()
         self._evaluator_lock = threading.Lock()
+        self._research_program_lock = threading.Lock()
+        self._research_program_digest: str | None = None
         self._last_research_pid: int | None = None
         self._allow_fault_injection = allow_fault_injection
         self._closed = False
@@ -1255,6 +1257,16 @@ class ProtectedEvaluationClient:
     ) -> EvaluationCertificate:
         if not isinstance(program, ResearchProgramRef) or request.strategy_digest != program.program_digest:
             raise ProtectedEvaluationError("protected request rejected") from None
+        # ADR-0003 requires this research worker to exist before labels and the
+        # evaluator endpoint are materialized, so it cannot be replaced inside
+        # an existing client. Bind the client/worker pair to the first valid
+        # program identity it is asked to run. The worker independently enforces
+        # the same rule so parent-only state cannot weaken the boundary.
+        with self._research_program_lock:
+            if self._research_program_digest is None:
+                self._research_program_digest = program.program_digest
+            elif self._research_program_digest != program.program_digest:
+                raise ProtectedEvaluationError("protected evaluation failed") from None
         attempt_id = self._reserve(request)
         # A fresh per-request nonce authenticates the worker's own reply,
         # success or error. The research callback never sees it, so bytes a

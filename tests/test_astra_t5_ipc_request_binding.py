@@ -300,12 +300,12 @@ class T5IpcRequestBindingTests(unittest.TestCase):
         with scratch_directory() as root:
             fixture = build_fixture(root, max_attempts=8)
             signal = program_ref(signal_program)
-            half = program_ref(half_program)
+            # The worker lifecycle is one program identity per client.  P6 is
+            # about request/reply pairing, so exercise concurrency with the same
+            # permitted identity rather than relying on cross-program reuse.
             jobs = [
-                (request_for(fixture, program, strategy_id=f"job-{index}"), program, expected)
-                for index, (program, expected) in enumerate(
-                    [(signal, "0.01"), (half, "0.25")] * 4
-                )
+                (request_for(fixture, signal, strategy_id=f"job-{index}"), signal, "0.01")
+                for index in range(8)
             ]
             results: dict[str, tuple] = {}
             barrier = threading.Barrier(len(jobs))

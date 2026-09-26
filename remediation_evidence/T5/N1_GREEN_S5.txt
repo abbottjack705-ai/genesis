@@ -1,0 +1,17 @@
+test_boundary_attestation_has_only_label_free_capabilities (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_boundary_attestation_has_only_label_free_capabilities) ... ok
+test_direct_callable_is_rejected_before_attempt_or_parent_execution (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_direct_callable_is_rejected_before_attempt_or_parent_execution) ... ok
+test_label_root_overlap_is_rejected_and_real_campaign_guard_remains (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_label_root_overlap_is_rejected_and_real_campaign_guard_remains) ... ok
+test_malformed_research_ipc_is_generic_and_evaluator_remains_separate (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_malformed_research_ipc_is_generic_and_evaluator_remains_separate) ... ok
+test_module_global_raw_label_is_rejected_inside_worker (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_module_global_raw_label_is_rejected_inside_worker) ... ok
+test_program_reference_binds_exact_module_bytes_and_request_digest (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_program_reference_binds_exact_module_bytes_and_request_digest) ... ok
+test_research_exception_is_generic_and_nonrefundable (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_research_exception_is_generic_and_nonrefundable) ... ok
+test_research_process_crash_consumes_attempt_and_restart_cannot_refund (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_research_process_crash_consumes_attempt_and_restart_cannot_refund) ... ok
+test_research_timeout_is_generic_nonrefundable_and_bounded (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_research_timeout_is_generic_nonrefundable_and_bounded) ... ok
+test_retained_parent_label_environment_and_path_do_not_reach_research (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_retained_parent_label_environment_and_path_do_not_reach_research) ... ok
+test_successful_program_is_proven_to_run_in_a_third_pid (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_successful_program_is_proven_to_run_in_a_third_pid) ... ok
+test_two_research_workers_cannot_exceed_the_final_attempt (tests.test_astra_s5_process.AstraS5ProcessIsolationTests.test_two_research_workers_cannot_exceed_the_final_attempt) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 22.287s
+
+OK

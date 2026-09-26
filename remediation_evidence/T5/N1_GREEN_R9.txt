@@ -1,0 +1,16 @@
+test_evaluator_crash_after_reservation_consumes_attempt (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_evaluator_crash_after_reservation_consumes_attempt) ... ok
+test_label_dependent_internal_failure_has_no_side_channel (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_label_dependent_internal_failure_has_no_side_channel) ... ok
+test_missing_extra_and_substituted_frame_artifacts_reject_and_consume (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_missing_extra_and_substituted_frame_artifacts_reject_and_consume) ... ok
+test_raw_ipc_has_no_label_query_and_returns_only_generic_error (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_raw_ipc_has_no_label_query_and_returns_only_generic_error) ... ok
+test_real_protected_activation_remains_disabled_pending_review (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_real_protected_activation_remains_disabled_pending_review) ... ok
+test_registered_v2_campaign_cannot_select_legacy_harness (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_registered_v2_campaign_cannot_select_legacy_harness) ... ok
+test_research_client_has_no_labels_and_strategy_runs_outside_evaluator (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_research_client_has_no_labels_and_strategy_runs_outside_evaluator) ... ok
+test_research_failure_is_generic_non_refundable_and_survives_restart (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_research_failure_is_generic_non_refundable_and_survives_restart) ... ok
+test_small_cell_is_suppressed_and_attempt_is_durable (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_small_cell_is_suppressed_and_attempt_is_durable) ... ok
+test_two_evaluator_processes_cannot_both_take_final_attempt (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_two_evaluator_processes_cannot_both_take_final_attempt) ... ok
+test_unregistered_campaign_and_wrong_evaluator_digest_reject_pre_label (tests.test_remediation_r9_protected.R9ProtectedIsolationTests.test_unregistered_campaign_and_wrong_evaluator_digest_reject_pre_label) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 11.613s
+
+OK

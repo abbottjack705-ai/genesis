@@ -68,14 +68,25 @@ class AstraT3VerifiedByteTests(unittest.TestCase):
                     'def predict(frame):\n    return "0.5"\n', encoding="utf-8",
                 )
                 second = pin(source.stem, source)
-                after = client.run(
-                    request_for(fixture, second, strategy_id="t3-after"), second,
-                )
+                self.assertNotEqual(first.program_digest, second.program_digest)
+                with self.assertRaisesRegex(
+                    ProtectedEvaluationError, "protected evaluation failed",
+                ):
+                    client.run(
+                        request_for(fixture, second, strategy_id="t3-after-same-client"), second,
+                    )
                 self.assertEqual(before.metrics["brier"], "0.01")
+            # ADR-0003 requires a worker to exist before labels/evaluator do, so
+            # a client cannot replace its worker after first use.  A fresh client
+            # may bind the new digest and must execute the newly verified bytes.
+            with launch(fixture, code) as fresh:
+                after = fresh.run(
+                    request_for(fixture, second, strategy_id="t3-after-fresh-client"), second,
+                )
                 self.assertEqual(
                     after.metrics["brier"],
                     "0.25",
-                    "B4 RED: new bytes were certified while cached old code executed",
+                    "B4 RED: fresh client did not execute the newly verified bytes",
                 )
 
     def test_import_time_path_mutation_cannot_change_bytes_already_verified_for_execution(self):

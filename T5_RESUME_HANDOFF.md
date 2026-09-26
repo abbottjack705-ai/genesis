@@ -16,6 +16,18 @@ Do not restart the analysis or re-plan from scratch. Resume from section
 > kept as history; §7a has the current delta and results. Next action is §13
 > step 3 (stronger N1 architecture). Still NOT the T5 candidate.
 
+> **Update 2026-09-26 (third WIP checkpoint, N1 lifecycle on top of `582459b`).**
+> The stronger N1 lifecycle is now implemented and verified: one ADR-0003
+> research worker remains alive for the client and is permanently bound, in
+> both parent and worker, to the first valid program digest requested. A
+> different digest in that client fails generically; the different digest may
+> certify in a fresh client, whose worker again starts before labels/evaluator
+> materialize. A permanent closure-captured PEP 578 audit hook is an additional
+> runtime layer; the existing static audit and in-worker state-integrity checks
+> are deliberately retained because audit hooks do not observe all Python state
+> mutation. See **§8**. N2/N3/O-5/package REDs remain unchanged. This is still
+> NOT the T5 candidate.
+
 ---
 
 ## 1. Exact repository identity
@@ -95,16 +107,23 @@ Findings to close in T5:
 | Suite | Meaning | Result NOW |
 |---|---|---|
 | `tests.test_astra_t5_protected_closure` | N1 (14) + PA-1 (1) | **15 OK (GREEN)** |
-| `tests.test_astra_s5_process` + `test_remediation_r9_protected` + `test_astra_t3_protected_integrity` (+closure) | retained protected regression w/ new worker + nonce | **53 OK (GREEN)** — last recorded after the PA-1 parent change |
+| `tests.test_astra_t5_ipc_request_binding` | PA-1 request/reply binding | **13 OK (GREEN)** |
+| `tests.test_astra_t5_worker_lifecycle` | N1 lifecycle + runtime audit layer | **4 OK (GREEN)** |
+| S5 + R9 + T3 + closure + IPC + lifecycle | complete protected/retained set | **70 OK (GREEN)** |
 | `tests.test_astra_t5_owner_binding` | N2 | **RED** (fix not implemented) |
 | `tests.test_astra_t5_risk_replay_integrity` | N3 | **RED** (fix not implemented) |
 | `tests.test_astra_t5_approval_ordering` | O-5 | **RED** (fix not implemented) |
 | combined N2+N3+O-5 run | — | 18 methods, **20 failures** |
 | `tests.test_astra_t5_package_evidence` | O-1/O-2/O-3 | **4 failures (RED)** — tool flags not added |
 
-The full repository suite (all ~297+ tests), compileall, concurrency/crash/
-restart campaigns, static gates and deterministic package rebuild have **NOT**
-been run since the T5 changes began. That is required before any T5 seal.
+After the third WIP N1 change, `unittest discover` ran **351 tests with 24
+failures and 0 errors**. The 24 failures are exactly the still-unimplemented
+N2/N3/O-5/package RED inventory; no retained/legacy/N1/PA-1 test failed.
+`compileall` and `git diff --check` are green. The broader retained
+concurrency/crash/restart campaign and deterministic final package rebuild are
+still required before any T5 seal. This verification run here used Python
+3.13.5/Linux; the next Windows session must rerun the N1/protected suites on
+the target CPython 3.12.10 before relying on the audit-hook evidence.
 
 ## 5. N1 fix — IMPLEMENTED and verified green (architecture)
 
@@ -272,37 +291,57 @@ d848b1d4861a5baa0a68db8af114b5e5a1849e33cc9e018fdd62170df3bfe600  C:\Users\abbot
 (The RED log's `test_authenticated_error_fails_only_its_own_request` failure
 came from the earlier, since-corrected test variant described above.)
 
-## 8. Architectural decision made, and the REJECTED approach
+## 8. Stronger N1 worker lifecycle — IMPLEMENTED in the third WIP
 
-**Decision (recommended, NOT yet implemented): one worker process per program
-identity.** A research worker should execute code of at most one program digest
-for its whole lifetime; a different digest gets the generic failure and a fresh
-worker is spawned. Combined with a **permanent PEP 578 audit hook** (armed at
-first research execution, closure-captured so research cannot rebind it) that
-allows only the one bound program code object plus byte-identical trusted-runtime
-files and denies code/function creation, frame access, `gc` introspection,
-`ctypes`, threads, processes, sockets, pickle — this removes every cross-program
-state channel that an in-process snapshot cannot see, and lets the fragile
-`require_clean`/`restore_request_scope` state-diff machinery be **deleted**.
+The earlier handoff proposed spawning a fresh worker for each program digest.
+That topology was revised after reconciling it with immutable ADR-0003. The ADR
+requires the research worker to be ready **before** labels are materialized and
+before the evaluator endpoint exists; therefore an existing client cannot
+spawn a replacement research worker after its first request without violating
+that ordering.
 
-**REJECTED as insufficient on its own: the static deny-list + in-process
-state-snapshot approach that is currently implemented.** Reason, proven
-empirically (`~/t5/diag/audit_events.py`): attribute assignment on modules/
-classes and `func.__globals__` reads raise **no** audit event, so an in-process
-"baseline vs current" comparison can never be complete; a sufficiently creative
-program could mutate reachable state in a way the snapshot does not enumerate.
-The current implementation passes all 15 closure tests, but its guarantee rests
-on enumerated names/state rather than an interpreter-level invariant. Treat the
-current N1 code as a **strong first layer to be superseded / backed by** the
-per-process-identity + audit-hook design, not as the final closure.
+**Implemented lifecycle:**
+- one research worker per `ProtectedEvaluationClient`, started at the existing
+  ADR-0003 pre-label/pre-evaluator boundary;
+- the parent record and the worker each independently bind permanently to the
+  first valid `ResearchProgramRef.program_digest` requested;
+- a different digest in the same client receives only the existing generic
+  protected-evaluation failure and does not poison the originally bound digest;
+- a different digest can certify in a **fresh client**, whose research worker
+  again starts before labels/evaluator materialize;
+- the binding is established before program execution, so a first request that
+  later fails byte/origin validation still owns that client's worker identity.
 
-Note: moving to per-identity workers will change the retained T3 test
-`test_changed_module_executes_new_verified_bytes_not_cached_callable`, which
-today expects a second, different program to certify in the *same* worker. Under
-the stronger design the second digest fails closed in that worker and certifies
-in a fresh one. That is **stricter**, not weaker (it asserts both B4 outcomes).
-Any such change must be recorded in the T5 authority memo, and the immutable
-RED evidence must be preserved.
+The retained T3 test
+`test_changed_module_executes_new_verified_bytes_not_cached_callable` is now
+stricter: the changed digest is rejected in the already-bound client, then the
+new verified bytes certify with Brier `0.25` in a fresh client. The IPC P6
+concurrency test now uses one permitted program identity for all concurrent
+requests, so it continues to test request/reply pairing without depending on
+cross-program reuse.
+
+**Permanent runtime audit layer:** the worker installs one closure-captured
+`sys.addaudithook` hook. It is dormant for trusted worker maintenance and armed
+only while the verified research module or callback executes. It permits the
+exact module code being executed and trusted-runtime code, while refusing
+research-time dynamic code/function creation, sensitive frame/GC access,
+control-module imports, process/socket/pickle/trace/audit-hook operations and
+research-origin dynamic compile/exec. `tests.test_astra_t5_worker_lifecycle`
+includes a deterministic case proving a process-creation operation that the
+prior static/state layers allowed is now refused.
+
+**The prior proposal to delete `_InterpreterBaseline.require_clean` /
+`restore_request_scope` is explicitly superseded.** Empirical CPython 3.12.10
+audit-event mapping showed ordinary module/class attribute assignment is not an
+audit event. Therefore the hook cannot subsume the existing static audit and
+state-integrity checks. T5 keeps all three layers: static capability audit,
+permanent runtime audit hook, and post-execution state/label checks.
+
+**RED/green evidence:** current lifecycle/T3 assertions were copied onto sealed
+WIP baseline `582459b` and produced 5/5 deterministic failures before the
+implementation. After the implementation all 5 are green. The complete
+protected/retained set is 70/70 green (S5 12, R9 11, T3 15, closure 15, IPC
+13, lifecycle 4). Evidence is under `remediation_evidence/T5/N1_*`.
 
 ## 9. N2 / N3 / O-5 / package pins — NOT yet implemented (design intent)
 
@@ -391,10 +430,9 @@ chat (the next session should `git rev-parse HEAD` and diff against T4).
    disclosure/replay/substitution/fd-injection/restart/identity-mismatch/queue-
    desync; if a queue desync is possible, move research IPC to a dedicated fd.
    Keep the generic-error contract. Re-run the protected regression.
-3. **Implement the stronger N1 architecture (§8)** — per-program-identity
-   worker + permanent closure-captured audit hook; delete the in-process
-   state-diff crutch once the audit hook subsumes it; update the T3 retained
-   test as noted and preserve its RED evidence; re-run all protected suites.
+3. **Stronger N1 architecture (§8) is DONE at the third WIP checkpoint.**
+   Before final T5 sealing, rerun the protected set on target CPython 3.12.10
+   and retain that platform evidence; do not remove the state-integrity layer.
 4. **Implement N2, N3, O-5, and the package pins (§9)** — RED→GREEN each, and
    keep the legitimate-composition positive tests green (do not pass by
    forbidding permitted configurations).
@@ -419,6 +457,12 @@ chat (the next session should `git rev-parse HEAD` and diff against T4).
    GO.
 
 ---
+**Status line (2026-09-26, third WIP):** PA-1 request binding and stronger
+N1 lifecycle/runtime integrity are implemented; 70/70 protected/retained tests
+are green and the full suite is 351 tests with only the existing 24 N2/N3/O-5/
+package RED failures. Resume at §13 step 4. T5 is still IN PROGRESS / HOLD /
+ADAPTER NO-GO.
+
 **Status line (2026-09-26, second WIP):** PA-1 request binding implemented and
 green (§7a, 13 tests); §13 step 2 done; resume at step 3. Everything below
 this line was the status at the first WIP checkpoint.

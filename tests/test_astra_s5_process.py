@@ -22,13 +22,20 @@ from genesis.protected import (
 )
 from genesis.provenance import AvailabilityClass, ProvenanceRef
 from genesis.registry import ExperimentRegistry, ExperimentSpec, RegistryConflict
+from . import protected_research_programs as programs
 from ._support import scratch_directory
+from .protected_research_programs import (
+    FORBIDDEN_LABEL_ENV,
+    crash_program,
+    exception_program,
+    half_program,
+    hostile_parent_probe,
+    signal_program,
+    slow_program,
+)
 
 
-PARENT_LABEL_SENTINEL: tuple[FutureOutcomeLabel, ...] | None = None
-PARENT_PROBE_PATH: str | None = None
 PARENT_CALLBACK_EXECUTED = False
-FORBIDDEN_LABEL_ENV = "GENESIS_ASTRA_FORBIDDEN_LABEL_PATH"
 S5_LABEL_ROOTS: list[Path] = []
 
 
@@ -82,55 +89,6 @@ def labels_for(frames: tuple[DecisionFrame, ...]) -> tuple[FutureOutcomeLabel, .
         )
         for index, frame in enumerate(frames)
     )
-
-
-def signal_program(frame: DecisionFrame) -> str:
-    return "0.9" if frame.values()["signal"] else "0.1"
-
-
-def half_program(_frame: DecisionFrame) -> str:
-    return "0.5"
-
-
-def exception_program(_frame: DecisionFrame) -> str:
-    raise RuntimeError("TOP-SECRET research detail")
-
-
-def crash_program(_frame: DecisionFrame) -> str:
-    os._exit(31)
-
-
-def slow_program(_frame: DecisionFrame) -> str:
-    time.sleep(11)
-    return "0.5"
-
-
-def hostile_parent_probe(frame: DecisionFrame) -> str:
-    """Observe data reachable only when this callback runs in the trusted parent."""
-
-    saw_parent_label = bool(PARENT_LABEL_SENTINEL)
-    saw_label_file = False
-    label_path = os.environ.get(FORBIDDEN_LABEL_ENV)
-    if label_path:
-        try:
-            saw_label_file = "TOP-SECRET-LABEL" in Path(label_path).read_text(encoding="utf-8")
-        except OSError:
-            pass
-    if PARENT_PROBE_PATH:
-        Path(PARENT_PROBE_PATH).write_text(
-            json.dumps(
-                {
-                    "pid": os.getpid(),
-                    "saw_parent_label": saw_parent_label,
-                    "saw_label_file": saw_label_file,
-                },
-                sort_keys=True,
-            ),
-            encoding="utf-8",
-        )
-    if saw_parent_label or saw_label_file:
-        return "0.77"
-    return signal_program(frame)
 
 
 def parent_only_callable(_frame: DecisionFrame) -> str:
@@ -240,21 +198,20 @@ def launch(fixture, *, allow_fault_injection: bool = False):
 
 class AstraS5ProcessIsolationTests(unittest.TestCase):
     def tearDown(self) -> None:
-        global PARENT_LABEL_SENTINEL, PARENT_PROBE_PATH, PARENT_CALLBACK_EXECUTED
-        PARENT_LABEL_SENTINEL = None
-        PARENT_PROBE_PATH = None
+        global PARENT_CALLBACK_EXECUTED
+        programs.PARENT_LABEL_SENTINEL = None
+        programs.PARENT_PROBE_PATH = None
         PARENT_CALLBACK_EXECUTED = False
         os.environ.pop(FORBIDDEN_LABEL_ENV, None)
         while S5_LABEL_ROOTS:
             shutil.rmtree(S5_LABEL_ROOTS.pop(), ignore_errors=True)
 
     def test_retained_parent_label_environment_and_path_do_not_reach_research(self):
-        global PARENT_LABEL_SENTINEL, PARENT_PROBE_PATH
         with scratch_directory() as root:
             fixture = build_fixture(root)
             trace = root / "parent-callback-trace.json"
-            PARENT_LABEL_SENTINEL = fixture["labels"]
-            PARENT_PROBE_PATH = str(trace)
+            programs.PARENT_LABEL_SENTINEL = fixture["labels"]
+            programs.PARENT_PROBE_PATH = str(trace)
             os.environ[FORBIDDEN_LABEL_ENV] = str(fixture["label_path"])
             program = program_ref(hostile_parent_probe)
             with launch(fixture) as client:

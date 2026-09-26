@@ -8,6 +8,7 @@ import json
 import multiprocessing
 import os
 import queue
+import secrets
 import subprocess
 import sys
 import threading
@@ -1226,18 +1227,28 @@ class ProtectedEvaluationClient:
         if not isinstance(program, ResearchProgramRef) or request.strategy_digest != program.program_digest:
             raise ProtectedEvaluationError("protected request rejected") from None
         attempt_id = self._reserve(request)
+        # A fresh per-request nonce authenticates the worker's own reply. The
+        # research callback never sees it, so bytes a callback writes into the
+        # IPC channel cannot pass as the response (ADR-0003: callback output
+        # must not corrupt the protocol).
+        nonce = secrets.token_hex(32)
         try:
             response = self._research_roundtrip(
                 {
                     "op": "predict",
                     "request": request.to_dict(),
                     "program": program.to_dict(),
+                    "nonce": nonce,
                 }
             )
-            if set(response) != {"status", "artifact", "research_pid"}:
+            if response.get("status") != "error" and response.get("nonce") != nonce:
+                self._terminate_research_after_protocol_violation()
+                raise ValueError
+            if set(response) != {"status", "artifact", "research_pid", "nonce"}:
                 raise ValueError
             if (
                 response["status"] != "artifact"
+                or response["nonce"] != nonce
                 or response["research_pid"] != self.research_pid
                 or not isinstance(response["artifact"], dict)
             ):
@@ -1259,6 +1270,13 @@ class ProtectedEvaluationClient:
             self._abandon(request, attempt_id)
             raise ProtectedEvaluationError("protected evaluation failed") from None
         return self._evaluate_reserved(request, attempt_id, artifact)
+
+    def _terminate_research_after_protocol_violation(self) -> None:
+        """An unauthenticated reply means the stream is no longer trustworthy."""
+
+        if self._research_process.poll() is None:
+            self._research_process.kill()
+            self._research_process.wait(10)
 
     def _close_research(self) -> None:
         try:

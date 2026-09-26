@@ -22,6 +22,7 @@ from genesis.provenance import AvailabilityClass, ProvenanceRef
 from genesis.registry import ExperimentRegistry, ExperimentSpec, RegistryConflict
 from genesis.repro import canonical_json
 from ._support import scratch_directory
+from .protected_research_programs import failing_program, half_program, signal_program
 
 
 def digest(character: str) -> str:
@@ -78,18 +79,6 @@ def labels_for(
         )
         for index, frame in enumerate(frames)
     )
-
-
-def signal_program(frame: DecisionFrame) -> str:
-    return "0.9" if frame.values()["signal"] else "0.1"
-
-
-def half_program(_frame: DecisionFrame) -> str:
-    return "0.5"
-
-
-def failing_program(_frame: DecisionFrame) -> str:
-    raise RuntimeError("secret detail")
 
 
 def build_fixture(

@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import builtins
+import decimal
+import dis
+import gc
+import importlib.abc
 import inspect
 import json
 import os
@@ -15,6 +20,7 @@ from typing import Any, BinaryIO
 
 
 SRC_ROOT = Path(__file__).resolve().parents[1]
+TRUSTED_RUNTIME_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(SRC_ROOT))
 
 from genesis.evaluation import EvaluationRequest  # noqa: E402
@@ -148,8 +154,244 @@ _FORBIDDEN_REFLECTION_NAMES = frozenset({
 })
 
 
+# Research code may import only trusted runtime: the standard library and the
+# Genesis package that this worker itself runs from. These modules expose the
+# interpreter, import system, frames, raw memory, threads or processes, any of
+# which would let a program run or reach code and objects the audit cannot bind.
+_CONTROL_MODULES = frozenset({
+    "__main__", "_ast", "_ctypes", "_frozen_importlib", "_frozen_importlib_external",
+    "_imp", "_pickle", "_thread", "_weakref", "ast", "asyncio", "atexit", "builtins",
+    "code", "codeop", "concurrent", "copyreg", "ctypes", "dis", "faulthandler", "gc",
+    "imp", "importlib", "inspect", "marshal", "multiprocessing", "pickle", "pkgutil",
+    "runpy", "signal", "site", "sitecustomize", "subprocess", "symtable", "sys",
+    "sysconfig", "threading", "tracemalloc", "types", "usercustomize", "weakref",
+    "zipimport",
+})
+_CONTROL_MODULE_NAMES = frozenset({"genesis.protected_research_worker"})
+# Names that reach code, frames, the import system or unbound objects through
+# attribute or string indirection. Checked in every code object of the hashed
+# module, including module top level, class bodies and nested functions.
+_FORBIDDEN_PROGRAM_NAMES = frozenset({
+    "__base__", "__bases__", "__builtins__", "__class__", "__closure__", "__code__",
+    "__dict__", "__func__", "__getattribute__", "__globals__", "__import__",
+    "__loader__", "__mro__", "__reduce__", "__reduce_ex__", "__self__", "__spec__",
+    "__subclasses__", "_getframe", "addressof", "ag_frame", "attrgetter",
+    "breakpoint", "builtins", "compile", "cr_frame", "ctypes", "delattr", "eval",
+    "exec", "exec_module", "f_back", "f_builtins", "f_code", "f_globals", "f_locals",
+    "find_loader", "find_spec", "from_address", "get_objects", "get_referents",
+    "get_referrers", "getattr", "getattr_static", "gi_code", "gi_frame", "globals",
+    "import_module", "importlib", "load_module", "locals", "methodcaller",
+    "module_from_spec", "modules", "pythonapi", "reload", "run_module", "run_path",
+    "setattr", "spec_from_file_location", "sys", "tb_frame", "tb_next", "vars",
+})
+_REMOVED_BUILTINS = frozenset({
+    "__import__", "breakpoint", "compile", "delattr", "eval", "exec", "getattr",
+    "globals", "help", "input", "locals", "setattr", "vars",
+})
+_HAVE_GC = 1 << 14
+
+
+class ResearchProcessContaminated(RuntimeError):
+    """Research left state that later computations could not be bound to."""
+
+
 def _inside(path: Path, roots: tuple[Path, ...]) -> bool:
+    """True only for unhashed research-root code; trusted runtime is exempt."""
+
+    if path.is_relative_to(TRUSTED_RUNTIME_ROOT):
+        return False
     return any(path.is_relative_to(root) for root in roots)
+
+
+def _real_path(value: object) -> Path | None:
+    if not isinstance(value, str) or not value or value.startswith("<"):
+        return None
+    try:
+        return Path(os.path.realpath(value))
+    except (OSError, ValueError):
+        return None
+
+
+def _audit_program_code(code: types.CodeType) -> None:
+    """Reject unbound code paths anywhere in the hashed module before it runs."""
+
+    pending = [(code, True)]
+    while pending:
+        current, top_level = pending.pop()
+        names = set(current.co_names)
+        strings = {value for value in current.co_consts if isinstance(value, str)}
+        if names & _FORBIDDEN_PROGRAM_NAMES or strings & _FORBIDDEN_PROGRAM_NAMES:
+            raise ValueError("research program uses an unbound dynamic capability")
+        previous: list[dis.Instruction] = []
+        for instruction in dis.get_instructions(current):
+            if instruction.opname == "IMPORT_NAME":
+                name = instruction.argval
+                level = previous[-2].argval if len(previous) >= 2 else None
+                if (
+                    not top_level
+                    or not isinstance(name, str)
+                    or level != 0
+                    or name.partition(".")[0] in _CONTROL_MODULES
+                    or name in _CONTROL_MODULE_NAMES
+                ):
+                    raise ValueError("research program import is unsupported")
+            previous.append(instruction)
+        for value in current.co_consts:
+            if isinstance(value, types.CodeType):
+                pending.append((value, False))
+
+
+def _trusted_spec(spec: Any, roots: tuple[Path, ...]) -> bool:
+    locations = [spec.origin] if spec.origin not in (None, "built-in", "frozen") else []
+    locations.extend(spec.submodule_search_locations or ())
+    for location in locations:
+        path = _real_path(location)
+        if path is None or _inside(path, roots):
+            return False
+    return True
+
+
+class _ResearchOriginGuard(importlib.abc.MetaPathFinder):
+    """Refuse any module under a research root before its code can execute."""
+
+    def __init__(self, roots: tuple[Path, ...]):
+        self.roots = roots
+
+    def find_spec(self, fullname, path, target=None):  # noqa: ANN001 - finder protocol
+        for finder in sys.meta_path:
+            if finder is self:
+                continue
+            find = getattr(finder, "find_spec", None)
+            if find is None:
+                continue
+            spec = find(fullname, path, target)
+            if spec is not None:
+                if not _trusted_spec(spec, self.roots):
+                    raise ImportError("untrusted research module origin")
+                return spec
+        return None
+
+
+def _guarded_import(real_import):
+    def research_import(name, globals=None, locals=None, fromlist=(), level=0):  # noqa: A002
+        if (
+            level != 0
+            or not isinstance(name, str)
+            or not name
+            or name.partition(".")[0] in _CONTROL_MODULES
+            or name in _CONTROL_MODULE_NAMES
+        ):
+            raise ImportError("research program import is unsupported")
+        return real_import(name, globals, locals, fromlist, level)
+
+    return research_import
+
+
+def _decimal_context_state() -> tuple:
+    context = decimal.getcontext()
+    return (
+        context.prec, context.rounding, context.Emin, context.Emax,
+        context.capitals, context.clamp,
+        tuple(sorted((signal.__name__, bool(value)) for signal, value in context.traps.items())),
+    )
+
+
+class _InterpreterBaseline:
+    """Exact module bindings and runtime state before any research executes."""
+
+    _VOLATILE_KEYS = frozenset({"__warningregistry__"})
+
+    def __init__(self, roots: tuple[Path, ...]):
+        self.roots = roots
+        self.modules = dict(sys.modules)
+        self.bindings = {
+            name: {key: id(value) for key, value in vars(module).items()}
+            for name, module in self.modules.items()
+            if isinstance(module, ModuleType)
+        }
+        self.builtins = dict(vars(builtins))
+        self.environment = dict(os.environ)
+        self.decimal_context = _decimal_context_state()
+        self.sys_path = list(sys.path)
+        self.meta_path = list(sys.meta_path)
+        self.path_hooks = list(sys.path_hooks)
+        self.recursion_limit = sys.getrecursionlimit()
+        random = self.modules.get("random")
+        self.random_state = random.getstate() if random is not None else None
+
+    def research_builtins(self) -> dict[str, Any]:
+        namespace = {
+            key: value for key, value in self.builtins.items()
+            if key not in _REMOVED_BUILTINS
+        }
+        namespace["__import__"] = _guarded_import(self.builtins["__import__"])
+        return namespace
+
+    @staticmethod
+    def _added_submodule(owner: str, key: str, value: Any) -> bool:
+        return isinstance(value, ModuleType) and value.__name__ == f"{owner}.{key}"
+
+    def require_clean(self, program_path: Path | None) -> None:
+        """Fail closed unless only the current program's code and no label exist."""
+
+        gc.unfreeze()
+        gc.collect()
+        for item in gc.get_objects():
+            if isinstance(item, FutureOutcomeLabel):
+                raise ResearchProcessContaminated("raw label present in research process")
+            if isinstance(item, FunctionType):
+                origin = _real_path(item.__code__.co_filename)
+            elif isinstance(item, ModuleType):
+                origin = _real_path(vars(item).get("__file__"))
+            else:
+                continue
+            if origin is not None and _inside(origin, self.roots) and origin != program_path:
+                raise ResearchProcessContaminated("unbound research code is live")
+        for name, module in self.modules.items():
+            if sys.modules.get(name) is not module:
+                raise ResearchProcessContaminated("trusted module binding changed")
+            expected = self.bindings.get(name)
+            if expected is None:
+                continue
+            current = vars(module)
+            for key, identity in expected.items():
+                if key in self._VOLATILE_KEYS:
+                    continue
+                if key not in current or id(current[key]) != identity:
+                    raise ResearchProcessContaminated(f"trusted module state changed: {name}.{key}")
+            for key, value in current.items():
+                if key not in expected and key not in self._VOLATILE_KEYS \
+                        and not self._added_submodule(name, key, value):
+                    raise ResearchProcessContaminated(f"trusted module state changed: {name}.{key}")
+        if (
+            dict(vars(builtins)) != self.builtins
+            or dict(os.environ) != self.environment
+            or _decimal_context_state() != self.decimal_context
+            or sys.path != self.sys_path
+            or sys.meta_path != self.meta_path
+            or sys.path_hooks != self.path_hooks
+            or sys.getrecursionlimit() != self.recursion_limit
+        ):
+            raise ResearchProcessContaminated("trusted runtime state changed")
+
+    def restore_request_scope(self) -> None:
+        """Forget modules and submodule bindings first loaded by the request."""
+
+        for name in [name for name in sys.modules if name not in self.modules]:
+            del sys.modules[name]
+        for name, module in self.modules.items():
+            expected = self.bindings.get(name)
+            if expected is None:
+                continue
+            namespace = vars(module)
+            for key in [key for key in namespace if key not in expected
+                        and key not in self._VOLATILE_KEYS]:
+                if self._added_submodule(name, key, namespace[key]):
+                    del namespace[key]
+        decimal.getcontext().clear_flags()
+        random = self.modules.get("random")
+        if random is not None and self.random_state is not None:
+            random.setstate(self.random_state)
 
 
 def _module_path(module: ModuleType) -> Path | None:
@@ -456,19 +698,29 @@ def _audit_capability(
     )
 
 
-def _resolve_program(program: ResearchProgramRef, roots: tuple[Path, ...]) -> FunctionType:
+def _resolve_program(
+    program: ResearchProgramRef,
+    roots: tuple[Path, ...],
+    baseline: _InterpreterBaseline,
+    state: dict[str, Any],
+) -> FunctionType:
     module_path = _program_module_path(program.module, roots)
     source = module_path.read_bytes()
     if sha256_bytes(source) != program.module_artifact_hash:
         raise ValueError("research program module artifact mismatch")
     code = compile(source, str(module_path), "exec", dont_inherit=True)
+    _audit_program_code(code)
     module = ModuleType(program.module)
     module.__file__ = str(module_path)
     module.__package__ = program.module.rpartition(".")[0]
     if module_path.name == "__init__.py":
         module.__package__ = program.module
         module.__path__ = [str(module_path.parent)]  # type: ignore[attr-defined]
+    module.__dict__["__builtins__"] = baseline.research_builtins()
+    state["program_path"] = Path(os.path.realpath(module_path))
+    state["executed"] = True
     exec(code, module.__dict__)
+    baseline.require_clean(state["program_path"])
 
     target: Any = module
     for component in program.qualname.split("."):
@@ -526,8 +778,9 @@ def _main() -> int:
         roots = tuple(Path(item).resolve() for item in roots_value)
         if any(not root.is_absolute() or not root.is_dir() for root in roots):
             raise ValueError("research import root is invalid")
-        for root in reversed(roots):
-            sys.path.insert(0, str(root))
+        # Roots locate exactly the hashed program; they are never import paths.
+        if not FutureOutcomeLabel.__flags__ & _HAVE_GC:
+            raise ValueError("raw label type cannot be audited in this runtime")
         sealed = _sealed_from_dict(launch["sealed_frame_manifest"])
         _send(
             ipc_output,
@@ -550,26 +803,38 @@ def _main() -> int:
         finally:
             return 2
 
+    sys.meta_path.insert(0, _ResearchOriginGuard(roots))
+    baseline = _InterpreterBaseline(roots)
+    poisoned = False
     while True:
+        state: dict[str, Any] = {"executed": False, "program_path": None}
         try:
             message = _recv(ipc_input)
             operation = message.get("op")
             if operation == "shutdown" and set(message) == {"op"}:
                 _send(ipc_output, {"status": "closed"})
                 return 0
-            if operation != "predict" or set(message) != {"op", "request", "program"}:
+            if operation != "predict" or set(message) != {"op", "request", "program", "nonce"}:
                 raise ValueError("unsupported research operation")
+            nonce = message.pop("nonce")
+            if not isinstance(nonce, str) or len(nonce) != 64 or nonce.lower() != nonce:
+                raise ValueError("research request nonce is invalid")
+            int(nonce, 16)
             if not isinstance(message["request"], dict) or not isinstance(message["program"], dict):
                 raise ValueError("research request payload is invalid")
             request = EvaluationRequest.from_dict(message["request"])
             program = ResearchProgramRef.from_dict(message["program"])
             if request.strategy_digest != program.program_digest:
                 raise ValueError("research request/program digest mismatch")
-            callback = _resolve_program(program, roots)
+            if poisoned:
+                raise ResearchProcessContaminated("research process was contaminated earlier")
+            callback = _resolve_program(program, roots, baseline, state)
             predictions = {
                 frame.decision_id: callback(frame)
                 for frame in sealed.frames
             }
+            del callback
+            baseline.require_clean(state["program_path"])
             artifact = FrozenPredictionArtifact.create(
                 request,
                 sealed.frame_manifest_hash,
@@ -581,10 +846,21 @@ def _main() -> int:
                     "status": "artifact",
                     "artifact": artifact.to_dict(),
                     "research_pid": os.getpid(),
+                    "nonce": nonce,
                 },
             )
-        except Exception:
+        except Exception as exc:
+            if isinstance(exc, ResearchProcessContaminated):
+                poisoned = True
             _send(ipc_output, {"status": "error", "message": "protected evaluation failed"})
+        finally:
+            if state.get("executed") and not poisoned:
+                try:
+                    state.clear()
+                    baseline.restore_request_scope()
+                    baseline.require_clean(None)
+                except Exception:
+                    poisoned = True
 
 
 if __name__ == "__main__":

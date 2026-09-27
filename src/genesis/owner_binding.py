@@ -99,7 +99,13 @@ def owner_identity(path: str | Path, anchor: str | Path) -> str:
     return Path(relative).as_posix()
 
 
-def _same(left: str, right: str) -> bool:
+def same_owner_identity(left: str, right: str) -> bool:
+    """Whether two owner identities name one owner (caselessly on Windows).
+
+    The one comparison for owner identities, also used for the F-2
+    approval witness's ledger (E7).
+    """
+
     return os.path.normcase(left) == os.path.normcase(right)
 
 
@@ -181,7 +187,9 @@ class RiskOwnerBinding:
 
     def _claims_self(self, kind: str, owner_path: Path) -> bool:
         claimed = _claimed(kind, owner_path)
-        return claimed is not None and _same(claimed, self._risk_log_from(owner_path))
+        return claimed is not None and same_owner_identity(
+            claimed, self._risk_log_from(owner_path),
+        )
 
     def register(
         self, owners: Mapping[str, Path | None], *, anchors: tuple[str, ...] = (),
@@ -200,7 +208,7 @@ class RiskOwnerBinding:
         def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
             bound = self._replay(rows)
             if any(
-                kind in bound and not _same(bound[kind], presented[kind][0])
+                kind in bound and not same_owner_identity(bound[kind], presented[kind][0])
                 for kind in anchors if kind in presented
             ):
                 return None
@@ -219,7 +227,10 @@ class RiskOwnerBinding:
         self.log.transaction(build)
         bound = self.bound()
         for kind, (identity, path) in presented.items():
-            if kind in EXCLUSIVE_KINDS and kind in bound and _same(bound[kind], identity):
+            if (
+                kind in EXCLUSIVE_KINDS and kind in bound
+                and same_owner_identity(bound[kind], identity)
+            ):
                 claim = {
                     "record_type": "risk_owner_claimed",
                     "schema_version": OWNER_CLAIM_SCHEMA,
@@ -239,7 +250,7 @@ class RiskOwnerBinding:
         found: set[str] = set()
         for owners in owner_sets:
             for kind, (identity, path) in self._identities(owners).items():
-                if kind not in bound or not _same(bound[kind], identity):
+                if kind not in bound or not same_owner_identity(bound[kind], identity):
                     found.add(kind)
                 elif kind in EXCLUSIVE_KINDS and not self._claims_self(kind, path):
                     found.add(kind)

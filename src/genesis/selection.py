@@ -17,7 +17,7 @@ from .decision_output import (
 from .evidence import StructuredEvidenceStore
 from .evidence_pack import EvidencePackStore
 from .feature_manifest import FeatureInputManifestStore
-from .owner_binding import owner_identity
+from .owner_binding import owner_identity, same_owner_identity
 from .pit import PITStore
 from .policy import (
     PolicySet,
@@ -294,6 +294,23 @@ _WITNESS_FIELDS = frozenset({
 _CHAIN_FIELDS = frozenset({"previous_hash", "sequence", "record_hash"})
 
 
+def _same_ledger(left: object, right: object) -> bool:
+    """E7: witness ledgers compare as N2 compares owner identities."""
+
+    if left is None or right is None:
+        return left is None and right is None
+    return (
+        isinstance(left, str) and isinstance(right, str)
+        and same_owner_identity(left, right)
+    )
+
+
+def _same_witness(left: dict[str, Any], right: dict[str, Any]) -> bool:
+    return _same_ledger(left["approval_ledger"], right["approval_ledger"]) and all(
+        left[key] == right[key] for key in _WITNESS_FIELDS - {"approval_ledger"}
+    )
+
+
 class _WitnessRecording:
     """The witness builder of one authority recording of a V3 qualification (E1)."""
 
@@ -502,7 +519,7 @@ class QualificationRecordStore:
             witness = self._require_prior_grant(record)
             existing = self._witnesses_like(rows, witness)
             if existing:
-                if existing == [witness]:
+                if len(existing) == 1 and _same_witness(existing[0], witness):
                     return None
                 raise RegistryConflict("conflicting qualification approval witness")
             return witness
@@ -590,7 +607,7 @@ class QualificationRecordStore:
     def _witnesses_like(
         rows: tuple[dict[str, Any], ...] | list[dict[str, Any]], witness: dict[str, Any],
     ) -> list[dict[str, Any]]:
-        """Witnesses for ``witness``'s record that name the same ledger."""
+        """Witnesses for ``witness``'s record that name the same ledger (E7: as N2 does)."""
 
         found = []
         for row in rows:
@@ -598,14 +615,16 @@ class QualificationRecordStore:
                     or row.get("record_type") != "qualification_approval_witnessed"
                     or row.get("schema_version") != APPROVAL_WITNESS_SCHEMA):
                 raise RegistryConflict("unsupported qualification approval witness history")
-            if (row["qualification_record_id"], row["approval_ledger"]) == (
-                witness["qualification_record_id"], witness["approval_ledger"],
+            if (
+                row["qualification_record_id"] == witness["qualification_record_id"]
+                and _same_ledger(row["approval_ledger"], witness["approval_ledger"])
             ):
                 found.append({key: row[key] for key in _WITNESS_FIELDS})
         return found
 
     def _require_witnessed(self, expected: dict[str, Any]) -> None:
-        if self._witnesses_like(self.witnesses.records(), expected) != [expected]:
+        found = self._witnesses_like(self.witnesses.records(), expected)
+        if len(found) != 1 or not _same_witness(found[0], expected):
             raise RegistryConflict("V3 qualification lacks its exact prior approval witness")
 
     def get(self, record_id: str) -> QualificationRecord:

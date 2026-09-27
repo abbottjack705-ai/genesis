@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import json
 import queue
-import shutil
 import threading
 import unittest
 from pathlib import Path
@@ -33,7 +32,7 @@ from genesis.evaluation import ProtectedEvaluationError
 from genesis.protected import MAX_IPC_BYTES, FrozenPredictionArtifact
 from genesis.repro import canonical_json
 
-from ._support import scratch_directory
+from ._support import remove_tree, scratch_directory
 from .protected_research_programs import half_program, signal_program
 from .test_astra_s5_process import (
     S5_LABEL_ROOTS,
@@ -89,7 +88,7 @@ def worker_alive(client) -> bool:
 class T5IpcRequestBindingTests(unittest.TestCase):
     def tearDown(self) -> None:
         while S5_LABEL_ROOTS:
-            shutil.rmtree(S5_LABEL_ROOTS.pop(), ignore_errors=True)
+            remove_tree(S5_LABEL_ROOTS.pop())
 
     # --- P2 / P5: reply stream ordering ---------------------------------------
 

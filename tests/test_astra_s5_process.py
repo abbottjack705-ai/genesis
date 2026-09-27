@@ -3,7 +3,6 @@ from __future__ import annotations
 import inspect
 import json
 import os
-import shutil
 import tempfile
 import threading
 import time
@@ -23,7 +22,7 @@ from genesis.protected import (
 from genesis.provenance import AvailabilityClass, ProvenanceRef
 from genesis.registry import ExperimentRegistry, ExperimentSpec, RegistryConflict
 from . import protected_research_programs as programs
-from ._support import scratch_directory
+from ._support import attach_to_scratch, remove_tree, scratch_directory
 from .protected_research_programs import (
     FORBIDDEN_LABEL_ENV,
     crash_program,
@@ -138,6 +137,8 @@ def build_fixture(root: Path, *, max_attempts: int = 3):
     attempts = ProtectedAttemptLedger(root / "attempts.jsonl")
     label_root = Path(tempfile.mkdtemp(prefix="genesis-s5-labels-")).resolve()
     S5_LABEL_ROOTS.append(label_root)
+    # Outside the repository by design; removed with this test's scratch (E10).
+    attach_to_scratch(root, label_root)
     research_root = root / "research"
     research_root.mkdir()
     label_path = label_root / "raw-label.secret"
@@ -204,7 +205,7 @@ class AstraS5ProcessIsolationTests(unittest.TestCase):
         PARENT_CALLBACK_EXECUTED = False
         os.environ.pop(FORBIDDEN_LABEL_ENV, None)
         while S5_LABEL_ROOTS:
-            shutil.rmtree(S5_LABEL_ROOTS.pop(), ignore_errors=True)
+            remove_tree(S5_LABEL_ROOTS.pop())
 
     def test_retained_parent_label_environment_and_path_do_not_reach_research(self):
         with scratch_directory() as root:

@@ -129,6 +129,15 @@ class CriticalEvidenceRefresh:
 
 
 class CriticalEvidenceRefreshStore:
+    """Per-candidate critical-evidence refresh history (E2).
+
+    A candidate's refreshes must advance ``checked_at``, and its first material
+    change invalidates it for good: a new candidate is required. Both rules are
+    derived from the whole durable history on every read, so they hold after
+    restart and for rows that reached the log without ``append``; a history
+    that does not advance fails closed.
+    """
+
     def __init__(self, path: str | Path):
         self.log = AppendOnlyJsonl(path)
 
@@ -138,28 +147,51 @@ class CriticalEvidenceRefreshStore:
         fields["refreshed_hashes"] = tuple(fields["refreshed_hashes"])
         return CriticalEvidenceRefresh(**fields)
 
-    def append(self, refresh: CriticalEvidenceRefresh) -> CriticalEvidenceRefresh:
-        self.log.append(
-            {
-                "record_type": "critical_evidence_refresh",
-                "schema_version": "critical-evidence-refresh-v2",
-                "refresh_id": refresh.refresh_id,
-                **refresh.to_dict(),
-            }
-        )
-        return refresh
-
-    def current(self, candidate_decision_hash: str) -> CriticalEvidenceRefresh:
-        rows = [
-            self._from_row(row)
-            for row in self.log.records()
+    @classmethod
+    def _history(
+        cls, rows: tuple[dict, ...] | list[dict], candidate_decision_hash: str,
+    ) -> list[CriticalEvidenceRefresh]:
+        history = [
+            cls._from_row(row)
+            for row in rows
             if row.get("record_type") == "critical_evidence_refresh"
             and row.get("schema_version") == "critical-evidence-refresh-v2"
             and row.get("candidate_decision_hash") == candidate_decision_hash
         ]
-        if not rows:
+        for earlier, later in zip(history, history[1:]):
+            if parse_utc(later.checked_at) <= parse_utc(earlier.checked_at):
+                raise RegistryConflict("critical evidence refresh time must advance")
+        return history
+
+    def append(self, refresh: CriticalEvidenceRefresh) -> CriticalEvidenceRefresh:
+        payload = {
+            "record_type": "critical_evidence_refresh",
+            "schema_version": "critical-evidence-refresh-v2",
+            "refresh_id": refresh.refresh_id,
+            **refresh.to_dict(),
+        }
+
+        def build(rows: tuple[dict, ...]) -> dict | None:
+            history = self._history(rows, refresh.candidate_decision_hash)
+            if any(item.refresh_id == refresh.refresh_id for item in history):
+                return None
+            if any(item.material_change for item in history):
+                raise RegistryConflict(
+                    "critical evidence changed materially; a new candidate is required"
+                )
+            self._history((*rows, payload), refresh.candidate_decision_hash)
+            return payload
+
+        self.log.transaction(build)
+        return refresh
+
+    def current(self, candidate_decision_hash: str) -> CriticalEvidenceRefresh:
+        """The candidate's first material change, else its latest refresh."""
+
+        history = self._history(self.log.records(), candidate_decision_hash)
+        if not history:
             raise RegistryConflict("critical evidence refresh is unavailable")
-        return rows[-1]
+        return next((item for item in history if item.material_change), history[-1])
 
 
 @dataclass(frozen=True)

@@ -12,3 +12,6 @@ remediation_evidence/T5/*.txt -text whitespace=-trailing-space
 # Raw T6 transcripts are byte evidence written with LF by their runner; store
 # them without end-of-line conversion so blob, checkout and hashes agree.
 remediation_evidence/T6/*.txt -text whitespace=-trailing-space
+# The dependency lock is pinned by the SHA-256 of its LF text (E9); every
+# checkout, including core.autocrlf=true, holds exactly those bytes.
+requirements.lock text eol=lf

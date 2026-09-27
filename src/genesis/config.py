@@ -53,6 +53,18 @@ class GenesisConfig:
         return asdict(self) | {"mode": self.mode.value, "config_digest": self.digest}
 
 
+def dependency_lock_digest(path: str | Path) -> str:
+    """The dependency lock's identity: SHA-256 of its canonical LF text (E9).
+
+    ``.gitattributes`` checks the lock out with LF endings; a CRLF checkout of
+    the same content (Git for Windows ``core.autocrlf=true``) has the same
+    identity. Any other byte change, including a lone carriage return, changes
+    it.
+    """
+
+    return sha256_bytes(Path(path).read_bytes().replace(b"\r\n", b"\n")).upper()
+
+
 def load_config(path: str | Path, dependencies_lock_digest: str) -> GenesisConfig:
     import json
 

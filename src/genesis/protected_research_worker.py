@@ -37,10 +37,18 @@ from genesis.provenance import AvailabilityClass, ProvenanceRef  # noqa: E402
 from genesis.repro import canonical_json, sha256_bytes  # noqa: E402
 
 
-def _send(stream: BinaryIO, payload: dict[str, Any]) -> None:
+def _send(stream: BinaryIO, payload: dict[str, Any], *, verify=None) -> None:
     raw = canonical_json(payload)
     if len(raw) > MAX_IPC_BYTES:
         raise ValueError("research IPC response exceeds limit")
+    # Optional last check on the exact bytes' worth of state before any byte is
+    # written (E11 re-audit finding 3 / defence-in-depth): building `payload` or
+    # serializing it can transitively re-enter research-controlled code (a dunder
+    # on a returned value, a rebound trusted callable), so verify AFTER
+    # serialization but BEFORE emitting, so a contaminating side effect fails the
+    # response instead of shipping it.
+    if verify is not None:
+        verify()
     stream.write(raw)
     stream.flush()
 
@@ -188,10 +196,8 @@ _CONTROL_MODULES = frozenset({
 _CONTROL_MODULE_NAMES = frozenset({"genesis.protected_research_worker"})
 # The only imports research code may perform. Each root is vetted to expose no
 # process/native-load/network capability, or (os/pathlib/io) only sinks the
-# runtime hook already refuses. `genesis` is trusted runtime the worker itself
-# runs; genesis imports are additionally deep-audited by `_audit_capability`,
-# and `genesis.protected_research_worker` stays denied via `_CONTROL_MODULE_NAMES`.
-# `__future__` is required for `from __future__ import annotations`.
+# runtime hook already refuses. `__future__` is required for
+# `from __future__ import annotations`.
 _RESEARCH_IMPORT_ALLOWLIST = frozenset({
     "__future__",
     "abc", "array", "bisect", "calendar", "cmath", "collections", "copy",
@@ -199,19 +205,57 @@ _RESEARCH_IMPORT_ALLOWLIST = frozenset({
     "io", "itertools", "json", "math", "numbers", "operator", "os",
     "pathlib", "random", "re", "statistics", "string", "struct", "time",
 })
+# The Genesis import surface is a NARROW positive allowlist, not "any genesis.*".
+# The wide surface (E11 re-audit finding 1) let research reach
+# `genesis.protected` -> `multiprocessing.reduction._winapi.CreateProcess` (a
+# native process loader) purely by attribute. Research may reference only the
+# data-type layer below (frames, labels, provenance, reasons, time) -- pure
+# dataclasses/enums that the worker already loads and that expose no process,
+# native-load or network capability. `genesis.protected`, this worker module and
+# every heavier Genesis module (risk, execution, selection, ledger, ...) fail
+# closed by omission.
+_RESEARCH_GENESIS_ALLOWLIST = frozenset({
+    "genesis",
+    "genesis.evaluation",
+    "genesis.labels",
+    "genesis.provenance",
+    "genesis.reasons",
+    "genesis.time",
+})
+def _is_trusted_definition_module(name: str) -> bool:
+    """Modules whose top-level definitions (classes AND functions, plus the exact
+    built-in containers nested in their namespaces) are integrity-checked for
+    in-place mutation (E11 re-audit finding 3).
+
+    The scope is broad on purpose -- **every** loaded Genesis module, `pathlib`
+    (whose `PurePath`/`Path` methods the worker's OWN post-callback enforcement
+    dispatches through, so rebinding one would subvert the checker while the
+    module-level identity is unchanged), and this worker module. The narrowed
+    import surface and the reachability closure already stop research from
+    reaching most of these, so covering them is defence in depth: even if some
+    other route reached a Genesis definition, an in-place mutation of it is still
+    caught. Their namespaces are stable under the worker's own use (no lazy
+    class-level caches), so the check does not false-positive. The stdlib beyond
+    `pathlib` is deliberately excluded: it has mutating caches (`re._cache`,
+    `functools`, ...) that would false-positive, which is exactly why an
+    unbounded snapshot of everything is unsound.
+    """
+
+    return name == __name__ or name == "pathlib" or name.startswith("genesis.")
 
 
 def _import_allowed(name: object) -> bool:
-    """Fail-closed: only allowlisted trusted-runtime roots and the Genesis
-    package (never this worker module) may be imported by research code."""
+    """Fail-closed: only allowlisted trusted-runtime roots and a narrow set of
+    Genesis data modules (never this worker module or `genesis.protected`) may be
+    imported by research code."""
 
     if not isinstance(name, str) or not name:
         return False
     root = name.partition(".")[0]
     if root in _RESEARCH_IMPORT_ALLOWLIST:
         return True
-    if root == "genesis" and name not in _CONTROL_MODULE_NAMES:
-        return True
+    if root == "genesis":
+        return name in _RESEARCH_GENESIS_ALLOWLIST
     return False
 
 
@@ -270,42 +314,46 @@ def _install_runtime_audit_hook(roots: tuple[Path, ...]):
 
     Two tiers of policy:
 
-    * Forbidden sinks (process/native/socket creation, enforcement subversion)
-      are refused in *every* phase, regardless of `mode`.  Trusted worker code
-      never performs them, so keeping them refused while `mode` is None costs
-      trusted activity nothing and closes the F-1/E3 boundary: research code that
-      regains execution during trusted housekeeping (finalizers, GC callbacks,
-      dunder methods reached while scanning/serializing/converting the result)
-      cannot breach the boundary because these denials never switch off.
-    * Reflection and compile/exec/import gating apply only while a research
-      `mode` is active, because trusted worker activity (importing at startup,
-      compiling and exec-ing the hashed program, and calling `gc.get_objects`
-      during its own scan) legitimately performs them.
+    * A **permanent** tier is refused in *every* phase, independent of `mode`:
+      forbidden sinks (process/native/socket creation, enforcement subversion),
+      native-capability events (`_winapi.*`, `_posixsubprocess.*`, `ctypes.*`),
+      and the fail-closed **import allowlist**.  Trusted worker code performs
+      none of these after this hook is installed (imports are pre-loaded before
+      it is installed), so keeping them refused while `mode` is None costs
+      trusted activity nothing and closes the re-entry window (E11 re-audit
+      finding 2): research-controlled code that regains execution during trusted
+      conversion, cleanup or shutdown -- through a `__del__` or other finalizer,
+      a generator `close`/`finally`, a GC-driven callback, or a dunder method
+      touched while the interpreter state is scanned, the result is converted or
+      the artifact is serialized -- still cannot import a forbidden module or
+      reach a native capability, because these denials never switch off.  Python
+      cannot stop such code from *running*; the boundary guarantees that whenever
+      it runs, the operations that would breach it stay refused.
+    * A **research** tier applies only while a research `mode` is active (module
+      exec / callback).  It is **default-deny**: only a small vetted set of
+      benign, non-boundary-crossing events is admitted (compile/exec of trusted
+      code, non-sensitive attribute reads, and filesystem access), and every
+      other event fails closed by omission.  Because benign predictor compute
+      raises no audit event at all, this positive policy does not restrict
+      legitimate research, yet it refuses any native/process/network/
+      introspection capability reached by *any* route -- including one reached by
+      attribute traversal rather than by an import statement (E11 re-audit
+      finding 1) -- since exercising it raises an audit event that is not on the
+      benign allowlist.  It cannot be default-deny in the trusted (`mode` is
+      None) phases, whose own housekeeping legitimately raises `builtins.id`,
+      `object.__getattr__`, `gc.get_objects`, `compile` and `open`.
     """
 
     research_roots = tuple(Path(os.path.realpath(root)) for root in roots)
     trusted_runtime_root = Path(os.path.realpath(TRUSTED_RUNTIME_ROOT))
     code_type = types.CodeType
-    control_modules = _CONTROL_MODULES
-    control_names = _CONTROL_MODULE_NAMES
     sensitive_attrs = frozenset({
         "f_back", "f_builtins", "f_code", "f_globals", "f_locals",
         "tb_frame", "tb_next", "gi_code", "gi_frame", "cr_frame", "ag_frame",
     })
     # Forbidden sinks: operations with an external or irreversible effect, or
     # that grant new native/execution capability, or that would subvert
-    # enforcement itself.  Trusted worker code never performs ANY of these after
-    # this hook is installed, so they are denied in every phase, independent of
-    # `mode` -- including while `mode` is None during trusted housekeeping.  This
-    # is the F-1/E3 invariant made structural: research-controlled code that
-    # regains execution after the callback returned -- through a `__del__` or
-    # other finalizer, a generator `close`/`finally`, a GC-driven callback, or a
-    # dunder method touched while the interpreter state is scanned, the result is
-    # converted, or the artifact is serialized -- still cannot reach a forbidden
-    # sink, because the denial has no dormant state left to exploit.  Python
-    # cannot stop such code from *running*; the boundary instead guarantees that
-    # whenever it runs, the operations that would breach the boundary stay
-    # refused.
+    # enforcement itself.  Refused in every phase (see the permanent tier above).
     forbidden_events = frozenset({
         "builtins.breakpoint",
         "os.fork",
@@ -322,20 +370,29 @@ def _install_runtime_audit_hook(roots: tuple[Path, ...]):
         "sys.setprofile",
         "sys.settrace",
     })
-    forbidden_prefixes = ("os.exec", "os.spawn", "ctypes.")
-    # Reflection/introspection primitives that only matter while research code is
-    # the active mode, or that trusted worker code itself legitimately uses during
-    # a scan (`gc.get_objects`).  These stay gated on `mode` so the post-execution
-    # interpreter-state scan can run.
-    research_denied_events = frozenset({
-        "code.__new__",
-        "function.__new__",
-        "gc.get_objects",
-        "gc.get_referents",
-        "gc.get_referrers",
-        "pickle.find_class",
-        "sys._getframe",
-        "sys._current_frames",
+    # Native-capability event families denied in every phase.  `_winapi.*` and
+    # `_posixsubprocess.*` are the low-level process/handle primitives that
+    # multiprocessing exposes and that E11 reached by attribute
+    # (`genesis.protected.multiprocessing.reduction._winapi.CreateProcess`); their
+    # events (e.g. `_winapi.CreateProcess`) were previously undenied.  Trusted
+    # worker housekeeping raises no `_winapi`/`_posixsubprocess`/`ctypes` event.
+    forbidden_prefixes = (
+        "os.exec", "os.spawn", "ctypes.", "_winapi.", "_posixsubprocess.",
+    )
+    # The only events research-controlled code may raise while a research `mode`
+    # is active; everything else fails closed.  `builtins.id` is pure identity
+    # introspection (dataclass `repr` raises it via `reprlib.recursive_repr`) and
+    # cannot cross the boundary on its own -- the memory-address tricks it once
+    # enabled all route through `ctypes`, whose events are refused above.  `open`
+    # is legitimate file access; `os.scandir`/`os.listdir` let a non-preloaded
+    # allowlisted import load.  None crosses the process/native/network boundary
+    # (that surface is the deferred OS-level confinement layer's, per ADR-0003),
+    # so admitting them here does not weaken the boundary this hook protects.
+    research_benign_events = frozenset({
+        "builtins.id",
+        "open",
+        "os.listdir",
+        "os.scandir",
     })
     state: dict[str, Any] = {"mode": None, "allowed_exec": None}
 
@@ -351,11 +408,21 @@ def _install_runtime_audit_hook(roots: tuple[Path, ...]):
         return not any(path.is_relative_to(root) for root in research_roots)
 
     def _hook(event: str, args: tuple[Any, ...]) -> None:
-        # Forbidden sinks are refused in every phase, so trusted housekeeping
-        # that transitively re-enters research-controlled code cannot breach the
-        # boundary even though `mode` is None.
+        # -- Permanent tier: refused in EVERY phase, independent of `mode`. --
         if event in forbidden_events or event.startswith(forbidden_prefixes):
             raise RuntimeError("research runtime operation is unsupported")
+        if event == "import":
+            # Fail-closed positive allowlist, enforced in every phase so a
+            # re-entrant import during conversion/cleanup/shutdown cannot load a
+            # forbidden module (E11 re-audit finding 2).  The `import` event fires
+            # inside the import system, which trusted worker code never reaches
+            # after startup (all allowlisted modules are pre-loaded), so an
+            # always-on allowlist costs trusted activity nothing.
+            name = args[0] if args else None
+            if not _import_allowed(name):
+                raise RuntimeError("research runtime operation is unsupported")
+            return
+        # -- Research tier: default-deny while a research `mode` is active. --
         if state["mode"] is None:
             return
         if event == "exec":
@@ -370,20 +437,16 @@ def _install_runtime_audit_hook(roots: tuple[Path, ...]):
             if _trusted_origin(filename):
                 return
             raise RuntimeError("research runtime operation is unsupported")
-        if event == "import":
-            name = args[0] if args else None
-            if not isinstance(name, str) or not name:
-                raise RuntimeError("research runtime operation is unsupported")
-            if name.partition(".")[0] in control_modules or name in control_names:
-                raise RuntimeError("research runtime operation is unsupported")
-            return
         if event == "object.__getattr__":
             attribute = args[1] if len(args) > 1 else None
             if attribute in sensitive_attrs:
                 raise RuntimeError("research runtime operation is unsupported")
             return
-        if event in research_denied_events:
-            raise RuntimeError("research runtime operation is unsupported")
+        if event in research_benign_events:
+            return
+        # Default-deny: any other event (native/process/network/introspection
+        # capability, however reached) fails closed.
+        raise RuntimeError("research runtime operation is unsupported")
 
     sys.addaudithook(_hook)
 
@@ -496,6 +559,98 @@ def _decimal_context_state() -> tuple:
     )
 
 
+class _TrustedDefinitionSnapshot:
+    """Detect in-place mutation of already-loaded trusted definitions
+    (E11 re-audit finding 3).
+
+    The module-binding scan detects *rebinding* a module's top-level attribute
+    but not an in-place mutation one level deeper -- adding or rebinding a member
+    of a trusted class, mutating a trusted function's defaults/annotations, or
+    changing a built-in container nested in a definition namespace -- because the
+    top-level identity is unchanged. This snapshot supplements it with exactly
+    that bounded extra level.
+
+    It reads only exact built-in containers and definition namespaces and never
+    calls user equality, hashing, repr, iteration protocols or arbitrary
+    properties (it reads the real class namespace via
+    ``type.__dict__['__dict__'].__get__`` rather than ``value.__dict__``), so the
+    scan itself cannot re-enter research-controlled code. It is not a snapshot of
+    every runtime object and is not an OS sandbox.
+
+    Scope is ``_is_trusted_definition_module`` -- every loaded Genesis module,
+    the ``pathlib`` types the worker's own enforcement dispatches through, and
+    this worker module (defence in depth beyond what research can reach).
+    Original objects are retained (``_retained``) so object-id reuse cannot
+    masquerade as unchanged state; verification is therefore effectively by
+    identity, not by a reusable ``id()``.
+    """
+
+    def __init__(self, modules: dict[str, ModuleType]):
+        self.definitions = tuple(
+            value
+            for name, module in modules.items()
+            if _is_trusted_definition_module(name) and isinstance(module, ModuleType)
+            for value in vars(module).values()
+            if isinstance(value, (FunctionType, type))
+            and _is_trusted_definition_module(getattr(value, "__module__", ""))
+        )
+        self._retained: list[Any] = []
+        self.expected = self._state(self._retained)
+
+    @classmethod
+    def _capture(cls, value: Any, seen: set[int], retained=None) -> tuple:
+        identity = id(value)
+        if identity in seen:
+            return ("ref", identity)
+        seen.add(identity)
+        if retained is not None:
+            retained.append(value)
+        kind = type(value)
+        # A mappingproxy may wrap a user-defined mapping; do not dispatch it.
+        if kind is dict:
+            return ("mapping", identity, tuple(
+                (cls._capture(key, seen, retained), cls._capture(item, seen, retained))
+                for key, item in value.items()
+            ))
+        if kind is tuple or kind is list:
+            return ("sequence", identity, tuple(
+                cls._capture(item, seen, retained) for item in value
+            ))
+        if kind is set or kind is frozenset:
+            return ("set", identity, tuple(
+                cls._capture(item, seen, retained) for item in sorted(value, key=id)
+            ))
+        if kind is FunctionType:
+            return ("function", identity, cls._capture(value.__code__, seen, retained),
+                    cls._capture(value.__dict__, seen, retained),
+                    cls._capture(value.__defaults__, seen, retained),
+                    cls._capture(value.__kwdefaults__, seen, retained),
+                    cls._capture(value.__annotations__, seen, retained))
+        if issubclass(kind, type):
+            # Read the real class namespace; a metaclass __dict__ property or a
+            # user mappingproxy must never be dispatched during the scan.
+            namespace = type.__dict__["__dict__"].__get__(value)
+            return ("type", identity, tuple(
+                (cls._capture(key, seen, retained), cls._capture(item, seen, retained))
+                for key, item in namespace.items()
+            ))
+        if kind is staticmethod or kind is classmethod:
+            return ("method", identity, cls._capture(value.__func__, seen, retained))
+        if kind is property:
+            return ("property", identity, tuple(
+                cls._capture(item, seen, retained) for item in (value.fget, value.fset, value.fdel)
+            ))
+        return ("leaf", identity)
+
+    def _state(self, retained=None) -> tuple:
+        seen: set[int] = set()
+        return tuple(self._capture(value, seen, retained) for value in self.definitions)
+
+    def require_clean(self) -> None:
+        if self._state() != self.expected:
+            raise ResearchProcessContaminated("trusted definition state changed")
+
+
 class _InterpreterBaseline:
     """Exact module bindings and runtime state before any research executes."""
 
@@ -509,8 +664,10 @@ class _InterpreterBaseline:
             for name, module in self.modules.items()
             if isinstance(module, ModuleType)
         }
-        self.builtins = dict(vars(builtins))
-        self.environment = dict(os.environ)
+        # Authority snapshots are held in immutable views so the checker's own
+        # reference state cannot be edited in place (E11 re-audit finding 3).
+        self.builtins = types.MappingProxyType(dict(vars(builtins)))
+        self.environment = types.MappingProxyType(dict(os.environ))
         self.decimal_context = _decimal_context_state()
         self.sys_path = list(sys.path)
         self.meta_path = list(sys.meta_path)
@@ -518,6 +675,19 @@ class _InterpreterBaseline:
         self.recursion_limit = sys.getrecursionlimit()
         random = self.modules.get("random")
         self.random_state = random.getstate() if random is not None else None
+        # Nested-definition integrity for the trusted definitions research can
+        # reach or the worker depends on (E11 re-audit finding 3). The top-level
+        # id() snapshot in `bindings` detects *rebinding* a module attribute, but
+        # not an in-place mutation one level deeper -- adding/rebinding a member of
+        # a trusted class (e.g. `FutureOutcomeLabel`, or `pathlib.PurePath.
+        # is_relative_to` which the scan itself dispatches through), mutating a
+        # trusted function's defaults/annotations, or changing a container nested
+        # in a definition namespace -- which leaves the module-level identity
+        # unchanged and would otherwise persist into the next request in the reused
+        # worker. This snapshot supplements it with exactly that bounded extra
+        # level; it is not an unlimited recursive snapshot, which trusted lazy
+        # caches would make both unbounded and unsound.
+        self.definitions = _TrustedDefinitionSnapshot(self.modules)
         # Cache only containment of already-canonical paths across scans.  Each
         # scan still resolves the live source path afresh, so a symlink or path
         # that resolves differently cannot inherit an earlier classification.
@@ -546,8 +716,13 @@ class _InterpreterBaseline:
     def require_clean(self, program_path: Path | None) -> None:
         """Fail closed unless only the current program's code and no label exist."""
 
+        # Verify nested trusted-definition integrity both before and after the
+        # collection: a __del__ driven by gc.collect() could itself mutate a
+        # trusted definition, so check on each side of it.
+        self.definitions.require_clean()
         gc.unfreeze()
         gc.collect()
+        self.definitions.require_clean()
         # One resolution and root classification per distinct source path per
         # scan. No research code runs during the scan, so equal path strings
         # classify equally; doing both per live function (thousands) made each
@@ -861,15 +1036,26 @@ def _audit_capability(
         )
         return
     if isinstance(value, ModuleType):
+        # Positive policy applied to an indirectly reachable module (E11 re-audit
+        # finding 1): a module reached by attribute -- not only by an import
+        # statement -- must itself satisfy the fail-closed import allowlist. Any
+        # module that is not import-allowed (every control/native module, and any
+        # non-allowlisted Genesis module reached e.g. via
+        # genesis.protected.multiprocessing.reduction._winapi) fails closed.
+        if not _import_allowed(value.__name__):
+            raise ValueError("reachable module capability is unsupported")
         path = _module_path(value)
         if path is not None and _inside(path, roots):
             raise ValueError("custom imported module capability is unsupported")
         namespace = vars(value)
         for name in referenced_names:
             if name in namespace:
+                # Propagate the referenced names to each recursion so an
+                # indirectly reachable module several hops out is validated to its
+                # leaf, not only at the first hop. `seen` bounds the walk.
                 _audit_capability(
                     namespace[name], seen=seen, roots=roots,
-                    program_module=program_module, referenced_names=frozenset(),
+                    program_module=program_module, referenced_names=referenced_names,
                 )
         return
     if isinstance(value, type):
@@ -1102,6 +1288,10 @@ def _main() -> int:
                     "research_pid": os.getpid(),
                     "nonce": nonce,
                 },
+                # Re-verify the whole baseline after the artifact is serialized
+                # and before any byte leaves the worker: a side effect during
+                # conversion/serialization fails the response instead of shipping.
+                verify=lambda: baseline.require_clean(state["program_path"]),
             )
         except Exception as exc:
             if isinstance(exc, ResearchProcessContaminated):

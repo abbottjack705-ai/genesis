@@ -89,10 +89,53 @@ def _verified_row(raw_line: bytes, sequence: int, previous: str) -> dict[str, An
     return row
 
 
+_CHAIN_FIELDS = frozenset({"previous_hash", "sequence", "record_hash"})
+
+
+def _require_exact_json(value: Any) -> None:
+    """E4: a record holds only values that read back exactly as the writer saw them.
+
+    Only builtin JSON values are accepted: ``dict`` with ``str`` keys, ``list``
+    or ``tuple``, ``str``, ``int``, ``float``, ``bool`` and ``None``, each of its
+    exact type. A subclass can compare, hash or order differently from the
+    text it serializes as, so an owner's check could pass on the object while
+    its reader later sees other data; a non-string key is renamed by JSON.
+    """
+
+    kind = type(value)
+    if value is None or kind in (str, int, float, bool):
+        return
+    if kind is dict:
+        for key, item in value.items():
+            if type(key) is not str:
+                raise RegistryConflict("registry record has a key that JSON would rename")
+            _require_exact_json(item)
+        return
+    if kind in (list, tuple):
+        for item in value:
+            _require_exact_json(item)
+        return
+    raise RegistryConflict(
+        f"registry record holds a {kind.__name__} value that does not read back as written"
+    )
+
+
 class AppendOnlyJsonl:
-    def __init__(self, path: str | Path):
+    """Hash-chained JSONL log; every accepted row reads back exactly as written.
+
+    ``reader`` is the owning store's replay of its whole history. When given,
+    an append happens only if that replay accepts the verified history with the
+    new row, so an owner write that returns success is readable after restart
+    (E4).
+    """
+
+    def __init__(
+        self, path: str | Path, *,
+        reader: Callable[[tuple[dict[str, Any], ...]], Any] | None = None,
+    ):
         self.path = Path(path)
         self.coordinator_path = self.path.with_name(f"{self.path.name}.coordinator.sqlite3")
+        self._reader = reader
 
     def _verified_records(self) -> list[dict[str, Any]]:
         return self._read_verified()[1]
@@ -162,6 +205,8 @@ class AppendOnlyJsonl:
         appended only if the append target and every read-lock participant is
         its file's single name (F-3b), so the name-derived locks are the files'
         only locks, and only right after the exact bytes that were verified.
+        The appended line is the one ``appended_row`` verified as every reader
+        reads it, and the log's ``reader`` accepts the history it completes (E4).
         """
 
         # Every participant, including the append target, is acquired in the
@@ -196,11 +241,18 @@ class AppendOnlyJsonl:
             if record is None:
                 connection.commit()
                 return None
-            if not isinstance(record, dict) or "record_hash" in record or "previous_hash" in record:
-                raise RegistryConflict("record payload contains reserved hash-chain fields")
-            chained = self.chained(records, record)
-            record_hash = chained["record_hash"]
-            line = canonical_json(chained)
+            row = self.appended_row(records, record)
+            record_hash = row["record_hash"]
+            line = canonical_json(row)
+            if self._reader is not None:
+                try:
+                    self._reader((*records, row))
+                except RegistryConflict:
+                    raise
+                except Exception as exc:
+                    raise RegistryConflict(
+                        "registry record would not read back through its owner"
+                    ) from exc
             for log in read_locks:
                 _require_single_name(log.path)
             self._append_exactly(raw, start, line)
@@ -236,16 +288,25 @@ class AppendOnlyJsonl:
         It is parsed and verified from the exact line the append writes, so a
         record whose line this log's own reader would refuse (a chain field it
         overrides, a value that does not re-serialize to its hashed bytes) is
-        refused here instead of being appended (T6 F-3).
+        refused here instead of being appended (T6 F-3). The chain fields are
+        the log's alone, the record must be exact JSON, and the parsed row must
+        re-serialize to the very line that is written (E4).
         """
 
-        if "record_hash" in record or "previous_hash" in record:
+        if type(record) is not dict:
+            raise RegistryConflict("registry record must be a JSON object")
+        if _CHAIN_FIELDS & set(record):
             raise RegistryConflict("record payload contains reserved hash-chain fields")
-        lines = canonical_json(cls.chained(records, record)).splitlines()
+        _require_exact_json(record)
+        line = canonical_json(cls.chained(records, record))
+        lines = line.splitlines()
         if len(lines) != 1:
             raise RegistryConflict("registry contains an invalid record")
         previous = records[-1]["record_hash"] if records else "0" * 64
-        return _verified_row(lines[0], len(records) + 1, previous)
+        row = _verified_row(lines[0], len(records) + 1, previous)
+        if canonical_json(row) != line:
+            raise RegistryConflict("registry record does not read back as written")
+        return row
 
     def append(self, record: dict[str, Any]) -> str:
         result = self.transaction(lambda _records: record)
@@ -529,7 +590,7 @@ class StrategyRegistry:
     }
 
     def __init__(self, path: str | Path):
-        self.log = AppendOnlyJsonl(path)
+        self.log = AppendOnlyJsonl(path, reader=self._replay_current)
         self._replay_current(self.log.records())
 
     def _replay_current(

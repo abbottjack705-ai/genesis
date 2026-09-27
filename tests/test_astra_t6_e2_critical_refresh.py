@@ -15,7 +15,7 @@ from __future__ import annotations
 import unittest
 
 from genesis.execution import CriticalEvidenceRefresh, CriticalEvidenceRefreshStore, OrderState
-from genesis.registry import RegistryConflict
+from genesis.registry import AppendOnlyJsonl, RegistryConflict
 
 from ._support import scratch_directory
 from .test_remediation_r6_execution import build_execution, restart_adapter, restart_risk
@@ -39,12 +39,16 @@ def refresh(case, checked_at: str, valid: bool, material: bool) -> CriticalEvide
 
 
 def write(case, item: CriticalEvidenceRefresh, *, raw: bool) -> bool:
-    """Append ``item``; ``raw`` writes its row as a pre-E2 store would have."""
+    """Append ``item``; ``raw`` writes its row as a pre-E2 store would have.
+
+    The raw row goes through a plain log over the same file, because the
+    store's own storage now refuses a row its replay rejects (E4).
+    """
 
     store = case["refreshes"]
     try:
         if raw:
-            store.log.append({
+            AppendOnlyJsonl(store.log.path).append({
                 "record_type": "critical_evidence_refresh",
                 "schema_version": "critical-evidence-refresh-v2",
                 "refresh_id": item.refresh_id,

@@ -81,7 +81,7 @@ class OfflinePaperReleaseProofStore:
     ) -> None:
         if any(owner is None for owner in (risk, execution, ledger)):
             raise TypeError("release proof requires risk, execution and ledger owners")
-        self.log = AppendOnlyJsonl(path)
+        self.log = AppendOnlyJsonl(path, reader=self._proofs)
         self.risk = risk
         self.execution = execution
         self.ledger = ledger

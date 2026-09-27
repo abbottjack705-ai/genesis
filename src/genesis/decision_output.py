@@ -322,7 +322,7 @@ class StrategyOutputApprovalStore:
     """
 
     def __init__(self, path: str | Path):
-        self.log = AppendOnlyJsonl(path)
+        self.log = AppendOnlyJsonl(path, reader=self._replay)
 
     @staticmethod
     def _replay(rows: tuple[dict, ...] | list[dict]) -> dict[str, dict[str, dict]]:

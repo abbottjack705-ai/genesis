@@ -145,7 +145,7 @@ class SettlementLedger:
     """P/L authority derived only from verified fills and settlement lineages."""
 
     def __init__(self, path: str | Path):
-        self.log = AppendOnlyJsonl(path)
+        self.log = AppendOnlyJsonl(path, reader=self._replay)
         self._replay(tuple(self.log.records()))
 
     @staticmethod

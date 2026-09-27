@@ -105,14 +105,16 @@ class AstraStrictReplayTests(unittest.TestCase):
                     case = root / owner
                     fixture = build_risk(case)
                     req = request(fixture)
+                    # Raw history bytes: the owner's storage refuses rows its
+                    # replay rejects (E4), as the risk log's does (F-3).
                     if owner == "bankrolls":
-                        fixture[owner].log.append({
+                        AppendOnlyJsonl(fixture[owner].log.path).append({
                             "record_type": "bankroll_snapshot_recorded",
                             "schema_version": "bankroll-snapshot-v3",
                             "bankroll": "10",
                         })
                     else:
-                        fixture[owner].log.append({
+                        AppendOnlyJsonl(fixture[owner].log.path).append({
                             "record_type": "safety_mode_transition",
                             "schema_version": "safety-state-v3",
                             "kill_switch_active": True,
@@ -150,7 +152,7 @@ class AstraStrictReplayTests(unittest.TestCase):
                             rebase_reason="test",
                             parent_snapshot_id="f" * 64,
                         )
-                        fixture["bankrolls"].log.append({
+                        AppendOnlyJsonl(fixture["bankrolls"].log.path).append({
                             "record_type": "bankroll_snapshot_recorded",
                             "schema_version": "bankroll-snapshot-v2",
                             **wrong.to_dict(),
@@ -158,7 +160,7 @@ class AstraStrictReplayTests(unittest.TestCase):
                         self.assert_admission_blocked(fixture["engine"], req)
                         self.assert_restart_blocked(case, fixture, req)
                     else:
-                        fixture["safety"].log.append({
+                        AppendOnlyJsonl(fixture["safety"].log.path).append({
                             "record_type": "safety_mode_transition",
                             "schema_version": "safety-state-v2",
                             "kill_switch_active": False,

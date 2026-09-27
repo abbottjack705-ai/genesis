@@ -201,7 +201,9 @@ def _forge(case, proof, **changes):
     }
     payload.update(changes)
     payload["proof_id"] = sha256_bytes(canonical_json(payload))
-    return owner, owner.log.append(payload)
+    # Forged durable bytes: the proof owner's storage refuses rows its replay
+    # rejects (E4), so they are written as a raw writer outside it would.
+    return owner, AppendOnlyJsonl(owner.log.path).append(payload)
 
 
 class AstraLegacyV2ReleaseTests(unittest.TestCase):

@@ -56,13 +56,21 @@ class SourceUnavailable(RuntimeError):
 
 class SourceCapabilityRegistry:
     def __init__(self, path: str | Path):
-        self.log = AppendOnlyJsonl(path)
+        self.log = AppendOnlyJsonl(path, reader=self._replay)
 
     @staticmethod
     def _from_row(row: dict[str, Any]) -> SourceCapability:
         fields = {key: row[key] for key in SourceCapability.__dataclass_fields__}
         fields["operational_status"] = OperationalStatus(fields["operational_status"])
         return SourceCapability(**fields)
+
+    @classmethod
+    def _replay(cls, rows: tuple[dict[str, Any], ...] | list[dict[str, Any]]) -> None:
+        """Every capability row, as ``history`` reads it (E4)."""
+
+        for row in rows:
+            if row.get("record_type") == "source_capability_registered":
+                cls._from_row(row)
 
     def history(self, source_id: str) -> tuple[SourceCapability, ...]:
         items = [

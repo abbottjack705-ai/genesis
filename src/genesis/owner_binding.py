@@ -141,7 +141,8 @@ class RiskOwnerBinding:
         self.risk_log_path = risk_log.path
         self.anchor = risk_log.path.parent
         self.log = AppendOnlyJsonl(
-            risk_log.path.with_name(f"{risk_log.path.name}.owners.jsonl")
+            risk_log.path.with_name(f"{risk_log.path.name}.owners.jsonl"),
+            reader=self._replay,
         )
 
     @staticmethod

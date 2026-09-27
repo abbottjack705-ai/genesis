@@ -13,7 +13,7 @@ from decimal import Decimal
 from genesis.accounting import BetSide, SettlementKind
 from genesis.execution import OrderState
 from genesis.ledger import FillRecord, SettlementLedger
-from genesis.registry import RegistryConflict
+from genesis.registry import AppendOnlyJsonl, RegistryConflict
 from genesis.release_proof import OfflinePaperReleaseProofStore
 from genesis.repro import canonical_json, sha256_bytes
 
@@ -282,14 +282,19 @@ class AstraB3ReleaseProofTests(unittest.TestCase):
             proof_hash = owner.issue_full_settlement(
                 fixture["intent"].order_id, occurred_at="2026-01-01T00:21:00Z",
             )
-            fixture["adapter"]._audit.append({
+            invalid = {
                 "record_type": "order_state_transition",
                 "schema_version": "order-event-v2",
                 "order_id": fixture["intent"].order_id,
                 "from_state": OrderState.SETTLED.value,
                 "to_state": OrderState.VOID.value,
                 "occurred_at": "2026-01-01T00:22:00Z",
-            })
+            }
+            # E4: the order owner's storage refuses a row its replay rejects;
+            # the same bytes are seeded as a raw writer outside it would.
+            with self.assertRaises(RegistryConflict):
+                fixture["adapter"]._audit.append(dict(invalid))
+            AppendOnlyJsonl(fixture["adapter"]._audit.path).append(invalid)
             with self.assertRaises(RegistryConflict):
                 owner.validate_current(proof_hash)
 
@@ -305,7 +310,11 @@ class AstraB3ReleaseProofTests(unittest.TestCase):
                 key: value for key, value in original.items()
                 if key not in {"previous_hash", "sequence", "record_hash"}
             }
-            owner.log.append(duplicate)
+            # E4: the proof owner's storage refuses a row its replay rejects;
+            # the same bytes are seeded as a raw writer outside it would.
+            with self.assertRaises(RegistryConflict):
+                owner.log.append(dict(duplicate))
+            AppendOnlyJsonl(owner.log.path).append(duplicate)
             with self.assertRaises(RegistryConflict):
                 owner.validate_current(proof_hash)
 

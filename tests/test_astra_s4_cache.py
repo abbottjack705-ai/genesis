@@ -8,7 +8,7 @@ from pathlib import Path
 
 import genesis.quota as quota_module
 from genesis.quota import BudgetClass, CachedData, QuotaLedger, load_quota_policy
-from genesis.registry import RegistryConflict
+from genesis.registry import AppendOnlyJsonl, RegistryConflict
 
 from ._support import scratch_directory
 
@@ -189,7 +189,12 @@ class AstraCacheAuthorityTests(unittest.TestCase):
             policy = load_quota_policy(ACTIVE_POLICY_PATH)
             store = self.authority(root, policy)
             reference = self.publish(store, policy)
-            store.log.append({"record_type": "future_cache_authority_event", "value": 1})
+            unsupported = {"record_type": "future_cache_authority_event", "value": 1}
+            # E4: the cache owner's storage refuses a row its replay rejects;
+            # the same bytes are seeded as a raw writer outside it would.
+            with self.assertRaises(RegistryConflict):
+                store.log.append(dict(unsupported))
+            AppendOnlyJsonl(store.log.path).append(unsupported)
             ledger = QuotaLedger(root / "quota.jsonl", policy=policy, cache_store=store)
             exhaust_daily(ledger)
             with self.assertRaises(RegistryConflict):

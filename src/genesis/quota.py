@@ -390,7 +390,7 @@ class VerifiedCacheStore:
     def __init__(self, root: str | Path):
         self.root = Path(root)
         self.objects = self.root / "objects"
-        self.log = AppendOnlyJsonl(self.root / "cache-authority.jsonl")
+        self.log = AppendOnlyJsonl(self.root / "cache-authority.jsonl", reader=self._replay)
 
     def object_path(self, artifact_hash: str) -> Path:
         _cache_digest(artifact_hash, "cache artifact hash")
@@ -576,7 +576,7 @@ class QuotaLedger:
         policy.require_operational(allow_test_policy=allow_test_policy)
         self.policy = policy
         self.cache_store = cache_store
-        self.log = AppendOnlyJsonl(path)
+        self.log = AppendOnlyJsonl(path, reader=self._replay)
         self._validated_state(tuple(self.log.records()))
 
     @classmethod

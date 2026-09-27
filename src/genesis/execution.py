@@ -140,7 +140,7 @@ class CriticalEvidenceRefreshStore:
     """
 
     def __init__(self, path: str | Path):
-        self.log = AppendOnlyJsonl(path)
+        self.log = AppendOnlyJsonl(path, reader=self._replay)
 
     @staticmethod
     def _from_row(row: dict) -> CriticalEvidenceRefresh:
@@ -163,6 +163,17 @@ class CriticalEvidenceRefreshStore:
             if parse_utc(later.checked_at) <= parse_utc(earlier.checked_at):
                 raise RegistryConflict("critical evidence refresh time must advance")
         return history
+
+    @classmethod
+    def _replay(cls, rows: tuple[dict, ...] | list[dict]) -> None:
+        """Every candidate's history, as ``current`` reads it (E4)."""
+
+        for candidate in {
+            row.get("candidate_decision_hash") for row in rows
+            if row.get("record_type") == "critical_evidence_refresh"
+            and row.get("schema_version") == "critical-evidence-refresh-v2"
+        }:
+            cls._history(rows, candidate)
 
     def append(self, refresh: CriticalEvidenceRefresh) -> CriticalEvidenceRefresh:
         payload = {
@@ -235,13 +246,24 @@ class ExecutionMarketSnapshot:
 
 class ExecutionMarketStateStore:
     def __init__(self, path: str | Path):
-        self.log = AppendOnlyJsonl(path)
+        self.log = AppendOnlyJsonl(path, reader=self._replay)
 
     @staticmethod
     def _from_row(row: dict) -> ExecutionMarketSnapshot:
         return ExecutionMarketSnapshot(
             **{key: row[key] for key in ExecutionMarketSnapshot.__dataclass_fields__}
         )
+
+    @classmethod
+    def _replay(cls, rows: tuple[dict, ...] | list[dict]) -> None:
+        """Every snapshot row, as ``current`` reads it (E4)."""
+
+        for row in rows:
+            if (
+                row.get("record_type") == "execution_market_snapshot"
+                and row.get("schema_version") == "execution-market-snapshot-v2"
+            ):
+                cls._from_row(row)
 
     def append(self, snapshot: ExecutionMarketSnapshot) -> ExecutionMarketSnapshot:
         payload = {
@@ -453,7 +475,7 @@ class PaperExecutionAdapter:
             or callable(getattr(strategy_view, "is_active", None))
         ):
             raise TypeError("strategy execution read view is incomplete")
-        self._audit = AppendOnlyJsonl(audit_path)
+        self._audit = AppendOnlyJsonl(audit_path, reader=self._replay)
         self.risk = risk
         self.markets = markets
         self.refreshes = refreshes
@@ -1077,7 +1099,7 @@ class ModeState:
 
 class ModeStateStore:
     def __init__(self, path: str | Path):
-        self.log = AppendOnlyJsonl(path)
+        self.log = AppendOnlyJsonl(path, reader=self._history)
 
     @staticmethod
     def _from_row(row: dict) -> ModeState:

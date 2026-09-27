@@ -385,7 +385,7 @@ class QualificationRecordStore:
         bindings: StrategyOutputRuleBindingStore | None = None,
         approvals: StrategyOutputApprovalStore | None = None,
     ):
-        self.log = AppendOnlyJsonl(path)
+        self.log = AppendOnlyJsonl(path, reader=self._replay)
         self.witnesses = _ApprovalWitnessLog(
             Path(path).with_name(f"{Path(path).name}.approval-witness.jsonl"), self,
         )
@@ -684,10 +684,16 @@ class QualificationRecordStore:
             raise RegistryConflict("V3 qualification/output lineage mismatch")
         return record
 
+    @classmethod
+    def _replay(cls, rows: tuple[dict[str, Any], ...] | list[dict[str, Any]]) -> None:
+        """Every qualification row, as ``verify`` and ``get`` read it (E4)."""
+
+        for row in rows:
+            cls._from_row(row)
+
     def verify(self) -> int:
         rows = self.log.records()
-        for row in rows:
-            self._from_row(row)
+        self._replay(rows)
         return len(rows)
 
 

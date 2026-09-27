@@ -110,7 +110,7 @@ class BankrollSnapshot:
 
 class BankrollSnapshotStore:
     def __init__(self, path: str | Path):
-        self.log = AppendOnlyJsonl(path)
+        self.log = AppendOnlyJsonl(path, reader=self._replay)
 
     @staticmethod
     def _from_row(row: dict) -> BankrollSnapshot:
@@ -119,14 +119,18 @@ class BankrollSnapshotStore:
         )
 
     def history(self) -> tuple[BankrollSnapshot, ...]:
+        return self._replay(self.log.records())
+
+    @classmethod
+    def _replay(cls, rows: tuple[dict, ...] | list[dict]) -> tuple[BankrollSnapshot, ...]:
         history: list[BankrollSnapshot] = []
-        for row in self.log.records():
+        for row in rows:
             if (row.get("record_type"), row.get("schema_version")) != (
                 "bankroll_snapshot_recorded", "bankroll-snapshot-v2"
             ):
                 raise RegistryConflict("unsupported active bankroll event")
             try:
-                snapshot = self._from_row(row)
+                snapshot = cls._from_row(row)
             except (KeyError, TypeError, ValueError) as exc:
                 raise RegistryConflict("incomplete active bankroll event") from exc
             if history:
@@ -226,21 +230,25 @@ class SafetyState:
 
 class SafetyStateStore:
     def __init__(self, path: str | Path):
-        self.log = AppendOnlyJsonl(path)
+        self.log = AppendOnlyJsonl(path, reader=self._replay)
 
     @staticmethod
     def _from_row(row: dict) -> SafetyState:
         return SafetyState(**{key: row[key] for key in SafetyState.__dataclass_fields__})
 
     def history(self) -> tuple[SafetyState, ...]:
+        return self._replay(self.log.records())
+
+    @classmethod
+    def _replay(cls, rows: tuple[dict, ...] | list[dict]) -> tuple[SafetyState, ...]:
         history: list[SafetyState] = []
-        for row in self.log.records():
+        for row in rows:
             if (row.get("record_type"), row.get("schema_version")) != (
                 "safety_mode_transition", "safety-state-v2"
             ):
                 raise RegistryConflict("unsupported active safety event")
             try:
-                state = self._from_row(row)
+                state = cls._from_row(row)
             except (KeyError, TypeError, ValueError) as exc:
                 raise RegistryConflict("incomplete active safety event") from exc
             if history:
@@ -430,7 +438,7 @@ class _ReplayChecked:
         self.engine._exposures((*rows, row))
         return {
             key: value for key, value in row.items()
-            if key not in {"previous_hash", "record_hash"}
+            if key not in {"previous_hash", "sequence", "record_hash"}
         }
 
 

@@ -50,7 +50,7 @@ def _publish_clustered(fixture: dict, record: QualificationRecord, clusters: tup
         evidence_pack_hash=body["evidence_pack_hash"],
         decision_output_hash=output_hash,
     )
-    return store.append(QualificationRecord.create(**fields))
+    return store.record_fixture_qualification(QualificationRecord.create(**fields))
 
 
 def _use_clustered(fixture: dict, clusters: tuple[str, ...]) -> QualificationRecord:
@@ -191,7 +191,7 @@ class AstraB1DependenceTests(unittest.TestCase):
             wrong_fields.pop("qualification_record_id")
             wrong_fields["decision_output_hash"] = alternate_hash
             # Candidate hash intentionally remains bound to the original output.
-            wrong_hash["qualification"] = wrong_hash["qualifications"].append(
+            wrong_hash["qualification"] = wrong_hash["qualifications"].record_fixture_qualification(
                 QualificationRecord.create(**wrong_fields)
             )
             self.assertFalse(wrong_hash["engine"].approve(request(wrong_hash)).passed)

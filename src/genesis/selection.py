@@ -294,13 +294,29 @@ _WITNESS_FIELDS = frozenset({
 _CHAIN_FIELDS = frozenset({"previous_hash", "sequence", "record_hash"})
 
 
+class _WitnessRecording:
+    """The witness builder of one authority recording of a V3 qualification (E1)."""
+
+    def __init__(
+        self, store: QualificationRecordStore,
+        build: Callable[[tuple[dict[str, Any], ...]], dict[str, Any] | None],
+    ):
+        self.store = store
+        self.build = build
+
+    def __call__(self, rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
+        return self.build(rows)
+
+
 class _ApprovalWitnessLog(AppendOnlyJsonl):
     """Witness storage that appends only the recording path's own witness (F-2).
 
-    Every append, through this object or not, runs under the qualification-log
-    and ledger locks. It must be the first witness for its record and ledger,
-    for a record that does not exist yet, and exactly the witness of a grant
-    that exists now. A witness can therefore never follow its record.
+    Only the authority's recording of a V3 qualification writes a witness
+    (E1); any other builder, such as a direct ``append``, appends nothing.
+    Every append runs under the qualification-log and ledger locks. It must be
+    the first witness for its record and ledger, for a record that does not
+    exist yet, and exactly the witness of a grant that exists now. A witness
+    can therefore never follow its record.
     """
 
     def __init__(self, path: str | Path, store: QualificationRecordStore):
@@ -314,10 +330,15 @@ class _ApprovalWitnessLog(AppendOnlyJsonl):
         read_locks: tuple[AppendOnlyJsonl, ...] = (),
     ) -> str | None:
         store = self._store
+        recording = isinstance(build_record, _WitnessRecording) and build_record.store is store
 
         def checked(rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
             row = build_record(rows)
             if row is not None:
+                if not recording:
+                    raise RegistryConflict(
+                        "an approval witness is written only by its qualification's recording"
+                    )
                 store._require_new_witness(rows, row)
             return row
 
@@ -337,6 +358,9 @@ class QualificationRecordStore:
     grant as the ledger holds it, so a grant appended after the record, even a
     byte-identical copy of one made in another ledger, never admits it. The
     witness is a sidecar, so qualification rows and identities are unchanged.
+
+    E1: that recording path is ``QualificationAuthority.evaluate``'s alone, so
+    a caller-constructed or copied V3 record never gets a witness.
     """
 
     def __init__(
@@ -387,9 +411,54 @@ class QualificationRecordStore:
         verify: Callable[[], bool] | None = None,
         read_locks: tuple[AppendOnlyJsonl, ...] = (),
     ) -> QualificationRecord:
+        """Append a historical V2 qualification, which never admits new risk.
+
+        E1: a V3 qualification is recorded only by ``QualificationAuthority.evaluate``.
+        """
+
+        if record.schema_version != "qualification-record-v2":
+            raise RegistryConflict(
+                "a V3 qualification is recorded only by QualificationAuthority.evaluate"
+            )
+        return self._append(record, verify=verify, read_locks=read_locks)
+
+    def _require_recording_authority(self, authority: object) -> None:
+        """E1: only this store's own qualification authority records a V3 record."""
+
+        if not isinstance(authority, QualificationAuthority) \
+                or authority.qualification_records is not self:
+            raise RegistryConflict(
+                "a V3 qualification is recorded only by its store's QualificationAuthority"
+            )
+
+    def _record_evaluated(
+        self,
+        authority: object,
+        record: QualificationRecord,
+        *,
+        verify: Callable[[], bool] | None,
+        read_locks: tuple[AppendOnlyJsonl, ...],
+    ) -> QualificationRecord:
+        """Record the V3 qualification the authority has just evaluated (E1).
+
+        This is the only path that writes an approval witness, so a V3 row that
+        reaches the log any other way stays audit-only for new risk.
+        """
+
+        self._require_recording_authority(authority)
+        if record.schema_version != "qualification-record-v3":
+            raise RegistryConflict("the qualification authority records only V3 qualifications")
+        self._record_witness(record)
+        return self._append(record, verify=verify, read_locks=read_locks)
+
+    def _append(
+        self,
+        record: QualificationRecord,
+        *,
+        verify: Callable[[], bool] | None,
+        read_locks: tuple[AppendOnlyJsonl, ...],
+    ) -> QualificationRecord:
         payload = {"record_type": "qualification_record", **record.to_dict()}
-        if record.schema_version == "qualification-record-v3":
-            self._record_witness(record)
 
         def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
             if verify is not None and not verify():
@@ -438,7 +507,7 @@ class QualificationRecordStore:
                 raise RegistryConflict("conflicting qualification approval witness")
             return witness
 
-        self.witnesses.transaction(build)
+        self.witnesses.transaction(_WitnessRecording(self, build))
 
     def _require_new_witness(
         self, rows: tuple[dict[str, Any], ...], row: dict[str, Any],
@@ -998,8 +1067,8 @@ class QualificationAuthority:
             self.qualification_records.approvals.log,
         )
         try:
-            self.qualification_records.append(
-                record, verify=verify_frozen_inputs, read_locks=proof_locks
+            self.qualification_records._record_evaluated(
+                self, record, verify=verify_frozen_inputs, read_locks=proof_locks
             )
         except RegistryConflict:
             stale_gates = tuple(

@@ -30,7 +30,7 @@ from genesis.registry import AppendOnlyJsonl, RegistryConflict
 from genesis.risk import RiskAuditLog, RiskEngine
 
 from . import test_remediation_r5_risk as r5
-from ._support import scratch_directory
+from ._support import SyntheticRecordingQualificationStore, scratch_directory
 from .test_astra_t5_owner_binding import admitted, risk_like
 
 
@@ -91,7 +91,7 @@ def raw_appender(path):
         )
         return record
 
-    store.append = append
+    store.record_fixture_qualification = append
     return store
 
 
@@ -126,7 +126,7 @@ class T6ApprovalCausalityTests(unittest.TestCase):
 
             state["before_record"] = grant_in_copy
             with reserved_approval(state, grant=False):
-                f = recorded(root, lambda path: selection.QualificationRecordStore(
+                f = recorded(root, lambda path: SyntheticRecordingQualificationStore(
                     path, approvals=decision_output.StrategyOutputApprovalStore(copy),
                 ))
             engine = authority(f, root)
@@ -165,11 +165,11 @@ class T6ApprovalCausalityTests(unittest.TestCase):
             with reserved_approval(state, grant=False):
                 f = recorded(root, raw_appender)
             state["ledger"].grant(state["reference"], binding_hash=state["binding_hash"], **GRANT)
-            # The public recording path over the real composition is idempotent
-            # for an existing record and must not witness it retroactively.
-            selection.QualificationRecordStore(root / "qualifications.jsonl").append(
-                f["qualification"]
-            )
+            # The recording path over the real composition is idempotent for
+            # an existing record and must not witness it retroactively.
+            SyntheticRecordingQualificationStore(
+                root / "qualifications.jsonl"
+            ).record_fixture_qualification(f["qualification"])
             engine = authority(f, root)
             self.assertFalse(
                 admitted(lambda: engine.approve(r5.request(f))),
@@ -204,7 +204,9 @@ class T6ApprovalCausalityTests(unittest.TestCase):
 
             def deferred(path):
                 store = selection.QualificationRecordStore(path)
-                store.append = lambda record, **_kwargs: state.setdefault("record", record)
+                store.record_fixture_qualification = (
+                    lambda record: state.setdefault("record", record)
+                )
                 return store
 
             with reserved_approval(state, grant=True):
@@ -232,7 +234,9 @@ class T6ApprovalCausalityTests(unittest.TestCase):
 
             def deferred(path):
                 store = selection.QualificationRecordStore(path)
-                store.append = lambda record, **_kwargs: state.setdefault("record", record)
+                store.record_fixture_qualification = (
+                    lambda record: state.setdefault("record", record)
+                )
                 return store
 
             state["before_record"] = grant_in_copy
@@ -248,7 +252,9 @@ class T6ApprovalCausalityTests(unittest.TestCase):
             engine = authority(f, root)
             self.assertFalse(admitted(lambda: engine.approve(r5.request(f))))
             state["ledger"].grant(state["reference"], binding_hash=state["binding_hash"], **GRANT)
-            selection.QualificationRecordStore(root / "qualifications.jsonl").append(record)
+            SyntheticRecordingQualificationStore(
+                root / "qualifications.jsonl"
+            ).record_fixture_qualification(record)
             self.assertEqual(
                 sorted(row["approval_ledger"]
                        for row in witnesses_for(root, record.qualification_record_id)),
@@ -276,7 +282,7 @@ class T6ApprovalCausalityTests(unittest.TestCase):
             deploy.mkdir()
             state: dict = {}
             with reserved_approval(state, grant=True):
-                f = recorded(deploy, selection.QualificationRecordStore)
+                f = recorded(deploy, SyntheticRecordingQualificationStore)
             record_id = f["qualification"].qualification_record_id
             grant = state["ledger"].log.records()[-1]
             [witness] = witnesses_for(deploy, record_id)
@@ -308,7 +314,7 @@ class T6ApprovalCausalityTests(unittest.TestCase):
         with scratch_directory() as root:
             state: dict = {}
             with reserved_approval(state, grant=True):
-                f = recorded(root, selection.QualificationRecordStore)
+                f = recorded(root, SyntheticRecordingQualificationStore)
             state["ledger"].revoke(
                 state["reference"], binding_hash=state["binding_hash"],
                 revoked_by="synthetic-operator", revoked_at="2026-01-01T00:05:00Z",
@@ -322,8 +328,10 @@ class T6ApprovalCausalityTests(unittest.TestCase):
             state: dict = {}
 
             def crashing(path):
-                store = selection.QualificationRecordStore(path)
-                original_append, original_transaction = store.append, store.log.transaction
+                store = SyntheticRecordingQualificationStore(path)
+                original_append, original_transaction = (
+                    store.record_fixture_qualification, store.log.transaction,
+                )
 
                 def append(record, **kwargs):
                     state["record"] = record
@@ -333,18 +341,18 @@ class T6ApprovalCausalityTests(unittest.TestCase):
                     store.log.transaction = original_transaction
                     raise RuntimeError("synthetic crash before the qualification append")
 
-                store.append, store.log.transaction = append, transaction
+                store.record_fixture_qualification, store.log.transaction = append, transaction
                 return store
 
             with reserved_approval(state, grant=True):
                 with self.assertRaises(RuntimeError):
                     recorded(root, crashing)
             record = state["record"]
-            store = selection.QualificationRecordStore(root / "qualifications.jsonl")
+            store = SyntheticRecordingQualificationStore(root / "qualifications.jsonl")
             self.assertEqual(store.verify(), 0)
             self.assertEqual(len(witnesses_for(root, record.qualification_record_id)), 1)
-            store.append(record)
-            store.append(record)
+            store.record_fixture_qualification(record)
+            store.record_fixture_qualification(record)
             self.assertEqual(store.verify(), 1)
             self.assertEqual(len(witnesses_for(root, record.qualification_record_id)), 1)
 
@@ -355,11 +363,11 @@ class T6ApprovalCausalityTests(unittest.TestCase):
             def deferred(path):
                 store = selection.QualificationRecordStore(path)
 
-                def append(record, **_kwargs):
+                def append(record):
                     state["record"] = record
                     return record
 
-                store.append = append
+                store.record_fixture_qualification = append
                 return store
 
             with reserved_approval(state, grant=True):
@@ -371,7 +379,9 @@ class T6ApprovalCausalityTests(unittest.TestCase):
             def record_it():
                 try:
                     barrier.wait(30)
-                    selection.QualificationRecordStore(root / "qualifications.jsonl").append(record)
+                    SyntheticRecordingQualificationStore(
+                        root / "qualifications.jsonl"
+                    ).record_fixture_qualification(record)
                 except BaseException as exc:
                     errors.append(exc)
 

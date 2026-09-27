@@ -101,7 +101,7 @@ def qualification(
         evidence_pack_hash=output["evidence_pack_hash"],
         decision_output_hash=output_hash,
     )
-    return store.append(
+    return store.record_fixture_qualification(
         QualificationRecord.create(
             schema_version="qualification-record-v3",
             candidate_id=candidate_id,
@@ -340,7 +340,7 @@ class R5RiskAuthorityTests(unittest.TestCase):
                 evidence_pack_hash=output["evidence_pack_hash"],
                 decision_output_hash=output_hash,
             )
-            cluster["qualification"] = cluster["qualifications"].append(
+            cluster["qualification"] = cluster["qualifications"].record_fixture_qualification(
                 QualificationRecord.create(**fields)
             )
             cluster["candidate_hash"] = fields["candidate_decision_hash"]

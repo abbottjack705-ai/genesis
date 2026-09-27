@@ -239,7 +239,7 @@ class V04CandidateRiskExecutionTests(unittest.TestCase):
                 evidence_pack_hash=output["evidence_pack_hash"],
                 decision_output_hash=output_hash,
             )
-            q1 = qualifications.append(QualificationRecord.create(**fields))
+            q1 = qualifications.record_fixture_qualification(QualificationRecord.create(**fields))
             q2 = risk_qualification(
                 qualifications, policy, candidate_hash=digest("2"), tier="2.0u",
                 candidate_id="c2", contract_hash=fixture["contract"].contract_hash,

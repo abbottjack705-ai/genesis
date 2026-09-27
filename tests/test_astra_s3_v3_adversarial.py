@@ -204,7 +204,7 @@ class AstraV3AdversarialTests(unittest.TestCase):
             self.assertFalse(result.passed)
             self.assertEqual(result.reason, "authority_unavailable")
             original = fixture["qualification"]
-            forged = fixture["qualifications"].append(QualificationRecord.create(
+            forged = fixture["qualifications"].record_fixture_qualification(QualificationRecord.create(
                 schema_version="qualification-record-v3",
                 candidate_id="forged", candidate_decision_hash=original.candidate_decision_hash,
                 strategy_id=original.strategy_id, strategy_version=original.strategy_version,

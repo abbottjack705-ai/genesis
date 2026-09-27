@@ -53,7 +53,9 @@ def _trusted_clusters(fixture: dict, clusters: tuple[str, ...]) -> Qualification
         evidence_pack_hash=body["evidence_pack_hash"],
         decision_output_hash=output_hash,
     )
-    record = fixture["qualifications"].append(QualificationRecord.create(**fields))
+    record = fixture["qualifications"].record_fixture_qualification(
+        QualificationRecord.create(**fields)
+    )
     fixture["qualification"] = record
     fixture["candidate_hash"] = record.candidate_decision_hash
     return record
@@ -77,7 +79,9 @@ def _second_qualification(fixture: dict, label: str = "second") -> Qualification
         evidence_pack_hash=body["evidence_pack_hash"],
         decision_output_hash=output_hash,
     )
-    return fixture["qualifications"].append(QualificationRecord.create(**fields))
+    return fixture["qualifications"].record_fixture_qualification(
+        QualificationRecord.create(**fields)
+    )
 
 
 def _bound_clustered_order(root, clusters=("shared",)):

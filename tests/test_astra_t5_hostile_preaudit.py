@@ -217,8 +217,8 @@ class T5HostileOwnerTests(unittest.TestCase):
 class T5HostileApprovalTests(unittest.TestCase):
     def test_h6_prior_grant_in_a_foreign_approval_ledger_cannot_record_a_qualification(self):
         import genesis.decision_output as decision_output
-        import genesis.selection as selection
         from . import test_remediation_r5_risk as r5
+        from ._support import SyntheticRecordingQualificationStore
 
         original = decision_output.StrategyOutputRuleBindingStore.register_approved
 
@@ -239,7 +239,9 @@ class T5HostileApprovalTests(unittest.TestCase):
 
         saved = r5.QualificationRecordStore
         decision_output.StrategyOutputRuleBindingStore.register_approved = register
-        r5.QualificationRecordStore = selection.QualificationRecordStore
+        # The production approval validator; only the V3 recording authority
+        # is the fixture's (E1).
+        r5.QualificationRecordStore = SyntheticRecordingQualificationStore
         try:
             with scratch_directory() as root:
                 with self.assertRaises(

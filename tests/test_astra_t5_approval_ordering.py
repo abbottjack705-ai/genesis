@@ -5,7 +5,8 @@ unrevoked human grant for its output binding already exists (checked under the
 approval-ledger lock). A grant appended after a qualification - including a
 backdated one - therefore can never be the grant that admits that
 qualification to risk. The production validator is used here; no fixture
-approval override is involved.
+approval override is involved. Only the V3 recording authority is the fixture's
+(E1: production records one only through ``QualificationAuthority.evaluate``).
 """
 
 from __future__ import annotations
@@ -20,7 +21,7 @@ from genesis.registry import RegistryConflict
 
 from . import test_remediation_r5_risk as r5
 from . import test_remediation_r6_execution as r6
-from ._support import scratch_directory
+from ._support import SyntheticRecordingQualificationStore, scratch_directory
 
 
 ORIGINAL_REGISTER = decision_output.StrategyOutputRuleBindingStore.register_approved
@@ -55,8 +56,8 @@ def production_approvals(mode: str, state: dict):
 
     saved = (r5.QualificationRecordStore, r6.QualificationRecordStore)
     decision_output.StrategyOutputRuleBindingStore.register_approved = register
-    r5.QualificationRecordStore = selection.QualificationRecordStore
-    r6.QualificationRecordStore = selection.QualificationRecordStore
+    r5.QualificationRecordStore = SyntheticRecordingQualificationStore
+    r6.QualificationRecordStore = SyntheticRecordingQualificationStore
     try:
         yield
     finally:
@@ -97,8 +98,11 @@ class T5ApprovalOrderingTests(unittest.TestCase):
             with production_approvals("prior", {}):
                 fixture = r6.build_execution(root)
             adapter = fixture["adapter"]
+            qualifications = type(fixture["risk_fixture"]["qualifications"])
+            self.assertIs(qualifications, SyntheticRecordingQualificationStore)
             self.assertIs(
-                type(fixture["risk_fixture"]["qualifications"]), selection.QualificationRecordStore,
+                qualifications._require_separate_approval,
+                selection.QualificationRecordStore._require_separate_approval,
             )
             adapter.create_intent(fixture["intent"])
             adapter.bind_risk("key-a", bound_at="2026-01-01T00:13:00Z")

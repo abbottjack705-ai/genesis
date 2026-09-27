@@ -50,9 +50,34 @@ def _digest(value: str, name: str) -> str:
 
 
 def _git(repo: Path, *args: str) -> bytes:
+    """One authoritative Git read of the repository's own objects (E6).
+
+    Replacement objects (``refs/replace``) are never honoured, so a commit,
+    tree or blob name always means the object with that ID.
+    """
+
     return subprocess.check_output(
-        ["git", "-C", str(repo), *args], stderr=subprocess.STDOUT,
+        ["git", "--no-replace-objects", "-C", str(repo), *args], stderr=subprocess.STDOUT,
     )
+
+
+def _require_no_object_substitution(repo: Path) -> None:
+    """Refuse a repository whose ordinary Git view substitutes objects (E6).
+
+    Reads ignore replacements, but a replace ref or a grafts file makes the
+    checkout and ordinary Git tools show other content under the same names,
+    so no evidence is built or Git-bound in such a repository.
+    """
+
+    if _git(repo, "for-each-ref", "refs/replace/"):
+        raise ValueError("repository has Git replacement objects (refs/replace)")
+    grafts = _git(repo, "rev-parse", "--git-path", "info/grafts").decode().strip()
+    if (repo / grafts if not Path(grafts).is_absolute() else Path(grafts)).exists():
+        raise ValueError("repository has a Git grafts file")
+
+
+def _blob_oid(raw: bytes) -> str:
+    return hashlib.sha1(b"blob %d\x00" % len(raw) + raw).hexdigest()
 
 
 def _safe_member(name: str) -> str:
@@ -124,6 +149,7 @@ def _parse_pair(value: str, name: str) -> tuple[str, str]:
 
 
 def _tree(repo: Path, revision: str) -> tuple[str, str, list[dict[str, Any]]]:
+    _require_no_object_substitution(repo)
     commit = _git(repo, "rev-parse", "--verify", f"{revision}^{{commit}}").decode().strip()
     tree = _git(repo, "rev-parse", f"{commit}^{{tree}}").decode().strip()
     rows: list[dict[str, Any]] = []
@@ -138,6 +164,8 @@ def _tree(repo: Path, revision: str) -> tuple[str, str, list[dict[str, Any]]]:
         repository_path = raw_path.decode("utf-8")
         _safe_member(repository_path)
         raw = _git(repo, "cat-file", "blob", object_id)
+        if _blob_oid(raw) != object_id:
+            raise ValueError(f"Git blob bytes do not hash to their object ID: {raw_path!r}")
         rows.append({
             "archive_path": f"git-blobs/{repository_path}",
             "representation": "git_blob_bytes",

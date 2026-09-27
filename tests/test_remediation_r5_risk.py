@@ -9,7 +9,9 @@ from genesis.accounting import BetSide
 from genesis.config import OperationalMode
 from genesis.decision import candidate_v3_decision_hash
 from genesis.execution import ModeState, ModeStateStore
-from genesis.policy import PolicySet, RiskPolicy, canonical_decimal, parse_tier
+from genesis.policy import (
+    PolicySet, RiskPolicy, canonical_decimal, odds_profile_hash, parse_tier,
+)
 from genesis.registry import (
     StrategyArtifact, StrategyDecisionContract, StrategyLifecycle,
     StrategyRegistry,
@@ -70,7 +72,8 @@ def qualification(
         "domain": "genesis.decision-output.v1", "schema_version": "decision-output-v1",
         "feature_manifest_hash": digest("c"), "evidence_pack_hash": digest("d"),
         "strategy_decision_contract_hash": contract_hash,
-        "strategy_config_hash": digest("e"), "odds_profile_hash": digest("f"),
+        "strategy_config_hash": digest("e"),
+        "odds_profile_hash": odds_profile_hash(policy, policy.normal_odds),
         "sport_adapter_version": "synthetic-risk-test", "market_capability_id": "capability-v1",
         "model_artifact_hash": digest("1"), "calibration_artifact_hash": digest("2"),
         "gate_policy_hash": digest("3"), "model_runner_hash": digest("4"),
@@ -173,7 +176,8 @@ def build_risk(
         strategies.transition("strategy", "v1", lifecycle, occurred_at=at)
     contract = StrategyDecisionContract.create(
         strategy_id="strategy", strategy_version="v1",
-        strategy_config_hash=digest("e"), odds_profile_hash=digest("f"),
+        strategy_config_hash=digest("e"),
+        odds_profile_hash=odds_profile_hash(policy, policy.normal_odds),
         sport_adapter_version="synthetic-risk-test",
         market_capability_id="capability-v1",
         required_lifecycle=StrategyLifecycle.PAPER,

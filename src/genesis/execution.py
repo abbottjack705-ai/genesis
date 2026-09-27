@@ -12,6 +12,7 @@ from typing import Callable, Protocol
 from .accounting import BetSide, MatchedFragment, money
 from .config import OperationalMode
 from .owner_binding import log_path
+from .policy import PolicySet, matched_odds_profile, odds_profile_hash
 from .registry import AppendOnlyJsonl, RegistryConflict, StrategyRegistry
 from .repro import canonical_json, sha256_bytes
 from .risk import RiskEngine, SafetyState, SafetyStateStore
@@ -279,6 +280,24 @@ class ExecutionMarketStateStore:
         if not history:
             raise RegistryConflict("execution market snapshot is unavailable")
         return history[-1]
+
+
+def _within_pinned_odds_profile(policy: PolicySet, output: dict, odds: str) -> bool:
+    """E5: a price inside the output's requested bounds and its pinned active profile.
+
+    The profile test is the one qualification applies: the active profile the
+    price falls in must be the one the decision output pins.
+    """
+
+    try:
+        price = Decimal(odds)
+        return (
+            Decimal(output["requested_odds_min"]) <= price <= Decimal(output["requested_odds_max"])
+            and odds_profile_hash(policy, matched_odds_profile(policy, price))
+            == output["odds_profile_hash"]
+        )
+    except Exception:
+        return False
 
 
 @dataclass(frozen=True)
@@ -945,6 +964,13 @@ class PaperExecutionAdapter:
             (not refresh.material_change, "critical_evidence_changed"),
             (market.market_open, "market_closed"),
             (executable_price_ok, "executable_price_changed"),
+            (
+                all(
+                    _within_pinned_odds_profile(self.risk.policy_set, output, odds)
+                    for odds in (record.intent.odds, market.executable_odds)
+                ),
+                "executable_price_outside_odds_profile",
+            ),
             (
                 Decimal(market.available_liquidity) >= Decimal(record.intent.stake),
                 "liquidity_unavailable",

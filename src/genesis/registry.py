@@ -348,20 +348,40 @@ class DatasetManifest:
 
 
 class DatasetRegistry:
+    """Dataset versions, decided on the verified log, never an instance cache (E8)."""
+
     def __init__(self, path: str | Path):
-        self.log = AppendOnlyJsonl(path)
-        self._latest: dict[tuple[str, str], DatasetManifest] = {}
-        for row in self.log.records():
+        self.log = AppendOnlyJsonl(path, reader=self._replay)
+        self._replay(self.log.records())
+
+    @staticmethod
+    def _replay(
+        rows: tuple[dict[str, Any], ...] | list[dict[str, Any]],
+    ) -> dict[tuple[str, str], DatasetManifest]:
+        latest: dict[tuple[str, str], DatasetManifest] = {}
+        for row in rows:
             if row.get("record_type") == "dataset_registered":
                 manifest = DatasetManifest(**{k: row[k] for k in DatasetManifest.__dataclass_fields__})
-                self._latest[(manifest.dataset_id, manifest.version)] = manifest
+                key = (manifest.dataset_id, manifest.version)
+                if key in latest:
+                    raise RegistryConflict(f"dataset version is registered twice: {key}")
+                latest[key] = manifest
+        return latest
+
+    @property
+    def _latest(self) -> dict[tuple[str, str], DatasetManifest]:
+        return self._replay(self.log.records())
 
     def register(self, manifest: DatasetManifest) -> None:
         key = (manifest.dataset_id, manifest.version)
-        if key in self._latest:
-            raise RegistryConflict(f"dataset version already exists: {key}")
-        self._latest[key] = manifest
-        self.log.append({"record_type": "dataset_registered", **manifest.to_dict()})
+        record = {"record_type": "dataset_registered", **manifest.to_dict()}
+
+        def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any]:
+            if key in self._replay(rows):
+                raise RegistryConflict(f"dataset version already exists: {key}")
+            return record
+
+        self.log.transaction(build)
 
 
 @dataclass(frozen=True)
@@ -400,10 +420,21 @@ class ExperimentSpec:
 
 
 class ExperimentRegistry:
+    """Experiments and their attempt budgets, decided on the verified log (E8).
+
+    Every write re-reads the durable history inside its own transaction, and
+    every read replays it, so two instances cannot both spend the last attempt
+    and a live instance never reports what a restart would not.
+    """
+
     def __init__(self, path: str | Path):
-        self.log = AppendOnlyJsonl(path)
-        self._latest: dict[str, ExperimentSpec] = {}
-        for row in self.log.records():
+        self.log = AppendOnlyJsonl(path, reader=self._replay)
+        self._replay(self.log.records())
+
+    @staticmethod
+    def _replay(rows: tuple[dict[str, Any], ...] | list[dict[str, Any]]) -> dict[str, ExperimentSpec]:
+        latest: dict[str, ExperimentSpec] = {}
+        for row in rows:
             kind = row.get("record_type")
             if kind == "experiment_registered":
                 fields = {}
@@ -416,21 +447,45 @@ class ExperimentRegistry:
                         fields[key] = field.default_factory()
                     else:
                         raise RegistryConflict(f"experiment record missing field: {key}")
-                self._latest[fields["experiment_id"]] = ExperimentSpec(**fields)
+                if fields["experiment_id"] in latest:
+                    raise RegistryConflict(
+                        f"experiment is registered twice: {fields['experiment_id']}"
+                    )
+                latest[fields["experiment_id"]] = ExperimentSpec(**fields)
             elif kind == "experiment_attempt":
-                current = self._latest[row["experiment_id"]]
-                self._latest[row["experiment_id"]] = replace(
-                    current, attempts_used=int(row["attempt_number"]), status="running"
+                try:
+                    current = latest[row["experiment_id"]]
+                    number = int(row["attempt_number"])
+                except (KeyError, TypeError, ValueError) as exc:
+                    raise RegistryConflict("experiment attempt has no registered experiment") from exc
+                if number != current.attempts_used + 1 or number > current.search_budget:
+                    raise RegistryConflict(
+                        "experiment attempts are not one sequential history within budget"
+                    )
+                latest[row["experiment_id"]] = replace(
+                    current, attempts_used=number, status="running"
                 )
             elif kind == "experiment_finished":
-                current = self._latest[row["experiment_id"]]
-                self._latest[row["experiment_id"]] = replace(current, status=row["disposition"])
+                try:
+                    current = latest[row["experiment_id"]]
+                except KeyError as exc:
+                    raise RegistryConflict("experiment finish has no registered experiment") from exc
+                latest[row["experiment_id"]] = replace(current, status=row["disposition"])
+        return latest
+
+    @property
+    def _latest(self) -> dict[str, ExperimentSpec]:
+        return self._replay(self.log.records())
 
     def register(self, spec: ExperimentSpec) -> None:
-        if spec.experiment_id in self._latest:
-            raise RegistryConflict(f"experiment already registered: {spec.experiment_id}")
-        self._latest[spec.experiment_id] = spec
-        self.log.append({"record_type": "experiment_registered", **asdict(spec)})
+        record = {"record_type": "experiment_registered", **asdict(spec)}
+
+        def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any]:
+            if spec.experiment_id in self._replay(rows):
+                raise RegistryConflict(f"experiment already registered: {spec.experiment_id}")
+            return record
+
+        self.log.transaction(build)
 
     def get(self, experiment_id: str) -> ExperimentSpec:
         try:
@@ -438,36 +493,46 @@ class ExperimentRegistry:
         except KeyError as exc:
             raise RegistryConflict(f"unknown experiment: {experiment_id}") from exc
 
+    def _current(self, rows: tuple[dict[str, Any], ...], experiment_id: str) -> ExperimentSpec:
+        try:
+            return self._replay(rows)[experiment_id]
+        except KeyError as exc:
+            raise RegistryConflict(f"unknown experiment: {experiment_id}") from exc
+
     def record_attempt(self, experiment_id: str, *, note: str) -> ExperimentSpec:
-        current = self._latest[experiment_id]
-        if current.attempts_used >= current.search_budget:
-            raise RegistryConflict("attempt budget exhausted; attempt is not refunded")
-        updated = replace(current, attempts_used=current.attempts_used + 1, status="running")
-        self._latest[experiment_id] = updated
-        self.log.append(
-            {
+        result: dict[str, ExperimentSpec] = {}
+
+        def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any]:
+            current = self._current(rows, experiment_id)
+            if current.attempts_used >= current.search_budget:
+                raise RegistryConflict("attempt budget exhausted; attempt is not refunded")
+            updated = replace(current, attempts_used=current.attempts_used + 1, status="running")
+            result["value"] = updated
+            return {
                 "record_type": "experiment_attempt",
                 "experiment_id": experiment_id,
                 "attempt_number": updated.attempts_used,
                 "note": note,
             }
-        )
-        return updated
+
+        self.log.transaction(build)
+        return result["value"]
 
     def finish(self, experiment_id: str, *, disposition: str) -> ExperimentSpec:
-        current = self._latest[experiment_id]
-        updated = replace(current, status=disposition)
-        self._latest[experiment_id] = updated
-        self.log.append(
-            {
+        result: dict[str, ExperimentSpec] = {}
+
+        def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any]:
+            current = self._current(rows, experiment_id)
+            result["value"] = replace(current, status=disposition)
+            return {
                 "record_type": "experiment_finished",
                 "experiment_id": experiment_id,
                 "disposition": disposition,
                 "attempts_used": current.attempts_used,
             }
-        )
-        return updated
 
+        self.log.transaction(build)
+        return result["value"]
 
 @dataclass(frozen=True)
 class StrategyArtifact:

@@ -198,23 +198,52 @@ class PITStore:
         if not isinstance(capabilities, SourceCapabilityRegistry):
             raise TypeError("PITStore requires a SourceCapabilityRegistry authority")
         self.capabilities = capabilities
-        self.log = AppendOnlyJsonl(path) if path is not None else None
-        self._records: dict[str, BitemporalRecord] = {}
+        self.log = AppendOnlyJsonl(path, reader=self._replay) if path is not None else None
+        # Only a store with no durable path keeps records in memory.
+        self._memory: dict[str, BitemporalRecord] = {}
         if self.log is not None:
-            for row in self.log.records():
-                if row.get("record_type") == "pit_record":
-                    record = BitemporalRecord(**{key: row[key] for key in BitemporalRecord.__dataclass_fields__})
-                    self._records[record.record_id] = record
+            self._replay(self.log.records())
+
+    @staticmethod
+    def _replay(rows: tuple[dict[str, Any], ...] | list[dict[str, Any]]) -> dict[str, BitemporalRecord]:
+        """One record per ID, as the verified log holds it (E8)."""
+
+        records: dict[str, BitemporalRecord] = {}
+        for row in rows:
+            if row.get("record_type") == "pit_record":
+                record = BitemporalRecord(**{key: row[key] for key in BitemporalRecord.__dataclass_fields__})
+                if records.get(record.record_id, record) != record:
+                    raise RegistryConflict(f"PIT record ID holds two records: {record.record_id}")
+                records[record.record_id] = record
+        return records
+
+    @property
+    def _records(self) -> dict[str, BitemporalRecord]:
+        if self.log is None:
+            return self._memory
+        return self._replay(self.log.records())
 
     def append(self, record: BitemporalRecord) -> str:
-        if record.record_id in self._records:
-            if self._records[record.record_id] != record:
+        """Record ``record``; uniqueness is decided on the verified log (E8)."""
+
+        identity = sha256_bytes(canonical_json(record.to_dict()))
+        if self.log is None:
+            existing = self._memory.get(record.record_id)
+            if existing is not None and existing != record:
                 raise RegistryConflict(f"PIT record already exists: {record.record_id}")
-            return sha256_bytes(canonical_json(record.to_dict()))
-        self._records[record.record_id] = record
-        if self.log is not None:
-            return self.log.append({"record_type": "pit_record", **record.to_dict()})
-        return sha256_bytes(canonical_json(record.to_dict()))
+            self._memory[record.record_id] = record
+            return identity
+        payload = {"record_type": "pit_record", **record.to_dict()}
+
+        def build(rows: tuple[dict[str, Any], ...]) -> dict[str, Any] | None:
+            existing = self._replay(rows).get(record.record_id)
+            if existing is not None:
+                if existing != record:
+                    raise RegistryConflict(f"PIT record already exists: {record.record_id}")
+                return None
+            return payload
+
+        return self.log.transaction(build) or identity
 
     def as_of_query(
         self,

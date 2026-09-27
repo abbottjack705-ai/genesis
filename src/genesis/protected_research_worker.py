@@ -151,27 +151,86 @@ _FORBIDDEN_REFLECTION_NAMES = frozenset({
 })
 
 
-# Research code may import only trusted runtime: the standard library and the
-# Genesis package that this worker itself runs from. These modules expose the
-# interpreter, import system, frames, raw memory, threads or processes, any of
-# which would let a program run or reach code and objects the audit cannot bind.
-# The native process/OS modules below are named explicitly because some create
-# processes or execute native code through primitives that raise no audit event
-# at all (notably `_winapi.CreateProcess` on Windows and `_posixsubprocess`), so
-# the runtime hook cannot see the call -- the only sound defense is to refuse the
-# import.
+# Research imports are governed by a fail-closed ALLOWLIST (F-A / reopened
+# F-1/E3). A denylist of dangerous modules is unsound: the set of stdlib
+# extension modules that can create a process, load native code or open the
+# network is open-ended, and some reach those sinks through primitives that
+# raise no audit event at all (e.g. a `_tkinter` Tcl interpreter's `exec`, or
+# `_sqlite3` extension loading), so no runtime hook can see the call. A module
+# must therefore not become reachable merely by having been omitted from an
+# enumeration. Research code may import only the modules in
+# `_RESEARCH_IMPORT_ALLOWLIST` (vetted trusted runtime with no boundary-crossing
+# capability, or whose process sinks are covered by the runtime hook) plus the
+# Genesis package that this worker itself runs from; everything else fails
+# closed at the static program audit and the guarded `__import__`.
+#
+# `_CONTROL_MODULES` is retained as belt-and-suspenders: the runtime audit hook
+# refuses these import events regardless of the allowlist. The native
+# process/OS and native-extension modules below are named explicitly because
+# their primitives create processes or load native code (notably
+# `_winapi.CreateProcess`, `_posixsubprocess`, `_sqlite3` extension loading and
+# `_tkinter`'s Tcl `exec`), several raising no audit event, so refusing the
+# import is the only sound defense even though the allowlist already excludes
+# them.
 _CONTROL_MODULES = frozenset({
     "__main__", "_ast", "_ctypes", "_frozen_importlib", "_frozen_importlib_external",
-    "_imp", "_pickle", "_posixsubprocess", "_socket", "_thread", "_weakref", "_winapi",
+    "_imp", "_pickle", "_posixsubprocess", "_socket", "_sqlite3", "_thread",
+    "_tkinter", "_weakref", "_winapi",
     "ast", "asyncio", "atexit", "builtins",
     "code", "codeop", "concurrent", "copyreg", "ctypes", "dis", "faulthandler", "gc",
     "imp", "importlib", "inspect", "marshal", "msvcrt", "multiprocessing", "nt",
     "pickle", "pkgutil",
-    "runpy", "signal", "site", "sitecustomize", "subprocess", "symtable", "sys",
-    "sysconfig", "threading", "tracemalloc", "types", "usercustomize", "weakref",
-    "winreg", "zipimport",
+    "runpy", "signal", "site", "sitecustomize", "socket", "sqlite3", "ssl",
+    "subprocess", "symtable", "sys",
+    "sysconfig", "threading", "tkinter", "tracemalloc", "types", "usercustomize",
+    "weakref", "winreg", "zipimport",
 })
 _CONTROL_MODULE_NAMES = frozenset({"genesis.protected_research_worker"})
+# The only imports research code may perform. Each root is vetted to expose no
+# process/native-load/network capability, or (os/pathlib/io) only sinks the
+# runtime hook already refuses. `genesis` is trusted runtime the worker itself
+# runs; genesis imports are additionally deep-audited by `_audit_capability`,
+# and `genesis.protected_research_worker` stays denied via `_CONTROL_MODULE_NAMES`.
+# `__future__` is required for `from __future__ import annotations`.
+_RESEARCH_IMPORT_ALLOWLIST = frozenset({
+    "__future__",
+    "abc", "array", "bisect", "calendar", "cmath", "collections", "copy",
+    "datetime", "decimal", "enum", "fractions", "functools", "heapq",
+    "io", "itertools", "json", "math", "numbers", "operator", "os",
+    "pathlib", "random", "re", "statistics", "string", "struct", "time",
+})
+
+
+def _import_allowed(name: object) -> bool:
+    """Fail-closed: only allowlisted trusted-runtime roots and the Genesis
+    package (never this worker module) may be imported by research code."""
+
+    if not isinstance(name, str) or not name:
+        return False
+    root = name.partition(".")[0]
+    if root in _RESEARCH_IMPORT_ALLOWLIST:
+        return True
+    if root == "genesis" and name not in _CONTROL_MODULE_NAMES:
+        return True
+    return False
+
+
+def _preload_research_allowlist() -> None:
+    """Import every allowlisted module once, in the trusted worker before any
+    research runs, so a later research `import` of one is a cache hit that pulls
+    in no further (possibly denied) transitive module during research mode."""
+
+    for name in _RESEARCH_IMPORT_ALLOWLIST:
+        if name == "__future__":
+            continue
+        try:
+            importlib.import_module(name)
+        except Exception:
+            # A platform-absent optional module simply stays unavailable; the
+            # allowlist is an upper bound, not a requirement.
+            pass
+
+
 # Names that reach code, frames, the import system or unbound objects through
 # attribute or string indirection. Checked in every code object of the hashed
 # module, including module top level, class bodies and nested functions.
@@ -182,11 +241,14 @@ _FORBIDDEN_PROGRAM_NAMES = frozenset({
     "__subclasses__", "_getframe", "addressof", "ag_frame", "attrgetter",
     "breakpoint", "builtins", "compile", "cr_frame", "ctypes", "delattr", "eval",
     "exec", "exec_module", "f_back", "f_builtins", "f_code", "f_globals", "f_locals",
-    "find_loader", "find_spec", "from_address", "get_objects", "get_referents",
+    "enable_load_extension", "find_loader", "find_spec", "from_address",
+    "get_objects", "get_referents",
     "get_referrers", "getattr", "getattr_static", "gi_code", "gi_frame", "globals",
-    "import_module", "importlib", "load_module", "locals", "methodcaller",
+    "import_module", "importlib", "load_extension", "load_module", "locals",
+    "methodcaller",
     "module_from_spec", "modules", "pythonapi", "reload", "run_module", "run_path",
-    "setattr", "spec_from_file_location", "sys", "tb_frame", "tb_next", "vars",
+    "setattr", "socket", "spec_from_file_location", "sqlite3", "subprocess",
+    "sys", "tb_frame", "tb_next", "vars",
 })
 _REMOVED_BUILTINS = frozenset({
     "__import__", "breakpoint", "compile", "delattr", "eval", "exec", "getattr",
@@ -253,6 +315,8 @@ def _install_runtime_audit_hook(roots: tuple[Path, ...]):
         "os.startfile",
         "os.system",
         "socket.__new__",
+        "sqlite3.enable_load_extension",
+        "sqlite3.load_extension",
         "subprocess.Popen",
         "sys.addaudithook",
         "sys.setprofile",
@@ -374,8 +438,7 @@ def _audit_program_code(code: types.CodeType) -> None:
                     not top_level
                     or not isinstance(name, str)
                     or level != 0
-                    or name.partition(".")[0] in _CONTROL_MODULES
-                    or name in _CONTROL_MODULE_NAMES
+                    or not _import_allowed(name)
                 ):
                     raise ValueError("research program import is unsupported")
             previous.append(instruction)
@@ -417,13 +480,7 @@ class _ResearchOriginGuard(importlib.abc.MetaPathFinder):
 
 def _guarded_import(real_import):
     def research_import(name, globals=None, locals=None, fromlist=(), level=0):  # noqa: A002
-        if (
-            level != 0
-            or not isinstance(name, str)
-            or not name
-            or name.partition(".")[0] in _CONTROL_MODULES
-            or name in _CONTROL_MODULE_NAMES
-        ):
+        if level != 0 or not _import_allowed(name):
             raise ImportError("research program import is unsupported")
         return real_import(name, globals, locals, fromlist, level)
 
@@ -982,6 +1039,7 @@ def _main() -> int:
         finally:
             return 2
 
+    _preload_research_allowlist()
     sys.meta_path.insert(0, _ResearchOriginGuard(roots))
     baseline = _InterpreterBaseline(roots)
     audit_enter_module, audit_enter_callback, audit_leave = _install_runtime_audit_hook(roots)

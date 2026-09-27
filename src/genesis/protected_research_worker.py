@@ -155,14 +155,21 @@ _FORBIDDEN_REFLECTION_NAMES = frozenset({
 # Genesis package that this worker itself runs from. These modules expose the
 # interpreter, import system, frames, raw memory, threads or processes, any of
 # which would let a program run or reach code and objects the audit cannot bind.
+# The native process/OS modules below are named explicitly because some create
+# processes or execute native code through primitives that raise no audit event
+# at all (notably `_winapi.CreateProcess` on Windows and `_posixsubprocess`), so
+# the runtime hook cannot see the call -- the only sound defense is to refuse the
+# import.
 _CONTROL_MODULES = frozenset({
     "__main__", "_ast", "_ctypes", "_frozen_importlib", "_frozen_importlib_external",
-    "_imp", "_pickle", "_thread", "_weakref", "ast", "asyncio", "atexit", "builtins",
+    "_imp", "_pickle", "_posixsubprocess", "_socket", "_thread", "_weakref", "_winapi",
+    "ast", "asyncio", "atexit", "builtins",
     "code", "codeop", "concurrent", "copyreg", "ctypes", "dis", "faulthandler", "gc",
-    "imp", "importlib", "inspect", "marshal", "multiprocessing", "pickle", "pkgutil",
+    "imp", "importlib", "inspect", "marshal", "msvcrt", "multiprocessing", "nt",
+    "pickle", "pkgutil",
     "runpy", "signal", "site", "sitecustomize", "subprocess", "symtable", "sys",
     "sysconfig", "threading", "tracemalloc", "types", "usercustomize", "weakref",
-    "zipimport",
+    "winreg", "zipimport",
 })
 _CONTROL_MODULE_NAMES = frozenset({"genesis.protected_research_worker"})
 # Names that reach code, frames, the import system or unbound objects through
@@ -193,12 +200,25 @@ class ResearchProcessContaminated(RuntimeError):
 
 
 def _install_runtime_audit_hook(roots: tuple[Path, ...]):
-    """Install a permanent audit hook used only while research code executes.
+    """Install a permanent audit hook enforcing the research boundary.
 
     The hook is defense in depth, not a replacement for the static program
     audit or the post-execution interpreter-state checks.  Its mutable state is
     closure-captured and the hook itself is registered permanently with CPython.
-    Trusted worker/runtime activity runs with the hook dormant.
+
+    Two tiers of policy:
+
+    * Forbidden sinks (process/native/socket creation, enforcement subversion)
+      are refused in *every* phase, regardless of `mode`.  Trusted worker code
+      never performs them, so keeping them refused while `mode` is None costs
+      trusted activity nothing and closes the F-1/E3 boundary: research code that
+      regains execution during trusted housekeeping (finalizers, GC callbacks,
+      dunder methods reached while scanning/serializing/converting the result)
+      cannot breach the boundary because these denials never switch off.
+    * Reflection and compile/exec/import gating apply only while a research
+      `mode` is active, because trusted worker activity (importing at startup,
+      compiling and exec-ing the hashed program, and calling `gc.get_objects`
+      during its own scan) legitimately performs them.
     """
 
     research_roots = tuple(Path(os.path.realpath(root)) for root in roots)
@@ -210,30 +230,49 @@ def _install_runtime_audit_hook(roots: tuple[Path, ...]):
         "f_back", "f_builtins", "f_code", "f_globals", "f_locals",
         "tb_frame", "tb_next", "gi_code", "gi_frame", "cr_frame", "ag_frame",
     })
-    denied_events = frozenset({
+    # Forbidden sinks: operations with an external or irreversible effect, or
+    # that grant new native/execution capability, or that would subvert
+    # enforcement itself.  Trusted worker code never performs ANY of these after
+    # this hook is installed, so they are denied in every phase, independent of
+    # `mode` -- including while `mode` is None during trusted housekeeping.  This
+    # is the F-1/E3 invariant made structural: research-controlled code that
+    # regains execution after the callback returned -- through a `__del__` or
+    # other finalizer, a generator `close`/`finally`, a GC-driven callback, or a
+    # dunder method touched while the interpreter state is scanned, the result is
+    # converted, or the artifact is serialized -- still cannot reach a forbidden
+    # sink, because the denial has no dormant state left to exploit.  Python
+    # cannot stop such code from *running*; the boundary instead guarantees that
+    # whenever it runs, the operations that would breach the boundary stay
+    # refused.
+    forbidden_events = frozenset({
         "builtins.breakpoint",
-        "code.__new__",
-        "ctypes.dlopen",
-        "ctypes.dlsym",
-        "function.__new__",
-        "gc.get_objects",
-        "gc.get_referents",
-        "gc.get_referrers",
         "os.fork",
         "os.forkpty",
         "os.kill",
         "os.posix_spawn",
+        "os.startfile",
         "os.system",
-        "pickle.find_class",
         "socket.__new__",
         "subprocess.Popen",
-        "sys._getframe",
-        "sys._current_frames",
         "sys.addaudithook",
         "sys.setprofile",
         "sys.settrace",
     })
-    denied_prefixes = ("os.exec", "os.spawn", "ctypes.")
+    forbidden_prefixes = ("os.exec", "os.spawn", "ctypes.")
+    # Reflection/introspection primitives that only matter while research code is
+    # the active mode, or that trusted worker code itself legitimately uses during
+    # a scan (`gc.get_objects`).  These stay gated on `mode` so the post-execution
+    # interpreter-state scan can run.
+    research_denied_events = frozenset({
+        "code.__new__",
+        "function.__new__",
+        "gc.get_objects",
+        "gc.get_referents",
+        "gc.get_referrers",
+        "pickle.find_class",
+        "sys._getframe",
+        "sys._current_frames",
+    })
     state: dict[str, Any] = {"mode": None, "allowed_exec": None}
 
     def _trusted_origin(value: object) -> bool:
@@ -248,6 +287,11 @@ def _install_runtime_audit_hook(roots: tuple[Path, ...]):
         return not any(path.is_relative_to(root) for root in research_roots)
 
     def _hook(event: str, args: tuple[Any, ...]) -> None:
+        # Forbidden sinks are refused in every phase, so trusted housekeeping
+        # that transitively re-enters research-controlled code cannot breach the
+        # boundary even though `mode` is None.
+        if event in forbidden_events or event.startswith(forbidden_prefixes):
+            raise RuntimeError("research runtime operation is unsupported")
         if state["mode"] is None:
             return
         if event == "exec":
@@ -274,7 +318,7 @@ def _install_runtime_audit_hook(roots: tuple[Path, ...]):
             if attribute in sensitive_attrs:
                 raise RuntimeError("research runtime operation is unsupported")
             return
-        if event in denied_events or event.startswith(denied_prefixes):
+        if event in research_denied_events:
             raise RuntimeError("research runtime operation is unsupported")
 
     sys.addaudithook(_hook)

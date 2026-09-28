@@ -4,8 +4,9 @@
 # byte-exact UTF-16 PowerShell captures inside it. The in-repo *.txt are UTF-8/LF normalizations of those captures
 # (UTF-16 -> UTF-8, BOM stripped, CRLF -> LF); the originals are preserved verbatim in FB_E11_windows_evidence_raw.zip.
 
-# --- In-repo artifacts (this commit) ---
+# --- In-repo artifacts ---
 02d84dd333f6aca312d08ff44f0f058391ce074bd38aaaf5e7df79470f7e5397  remediation_evidence/T6/FB_E11_OS_CONTAINMENT_VERDICT.md
+b79bd38b5ded4f2bc1614e50ff49f43fb192e398ca19f267aadadb96ac36c958  remediation_evidence/T6/FB_E11_FREEZE_GATE_HANDOFF.md
 e148cc82268f3b30cd109762fe9e05b923c7e24bc65a4645d386f0d8e36bb947  remediation_evidence/T6/FB_E11_ENV.txt
 4ff0da553a7ab4fea9812b781722480b79bf5dc003489280aa4653ca4bc4bc78  remediation_evidence/T6/FB_E11_SERVICES.txt
 8484a4268fd7d07c7f7aeb27008b5e6ba4aadf9cf6a85a5e7ac84d9428586c75  remediation_evidence/T6/FB_E11_CONTAINMENT.txt

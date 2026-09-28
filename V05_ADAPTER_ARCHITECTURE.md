@@ -7,7 +7,7 @@
 | Authority order | frozen repository → Prep B (frozen requirements matrix) → Prep A (provider dossier) → Prep C (cost / vertical slice) → earlier architecture draft |
 | Scope of this document | freeze interpretation, slice-1 scope, file layout, interfaces and immutable schemas, identity, time/PIT, evidence flow, credential and request hashing, quota/cache/polling, failure semantics, approval gates, tests, staged plan, no-touch list, residuals, implementation prompt |
 | What it grants | Permission to implement Stages 0–7 (§19) against deterministic fixtures, with no credential and no network access to OddsPapi. It grants **no** credential storage, live request, READY capability, strategy, shadow research, protected campaign, live-order or canary authority. Those are gated in §16. |
-| Revision | **r2 (AMBER remediation).** The independent pre-implementation hostile review of r1 (`cff1ede`) returned AMBER with ten design corrections (A1–A10) and no foundation blocker. r2 closes all ten. §24 maps each finding to the sections it changed. |
+| Revision | **r3.** r2 (`117c98a`) closed the ten findings (A1–A10) of the independent pre-implementation hostile review of r1 (`cff1ede`). The short closure review of r2 marked eight CLOSED and A4/A6 partially closed. r3 closes A4 (debit-to-receipt boundary edge: §14.6, §20.1) and A6 (process-control exception semantics: §7.7). §24 maps every finding to the sections it changed. |
 
 ### Inputs and how they were used
 
@@ -46,7 +46,7 @@
 | D11 | Network authority (Q9) | Gates G0 → G1 (credential storage) → G2 (a fixed list of first live requests) → G2R (recurring capture) → G3 (capability READY). Each gate is a human approval record, not code. (§16) |
 | D12 | Raw vs normalized evidence | Raw response bytes are PROSPECTIVE_CAPTURED evidence and are never decision inputs. One normalized DERIVED document per book is the decision-consumable input. It embeds the raw hash and observation ID and re-derives byte-identically. It satisfies the frozen `FeatureInputManifestStore.verify_for_pack` without change. (§11) |
 | D13 | Failure default | Every failure path produces **no usable observation**, retains whatever bytes were received (except secret-bearing bytes), and writes a coverage/exclusion record. (§15) |
-| D14 | Foundation reopen | **None required for slice 1.** A reopen is triggered only if actual provider terms cannot be safely bounded by the frozen `(250, 220, 30, 7)` authority (§20). |
+| D14 | Foundation reopen | **None required for slice 1.** A reopen is triggered only if actual provider terms cannot be safely bounded by the frozen `(250, 220, 30, 7)` authority (§20). The UTC boundary guard (§14.6) keeps each provider receipt in the same UTC day and month as its debit. |
 | D15 | Credential precedence | **Credential safety dominates raw-response retention.** Secret-bearing bytes never enter durable evidence. A body that cannot be fully inspected before storage is not stored. (§7.6) |
 | D16 | Runtime provenance | At adapter-suite and runner startup, every loaded `genesis.*` module must resolve to the frozen source file with the frozen blob identity (FRZ-09, §2.4). This supplements the tree-SHA guard. |
 | D17 | Closed provider schemas | Every provider structure carrying status, price, line, identity or market semantics is validated against a closed schema. An unknown field there gives `BLOCKED / SCHEMA_DRIFT` with no usable observation. (§10.1) |
@@ -593,44 +593,111 @@ still has a `content-encoding`:
 
 ### 7.7 Total transport exception boundary (closes A6)
 
-`transport_http.send` is a **total** function. It never lets an exception, message,
-traceback or warning that could contain the keyed URL leave the module:
+`transport_http.send` never lets credential-bearing exception text, URL, traceback,
+chained cause/context or warning leave the module. It **does not** change the meaning of
+process-control exceptions. Two classes of exception are handled differently.
 
-1. The whole send path (URL construction, connection, TLS, request write, response read,
-   decoding) runs inside `try: … except BaseException as exc:`. The handler:
-   - extracts only `{"class": type(exc).__name__, "errno": <int or None>}` into
-     `sanitized_error`;
-   - deletes its references to `exc`, the traceback and the keyed URL (`del`, then
-     `exc.__traceback__ = None` before the delete), so no frame holding the URL survives;
-   - returns a `TransportResult(outcome="NO_RESPONSE" | "TRUNCATED", …)`.
-2. `KeyboardInterrupt` and `SystemExit` are also caught. The handler re-raises a fresh
-   `TransportInterrupted()` **`from None`** (no `__cause__`/`__context__`, no message).
-   Nothing else is re-raised.
-3. `http.client` debug level is forced to 0. No `logging` handler is attached in the
+**(a) Ordinary transport/request failures** (every `Exception` subclass: DNS, connect,
+TLS, timeout, reset, protocol, decode, `http.client` errors, and anything a fault injector
+raises as an `Exception`) are converted to the adapter's secret-safe failure
+representation and **not raised**:
+
+1. The send path (URL construction, connection, TLS, request write, response read,
+   decoding) runs inside `try: … except Exception as exc:`.
+2. The handler extracts only `{"class": type(exc).__name__, "errno": <int or None>}`
+   into `sanitized_error`. It never records `str(exc)`, `exc.args`, attributes, notes,
+   `__cause__` or `__context__`.
+3. It then clears `exc.__traceback__` and deletes every local holding the keyed URL or
+   request line.
+4. After leaving the `except` block, so that no exception context remains, it returns
+   `TransportResult(outcome="NO_RESPONSE" | "TRUNCATED", sanitized_error=…)`. This
+   sanitized result **is** the safe adapter transport exception: the only form in which
+   an ordinary failure leaves the transport.
+
+**(b) Process-control exceptions keep their semantics.** `KeyboardInterrupt` and
+`SystemExit` are never converted, demoted or swallowed:
+
+1. The same `try` has, after `except Exception`, exactly one
+   `except BaseException as exc:` clause. It is the only `BaseException` handler anywhere
+   in `genesis_adapters` (FRZ-11), and it never completes normally: it always leads to
+   step 3. It records only the class and, for `SystemExit`, the exit code:
+   - `type(exc.code) is int` → that integer;
+   - `exc.code is None` → `None`;
+   - anything else (e.g. a string, which may carry text) → `1`. That keeps the process
+     exit status Python would have produced, without keeping the text.
+2. It clears `exc.__traceback__` and deletes `exc` and every keyed local (URL, request
+   line, connection object).
+3. **After** the `except` block ends (so the fresh exception has
+   `__context__ is None`, not merely a suppressed context), it raises a **fresh**
+   `KeyboardInterrupt()` or `SystemExit(code)` (`SystemExit()` when `code is None`)
+   **`from None`**. The fresh exception has no args beyond the integer code, and
+   `__cause__`, `__context__` and `__notes__` are all absent. Its traceback holds only the
+   transport frame, from which all keyed locals were deleted.
+4. The result is that `KeyboardInterrupt` reaches the process top level as
+   `KeyboardInterrupt`, and `SystemExit` as `SystemExit` with the integer code preserved.
+5. Any other non-`Exception` `BaseException` (e.g. `GeneratorExit`; not expected in a
+   synchronous transport) goes through the same clause: a fresh no-argument instance of
+   the same class, raised `from None` after the clause. If the class can't be built with
+   no arguments, a fresh `SystemExit(1)` is raised instead. Process-control meaning is
+   never turned into an ordinary result.
+
+**No demotion anywhere above the transport.** No adapter code (runner, acquisition,
+scheduler, CLI, emit, reader) may catch `KeyboardInterrupt`, `SystemExit` or
+`BaseException`. That rules out bare `except:`, `except BaseException`,
+`except (KeyboardInterrupt | SystemExit)` and
+`contextlib.suppress(BaseException/KeyboardInterrupt/SystemExit)`. It also rules out
+`return`/`break`/`continue` inside `finally`, which would swallow them. `except Exception`
+is allowed because it cannot catch them. The only permitted handler is (b) in
+`transport_http.send`. Cleanup uses `try/finally` without flow-altering statements. Static
+test FRZ-11 enforces all of this.
+
+**Other hygiene**
+
+1. `http.client` debug level is forced to 0. No `logging` handler is attached in the
    transport. `warnings` raised inside the send path are captured and discarded (their
    text may name the URL).
-4. Defence in depth at runner level: the CLI installs `sys.excepthook`,
-   `threading.excepthook` and `sys.unraisablehook` handlers that print only a sanitized
-   class name and scan any text they would emit. `faulthandler` is not enabled in live
-   mode.
-5. The transport never uses `urllib.request.urlopen` with a URL-bearing `Request` that
+2. The transport never uses `urllib.request.urlopen` with a URL-bearing `Request` that
    can surface in `HTTPError.url`/`.filename`. It uses `http.client.HTTPSConnection` with
-   host and path passed separately; the key-bearing query exists only in the request-line
-   argument.
+   host and path passed separately. The key-bearing query exists only in a request-line
+   local inside the send frame, and is deleted on every exit path.
+3. Defence in depth at runner level: the CLI installs `sys.excepthook`,
+   `threading.excepthook` and `sys.unraisablehook` handlers that print only a sanitized
+   class name (and nothing else) and scan any text they would emit. These hooks do **not**
+   change control flow or exit status. The interpreter still exits for an uncaught
+   `KeyboardInterrupt` with its normal SIGINT status, and handles `SystemExit` natively
+   (it never reaches `sys.excepthook`). `faulthandler` is not enabled in live mode.
 
-**Adversarial test TX-01** (Stage 7). A fault-injecting connection class raises, at every
-send stage (connect, write, read headers, read body, decode), an exception whose message,
-`args`, `filename`, `url` attribute, `__notes__` and chained `__cause__` all contain the
-credential-bearing URL. The same happens for `KeyboardInterrupt`, and for an exception
-raised inside a `warnings` call. The runner executes in a **subprocess**. Pass requires:
+**Adversarial test TX-01** (Stage 7). The runner runs in a **subprocess**, started through
+a thin test harness. The harness calls the runner's real `main()`; its outermost frame
+records `type(exc).__name__` and the `SystemExit` code of whatever reaches it into a
+result file (no text) and then re-raises unchanged. A fault-injecting connection class
+fires at every send stage (connect, write, read headers, read body, decode):
+
+1. **Ordinary errors:** an `Exception` whose message, `args`, `filename`, `url`
+   attribute, `__notes__` and chained `__cause__`/`__context__` all contain the
+   credential-bearing URL, and a `warnings.warn` carrying the URL. Expected: the
+   acquisition records the sanitized `NO_RESPONSE`/`TRUNCATED` result (class/errno only),
+   the runner continues or ends normally, and nothing reaches the top level.
+2. **Injected `KeyboardInterrupt`** (constructed with the URL as its argument, with the URL
+   also in `__notes__`/`__cause__`). Expected: the harness records `KeyboardInterrupt`;
+   the subprocess ends with the platform's uncaught-SIGINT status (POSIX `-2`/`130`,
+   Windows `0xC000013A`); the runner did **not** swallow or convert it.
+3. **Injected `SystemExit(37)`**, and separately `SystemExit("<keyed URL>")`. Expected: the
+   harness records `SystemExit`, and the return code is exactly `37`, or `1` for the string
+   case, with the string itself never printed. `SystemExit(None)` returns `0`.
+4. **Introspection:** for 2 and 3, the harness also checks that the exception reaching it
+   has `__cause__ is None`, `__context__ is None`, no `__notes__`, args of `()` or
+   `(int,)`, and that no frame in its traceback has a local whose `repr` contains any
+   §7.6 form of the sentinel.
+
+Pass also requires, for every case:
 
 - captured **stdout** clean;
 - captured **stderr** clean;
 - every **log** clean;
 - every **evidence** file clean;
 - every **provenance** record clean (acquisition/quota/coverage ledgers, `requests/`,
-  `quarantine.jsonl`, run record);
-- any exception that reaches the subprocess top level clean;
+  `quarantine.jsonl`, run record, harness result file);
 
 each checked for every §7.6 form of the sentinel key.
 
@@ -1089,7 +1156,8 @@ commit, without an architecture change, provided that:
 | `price_ttl_seconds` | 3600 | OPEN `valid_to` (§6.2) |
 | `prematch_guard_seconds` | 300 | OPEN eligibility and `valid_to` cap (§6.3) |
 | `provider_future_tolerance_seconds` | 5 | `TIMESTAMP_FUTURE` (§6.4) |
-| `clock_skew_max_seconds` | 120 | `CLOCK_SKEW` (§6.1) |
+| `clock_skew_max_seconds` | 120 | `CLOCK_SKEW` (§6.1). Also the provider-clock attribution margin of the UTC boundary guard (§14.6) |
+| `request_timeout_seconds` | 60 | Hard transport deadline measured from `Tq`, and the debit-to-receipt bound of the UTC boundary guard (§14.6, §20.1). No other timeout literal exists in adapter code |
 | `wall_monotonic_drift_max_ms` | 1000 | `ClockFault` (§6.1) |
 | `fixture_join_max_age_seconds` | 86400 | fixture join (§8.3) |
 | `max_response_bytes` / `max_decompression_ratio` | 8388608 / 20 | size and decode bounds (§7.6) |
@@ -1429,8 +1497,74 @@ Scheduler (`scheduler.py`, pure, deterministic from the fixture list and the pol
   4. The frozen ledger allows it: daily < 7 and normal < 220.
   5. The projection still covers the remaining scheduled windows.
   6. The circuit is closed.
+  7. The UTC boundary guard (§14.6) permits a send now.
 
   A refused refresh is recorded with its reason.
+
+### 14.6 UTC day/month boundary guard (closes A4 debit-to-receipt edge)
+
+**Problem.** The frozen ledger attributes a debit to the UTC day and month of `Tq`. The
+provider attributes the request to whenever it receives (and timestamps) it. A request
+debited at 23:59:59.9 on the last day of a month and received just after midnight would
+be counted by Genesis in one day/month and by the provider in the next. That breaks the
+same-window counting behind §20.1 B1.
+
+**Invariant (runner).** Genesis must not send a provider request when
+`Tq + request_timeout_seconds` would cross a UTC calendar-day or UTC calendar-month
+boundary. Precisely, with `B_day(Tq)` = the next UTC midnight strictly after `Tq`, and
+`B_month(Tq)` = the next first-of-month UTC midnight strictly after `Tq`, a send is
+permitted only if all four hold:
+
+```text
+W1  Tq + request_timeout_seconds + clock_skew_max_seconds < B_day(Tq)
+W2  Tq + request_timeout_seconds + clock_skew_max_seconds < B_month(Tq)
+W3  Tq − clock_skew_max_seconds ≥ start of Tq's UTC day
+W4  Tq − clock_skew_max_seconds ≥ start of Tq's UTC month
+```
+
+- The `request_timeout_seconds` term is the invariant the review requires. W1 and W2
+  alone, with the skew terms removed, would already refuse any send whose permitted
+  receipt window crosses a boundary.
+- The `clock_skew_max_seconds` terms are a strictly stronger addition for providers that
+  attribute receipt by **their own** clock. That clock may differ from the trusted clock
+  by up to `clock_skew_max_seconds`, which each response's `Date` check enforces (§6.1).
+  The terms keep provider-clock attribution inside the same UTC day/month as `Tq` too.
+  `request_timeout_seconds` itself is never reduced by them.
+- W2 and W4 are implied by W1 and W3, since every month boundary is a day boundary. They
+  are still checked and tested separately (defence in depth against a boundary-arithmetic
+  bug).
+
+**Enforcement.**
+
+1. `Tq` is read from the trusted clock **once**, and that same value is used for the guard
+   check and passed as `occurred_at` to `QuotaLedger.request`. The guard runs **before**
+   the ledger call, so a refused send is never debited.
+2. Refusal gives acquisition `planned` + `refused{reason: WINDOW_BOUNDARY_GUARD}` and
+   coverage NOT_ATTEMPTED (F-43). The window is rescheduled deterministically to the first
+   permitted instant after the boundary (`boundary + clock_skew_max_seconds`), subject to
+   the new day's budget and §14.5 priorities.
+3. **Hard transport deadline** = `Tq + request_timeout_seconds` (trusted clock) for the
+   whole attempt: connect, TLS, request write, response read. Socket timeouts are set from
+   the remaining time before every blocking operation. If `T0` would be at or after the
+   deadline, the request is not written. At the deadline the connection is aborted and
+   the attempt records `NO_RESPONSE`/`TRUNCATED` (debit stands). So every provider receipt
+   the model permits happens within `[Tq, Tq + request_timeout_seconds)`, or within
+   `± clock_skew_max_seconds` of that under provider-clock attribution, and W1–W4 put all
+   of it inside the same UTC day and month as the debit.
+4. Retries (§14.3) and conditional refreshes (§14.5) obey the guard with their own `Tq`.
+   The scheduler (§14.5) never plans a window inside a guard zone.
+5. A `CLOCK_SKEW` quarantine (F-12) means the skew bound W1–W4 rely on was just exceeded.
+   All further sends are suspended until the next UTC day and until a successful
+   `Date`-header check re-establishes skew within bounds.
+6. `request_timeout_seconds` is a §12.1 policy field. It is inside `policy_digest` and
+   therefore `derivation_version` (FR-08), and FRZ-10 forbids any other numeric timeout in
+   adapter code (`timeout=` arguments, `settimeout(...)` literals, `sleep` literals). The
+   policy loader rejects `request_timeout_seconds ≤ 0` and any policy where the guard zone
+   `request_timeout_seconds + 2 × clock_skew_max_seconds` is ≥ 1 hour (sanity bound so a
+   typo cannot silently block most of a day).
+
+With provisional values (60 s, 120 s), the guard refuses sends in `[23:57:00, 00:02:00)`
+UTC each day. The scheduler plans around that zone.
 
 ---
 
@@ -1458,7 +1592,7 @@ or F-11b.
 | F-10 | 5xx / provider error envelope in 2xx | raw body | MISSING, `MISSING_EVIDENCE` (`PROVIDER_ERROR`) | none; ≤ 1 retry (5xx only) |
 | F-11 | Secret detected in body (any §7.6 form, wire or decoded) or in any header name/value | **no body bytes, no body hash, no redacted derivative**; secret-safe metadata only in `quarantine.jsonl` (§7.6) | QUARANTINED, `ARTIFACT_TAMPERED` (`SECRET_ECHO`) | none; halt; capability BLOCKED; human rotates key |
 | F-11b | Body cannot be inspected before storage (unsupported/nested content-encoding, decode failure, size/ratio bound) | secret-safe metadata only in `quarantine.jsonl`; no raw evidence | QUARANTINED, `SCHEMA_REJECTED` (`UNINSPECTABLE_BODY`) | none, no tombstones |
-| F-12 | Clock skew / missing Date (live) | raw | QUARANTINED, `CRITICAL_UNCERTAINTY` (`CLOCK_SKEW`) | none |
+| F-12 | Clock skew / missing Date (live) | raw | QUARANTINED, `CRITICAL_UNCERTAINTY` (`CLOCK_SKEW`) | none; all sends suspended until the next UTC day and a clean `Date` check (§14.6) |
 | F-13 | Non-JSON, invalid UTF-8, duplicate keys, NaN/Infinity, wrong content-type | raw | REJECTED, `SCHEMA_REJECTED` | none, no tombstones |
 | F-14 | Envelope schema mismatch (missing required keys, wrong types) | raw | REJECTED, `SCHEMA_REJECTED` | none, no tombstones |
 | F-15 | Partial payload (provider completeness flag, or a required list missing for part of the scope) | raw | REJECTED (scope), `MISSING_EVIDENCE` (`PARTIAL_RESPONSE`) | well-formed books present **are** emitted; **no ABSENT tombstones** |
@@ -1489,6 +1623,7 @@ or F-11b.
 | F-40 | Observation invalidated (§13.2) | ledger row + INVALIDATED document + PIT record (if the target is the head) | QUARANTINED, `CONTRADICTORY_EVIDENCE` / `ARTIFACT_TAMPERED` | INVALIDATED head from `T3_inv`; earlier cutoffs unchanged |
 | F-41 | Module-provenance guard failure (§2.4) | run record with guard verdict | NOT_ATTEMPTED, `CONFIGURATION_MISMATCH` (`MODULE_PROVENANCE`) | none; runner/suite refuses to start |
 | F-42 | Quota cache object or cache-authority row referenced by a ledger row is missing or altered | existing bytes untouched | QUARANTINED, `ARTIFACT_TAMPERED` (`QUOTA_REPLAY_BROKEN`) | none; all acquisition halts until restored from backup (§12.2 rule 10) |
+| F-43 | Send refused by the UTC boundary guard (§14.6 W1–W4) | acquisition `planned` + `refused{WINDOW_BOUNDARY_GUARD}`; **no** quota row (guard runs before the ledger) | NOT_ATTEMPTED, `ATTEMPT_BUDGET_EXHAUSTED` (`WINDOW_BOUNDARY_GUARD`) | none; window rescheduled after the boundary |
 
 `errors.AdapterFailure` enumerates every detail code above. Each code maps to exactly one
 frozen `ReasonCode`, and a test (FM-00) asserts the mapping is total.
@@ -1724,8 +1859,10 @@ class TransportResult:
     request_started_at: str; response_received_at: str | None
 class Transport(Protocol):
     def send(self, request: CanonicalRequest, *, clock: TrustedClock) -> TransportResult: ...
-        # TOTAL: never raises except TransportInterrupted() raised `from None` (§7.7)
-class TransportInterrupted(RuntimeError): ...        # carries no message, cause or context
+        # §7.7: every Exception -> sanitized TransportResult (never raised);
+        # KeyboardInterrupt / SystemExit(int code) re-raised as fresh instances `from None`
+        # after the handler (no args text, no cause/context, keyed locals deleted);
+        # hard deadline Tq + request_timeout_seconds (§14.6)
 
 # oddspapi/quota_gate.py
 class QuotaGate:
@@ -1816,7 +1953,8 @@ a test.
 | FRZ-07 | AST: no `QuotaReserveAuthorization`, `grant_authorization`, `revoke_authorization` or `BudgetClass.RESERVE` in `genesis_adapters` | scanner absent |
 | FRZ-08 | AST: `FixedClock` and `FakeTransport` defined only in `adapter_tests`; `OperationalStatus.READY` never referenced by adapter runtime modules (only `cli.py approve`) | scanner absent |
 | FRZ-09 | Runtime module-provenance guard (§2.4). GREEN on a clean run. **Fails closed**, in subprocesses, for: a shadow `genesis` package via `PYTHONPATH`; a `.pth` file in a temporary site directory; a competing `genesis` on a lower-precedence `sys.path` entry; one frozen module's bytes modified in a temp copy of the repo; a planted stale `.pyc` with no `-B`/fresh pycache prefix; a non-`SourceFileLoader` loader. The manifest equals `git ls-tree -r 51cb635…` blob IDs | guard absent |
-| FRZ-10 | AST: no numeric literal duration, bound or threshold in `genesis_adapters` outside `config.py` schema defaults (which are forbidden too: `SlicePolicy` has no defaults); every §12.1 field is read through `SlicePolicy`; changing any policy field changes `policy_digest` and `derivation_version` | scanner absent |
+| FRZ-10 | AST: no numeric literal duration, bound, threshold or **timeout** in `genesis_adapters` (including `timeout=` keyword arguments, `settimeout(...)`, `socket.setdefaulttimeout(...)`, `sleep(...)` with a literal) outside `config.py` schema defaults (which are forbidden too: `SlicePolicy` has no defaults); every §12.1 field, including `request_timeout_seconds`, is read through `SlicePolicy`; changing any policy field changes `policy_digest` and `derivation_version` | scanner absent |
+| FRZ-11 | AST: no bare `except:`, `except BaseException`, `except KeyboardInterrupt`, `except SystemExit` (alone or in a tuple), or `contextlib.suppress` of those, anywhere in `genesis_adapters` except the single documented `except BaseException` clause in `transport_http.send`; that clause has no `return` and is always followed by the fresh re-raise after the block; no `return`/`break`/`continue` inside any `finally` | scanner absent |
 
 ### Credentials and request identity
 
@@ -1834,7 +1972,7 @@ a test.
 | SEC-03 | gzip body whose decoded form contains the secret (and a second case where only the wire bytes do) → F-11; unsupported/nested content-encoding, corrupt gzip, over-ratio or oversize decode → F-11b with no raw evidence |
 | SEC-04 | Quarantine metadata is itself scanned; a metadata field that would contain the secret (e.g. a dirty `content-type`) is dropped, never written |
 | SEC-05 | Runtime-root scan (`scan_runtime_for_secret`) detects every §7.6 form planted in a file anywhere under the root |
-| TX-01 | Total transport exception boundary (§7.7), run in a **subprocess**. Injected faults at connect / write / read-headers / read-body / decode raise exceptions whose message, `args`, `url`, `filename`, `__notes__` and chained `__cause__` contain the credential-bearing URL; also `KeyboardInterrupt` and a `warnings.warn` carrying the URL. Asserts **clean stdout, clean stderr, clean logs, clean evidence, clean provenance** (acquisition/quota/coverage ledgers, `requests/`, `quarantine.jsonl`, run record) and a clean top-level exception, each for every §7.6 form |
+| TX-01 | Transport exception boundary (§7.7), run in a **subprocess** via the recording harness. (1) Ordinary `Exception`s at connect / write / read-headers / read-body / decode, with the credential-bearing URL in message, `args`, `url`, `filename`, `__notes__` and chained `__cause__`/`__context__`, plus a `warnings.warn` carrying the URL → sanitized `NO_RESPONSE`/`TRUNCATED` result (class/errno only), nothing reaches the top level. (2) Injected `KeyboardInterrupt(<URL>)` → harness records `KeyboardInterrupt`, exit status is the platform uncaught-SIGINT status, runner did not swallow it. (3) Injected `SystemExit(37)` → harness records `SystemExit`, return code exactly 37; `SystemExit("<URL>")` → return code 1 and the string never printed; `SystemExit(None)` → 0. (4) For (2)/(3): `__cause__`/`__context__` are `None`, no `__notes__`, args `()`/`(int,)`, no traceback-frame local contains the sentinel. For every case, **stdout, stderr, logs, evidence and provenance** (incl. the harness result file) are clean for every §7.6 form |
 | REQ-08 | Raw `source_uri` = `oddspapi-request:sha256:<h>` and matches the contract `uri_pattern`; canonical bytes stored at `requests/<h>.json` with `sha256(file) == h` |
 
 ### Clock and timestamps
@@ -1946,7 +2084,14 @@ a test.
 | BILL-02 | `FIXED_WEIGHT w` role debits `billable_units = genesis_debit_units ≥ w` in one frozen request; config with `genesis_debit_units < w` is refused at load |
 | BILL-03 | `VARIABLE`/`UNKNOWN` metering role → refused at plan time, never sent |
 | BILL-04 | No adapter text, report or record calls a ledger debit "provider billed"; the summary/report generator labels ledger figures "Genesis debit" and header figures "provider-reported usage" (string-level test over generated reports) |
-| BILL-05 | Boundability check (§20 FR-1): table-driven over provider terms {allowance 300/month; 250/month; 230/month; rolling 30-day 250; daily 5; fixed weight 2; non-metered} → pass/fail exactly as §20 specifies |
+| BILL-05 | Boundability check (§20.1 FR-1): table-driven over provider terms {allowance 300/month; 250/month; 230/month; rolling 30-day 250; non-UTC month 250; UTC-aligned daily 7; UTC-aligned daily 5; non-aligned daily 10; fixed weight 2; non-metered} → pass/fail exactly as §20.1 specifies. Evaluated both **with** the §14.6 guard (counting over `W`) and in **fallback** mode (counting over `W⁺` built from the policy's `request_timeout_seconds` and `clock_skew_max_seconds`), including the UTC-aligned daily-7 case that passes only with the guard |
+| BND-01 | Day boundary, exact edges (W1/W3), with `m = request_timeout_seconds + clock_skew_max_seconds` read from the test policy: `Tq = midnight − m − 1 µs` → sent; `Tq = midnight − m` → refused; `Tq = midnight − request_timeout_seconds` → refused; `Tq = midnight − 1 µs` → refused; `Tq = midnight` → refused; `Tq = midnight + clock_skew_max_seconds − 1 µs` → refused; `Tq = midnight + clock_skew_max_seconds` → sent |
+| BND-02 | Month boundary, same exact-edge grid (W2/W4) at month rollovers: 30→31-day months, 28 Feb (non-leap), 29 Feb (leap), 31 Dec → 1 Jan. Each W-condition is also tested in isolation through a stub boundary calculator, so the "month implied by day" redundancy can't mask a month-arithmetic bug |
+| BND-03 | A refused send makes no `QuotaLedger.request` call and writes no quota row; acquisition `refused{WINDOW_BOUNDARY_GUARD}` + coverage NOT_ATTEMPTED (F-43); the guard `Tq` and the ledger `occurred_at` are the same value for permitted sends |
+| BND-04 | Hard deadline: a fake slow server makes the transport abort at exactly `Tq + request_timeout_seconds` (fixed clock); `T0 ≥ deadline` → request not written; outcome `NO_RESPONSE`/`TRUNCATED`, debit stands |
+| BND-05 | `request_timeout_seconds` is in `policy_digest`: changing only it changes `policy_digest`, `derivation_version`, contract ID and `source_id`; the loader rejects `≤ 0`, a missing field, and a guard zone ≥ 1 hour |
+| BND-06 | Scheduler never plans a window inside a guard zone; retries and conditional refreshes landing in a zone are refused or deferred to `boundary + clock_skew_max_seconds` |
+| BND-07 | After a `CLOCK_SKEW` quarantine, all sends are refused until the next UTC day and a clean `Date` check (§14.6 rule 5) |
 
 ### Gates
 
@@ -1962,7 +2107,7 @@ a test.
 | ID | Test |
 | --- | --- |
 | FM-00 | `AdapterFailure → ReasonCode` mapping is total and single-valued |
-| FM-01…42 | Table-driven: for each §15 row (including F-11b), assert retained evidence, coverage status/reason/note, and the observation/head effect |
+| FM-01…43 | Table-driven: for each §15 row (including F-11b), assert retained evidence, coverage status/reason/note, and the observation/head effect |
 
 ### Closed schemas, reader parity, invalidation
 
@@ -1990,21 +2135,21 @@ Global GREEN criteria for **every** stage:
 2. Frozen suite GREEN with counts identical to the Stage 0 baseline.
 3. `compileall` clean.
 4. `git diff --check` clean.
-5. FRZ-01/02/03/05–10 GREEN (FRZ-10 from S1 on), including the module-provenance guard at suite start.
+5. FRZ-01/02/03/05–11 GREEN (FRZ-10 from S1 on), including the module-provenance guard at suite start.
 6. No file changed under a frozen tree.
 7. RED and GREEN transcripts plus `HASHES.sha256` committed under `adapters/evidence/S<n>/`.
 8. One commit per stage (or RED commit + GREEN commit), message prefix `v05(S<n>):`.
 
 | Stage | Build | Stage-specific GREEN |
 | --- | --- | --- |
-| **S0** Skeleton + freeze and provenance guards | `adapters/` tree, `README.md`, nested `.gitattributes`, `adapter_tests/__init__.py`, `support.py` shell, `verify.verify_frozen_trees`, `provenance_guard` + `frozen_genesis_modules.json` (generated from the frozen tree with Git), static scanners | FRZ-01…09. Frozen-suite baseline transcript recorded (platform, Python, counts), F-41 |
+| **S0** Skeleton + freeze and provenance guards | `adapters/` tree, `README.md`, nested `.gitattributes`, `adapter_tests/__init__.py`, `support.py` shell, `verify.verify_frozen_trees`, `provenance_guard` + `frozen_genesis_modules.json` (generated from the frozen tree with Git), static scanners | FRZ-01…09, FRZ-11. Frozen-suite baseline transcript recorded (platform, Python, counts), F-41 |
 | **S1** Primitives | `ids`, `jsonstrict`, `schema` (closed validator), `clock`, `secrets.Secret` + `scan_for_secret`/`scan_headers` (no loader), `config` (`SlicePolicy` with no defaults, loaders, digests, `derivation_version`), `endpoints` (incl. metering fields) | REQ-01/02/03/05/08 (hash part), SEC-01, SEC-05, CLK-01, ID-01/02, MKT-07 (literal parsing), FRZ-10, FR-08 (digest part), SCH-04 |
-| **S2** Quota + acquisition | `quota_gate`, `transport` protocol, `FakeTransport` (tests), `acquisition` ledger/runner (fixture mode), retry/circuit, restart reconciliation, metering/debit fields | Q-01…07, Q-10, BILL-01…03, BILL-05, CLK-03, REQ-06, F-01…F-05, F-07…F-10, F-35 |
+| **S2** Quota + acquisition | `quota_gate`, `transport` protocol, `FakeTransport` (tests), `acquisition` ledger/runner (fixture mode) with the §14.6 UTC boundary guard before every ledger call, retry/circuit, restart reconciliation, metering/debit fields | Q-01…07, Q-10, BILL-01…03, BILL-05, BND-01…03, BND-05, CLK-03, REQ-06, F-01…F-05, F-07…F-10, F-35, F-43 |
 | **S3** Raw capture | Raw contract registration, pre-persistence secret scan of wire/decoded body and all headers, bounded content decoding, quarantine metadata, skew check, size cap, raw publish, META cache publish with retention | EV-01/02/07, REQ-07, SEC-02…04, CLK-04, FR-05/06/07, F-06, F-11, F-11b, F-12…F-14, F-34, F-42 |
 | **S4** Parsing + normalization (pure) | `maps`, closed response schemas, `identity_registry`, `parser`, `normalize` (RESPONSE kind), doc-derived fixtures + `FIXTURES.sha256` | MKT-*, ST-*, SCH-01…03, ID-02…09, TS-01…06, EV-03/04/08, F-15…F-29, F-38 (document level) |
 | **S5** Emission + PIT + reader | `emit` (normalized evidence, structured evidence, PIT, coverage), expected scope, tombstones, invalidation ledger + INVALIDATION documents, derivation-versioned sources, `admissible_head` / `reader` | PIT-01…09, INV-01…04, RDR-02/03, FR-01…04, FR-08, TS-07, ST-05, F-25…F-33, F-36, F-39, F-40 |
-| **S6** Manifest + end-to-end | `manifest` (via `admissible_head`), `verify_derivation` (both kinds), full fixture pipeline, failure matrix, runtime secret scan, deterministic rebuild | EV-05/06, RDR-01, PIT-09, FM-00…42, REQ-04 |
-| **S7** Scheduler, authority, dormant live transport | `scheduler`, `authority`, `transport_http` (total exception boundary; tested **only** against a loopback HTTPS test server with a self-signed CA injected for tests; the production host is pinned and never contacted), `CredentialSource` (tested with a temp file holding the sentinel), `cli` (sanitizing excepthooks, `-B` + fresh pycache prefix, provenance guard at startup) | Q-08/09, BILL-04, G-01…04, CLK-02, TX-01, FRZ-09 (runner startup), F-37. Proof that no test contacts a non-loopback address (socket audit hook in `adapter_tests`) |
+| **S6** Manifest + end-to-end | `manifest` (via `admissible_head`), `verify_derivation` (both kinds), full fixture pipeline, failure matrix, runtime secret scan, deterministic rebuild | EV-05/06, RDR-01, PIT-09, FM-00…43, REQ-04 |
+| **S7** Scheduler, authority, dormant live transport | `scheduler`, `authority`, `transport_http` (§7.7 exception boundary that preserves process-control exceptions; hard deadline `Tq + request_timeout_seconds`; tested **only** against a loopback HTTPS test server with a self-signed CA injected for tests; the production host is pinned and never contacted), `CredentialSource` (tested with a temp file holding the sentinel), `cli` (sanitizing, flow-neutral excepthooks; no `BaseException` handlers; `-B` + fresh pycache prefix; provenance guard at startup) | Q-08/09, BILL-04, BND-04, BND-06, BND-07, G-01…04, CLK-02, TX-01 (ordinary errors sanitized; `KeyboardInterrupt`/`SystemExit` preserved), FRZ-09 (runner startup), FRZ-11, F-37. Proof that no test contacts a non-loopback address (socket audit hook in `adapter_tests`) |
 | **STOP** | — | Implementation ends here. G1, G2, G2R and G3 are human actions (§16). The implementing agent does not perform them |
 
 ---
@@ -2023,12 +2168,29 @@ provider terms cannot be safely bounded by that authority. The test, run at G1 a
 again whenever terms change (BILL-05):
 
 - **B1 — Window bound.** For every provider accounting window `W` with limit `L_W`
-  (provider units), Genesis's maximum possible debit inside `W` must not exceed `L_W`:
-  `GenesisMax(W) = min(7 × U_W, 250 × M_W)`, where `U_W` is the number of UTC days and
-  `M_W` the number of UTC calendar months that `W` can overlap at worst-case alignment.
-  250 (not 220) is used because the frozen authority lets a human-granted reserve be
-  spent. Provider consumption never exceeds the Genesis debit, because each debit is
-  ≥ the provider weight (§7.2).
+  (provider units), the maximum Genesis debit whose provider receipt can fall inside `W`
+  must not exceed `L_W`: `GenesisMax(W) = min(7 × U_W, 250 × M_W)`, where `U_W` is the
+  number of UTC days and `M_W` the number of UTC calendar months that `W` can overlap at
+  worst-case alignment.
+  - 250 (not 220) is used because the frozen authority lets a human-granted reserve be
+    spent.
+  - Provider consumption never exceeds the Genesis debit, because each debit is ≥ the
+    provider weight (§7.2).
+  - **Why counting over `W` itself is valid:** the §14.6 boundary guard (W1–W4) plus the
+    hard transport deadline ensure every provider receipt permitted by the model (receipt
+    within `request_timeout_seconds` of `Tq`, attributed by either clock within
+    `clock_skew_max_seconds`) falls in the **same** UTC day and UTC month as its debit at
+    `Tq`. Receipts inside `W` therefore come only from debits made on UTC days/months that
+    `W` itself overlaps, and the per-UTC-day (7) and per-UTC-month (250) frozen caps bound
+    them.
+  - **General fallback.** If the same-window send restriction is ever removed or relaxed,
+    this shortcut no longer holds. `U_W` and `M_W` must then be computed over `W`
+    **extended backwards** by the maximum possible debit-to-receipt latency
+    (`request_timeout_seconds`, plus `clock_skew_max_seconds` on each side if the provider
+    attributes by its own clock). That is,
+    `W⁺ = [start(W) − request_timeout_seconds − clock_skew_max_seconds, end(W) +
+    clock_skew_max_seconds)`, and B1 becomes `min(7 × U_{W⁺}, 250 × M_{W⁺}) ≤ L_W`.
+    Removing the guard is itself a design change requiring re-review.
 - **B2 — Pre-send cost bound.** Every endpoint role that slice 1 uses has a cost fixed
   before sending (`PER_REQUEST`, `FIXED_WEIGHT`, or `NON_METERED`), so
   `genesis_debit_units ≥ provider_request_weight` can be reserved before the request goes out.
@@ -2036,10 +2198,14 @@ again whenever terms change (BILL-05):
 **FOUNDATION REOPEN REQUIRED** only if B1 or B2 fails for a role that slice 1 cannot drop.
 Examples:
 
-- the provider's monthly allowance is below 250 (Genesis could spend up to 250 in that
-  month, including a human-granted reserve);
-- a provider daily limit below `7 × U_day`, e.g. below 7 for a UTC-aligned provider day,
-  or below 14 for a provider day that can straddle two UTC days;
+- the provider's UTC-calendar-month allowance is below 250 (Genesis could spend up to 250
+  in that month, including a human-granted reserve). This relies on the §14.6 guard
+  keeping every receipt in the debit's UTC month;
+- a provider daily limit below `7 × U_day`. Under the §14.6 guard: below 7 for a
+  UTC-aligned provider day (`U_day = 1`), or below 14 for a provider day not aligned to UTC
+  (it overlaps 2 UTC days at worst). Without the guard (fallback), even a UTC-aligned
+  provider day extends backwards over the previous UTC day, so `U = 2` and the limit
+  must be ≥ 14;
 - request cost depends on the response (per-event, per-bookmaker or per-market charging
   not known before sending), so it can't be reserved pre-send under the frozen ledger.
 
@@ -2051,7 +2217,7 @@ Examples:
 | Genuinely non-metered endpoints | Genesis debits ≥ 1 anyway (§14.2), a conservative over-debit |
 | Conservatively debiting Genesis budget for a provider-free endpoint | Same. `provider_documented_billable = false` records the difference |
 | Fixed request weights (e.g. 2 units per ODDS call) | Reserved pre-send as `billable_units = genesis_debit_units ≥ w` (frozen `request` supports `billable_units > 1`) |
-| A different provider accounting window, e.g. a rolling 30 days or a non-UTC month | Passes B1 when `GenesisMax(W) ≤ L_W`: a rolling 30-day window overlaps ≤ 31 UTC days, so ≤ 217; a non-UTC calendar month overlaps ≤ 32 UTC days, so ≤ 224. Both are within a 250 limit |
+| A different provider accounting window, e.g. a rolling 30 days or a non-UTC month | Passes B1 when `GenesisMax(W) ≤ L_W`. **Under the §14.6 guard**, a rolling 30-day window overlaps ≤ 31 UTC days, so ≤ 217; a non-UTC calendar month (≤ 31 days) overlaps ≤ 32 UTC days, so ≤ 224. Both are within a 250 limit. Under the fallback (guard removed), `W⁺` adds at most one more UTC day for the provisional values, giving ≤ 224 and ≤ 231, still within 250. The figures are recomputed from the actual policy values at G1 (BILL-05) |
 | Per-second / per-minute rate limits | Not part of the frozen authority. Bounded by the adapter's own spacing (≤ 7 requests/day, serialized) and the 429 circuit (§14.3) |
 
 If only some roles fail, those roles are unusable (§7.2) and slice 1 proceeds if the rest
@@ -2161,14 +2327,14 @@ Contradictions found in the repository and how they are settled:
 ```text
 ROLE
 You are implementing Project Genesis V0.5 slice 1 (OddsPapi read-only adapter) exactly as
-specified by the design authority V05_ADAPTER_ARCHITECTURE.md (revision r2) at the
+specified by the design authority V05_ADAPTER_ARCHITECTURE.md (revision r3) at the
 repository root. That document is binding. Where it and your judgement differ, it wins.
 If it is internally inconsistent or impossible against the frozen code, STOP and report
 the exact conflict. Do not work around it.
 
 REPOSITORY STATE
 - Work on the branch you were given, which descends from tag v0.4-foundation-freeze
-  (2278e2a68083f7ac58d796b1ed9c43d50020b6b0) and contains the r2 design commit.
+  (2278e2a68083f7ac58d796b1ed9c43d50020b6b0) and contains the r3 design commit.
 - Frozen trees (NO-TOUCH: no file added/edited/deleted/renamed): src/, tests/, config/,
   tools/, DECISIONS/, v04_pack/. Their tree SHAs must stay exactly:
     src 51cb635bc42b993815b6c02a23c4c3ceb7d98476
@@ -2206,14 +2372,26 @@ ABSOLUTE PROHIBITIONS
   cache hit. ODDS responses are never cached. Never delete, move or rewrite quota cache
   objects or cache-authority rows (§12.2 rule 10).
 - Never write a provisional policy value as a literal in code. Every duration, bound,
-  threshold, pool size and schedule offset comes from SlicePolicy (§12.1), which has no
-  code defaults. These values are provisional slice-1 policy parameters, not law.
+  threshold, timeout (including request_timeout_seconds), pool size and schedule offset
+  comes from SlicePolicy (§12.1), which has no code defaults. These values are
+  provisional slice-1 policy parameters, not law.
 - CREDENTIAL SAFETY DOMINATES RAW RETENTION (§7.6). Secret-bearing or uninspectable
   bytes never enter durable storage in any form: no raw object, no redacted derivative,
   no body hash. Only secret-safe quarantine metadata is written, and it is scanned too.
-- transport_http.send is TOTAL (§7.7). It never lets an exception, message, traceback or
-  warning containing the keyed URL escape. Never record str(exc)/exc.args. Never persist
-  a URL string.
+- Transport exception boundary (§7.7). Ordinary Exceptions are converted to the
+  sanitized TransportResult (class/errno only) and never raised. KeyboardInterrupt and
+  SystemExit are NEVER converted, demoted or swallowed. transport_http.send re-raises a
+  fresh KeyboardInterrupt() / SystemExit(int code) (non-int code -> 1, None -> None)
+  `from None`, AFTER its except block, with keyed locals deleted. No other adapter code
+  may catch BaseException, KeyboardInterrupt or SystemExit, use a bare except, or put
+  return/break/continue in finally (FRZ-11). Never record str(exc)/exc.args. Never
+  persist a URL string.
+- Never send a provider request unless the §14.6 UTC boundary guard (W1-W4) permits it:
+  refuse when Tq + request_timeout_seconds (+ clock_skew_max_seconds) would cross a UTC
+  day or month boundary, or when Tq - clock_skew_max_seconds precedes the start of Tq's
+  UTC day/month. The guard runs BEFORE QuotaLedger.request, using the same Tq, so a
+  refused send is never debited. Enforce the hard transport deadline
+  Tq + request_timeout_seconds.
 - Never silently ignore an unknown field in a semantic provider structure. Closed schemas
   per §10.1. Drift is BLOCKED / SCHEMA_DRIFT.
 - Never describe a quota-ledger debit as provider billing. Keep provider_metering,
@@ -2237,8 +2415,12 @@ KEY SEMANTICS YOU MUST IMPLEMENT EXACTLY
   verify_derivation is deterministic for both derivation kinds (§11.5).
 - Quota (§14): debit genesis_debit_units (>= provider weight, >= 1) NORMAL before send;
   no refunds; VARIABLE/UNKNOWN metering roles are unusable; retries per §14.3 using
-  policy fields.
-- Failure semantics: every §15 row F-01…F-42 (including F-11b), table-driven.
+  policy fields; UTC boundary guard and hard deadline per §14.6. After a CLOCK_SKEW
+  quarantine, suspend sends until the next UTC day and a clean Date check.
+- Boundability (§20.1) is a G1 human check against real terms. Implement only its
+  table-driven evaluator (BILL-05), covering both guarded counting over W and the
+  fallback counting over W+.
+- Failure semantics: every §15 row F-01…F-43 (including F-11b), table-driven.
 
 METHOD
 - Implement Stages S0 → S7 of §19 in order. For each stage:
@@ -2255,7 +2437,7 @@ METHOD
      plus HASHES.sha256 over the transcripts. (Set PYTHONPYCACHEPREFIX to a fresh temp
      dir for the adapter suite, per §2.4.)
   4. GREEN requires: all adapter tests pass; frozen suite pass/skip counts identical to the
-     S0 baseline; freeze guard, module-provenance guard and static scanners (FRZ-05…10)
+     S0 baseline; freeze guard, module-provenance guard and static scanners (FRZ-05…11)
      pass; no frozen-tree change.
   5. Commit with prefix "v05(S<n>): …". Push only to the assigned branch.
 - Fixtures: build doc-derived synthetic OddsPapi v4 payloads under
@@ -2278,8 +2460,22 @@ METHOD
 - The end-to-end test (EV-05) and the parity test (RDR-01) must pass against the frozen
   FeatureInputManifestStore.verify_for_pack unchanged, using temp registries with a
   synthetic-test-only binding reference.
-- TX-01 must run the runner in a subprocess and assert clean stdout, stderr, logs,
-  evidence and provenance for every §7.6 form of the sentinel.
+- TX-01 must run the runner's real main() in a subprocess through a recording harness.
+  It must prove:
+  - ordinary keyed-URL errors become the sanitized result and never reach the top level;
+  - an injected KeyboardInterrupt reaches the top level as KeyboardInterrupt, with the
+    uncaught-SIGINT exit status;
+  - an injected SystemExit(37) reaches the top level as SystemExit with return code 37
+    (and a string code gives 1, never printed);
+  - neither is swallowed or converted by the runner;
+  - the reaching exception has no cause/context/notes and no sentinel in any traceback
+    local;
+  - stdout, stderr, logs, evidence and provenance are clean for every §7.6 form of the
+    sentinel.
+- BND-01/02 must test the exact edges (just before and after each guard edge) at UTC
+  midnight and at month rollovers, including leap-year February and year-end. All edges
+  are computed from the test policy's request_timeout_seconds and
+  clock_skew_max_seconds; no literal.
 
 STOP CONDITIONS (report and halt, do not improvise)
 - Any requirement appears to need a change inside a frozen tree → report
@@ -2309,9 +2505,9 @@ DELIVERABLE
 | A1 Freshness policy has no frozen authority | TTL, guard and every other number reclassified as **versioned provisional slice-1 policy parameters, not law**. They are named `SlicePolicy` fields with no code defaults and no literals (FRZ-10). `policy_digest` covers every field and feeds `derivation_version`, so any change creates a new source (FR-08) | D9, §3.1, §6.1–6.4, §9.1–9.2, §10, §12.1–12.2, §14.3, §14.5, §15 F-27, §18, §21 A7 |
 | A2 14-day READY rule | READY now requires explicit acceptance criteria AC-1…AC-9 (integrity, failure record, schema, coverage content, parity, time, quota, foundation, hostile review). `g3_min_observation_days` is only a provisional **minimum** window, explicitly not sufficient | §12.1, §16.5 |
 | A3 Provider billability conflated with Genesis budget | Separate fields: `provider_metering`, `provider_request_weight`, `provider_documented_billable`, `provider_reported_usage`, `genesis_units_debited`/`genesis_debit_units`. Frozen `quota_billable_call` is declared a **Genesis internal debit**, not evidence of provider billing (BILL-01…04) | D10, §7.2, §9.3, §12.2 r9, §14.1–14.2, §14.4–14.5, §15, §18, §22 X6/X8 |
-| A4 Over-broad reopen trigger | FR-1 replaced by the §20.1 boundability test: B1 window bound `min(7×U_W, 250×M_W) ≤ L_W`, B2 pre-send cost bound. Explicit non-triggers: generous allowance, non-metered endpoints, conservative debit of free endpoints, fixed weights, different accounting windows, rate limits (BILL-05) | D14, §7.2, §16.2, §20, §22 |
+| A4 Over-broad reopen trigger | r2: FR-1 replaced by the §20.1 boundability test (B1 window bound `min(7×U_W, 250×M_W) ≤ L_W`, B2 pre-send cost bound) with explicit non-triggers. **r3:** new policy field `request_timeout_seconds` (in `policy_digest`, no other timeout literal, FRZ-10). §14.6 runner invariant W1–W4 refuses a send when `Tq + request_timeout_seconds` (plus the provider-clock skew margin) would cross a UTC day or month boundary, checked before the ledger debit; hard transport deadline `Tq + request_timeout_seconds`. B1 now states why same-window counting is valid, and documents the backwards-extended `W⁺` fallback. Examples corrected to say which bounds depend on the guard (BND-01…07, BILL-05) | D14, §12.1, §14.5, §14.6, §15 F-12/F-43, §17, §18, §19, §20.1, §23 |
 | A5 Credential safety vs raw retention | Precedence rule stated verbatim (D15, §7.6). Detector covers URL/query, exception text, header names/values, UTF-8, UTF-16/32, JSON escapes, base64 (3 alignments), hex, fragments ≥ `secret_fragment_min_chars`, and wire plus decoded content-encoded bodies. Uninspectable bodies are not persisted (F-11b). No redacted derivative or body hash is kept (SEC-01…05, REQ-07) | D15, §7.6, §9.3, §11.1, §15 intro/F-11/F-11b, §18 |
-| A6 Transport exception boundary | `transport_http.send` is total (catches `BaseException`, sanitizes, drops frames/URL, `TransportInterrupted from None`, captures warnings, no `urlopen`). The runner installs sanitizing excepthooks. Adversarial subprocess test TX-01 asserts clean stdout/stderr/logs/evidence/provenance | §7.7, §17, §18 TX-01, §19 S7 |
+| A6 Transport exception boundary | r2: sanitizing boundary and TX-01. **r3:** `TransportInterrupted` removed. Ordinary `Exception`s become the sanitized `TransportResult` (never raised). `KeyboardInterrupt` and `SystemExit` keep their semantics: fresh `KeyboardInterrupt()` / `SystemExit(int code)` (non-int code → 1, text dropped) raised `from None` **after** the handler, so there is no cause or context and keyed locals are deleted. No adapter code may catch or demote them (FRZ-11). Excepthooks are flow-neutral. TX-01 proves in a subprocess that both reach top level with the correct type and code, are not swallowed, and leave stdout/stderr/logs/evidence/provenance clean | §7.7, §17, §18 TX-01/FRZ-11, §19 S0/S7, §23 |
 | A7 Runtime module provenance | FRZ-09 guard at suite and runner startup: `genesis` origin/path uniqueness, per-module realpath, `SourceFileLoader`, blob SHA-1 + SHA-256 vs pinned manifest from the frozen tree, no competing `genesis` on any `sys.path` entry, `.pth` inspection, `-B` + fresh pycache prefix. Attacked with `PYTHONPATH`, `.pth`, competing package, modified module, stale `.pyc` | D16, §2.4, §4, §15 F-41, §17, §18 FRZ-09, §19 S0/S7 |
 | A8 Closed schemas / additive drift | All semantic provider structures closed; inert keys declared explicitly from G2 evidence; unknown key/type gives `BLOCKED / SCHEMA_DRIFT` at a defined scope, with envelope drift rejecting the whole response without tombstones. Schema digest is part of `derivation_version` (SCH-01…04) | D17, §4, §9.2, §10.1, §11.1, §15 F-38, §16.5 AC-3, §18 |
 | A9 Head reader parity | Shared predicate `admissible_head` mirrors every frozen `verify_for_pack` check, including `publisher_timestamp`/`published_at ≤ D`, contract/binding/capability-head uniqueness and `check_window`, with no fallback. The manifest builder uses the same predicate. Iff-parity test RDR-01, plus RDR-02/03 | §6.2, §6.3, §12.3, §15 F-39, §16.5 AC-5, §17, §18 |

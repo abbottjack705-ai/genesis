@@ -1,6 +1,6 @@
 # Test evidence
 
-Updated: 2026-09-25
+Updated: 2026-09-28
 
 ## Current audit disposition and staged gates
 
@@ -124,6 +124,40 @@ campaign were rerun unmodified on the final bytes. Exact commands, counts and
 hashes are in `remediation_evidence/T5/GREEN_FINAL.md`.
 **Local T5 green is not hostile approval or GO.**
 
+The integrated hostile re-audit of T1–T5 found F-1/E3 (the worker's forbidden-
+sink enforcement had a teardown re-entry gap). T6's F-1/E3 fix passed full
+discovery 437/437 (1 skip). The follow-on E11 hostile audit found F-A (the
+import denylist enumeration was incomplete: `sqlite3.load_extension` and
+`_tkinter`-mediated process spawn reached native code with no forbidden
+event). F-A inverted the policy to a fail-closed positive allowlist; full
+discovery 442/442 (1 skip). A further E11 re-audit found F-B (three findings:
+attribute/object reachability beyond import statements, e.g.
+`genesis.protected.multiprocessing.reduction._winapi`; missing native-event
+denial for `_winapi.CreateProcess`/`_thread.start_new_thread`; and `id()`-based
+integrity checks that id-reuse could mask). F-B's reconciled fix passed full
+discovery 480/480 (1 skip). ADR-0004 then added real Windows Job Object +
+AppContainer confinement primitives, opt-in and off by default; full discovery
+493/493 (1 skip) at certified commit `4f11606`. An independent E11 hostile
+audit of `4f11606` returned **SATISFIED**: witnessed Windows 11 execution —
+containment suite (`test_astra_t6_fb_os_containment` +
+`test_astra_t6_fb_os_confinement`) 22/22 (0 skipped), full discovery 493
+tests/1 skip/0 fail/0 err, `IS_WINDOWS=True`/`APPCONTAINER=True`,
+`mpssvc`/`BFE` running. Non-blocking residuals: F-1 (`icacls` success check is
+locale-dependent, fails closed), F-2 (attestation omits `LOCALAPPDATA` on the
+confined path), F-7 (confined std streams rely on GC on the direct `close()`
+path). Evidence: `remediation_evidence/T6/FB_E11_OS_CONTAINMENT_VERDICT.md`
+and `FB_E11_EVIDENCE_HASHES.sha256`.
+
+A final independent foundation-wide hostile audit then reran the suite against
+`47986ab` (two documentation/evidence-only commits over `4f11606`; the
+executable trees are identical) and returned **V0.4 FOUNDATION FREEZE
+SATISFIED**: full discovery 493 total/492 pass/1 skip/0 fail/0 err in 671
+seconds; containment 22/22 (0 skip); F12 stress 20/20; lifecycle 5/5;
+`compileall` and `git diff --check` clean; no unresolved CRITICAL/HIGH.
+**This is the V0.4 foundation freeze. `4f11606` is the certified executable
+baseline; no adapter, strategy, shadow research, protected campaign or
+live-money GO is granted.**
+
 ## Deterministic gate
 
 Command:
@@ -185,6 +219,10 @@ protected external dataset or historical outcome source.
 | T5 O-5 approval ordering | `test_astra_t5_approval_ordering.py` — 3 tests |
 | T5 O-1/O-2/O-3 package pins | `test_astra_t5_package_evidence.py` — 4 tests |
 | T5 hostile pre-audit (H1–H6) | `test_astra_t5_hostile_preaudit.py` — 9 tests (symlink case skips without privilege) |
+| T6 F-1/E3 teardown-enforcement closure | `test_astra_t6_f1_teardown_enforcement.py` |
+| T6 F-A fail-closed capability allowlist | `test_astra_t6_fa_capability_allowlist.py` |
+| T6 F-B reachability/definition-integrity closure | `test_astra_t6_fb_e11_reachability.py`, `test_astra_t6_fb_definition_snapshot.py`, `test_astra_t6_fb_os_confinement.py` — 38 tests |
+| T6 ADR-0004 OS containment (Windows-gated live) | `test_astra_t6_fb_os_containment.py` — 13 tests |
 
 Individual test methods combine closely related rows of the binding T-F01
 through T-F15 matrix. Each batch checkpoint records the exact matrix rows it
@@ -324,10 +362,19 @@ boundary.
 
 They do not prove profitability, calibration on real sport data, provider
 availability or terms, the assumed OddsPapi allowance, source entitlement,
-cloud cost, sport/market semantics, venue reconciliation, deployed protected
-service isolation, or live readiness. No strategy search, outcome experiment,
-external call or real protected campaign was run.
+cloud cost, sport/market semantics, venue reconciliation, or live readiness.
+No strategy search, outcome experiment, external call or real protected
+campaign was run. The E11 Windows containment evidence was witnessed on one
+Windows 11 host only; a non-English-locale host and a fresh independent
+hostile re-run are unverified (F-1 in the E11 verdict). The reachable-but-
+unexercised LAY side of `assess_price_sanity` (`selection.py` never passes
+`side=`) is a known, non-blocking defect, not a proven-correct LAY path.
+Quota/ingestion/lifecycle timestamps are writer-declared, not sourced from a
+trusted clock.
 
-The implementation remains NO-GO for a read-only adapter. T1–T5 local green and
-the forthcoming exact package do not replace integrated hostile review and
-explicit checkpoint approval.
+The V0.4 foundation is frozen at `4f11606` (freeze-gate verdict FOUNDATION
+FREEZE SATISFIED at `47986ab`; see `V04_FOUNDATION_FREEZE.md`). This closes
+the T1–T6 integrated hostile-review cycle for the foundation itself; it
+remains **NO-GO for the first read-only adapter, strategy, shadow research,
+protected campaign, or live-money path** until that work is separately
+authorized on a new branch cut from the frozen commit.

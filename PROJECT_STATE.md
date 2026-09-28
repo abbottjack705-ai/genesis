@@ -1,6 +1,6 @@
 # Project Genesis state
 
-Updated: 2026-09-26
+Updated: 2026-09-28
 
 ## Current milestone
 
@@ -21,10 +21,24 @@ sealed T4 through three WIP resume commits and one candidate commit. T1–T5
 still require integrated hostile review. The original R0–R10, S1–S5 and T1–T4
 histories and all failed reproduction evidence are preserved.
 
+T6 then closed the integrated hostile re-audit's remaining findings against the
+T1–T5 composition: F-1/E3 keeps the research boundary enforced through trusted
+teardown; F-A inverts the worker's research-import policy to a fail-closed
+allowlist; F-B closes attribute/object reachability (not just import
+statements), adds identity-based trusted-definition integrity, and adds
+ADR-0004's outer OS-level confinement (Windows Job Object + capability-less
+AppContainer, opt-in, off by default) for the research process. E11
+(OS-level containment) was assessed **SATISFIED at `4f11606`** by static
+review plus witnessed Windows execution. A final independent foundation-wide
+hostile audit of that certified state then returned **V0.4 FOUNDATION FREEZE
+SATISFIED at `47986ab`** (documentation/evidence-only over `4f11606`; the
+executable trees are identical). `4f11606` is the immutable V0.4 foundation
+baseline; see `V04_FOUNDATION_FREEZE.md` for the canonical record.
+
 This is not an adapter GO decision. Genesis remains **NO-GO for the first
-read-only sport/source adapter** until an independent audit finds no unresolved
-CRITICAL/HIGH adapter-gating weakness and the checkpoint receives explicit
-review/approval.
+read-only sport/source adapter** until that work is separately authorized on a
+new branch cut from the frozen commit; the freeze itself grants no adapter,
+research, credential, cloud, live-order or canary GO.
 
 No strategy research, outcome experiment, source or venue adapter, external API,
 credential, cloud deployment, dashboard, live order path, chaos-certification
@@ -393,6 +407,62 @@ Detailed traceability and results are under `remediation_evidence/R0` through
   candidate commit. No adapter, strategy, shadow research, protected campaign
   or live-money GO is granted.
 
+## T6 verification (F-1/E3, F-A, F-B, E11, freeze checkpoint)
+
+- F-1/E3 closed the last teardown re-entry gap in the worker's forbidden-sink
+  enforcement (finalizers/`__del__`/generator-finally/`__hash__`/`__str__`/
+  rebound trusted callables) with a two-tier audit hook: forbidden sinks are
+  refused in every phase regardless of mode, native process modules fail
+  closed with no audit event, and reflection/`compile`/`exec`/import stay
+  mode-gated. Full discovery 437/437 (1 skip).
+- F-A (a fresh hostile audit finding after F-1/E3) inverted the denylist import
+  block to a fail-closed positive allowlist (`_RESEARCH_IMPORT_ALLOWLIST`),
+  enforced at static program audit and the guarded `__import__`, with
+  `sqlite3`/`_tkinter`/`socket`/`ssl` added as defense-in-depth control
+  modules. New adversarial test asserts default-deny of an unenumerated
+  benign module, not just named vectors. Full discovery 442/442 (1 skip).
+- F-B closed three findings from the E11 re-audit of F-A: attribute/object
+  reachability closure (not just import statements) over module and narrowed
+  `genesis`-package edges; research-mode default-deny audit-event policy plus
+  always-on native-event (`_winapi.`/`_posixsubprocess.`) denial; and an
+  identity-based (`is`, not `id()`) integrity check of reachable trusted types
+  against rebinding. A parallel remediation of the same three findings was
+  reconciled into one stronger implementation, per
+  `T6_FB_AUTHORITY_MEMO.md`. Full discovery 480/480 (1 skip) at the
+  reconciliation commit.
+- ADR-0004 (PROPOSED, real activation not approved) then added the real
+  Windows OS-level confinement primitives: a Job Object (kill-on-close,
+  memory cap, one-process limit) and a capability-less AppContainer (no
+  network capability, ACL-granted filesystem only, blocked child-process
+  creation), orchestrated fail-closed and wired opt-in
+  (`confine=`/`confine_research=`), default off. Real protected activation
+  stays disabled. Full discovery 493/493 (1 skip) at `4f11606`.
+- E11 (OS-level research-process containment) was independently assessed
+  **SATISFIED at `4f11606`**: static review plus witnessed Windows 11
+  execution — containment suite 22/22 (0 skipped, all Windows-gated live
+  tests ran), full discovery 493 tests total/1 skip/0 fail/0 err,
+  `IS_WINDOWS=True`/`APPCONTAINER=True`, `mpssvc`/`BFE` running. Non-blocking
+  residuals carried forward: F-1 (`icacls` success check is locale-dependent,
+  fails closed on a non-English host), F-2 (attestation omits `LOCALAPPDATA`
+  on the confined path), F-7 (confined std streams rely on GC on the direct
+  `close()` path). Evidence: `remediation_evidence/T6/FB_E11_OS_CONTAINMENT_VERDICT.md`.
+- A final independent foundation-wide hostile audit then reran the full suite
+  against `47986ab` (two doc/evidence-only commits over `4f11606`) and
+  returned **V0.4 FOUNDATION FREEZE SATISFIED**: full discovery 493/492
+  pass/1 skip/0 fail/0 err; containment 22/22; F12 stress 20/20; lifecycle
+  5/5; `compileall` and `git diff --check` clean; no unresolved CRITICAL/HIGH.
+  Non-blocking residuals: LAY price-sanity sign/side gap (`selection.py`,
+  `policy.py` — fix before any LAY-capable strategy approval), top-level state
+  docs were T5-era until this freeze commit, T6 `.md` evidence lacked a
+  `.gitattributes -text` rule for `autocrlf=true` checkouts (fixed in this
+  same commit), and quota/ingestion/lifecycle timestamps remain
+  writer-declared (the adapter phase must stamp a trusted clock).
+- This is the V0.4 foundation freeze. `4f11606` is the certified executable
+  baseline; `47986ab` and this freeze commit are documentation/evidence-only
+  children of it. No adapter, strategy, shadow research, protected campaign
+  or live-money GO is granted; the permitted next phase is read-only adapter
+  *development* on a new branch cut from the frozen commit, not begun here.
+
 ## Compatibility and migration state
 
 Legacy records remain readable only where an explicit deterministic migration is
@@ -407,16 +477,25 @@ settlement, or quota intent is inferred.
   A-finding re-audit occurred after S5 and returned HOLD with B1–B8. T1 locally
   repairs B1/B2/B3/B7, T2 locally repairs B6, T3 locally repairs B4/B5 and T4
   locally repairs B8. The T1–T4 hostile re-audit returned HOLD with N1–N3, which
-  the T5 candidate repairs locally. None of these checkpoints has received
-  integrated hostile approval.
+  the T5 candidate repairs locally. T6 then closed F-1/E3, F-A and F-B, and the
+  final foundation-wide hostile audit returned FOUNDATION FREEZE SATISFIED at
+  `47986ab` (exec tree `4f11606`). This is the certified, frozen state.
 - T5 owner binding is trust-on-first-use per owner kind; a deliberate fork of a
   whole deployment, or of content into separate stores, is outside what local
   binding can detect.
 - The OddsPapi 250-call ceiling is a planning assumption, not verified provider
   evidence; no provider integration exists.
-- S5 establishes the local test-harness research/evaluator process boundary,
-  but there is no deployed protected vault/service and no real protected
-  campaign is authorized.
+- The E11 Windows containment evidence was witnessed on one Windows 11 host;
+  Linux skips 13 containment tests and a non-English-locale Windows host is
+  unverified (`icacls` locale dependency, F-1 in the E11 verdict).
+- The LAY side of `assess_price_sanity` is reachable but unverified: the
+  caller in `selection.py` never passes `side=`, so a LAY candidate is scored
+  against the BACK break-even sign. Non-blocking today because no LAY-capable
+  strategy is authorized; must be fixed before one is.
+- Quota/ingestion/lifecycle timestamps are writer-declared rather than sourced
+  from a trusted clock, so a writer can currently future-date a quota window.
+  The adapter phase must stamp times from a trusted source before quota
+  authority is extended to live provider calls.
 - No real source availability, entitlement, revision behavior, sport semantics,
   model calibration, profitability, cloud cost, venue reconciliation, or live
   readiness is evidenced.
@@ -424,8 +503,10 @@ settlement, or quota intent is inferred.
 
 ## Safe next step
 
-Build and freshly verify the byte-explicit package of the exact T5 candidate
-commit, then submit the complete T1–T5 composition for a new independent
-hostile audit.
-Explicit audit/checkpoint approval remains mandatory before any adapter or later
-Genesis phase.
+The V0.4 foundation is frozen at `4f11606` (freeze-gate audit `47986ab`
+FOUNDATION FREEZE SATISFIED). The permitted next step is to branch a v0.5
+read-only-adapter development line from the frozen commit and begin the first
+sport/source adapter under separate authority — no adapter code is added by
+this freeze commit itself. Any change to the frozen `src`, `tests`, `config`,
+`tools`, `DECISIONS` or `v04_pack` trees requires a new remediation tranche and
+a fresh independent hostile audit, not an amendment of this history.

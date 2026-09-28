@@ -1,7 +1,7 @@
 # Project Genesis V0.4 remediation handoff
 
-Date: 2026-09-26
-Status: **T1–T4 hostile re-audit HOLD (N1–N3); T5 candidate locally repairs N1/N2/N3, O-5 and O-1/O-2/O-3; independent re-audit pending; adapter NO-GO**
+Date: 2026-09-28
+Status: **V0.4 FOUNDATION FREEZE SATISFIED at `47986ab` (certified executable baseline `4f11606`); T6 closed F-1/E3, F-A, F-B and E11 (OS-level containment, ADR-0004); no unresolved CRITICAL/HIGH; adapter still NO-GO pending separate v0.5 authorization on a new branch**
 
 ## S1 continuation notice
 
@@ -211,14 +211,105 @@ is unchanged and neutrality is proven on sealed T4. The T5 integrated package is
 generated only after the candidate commit exists. T5 local green is not hostile
 approval and grants no GO.
 
+## T6 F-1/E3, F-A, F-B, E11 and the V0.4 foundation freeze
+
+T6 is the largest tranche in the repository. Before the chain below, it also
+closed F-2/F-3a/F-3b/F-4 of the T5 independent verification report (approval
+causality, risk-log replay/aliasing integrity, and the audit package's raw-
+evidence Git binding) and the separate E1–E10/C-1 series, folded into
+composition root `9b32c6f` (`T6_F2_AUTHORITY_MEMO.md`,
+`T6_WIP_F2_CHECKPOINT.md`/`F3_CHECKPOINT.md`/`F4_CHECKPOINT.md` and their
+evidence). That history is unchanged and is not repeated here; see
+`V04_FOUNDATION_FREEZE.md` for the full accounting.
+
+The integrated hostile re-audit of T1–T5 found F-1/E3: the worker's two-tier
+forbidden-sink enforcement had a teardown re-entry gap (finalizers/`__del__`/
+generator-finally/`__hash__`/`__str__`/rebound trusted callables). The fix
+refuses forbidden sinks in every phase regardless of mode and fails native
+process modules closed with no audit event; full discovery 437/437 (1 skip).
+
+A follow-on hostile audit (E11) found F-A: the import block was a denylist and
+its enumeration was incomplete — `import sqlite3` then
+`enable_load_extension`/`load_extension`, and `import _tkinter` then a Tcl
+`exec`, both reached native code with no forbidden event. F-A inverts the
+policy to a fail-closed positive `_RESEARCH_IMPORT_ALLOWLIST`, adds
+`sqlite3`/`_tkinter`/`socket`/`ssl` as defense-in-depth control modules, and
+proves default-deny of an unenumerated benign module, not just named vectors;
+full discovery 442/442 (1 skip).
+
+A further E11 re-audit of the allowlist found F-B: (1) attribute/object
+reachability beyond import statements (e.g.
+`genesis.protected.multiprocessing.reduction._winapi`); (2) missing
+native-event denial for `_winapi.CreateProcess`/`sys.monitoring.register_callback`/
+`_thread.start_new_thread`; (3) `id()`-based integrity checks that id-reuse
+could mask a rebound method. The reconciled fix (two independent remediations
+of the same three findings, merged into one implementation as recorded in
+`remediation_evidence/T6/T6_FB_AUTHORITY_MEMO.md`) adds a static reachability
+closure over module and narrowed `genesis`-package edges, a research-mode
+default-deny audit-event policy plus always-on native-event denial, and an
+identity-based (`is`, not `id()`) integrity check over reachable trusted
+types; full discovery 480/480 (1 skip).
+
+ADR-0004 (PROPOSED; supplements, does not amend, the approved ADR-0003) then
+implements the real Windows outer-confinement primitives the E11 findings
+called for: a Job Object (kill-on-close, memory cap, one-process limit) and a
+capability-less AppContainer (no network capability, ACL-granted filesystem
+only, blocked child-process creation), launched suspended and assigned to the
+job before resume, orchestrated fail-closed. It is wired opt-in
+(`confine=`/`confine_research=`), default off; real protected activation stays
+disabled regardless. Full discovery 493/493 (1 skip) at the resulting
+certified commit `4f11606`.
+
+An independent hostile audit of `4f11606` returned **E11 SATISFIED**: witnessed
+Windows 11 execution proved default-deny filesystem (ungranted path denied,
+workdir read/write), no network capability (loopback blocked), blocked
+child-process creation, deterministic kill-on-close teardown, fail-closed
+setup failure, truthful `os_confinement` attestation, and full preservation of
+label isolation/attempts/lifecycle. Containment suite 22/22 (0 skipped, all
+Windows-gated live tests ran); full discovery 493 tests/1 skip/0 fail/0 err;
+`IS_WINDOWS=True`/`APPCONTAINER=True`; `mpssvc`/`BFE` running. Non-blocking
+residuals: F-1 (`icacls` success check keys on the English string
+"Successfully processed"; a non-English host fails closed, never unconfined),
+F-2 (attestation's `environment_keys` omits `LOCALAPPDATA` actually injected
+into the confined worker), F-7 (confined std streams rely on GC on the direct
+`close()` path; the production `dispose_research` path is unaffected). Verdict
+and evidence: `remediation_evidence/T6/FB_E11_OS_CONTAINMENT_VERDICT.md`,
+`FB_E11_EVIDENCE_HASHES.sha256`.
+
+A final independent foundation-wide hostile audit then re-attacked the
+E11-certified state per `remediation_evidence/T6/FB_E11_FREEZE_GATE_HANDOFF.md`
+and returned **V0.4 FOUNDATION FREEZE SATISFIED at `47986ab`** — two
+documentation/evidence-only commits over `4f11606` (`95f99e6` records the E11
+verdict, `47986ab` adds the freeze-gate handoff); the `src`, `tests`, `config`,
+`tools`, `DECISIONS` and `v04_pack` trees are byte-identical to `4f11606`.
+Rerun: full discovery 493 total/492 pass/1 skip/0 fail/0 err in 671 seconds;
+containment 22/22; F12 stress 20/20; lifecycle 5/5; `compileall` and
+`git diff --check` clean. No unresolved CRITICAL/HIGH. Non-blocking residuals
+carried into v0.5: the LAY side of `assess_price_sanity` is reachable but
+`selection.py`'s caller never passes `side=` (fix before any LAY-capable
+strategy approval); quota/ingestion/lifecycle timestamps are writer-declared,
+not sourced from a trusted clock; the E11 Windows evidence is single-host and
+English-locale only. This documentation-only freeze commit also indexes the
+E11/T6/final-freeze evidence in `PROJECT_STATE.md`/`ARCHITECTURE.md`/
+`TEST_EVIDENCE.md`/`ASSUMPTIONS.md`, refreshes those docs from their prior
+T5-era state, and adds the `.gitattributes -text` rule the T6 `.md` evidence
+needed for byte-stable `autocrlf=true` checkouts. See
+`V04_FOUNDATION_FREEZE.md` for the canonical record.
+
+**`4f11606` is the immutable V0.4 foundation baseline.** The freeze grants no
+adapter, strategy, shadow-research, protected-campaign or live-money GO. The
+permitted next phase is read-only adapter *development* on a new branch cut
+from the frozen commit (`v0.5-adapters`); it is not begun by this commit.
+
 ## Review decision requested
 
-Verify the T5 candidate commit/tree/parent chain back to T4, the external
-package with out-of-band hash and pins, then hostile-test the complete T1–T5
-composition, including the residual limits in the T5 memo. Do not approve later
-strategy, provider, cloud, venue or live work through these local results.
-Until hostile re-audit and explicit checkpoint approval are complete, the
-adapter decision remains NO-GO.
+The V0.4 foundation is frozen. Any further review of the frozen commit is a
+fresh independent hostile re-audit against the residuals above and the
+mandatory attacks in `remediation_evidence/T6/FB_E11_FREEZE_GATE_HANDOFF.md`
+and `remediation_evidence/R10/HOSTILE_REAUDIT_HANDOFF.md`, not a request to
+approve later strategy, provider, cloud, venue or live work. The adapter
+decision remains NO-GO until v0.5 adapter work is separately authorized,
+implemented and reviewed on its own branch.
 
 ## Authority and exact identity
 
@@ -293,7 +384,13 @@ Read in this order:
 10. `T5_RESUME_HANDOFF.md` (WIP history), then
     `remediation_evidence/T5/T5_AUTHORITY_MEMO.md`, the `N1_*` and `T5_*`
     transcripts and `GREEN_FINAL.md`;
-11. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle.
+11. the frozen `12_ASTRA_FINAL_AUDIT_PROMPT.md` included in the external bundle;
+12. `remediation_evidence/T6/` in order: `T6_F2_AUTHORITY_MEMO.md` and the
+    `T6_WIP_F2/F3/F4_CHECKPOINT.md` files, `T6_F1_AUTHORITY_MEMO.md`,
+    `T6_FA_AUTHORITY_MEMO.md`, `T6_FB_AUTHORITY_MEMO.md`,
+    `FB_E11_OS_CONTAINMENT_VERDICT.md`, `FB_E11_FREEZE_GATE_HANDOFF.md` and
+    `FB_E11_EVIDENCE_HASHES.sha256`, then `V04_FOUNDATION_FREEZE.md` for the
+    canonical freeze record.
 
 Re-run:
 
@@ -324,27 +421,47 @@ No source/sport adapter, acquisition path, model or strategy search, outcome
 backtest, external provider call, credential, dashboard/PWA, cloud/VPS deploy,
 exchange/venue integration, live execution, chaos-certification system or £100
 canary was implemented or run. The objective and V0.4 risk laws were not changed.
+This remains true through T6 and the V0.4 foundation freeze: ADR-0004's real
+OS-level confinement primitives exist and are independently verified, but real
+protected activation stays disabled and no adapter/strategy/live code exists.
 
 ## Residual external questions
 
 These are deliberately unresolved external or later-phase facts, not hidden
 implementation claims:
 
-1. Does fresh hostile review approve the complete T1–T5 composition and its
-   exact byte-representation package with no unresolved CRITICAL/HIGH issue?
+1. Does fresh independent hostile review of the frozen `4f11606` (per the
+   mandatory attacks in `FB_E11_FREEZE_GATE_HANDOFF.md`) find any unresolved
+   CRITICAL/HIGH? (Answered once, SATISFIED at `47986ab`; a later re-run is
+   still expected before real protected activation or a GO decision on
+   anything built atop the frozen commit.)
 2. Which real provider/source can prove entitlement, PIT availability, revisions
    and current quota terms? The 250 OddsPapi allowance is unverified.
 3. What separately reviewed deployment boundary will host real protected labels?
+   ADR-0004 supplies the OS-level primitives; operator approval of ADR-0004 and
+   its once-provisioned (not per-launch) container identity are still required.
 4. Which first read-only adapter, sport semantics and market settlement rules will
-   later receive separate authority?
+   later receive separate authority on the new v0.5 branch?
 5. What later prospective evidence establishes calibration/profitability and
    operating/cloud costs?
+6. Does a non-English-locale Windows host, and a second independent host,
+   reproduce the E11 containment evidence (F-1's `icacls` locale dependency)?
+7. Is the LAY side of `assess_price_sanity` fixed and independently verified
+   before any LAY-capable strategy is proposed?
 
-## R10 historical stop point (superseded by Astra HOLD, S1–S5 and T1)
+## V0.4 foundation freeze (supersedes all prior stop points)
 
-The original R10 handoff stopped for its independent audit. That audit returned
-HOLD; S1–S5 locally addressed A1–A8, and the post-S5 audit returned HOLD with
+The original R10 handoff stopped for its independent audit, which returned
+HOLD. S1–S5 locally addressed A1–A8; the post-S5 audit returned HOLD with
 B1–B8. T1 addresses B1/B2/B3/B7, T2 addresses B6, T3 addresses B4/B5 and T4
 addresses B8 locally. The T1–T4 hostile re-audit returned HOLD with N1–N3; the
-T5 candidate addresses N1–N3 and O-1/O-2/O-3/O-5 locally. Integrated hostile
-approval is still absent. No next Genesis product phase is authorized.
+T5 candidate addresses N1–N3 and O-1/O-2/O-3/O-5 locally. T6 then closed
+F-1/E3, F-A and F-B, and ADR-0004 added real Windows OS-level confinement. An
+independent hostile audit found E11 SATISFIED at `4f11606`, and a final
+independent foundation-wide hostile audit found **V0.4 FOUNDATION FREEZE
+SATISFIED at `47986ab`** with no unresolved CRITICAL/HIGH. `4f11606` is now
+the immutable V0.4 foundation baseline; this handoff and `V04_FOUNDATION_FREEZE.md`
+are its canonical record. The permitted next Genesis phase is read-only
+adapter development on a new branch cut from the frozen commit
+(`v0.5-adapters`); it is not authorized to begin on, or amend, the frozen
+history itself.

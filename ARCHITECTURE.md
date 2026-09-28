@@ -1,6 +1,6 @@
 # Project Genesis architecture
 
-## Audit disposition (2026-09-26)
+## Audit disposition (2026-09-28)
 
 Astra's independent audit of R10 commit `166f923` returned **HOLD / NOT
 APPROVED**. S1 locally closed A1/A2; S2a/S2b locally closed A3/A7; S3a
@@ -16,9 +16,22 @@ state defects under unchanged ADR-0003 v1 identity and topology. T4 locally
 repairs B8's package-representation defect without changing historical bytes.
 All B1–B8 findings now have local repair checkpoints. The independent hostile
 re-audit of T1–T4 returned HOLD with N1–N3; the T5 candidate locally repairs
-N1–N3 and O-1/O-2/O-3/O-5, and T1–T5 still require integrated hostile review.
-This diagram is a foundation map, not an adapter, shadow-research,
-protected-campaign or live-money GO.
+N1–N3 and O-1/O-2/O-3/O-5. T6 then closed the remaining hostile findings against
+the T1–T5 composition: F-1/E3 keeps the research boundary enforced through
+trusted teardown; F-A inverts the worker's import policy to a fail-closed
+allowlist; F-B closes attribute/object reachability (not just import
+statements), adds identity-based trusted-definition integrity, and adds
+ADR-0004's outer OS-level confinement (Job Object + AppContainer) for the
+research process, wired opt-in and off by default. E11 (OS-level containment)
+was assessed **SATISFIED at `4f11606`** by static review plus witnessed
+Windows execution (`remediation_evidence/T6/FB_E11_OS_CONTAINMENT_VERDICT.md`).
+A final independent foundation-wide hostile audit of that certified state then
+returned **V0.4 FOUNDATION FREEZE SATISFIED at `47986ab`** (two documentation/
+evidence-only commits over `4f11606`; the executable trees are identical — see
+`V04_FOUNDATION_FREEZE.md`). This diagram is a foundation map, not an adapter,
+shadow-research, protected-campaign or live-money GO. The frozen foundation
+remains **NO-GO for the first read-only adapter** until that work is
+separately authorized on a new branch off the frozen commit.
 
 ## Remediated V0.4 foundation flow
 
@@ -118,6 +131,20 @@ writing (N3); a V3 qualification requires its prior human grant at record time
 for commit, raw roots and historical artifacts (O-1/O-2/O-3).
 Recovery must not silently heal, truncate, choose a branch, or infer missing
 identity.
+T6 closes the research worker's capability-enumeration gaps found after T5:
+import enforcement inverts from a denylist to a fail-closed positive allowlist
+(F-A); attribute/object reachability (not only import statements) is audited
+through a static reachability closure over module and `genesis` package edges,
+and reachable trusted types carry an identity-based (`is`, not `id()`)
+integrity check against rebinding (F-B). ADR-0004 adds an outer OS-level
+confinement boundary for the research process — a Windows Job Object
+(kill-on-close, memory cap, one-process limit) plus a capability-less
+AppContainer (no network capability, ACL-granted filesystem only, blocked
+child-process creation) — orchestrated fail-closed and wired opt-in
+(`confine=`/`confine_research=`), off by default; real protected activation
+stays disabled regardless of confinement. None of T6 changes ADR-0003's
+topology, program identity, handle/path/environment contract or attempt
+lifecycle.
 
 ## Trust boundaries
 
@@ -267,7 +294,15 @@ SettlementLedger
   frames, exact hashed research-program references, isolated research execution,
   exact verified-byte loading, fail-closed reachable-state validation, frozen
   predictions, durable attempt accounting, trusted evaluator IPC and an explicit
-  legacy test harness.
+  legacy test harness. The worker enforces a permanent positive import
+  allowlist plus a research-mode default-deny audit-event policy and a static
+  reachable-capability closure with identity-based trusted-definition integrity.
+- `protected_confinement_win.py`, `protected_isolation.py`: ADR-0004 Windows
+  outer confinement primitives (Job Object, capability-less AppContainer,
+  ACL grant/revoke, suspended-launch + assign-to-job-before-resume) and the
+  fail-closed orchestration that wires them into the research-process launch;
+  disabled unless a caller opts in, and never a substitute for real-activation
+  approval.
 - `candidate_runs.py`, `coverage.py`, `selection_evaluation.py`: complete
   candidate retention, non-quota search telemetry and aggregate evaluation.
 - `tools/genesis_audit_package.py`: audit-only exact-Git/raw/historical package
@@ -293,3 +328,16 @@ Future adapters, providers, sport models, strategy cards, real protected
 campaigns, venue reconciliation, cloud services and live activation require
 separate authority, implementation, tests and approval. Nothing in this
 remediation checkpoint authorizes that work.
+
+## V0.4 foundation freeze (2026-09-28)
+
+The T1–T6 composition at `4f11606`, certified E11-SATISFIED and then confirmed
+by a final independent foundation-wide hostile audit at `47986ab` (freeze
+verdict: FOUNDATION FREEZE SATISFIED, no unresolved CRITICAL/HIGH), is the
+immutable V0.4 architecture baseline. `47986ab` is a pure fast-forward of
+documentation/evidence commits over `4f11606`; `src`, `tests`, `config`,
+`tools`, `DECISIONS` and `v04_pack` are byte-identical between the two. See
+`V04_FOUNDATION_FREEZE.md` for the canonical record, residuals and the
+permitted next phase. No architectural element described above may change on
+the frozen commit; new work (the first read-only adapter, etc.) happens on a
+new branch cut from the frozen commit, not by amending this history.

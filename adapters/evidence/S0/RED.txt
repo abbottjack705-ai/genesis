@@ -1,0 +1,29 @@
+# S0 RED transcript (tests written before implementation)
+# command: PYTHONPYCACHEPREFIX=<fresh> python -B -m unittest discover -s adapters/adapter_tests -t adapters -v
+# start: 2026-09-28T21:04:26Z
+# HEAD: c8dfafdff3be611fa6255a03ed361bc46d7ad8fe (adapters/ tests only; no production code yet)
+----
+adapter_tests (unittest.loader._FailedTest.adapter_tests) ... ERROR
+
+======================================================================
+ERROR: adapter_tests (unittest.loader._FailedTest.adapter_tests)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 429, in _find_test_path
+    package = self._get_module_from_name(name)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\__init__.py", line 25, in <module>
+    from genesis_adapters import provenance_guard as _guard  # noqa: E402  (no genesis import)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ImportError: cannot import name 'provenance_guard' from 'genesis_adapters' (unknown location)
+
+
+----------------------------------------------------------------------
+Ran 1 test in 0.001s
+
+FAILED (errors=1)
+# exit: 1
+# end: 2026-09-28T21:04:29Z

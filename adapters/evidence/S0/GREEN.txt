@@ -1,0 +1,51 @@
+# S0 GREEN: adapter suite
+# command: PYTHONPYCACHEPREFIX=<fresh> python -B -m unittest discover -s adapters/adapter_tests -t adapters -v
+# start: 2026-09-28T21:28:13Z
+# python: Python 3.12.10
+# HEAD (base): c8dfafdff3be611fa6255a03ed361bc46d7ad8fe
+----
+test_frz01_six_tree_shas_equal_the_freeze_record (adapter_tests.test_v05_freeze.FreezeGuardTests.test_frz01_six_tree_shas_equal_the_freeze_record) ... ok
+test_frz02_guard_fails_on_added_file_and_on_edited_config (adapter_tests.test_v05_freeze.FreezeGuardTests.test_frz02_guard_fails_on_added_file_and_on_edited_config) ... ok
+test_frz03_dirty_frozen_worktree_is_detected (adapter_tests.test_v05_freeze.FreezeGuardTests.test_frz03_dirty_frozen_worktree_is_detected) ... ok
+test_frz03_worktree_clean_over_the_frozen_trees (adapter_tests.test_v05_freeze.FreezeGuardTests.test_frz03_worktree_clean_over_the_frozen_trees) ... ok
+test_frz04_transcript_comparison (adapter_tests.test_v05_freeze.FreezeGuardTests.test_frz04_transcript_comparison) ... ok
+test_frz09_a_modified_frozen_module_fails (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_a_modified_frozen_module_fails) ... ok
+test_frz09_an_unlisted_module_file_fails (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_an_unlisted_module_file_fails) ... ok
+test_frz09_clean_isolated_run_passes_and_records_the_verdict (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_clean_isolated_run_passes_and_records_the_verdict) ... ok
+test_frz09_competing_genesis_adapters_fails (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_competing_genesis_adapters_fails) ... ok
+test_frz09_competing_genesis_on_a_lower_precedence_path_fails (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_competing_genesis_on_a_lower_precedence_path_fails) ... ok
+test_frz09_manifest_equals_git_ls_tree_of_the_frozen_src_tree (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_manifest_equals_git_ls_tree_of_the_frozen_src_tree) ... ok
+test_frz09_manifest_pin_and_shape_are_enforced (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_manifest_pin_and_shape_are_enforced) ... ok
+test_frz09_non_source_file_loader_fails (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_non_source_file_loader_fails) ... ok
+test_frz09_prefix_directory_must_be_fresh (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_prefix_directory_must_be_fresh) ... ok
+test_frz09_pth_file_referencing_a_genesis_package_fails (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_pth_file_referencing_a_genesis_package_fails) ... ok
+test_frz09_pth_pointing_at_the_repo_root_or_import_line_fails (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_pth_pointing_at_the_repo_root_or_import_line_fails) ... ok
+test_frz09_pth_pointing_exactly_at_the_listed_src_is_allowed (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_pth_pointing_exactly_at_the_listed_src_is_allowed) ... ok
+test_frz09_shadow_package_through_pythonpath_fails (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_shadow_package_through_pythonpath_fails) ... ok
+test_frz09_stale_pyc_is_defeated_by_isolated_bytecode_and_refused_without_it (adapter_tests.test_v05_freeze.ModuleProvenanceTests.test_frz09_stale_pyc_is_defeated_by_isolated_bytecode_and_refused_without_it) ... ok
+test_accepts_public_use (adapter_tests.test_v05_static.Frz05Tests.test_accepts_public_use) ... ok
+test_flags_planted_violations (adapter_tests.test_v05_static.Frz05Tests.test_flags_planted_violations) ... ok
+test_real_package_is_clean (adapter_tests.test_v05_static.Frz05Tests.test_real_package_is_clean) ... ok
+test_network_imports_only_in_transport (adapter_tests.test_v05_static.Frz06Tests.test_network_imports_only_in_transport) ... ok
+test_non_network_urllib_parse_is_allowed (adapter_tests.test_v05_static.Frz06Tests.test_non_network_urllib_parse_is_allowed) ... ok
+test_real_package_is_clean (adapter_tests.test_v05_static.Frz06Tests.test_real_package_is_clean) ... ok
+test_reveal_only_in_transport (adapter_tests.test_v05_static.Frz06Tests.test_reveal_only_in_transport) ... ok
+test_flags_reserve_authority (adapter_tests.test_v05_static.Frz07Tests.test_flags_reserve_authority) ... ok
+test_real_package_is_clean (adapter_tests.test_v05_static.Frz07Tests.test_real_package_is_clean) ... ok
+test_flags_test_only_names_and_ready (adapter_tests.test_v05_static.Frz08Tests.test_flags_test_only_names_and_ready) ... ok
+test_ready_is_allowed_only_in_the_operator_cli (adapter_tests.test_v05_static.Frz08Tests.test_ready_is_allowed_only_in_the_operator_cli) ... ok
+test_real_package_is_clean (adapter_tests.test_v05_static.Frz08Tests.test_real_package_is_clean) ... ok
+test_except_exception_and_plain_finally_are_fine (adapter_tests.test_v05_static.Frz11Tests.test_except_exception_and_plain_finally_are_fine) ... ok
+test_flags_process_control_handlers (adapter_tests.test_v05_static.Frz11Tests.test_flags_process_control_handlers) ... ok
+test_real_package_is_clean (adapter_tests.test_v05_static.Frz11Tests.test_real_package_is_clean) ... ok
+test_the_one_transport_clause_must_reraise_after_the_block (adapter_tests.test_v05_static.Frz11Tests.test_the_one_transport_clause_must_reraise_after_the_block) ... ok
+test_frz03_frozen_worktree_is_clean_after_the_suite (adapter_tests.test_v05_zz_final_provenance.FinalProvenanceTests.test_frz03_frozen_worktree_is_clean_after_the_suite) ... ok
+test_frz09_every_loaded_genesis_module_matches_the_frozen_manifest (adapter_tests.test_v05_zz_final_provenance.FinalProvenanceTests.test_frz09_every_loaded_genesis_module_matches_the_frozen_manifest) ... ok
+test_no_test_contacted_a_non_loopback_address (adapter_tests.test_v05_zz_final_provenance.FinalProvenanceTests.test_no_test_contacted_a_non_loopback_address) ... ok
+
+----------------------------------------------------------------------
+Ran 38 tests in 15.035s
+
+OK
+# exit: 0
+# end: 2026-09-28T21:28:29Z

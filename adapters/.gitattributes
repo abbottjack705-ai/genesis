@@ -1,0 +1,5 @@
+# Byte-exact fixtures and pinned config: no end-of-line conversion on any checkout.
+adapter_tests/fixtures/** -text
+config/** -text
+# Raw transcripts are byte evidence (hashed in HASHES.sha256): keep their exact bytes.
+evidence/** -text whitespace=-trailing-space,-blank-at-eof

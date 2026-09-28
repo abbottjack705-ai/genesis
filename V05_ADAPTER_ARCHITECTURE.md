@@ -1,0 +1,1637 @@
+# V0.5 adapter architecture — slice 1 implementation authority
+
+| Field | Value |
+| --- | --- |
+| Status | **FINAL DESIGN AUTHORITY for V0.5 slice 1** (design only; no production adapter code exists) |
+| Frozen foundation | tag `v0.4-foundation-freeze` → commit `2278e2a68083f7ac58d796b1ed9c43d50020b6b0` (documentation-only over certified executable baseline `4f11606615c7650f3bd74c7ccf5d2fb7a5a753c5`) |
+| Authority order | frozen repository → Prep B (frozen requirements matrix) → Prep A (provider dossier) → Prep C (cost / vertical slice) → earlier architecture draft |
+| Scope of this document | freeze interpretation, slice-1 scope, file layout, interfaces and immutable schemas, identity, time/PIT, evidence flow, credential and request hashing, quota/cache/polling, failure semantics, approval gates, tests, staged plan, no-touch list, residuals, implementation prompt |
+| What it grants | Permission to implement Stages 0–7 (§19) against deterministic fixtures, with no credential and no network access to OddsPapi. It grants **no** credential storage, live request, READY capability, strategy, shadow research, protected campaign, live-order or canary authority. Those are gated in §16. |
+
+### Inputs and how they were used
+
+- **Frozen repository.** I read it directly at `2278e2a`: `pit.py`, `time.py`, `quota.py`,
+  `evidence.py`, `feature_manifest.py`, `provenance.py`, `coverage.py`,
+  `capabilities.py`, `canonical.py`, `logging.py`, `registry.py`,
+  `SOURCE_AVAILABILITY.md`, `DATA_DICTIONARY.md`, `ASSUMPTIONS.md`,
+  `V04_FOUNDATION_FREEZE.md`, and the v0.4 pack laws and blueprint. Every rule below that
+  relies on a frozen behaviour cites the file it comes from.
+- **Prep A, Prep B and Prep C.** I used the conclusions as stated in the task brief. Where
+  Prep B's numbered questions were named (Q1/Q3 timestamps, Q2 corrections, Q4 market
+  representation, Q5 cache and staleness, Q9 network authority), this document uses
+  those numbers. The rest are indexed by topic in §22.
+- **Earlier draft `V05_ADAPTER_ARCHITECTURE.md`.** No file of that name existed in the
+  repository (any branch or tag) or in the connected Drive when this authority was written.
+  I rebuilt this document from the frozen repository and Prep A/B/C. It **replaces**
+  any earlier draft of the same name. If that draft turns up later, any content it holds
+  that conflicts with this document has no authority.
+
+---
+
+## 1. Decision summary
+
+| # | Decision | Resolution (section) |
+| --- | --- | --- |
+| D1 | Post-freeze code location | All V0.5 code, tests, config and evidence live under the new top-level tree `adapters/`. The six frozen trees (`src`, `tests`, `config`, `tools`, `DECISIONS`, `v04_pack`) keep their recorded tree SHAs at **every** V0.5 commit, and a guard test enforces this. No file is added under a frozen tree. (§2, §4) |
+| D2 | Slice-1 scope | OddsPapi v4 pre-game REST → soccer → Premier League + LaLiga → 1X2 (full time) + exactly-identified total goals O/U 2.5 (full time) → up to 3 declared **fixed-odds sportsbook** acquisition bookmakers → prospective raw capture → decision-consumable PIT observations for PAPER-mode consumers only. Narrowed: exchanges, historical/backfill endpoints and in-play are excluded (§3). |
+| D3 | Canonical request / secrets | The canonical request is structured JSON built from an endpoint spec. It holds no field that can carry the credential. The credential is injected only inside the HTTP transport, after hashing and logging. `provider_request_hash = sha256(canonical_json(request))`. (§7) |
+| D4 | Timestamps / PIT (Q1, Q3) | Every PIT-relevant time comes from one trusted clock. `available_at = retrieved_at = valid_from = response_received_at (T1)`. `ready_at = T3` (after normalized evidence is durable). Provider times are provenance only and never decide availability. Non-UTC and naive provider timestamps are rejected, following `SOURCE_AVAILABILITY.md` rule 2. (§6) |
+| D5 | Corrections (Q2) | Nothing is mutated. A newer observation supersedes by `valid_from`. A tombstone head (SUSPENDED/ABSENT/BLOCKED/INVALIDATED) blocks older prices. Any derivation change yields a new source (contract + PIT `source_id` + capability). `superseded_by`/`superseded_at` are always `None`. (§13) |
+| D6 | Market representation (Q4) | An adapter-owned immutable `MarketBookDocument` per (event, market, bookmaker). The frozen `MarketSnapshot` has no consumer in `src` and is **not** modified or emitted. (§9) |
+| D7 | Identity | IDs are deterministic, domain-separated SHA-256 values over provider-native IDs. Competitions, bookmakers, markets and outcomes come from pinned, human-reviewed maps. Display names never establish identity. (§8) |
+| D8 | Provider status | Explicit allowlists typed on (field, JSON type, value). Unknown, mistyped or contradictory values produce a BLOCKED head with no price. (§10) |
+| D9 | Cache/staleness (Q5) | An OPEN price is usable only in `[T1, min(T1+3600s, kickoff−300s))`. No carry-forward. Odds responses are never cached. A verified cache hit (metadata only) never creates an observation. (§12) |
+| D10 | Quota | The frozen `QuotaLedger` and `config/oddspapi_quota_policy_v2.json` are reused unchanged. Every network attempt reserves 1 NORMAL unit before sending. There are no refunds. The adapter never builds or uses reserve authority. (§14) |
+| D11 | Network authority (Q9) | Gates G0 → G1 (credential storage) → G2 (a fixed list of first live requests) → G2R (recurring capture) → G3 (capability READY). Each gate is a human approval record, not code. (§16) |
+| D12 | Raw vs normalized evidence | Raw response bytes are PROSPECTIVE_CAPTURED evidence and are never decision inputs. One normalized DERIVED document per book is the decision-consumable input. It embeds the raw hash and observation ID and re-derives byte-identically. It satisfies the frozen `FeatureInputManifestStore.verify_for_pack` without change. (§11) |
+| D13 | Failure default | Every failure path produces **no usable observation**, retains whatever bytes were received (except secret-bearing bytes), and writes a coverage/exclusion record. (§15) |
+| D14 | Foundation reopen | **None required for slice 1.** Conditional and deferred reopen triggers are listed in §20. |
+
+---
+
+## 2. Freeze semantics (authoritative interpretation) — D1
+
+### 2.1 What "frozen" means
+
+1. **History is immutable.** No commit at or before `2278e2a` (tag) or `4f11606`
+   (certified baseline) is amended, rebased, force-pushed or rewritten.
+2. **Tree identity is invariant on the V0.5 line.** At every commit on the V0.5 branch
+   (and any successor), each frozen top-level tree must have exactly the recorded
+   object ID:
+
+   | Path | Tree SHA (must equal at every V0.5 commit) |
+   | --- | --- |
+   | `src` | `51cb635bc42b993815b6c02a23c4c3ceb7d98476` |
+   | `tests` | `e90b298180068fec03ba7e2fa81957082e7fb3ce` |
+   | `config` | `abd22db01ff482a8da84634ee740ba382b68c804` |
+   | `tools` | `a0e3411edb4e068fd4708050516cb6870834e7ac` |
+   | `DECISIONS` | `cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64` |
+   | `v04_pack` | `3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12` |
+
+   A tree SHA covers every path inside it, so **adding** a file under `src/genesis/` or
+   `tests/` changes the frozen tree and is a foundation change, not an "additive
+   adapter". This settles the apparent conflict: additive adapter code cannot live under
+   a frozen tree. It lives in a new sibling tree.
+3. **Semantics are invariant.** V0.5 code may import and call the public API of
+   `genesis.*`. It must not monkeypatch, subclass-override authority methods, write to a
+   frozen authority's files except through that authority's public methods, or call
+   private (`_`-prefixed) members. §18 FRZ-05 enforces this statically.
+4. **Frozen data files are read, never edited.** `config/oddspapi_quota_policy_v2.json`
+   (SHA-256 `aa7c13c8…a559`, `policy_digest 3cdf9e3e…a0f9`) is loaded through
+   `genesis.quota.load_quota_policy`. It is never copied into `adapters/config/` with
+   edits.
+5. **Top-level documentation files are not frozen trees.** They (this file,
+   `HANDOFF.md`, `PROJECT_STATE.md`, …) may receive **additive** V0.5 status updates.
+   `remediation_evidence/**` is historical evidence and is never modified. New evidence
+   goes under `adapters/evidence/`.
+6. **Branch base.** Implementation branches start from the tag commit `2278e2a`. Its
+   executable trees are identical to `4f11606`, which is what `V04_FOUNDATION_FREEZE.md`
+   allows ("branch cut from the frozen commit"). The freeze guard compares against the
+   SHAs above, not against a commit, so it holds on either base.
+
+### 2.2 The V0.5 root
+
+`adapters/` is the single root for V0.5 work: package `genesis_adapters`, tests package
+`adapter_tests`, adapter config, V0.5 ADRs, and V0.5 checkpoint evidence. §4 has the layout. No
+separate repository or worktree is needed. The tree-SHA guard already gives a mechanical
+boundary that an auditor can check in one command:
+
+```text
+for t in src tests config tools DECISIONS v04_pack; do git rev-parse HEAD:$t; done
+git diff --name-status 2278e2a HEAD -- src tests config tools DECISIONS v04_pack   # must be empty
+```
+
+### 2.3 How V0.5 is run without touching the frozen suite
+
+- Frozen suite (unchanged command, unchanged meaning):
+  `python -m unittest discover -s tests -t . -v`
+- Adapter suite:
+  `python -m unittest discover -s adapters/adapter_tests -t adapters -v`
+  (`adapter_tests/__init__.py` puts `src` and `adapters/src` on `sys.path`, the same way
+  `tests/__init__.py` does for `src`.)
+- Static: `python -m compileall -q src tests adapters/src adapters/adapter_tests` and
+  `git diff --check`.
+
+Runtime state (evidence stores, ledgers, caches) is never committed. It defaults to
+`runtime/adapters/oddspapi/`, which the existing `.gitignore` rule `runtime/` already
+covers, so `.gitignore` is not edited. Byte-exact fixtures are protected by a **nested**
+`adapters/.gitattributes` (`adapter_tests/fixtures/** -text`). The top-level
+`.gitattributes` is not edited.
+
+---
+
+## 3. Slice-1 scope — D2
+
+### 3.1 In scope (final)
+
+| Dimension | Slice 1 |
+| --- | --- |
+| Provider | OddsPapi (`provider_id = "oddspapi"`), API v4, pre-game REST only |
+| Sport | Soccer |
+| Competitions | Premier League, LaLiga. Exactly two provider tournament IDs pinned in `oddspapi_v4_identity_map.json` |
+| Markets | `SOCCER_1X2_FT` (home/draw/away, regular time incl. stoppage). `SOCCER_TOTAL_GOALS_OU_FT` at line exactly `2.5` (over/under, regular time) |
+| Bookmakers | 1–3 declared **fixed-odds sportsbooks** (acquisition policy only; the canonical schema has no count limit) |
+| Price side | Bookmaker back price (decimal odds). No size, no lay |
+| Timing | Pre-match only: capture accepted only when `T1 < scheduled_start − 300 s` |
+| Evidence | Prospective raw capture plus deterministic normalized derivation. No historical/backfill endpoint |
+| Downstream | Output ends at decision-consumable PIT observations, structured evidence and buildable `FeatureInputManifest-v1` bodies. Consumers are PAPER-mode only. No candidate generation, model, strategy, risk or order code is in slice 1 |
+| Network | None until G1/G2 (§16). Stages 0–7 are fixture-only |
+
+### 3.2 Narrowings relative to Prep C, and why each is required
+
+| Narrowing | Architectural property that would otherwise be unsafe or untestable |
+| --- | --- |
+| **Exchanges excluded** from the declared bookmaker set (e.g. an exchange listed by OddsPapi) | Exchange prices have back/lay sides and liquidity. The frozen `LAY price-sanity` residual (`policy.py`/`selection.py`) is open, and the slice-1 book has no size or side vocabulary. Admitting exchanges would create LAY-shaped data with no verified consumer. |
+| **Full-time regular-time markets only** | "O/U 2.5" without a period is ambiguous (first half, extra time). Exact identification requires `period = FT_REGULAR` to be explicit in the pinned market map. A market whose period is not provably regular time is excluded. |
+| **No historical endpoints** | Historical provider snapshots are HISTORICAL_RECONSTRUCTED. Their PIT reliability is unverified (Prep A). Slice 1 proves only prospective capture. |
+| **Single process, single writer** | The trusted-clock mitigation (§6.1) and the quota ledger's writer-declared time residual are safe only while the adapter runner is the sole writer of its quota ledger. |
+| **Data-only terminus** | No strategy is approved. Emitting candidates would imply readiness that the `MarketCapability` flags (`market_supported_by_model`, …) deny. |
+
+The rest of Prep C's slice is adopted unchanged: two competitions, both market families,
+up to three bookmakers, PAPER only, and the budget envelope.
+
+---
+
+## 4. File and package layout
+
+```text
+adapters/
+  README.md                         pointer to this document + exact run commands
+  .gitattributes                    adapter_tests/fixtures/** -text
+  DECISIONS/                        V0.5 ADRs (ADR-A001 = this document's acceptance record)
+  config/
+    oddspapi_v4_endpoints.json      endpoint specs (§7.2); every entry "verified_live": false until G2
+    oddspapi_slice1_policy.json     policy constants (§12.1, §14); digest-pinned
+    oddspapi_v4_identity_map.json   competitions + declared bookmakers (§8)
+    oddspapi_v4_market_map.json     provider market/outcome → family/line/period/selection (§8.5)
+    oddspapi_v4_status_map.json     status allowlists (§10)
+  src/genesis_adapters/
+    __init__.py
+    errors.py            AdapterFailure enum + mapping to frozen genesis.reasons.ReasonCode
+    ids.py               gid(), native-ID canonicalization
+    jsonstrict.py        strict JSON: duplicate keys, NaN/Infinity, Decimal floats, size cap, UTF-8
+    clock.py             TrustedClock protocol, SystemUtcClock, ClockFault
+    secrets.py           Secret (unserializable), scan_for_secret(); CredentialSource (Stage 7)
+    config.py            load + digest adapter config; derivation_version()
+    oddspapi/
+      __init__.py
+      endpoints.py       EndpointSpec, CanonicalRequest, build_request(), provider_request_hash()
+      quota_gate.py      QuotaGate over frozen QuotaLedger + VerifiedCacheStore
+      transport.py       Transport protocol, TransportRequest, TransportResult (no network)
+      transport_http.py  Stage 7 only: HTTPS transport, credential injection, no redirects
+      acquisition.py     AcquisitionLedger + AcquisitionRunner (reserve → send → capture)
+      raw_capture.py     raw SourceContract, secret scan, skew check, EvidenceStore publish
+      maps.py            identity/market/status maps + validation
+      identity_registry.py append-only fixture/participant binding registry
+      parser.py          PURE: raw bytes + ParseContext → ParsedResponse
+      normalize.py       PURE: ParsedResponse → MarketBookDocument bytes (+ tombstones)
+      emit.py            normalized evidence, structured evidence, PIT records, coverage
+      reader.py          MarketBookReader: as-of consumer (fail-closed)
+      manifest.py        FeatureInputManifest-v1 body builder
+      verify.py          derivation re-verification, runtime secret scan, freeze guard
+      scheduler.py       deterministic window plan, budget projection, conditional refresh
+      authority.py       AdapterAuthorityLedger (gate records) + gate checks
+      cli.py             Stage 7: run / verify / plan; `approve` is operator-only (§16.6)
+  adapter_tests/
+    __init__.py          sys.path setup (src, adapters/src)
+    support.py           FixedClock, FakeTransport, scratch roots, fixture loader (TEST-ONLY)
+    fixtures/oddspapi/v4/*.json   doc-derived synthetic payloads + FIXTURES.sha256
+    test_v05_*.py        one module per §18 area
+  evidence/S0 … S7/      RED/GREEN transcripts per stage (mirrors remediation_evidence style)
+```
+
+Runtime layout under `GENESIS_ADAPTER_ROOT` (default `runtime/adapters/oddspapi`):
+
+```text
+evidence/           frozen EvidenceStore root (raw + normalized observations)
+structured/         frozen StructuredEvidenceStore root
+contracts.jsonl     frozen SourceContractRegistry
+capabilities.jsonl  frozen SourceCapabilityRegistry
+bindings.jsonl      frozen SourceInputBindingStore
+pit.jsonl           frozen PITStore log
+manifests/          frozen FeatureInputManifestStore root
+quota/ledger.jsonl  frozen QuotaLedger
+quota/cache/        frozen VerifiedCacheStore root
+coverage.jsonl      frozen CoverageLedger / ExclusionLedger
+requests/<hash>.json      canonical request bytes (content-addressed by provider_request_hash)
+acquisition.jsonl   adapter AcquisitionLedger (AppendOnlyJsonl)
+identity.jsonl      adapter IdentityRegistry (AppendOnlyJsonl)
+scopes/<hash>.json  expected-scope artifacts (§12.4)
+authority.jsonl     adapter AdapterAuthorityLedger (operator-owned)
+```
+
+Credentials are **never** under this root or the repository (§7.5).
+
+---
+
+## 5. Frozen APIs reused, and frozen facts this design depends on
+
+| Frozen API | How slice 1 uses it | Frozen behaviour relied on |
+| --- | --- | --- |
+| `genesis.time.parse_utc`, `iso_utc` | All timestamp validation | Rejects naive and non-UTC offsets (`time.py`) |
+| `genesis.provenance.SourceContract`, `SourceContractRegistry`, `AvailabilityClass` | Raw contract (PROSPECTIVE_CAPTURED), normalized contract (DERIVED) | Contract immutability. `uri_pattern` is an `fnmatch` pattern. FUTURE_LABEL/UNKNOWN are not decision-usable |
+| `genesis.evidence.EvidenceStore` | Raw and normalized artifacts plus observations | `first_seen_at ≤ retrieved_at ≤ parse_ready_at`. Content-addressed, immutable. `observation_id` = hash of observation fields |
+| `genesis.evidence.StructuredEvidenceStore`, `genesis.canonical.ResearchEvidence`, `ProvenanceRef` | One `ResearchEvidence` per OPEN book | Manifests require ≥1 structured-evidence hash whose `source_ref.observation_id` is a required input |
+| `genesis.pit.SourceCapabilityRegistry`, `SourceCapability`, `OperationalStatus` | Capability timeline per derivation source | `require_ready_at` uses the latest row at decision time. `is_ready` also needs `point_in_time_reliability ∉ {unknown, unverified}` |
+| `genesis.pit.PITStore`, `BitemporalRecord` | One PIT record per book observation | Append-only, one record per `record_id`, no retroactive field update. `as_of_query` raises `PITViolation` when the top two admissible records share `valid_from` |
+| `genesis.feature_manifest.SourceInputBindingStore`, `FeatureInputManifestStore`, `identity_transform_hash` | Manifest bodies for PAPER consumers | 1:1 contract↔source binding. `payload_hash == observation.artifact_hash`. Unique as-of head by max `valid_from`. `field_id` is walked as a **dict-only** path in the exact bytes |
+| `genesis.evidence_pack.EvidencePack` | End-to-end verification test only | `source_artifact_hashes` must equal the set of required-input artifact hashes |
+| `genesis.quota.QuotaLedger`, `load_quota_policy`, `VerifiedCacheStore`, `CacheReference` | Quota reservation for every attempt. Metadata cache | Active policy must be exactly `(250, 220, 30, 7)` for `oddspapi`. Rejects time regression. Cache hits are 0 units only with a verified exact-request entry |
+| `genesis.coverage.CoverageLedger`, `ExclusionLedger`, `CoverageStatus` | Every exclusion and failure | Non-AVAILABLE entries need a frozen `ReasonCode` |
+| `genesis.capabilities.MarketCapabilityRegistry` | G3 registers `market_supported_by_data_adapter = True` only | Any other required flag not `True` keeps the market not ready |
+| `genesis.registry.AppendOnlyJsonl` | Adapter-owned ledgers | Hash-chained, verified-before-append, single-name files |
+
+Frozen observations that shape this design. None of them requires a reopen:
+
+- `MarketSnapshot` (`canonical.py`) is declared and documented but **consumed nowhere**
+  in `src`. It has no bookmaker, line or status vocabulary. Slice 1 neither emits nor
+  modifies it.
+- `BitemporalRecord.superseded_by/superseded_at` can only be set when a record is first
+  appended. The append-only store has no update path, so retroactive supersession is
+  impossible by construction. Slice 1 always writes them as `None`.
+- `genesis.logging._redact` masks keys by name (`api_key`, `token`, `secret`, …). It
+  does **not** mask `apiKey`/`apikey` or secrets inside URL strings. Slice 1 never relies
+  on it: secrets cannot reach any log by construction (§7). The gap is recorded in §20 as
+  a deferred foundation hygiene item.
+- `QuotaLedger.request` accepts writer-declared `occurred_at`. §6.1 bounds that on the
+  adapter path.
+
+---
+
+## 6. Trusted clock and timestamp/PIT rules — D4 (resolves Q1, Q3)
+
+### 6.1 Trusted clock
+
+- `clock.TrustedClock` protocol: `now() -> str` (canonical `iso_utc`, microseconds, `Z`).
+- `clock.SystemUtcClock` (the only production clock):
+  - reads `time.time_ns()` for wall time and `time.monotonic_ns()` for drift;
+  - at construction records `(wall0, mono0)`. Each `now()` checks
+    `|(wall − wall0) − (mono − mono0)| ≤ 1000 ms`, otherwise raises `ClockFault`
+    (a wall-clock jump);
+  - never returns a value earlier than its last value (`ClockFault` on regression);
+  - at runner start, checks the value against the durable heads it will extend: the last
+    `occurred_at` in the quota ledger and the last time in `acquisition.jsonl`. It must be
+    ≥ both, otherwise `ClockFault`.
+- **Live mode only** (Stage 7+, after G2): at runner start, record an OS time-sync
+  attestation (Linux `timedatectl show -p NTPSynchronized --value` = `yes`; Windows
+  `w32tm /query /status` source ≠ `Local CMOS Clock`). Without it there is no live
+  acquisition.
+- **Independent cross-check per response:** the HTTP `Date` header `Hd` (provider-controlled,
+  1 s precision) must satisfy `|Hd − T1| ≤ 120 s`. Otherwise the whole response is
+  quarantined (`CLOCK_SKEW`). In live mode a missing or unparseable `Date` header also
+  quarantines.
+- `FixedClock` exists **only** in `adapter_tests/support.py`. The live runner refuses any
+  clock that is not a `SystemUtcClock` instance (test CLK-02).
+- Parsers and normalizers are pure and never read a clock. Every time they use is passed
+  in from the acquisition record.
+
+This closes the freeze residual "writer-declared quota/ingestion timestamps" **for the
+adapter path**. The adapter never accepts a caller-supplied time for quota, acquisition,
+evidence or PIT fields. The frozen `QuotaLedger` still *accepts* declared times from any
+writer. Binding a trusted clock inside the foundation is deferred (§20 FR-2) and is not
+needed while the adapter runner is the ledger's only writer.
+
+### 6.2 Timestamp definitions
+
+| Name | Symbol | Source | Persisted in | Meaning |
+| --- | --- | --- | --- | --- |
+| quota reservation time | `Tq` | trusted clock | quota ledger `occurred_at`. Acquisition row | When one quota unit was reserved for this attempt |
+| request_started_at | `T0` | trusted clock | acquisition row. Normalized doc | Immediately before the first request byte is written. `T0 ≥ Tq` |
+| response_received_at (= retrieved_at) | `T1` | trusted clock | acquisition row. Raw and normalized `retrieved_at` and `first_seen_at`. PIT `available_at`, `retrieved_at`, `valid_from`. Normalized doc | After the last body byte is read. `T1 > T0` |
+| provider Date header | `Hd` | response header | acquisition row | Skew cross-check only (§6.1) |
+| provider/source timestamps | `Tp` | payload fields (per fixture/outcome, per the verified endpoint schema) | normalized doc (`provider_timestamps`). Normalized `publisher_timestamp` and PIT `published_at` = max `Tp` over the book's outcomes, or `None` | **Provenance only.** Never used for availability, freshness or ordering |
+| first_seen_at | — | = `T1` | raw and normalized observations | The earliest trusted time Genesis held *this observation*. Every retrieval is its own observation, so slice 1 never back-dates availability to an earlier retrieval of identical bytes |
+| raw parse_ready_at | — | = `T1` | raw observation | Raw bytes can be parsed on receipt. Raw is never a decision input |
+| parse_ready_at (normalized) | `T2` | trusted clock | normalized observation. `ResearchEvidence.ready_at` | After the whole response has been parsed and validated, before the first normalized publish. Shared by all books of one response |
+| PIT ready_at | `T3` | trusted clock | PIT `ready_at` | After every normalized observation and structured-evidence object of the response is durably published, before the PIT appends. Shared by the response |
+| available_at | — | = `T1` | PIT | The earliest time the value was available **to Genesis**. It is never earlier than `T1` for prospective capture |
+| valid_from | — | = `T1`. = `T_inv` for an operator invalidation head (§13) | PIT. Normalized observation | Head ordering key. Latest `valid_from` wins |
+| valid_to | — | OPEN: `min(T1 + price_ttl, S − prematch_guard)`. Every non-OPEN head: `None` | PIT. Normalized observation. `ResearchEvidence.freshness_expires_at` (OPEN) | End of decision usability. Tombstones never expire (§12.3) |
+| event scheduled start | `S` | payload (same response, or the joined fixtures snapshot, §8.3) | normalized doc `scheduled_start_as_known` | Kickoff *as known at `T1`*. Not part of identity |
+| decision cutoff | `D` | trusted clock of the consuming decision runner | `FeatureInputManifest.evidence_cutoff_ts` | The single as-of point for every admissibility check |
+
+### 6.3 Invariants (validated on write and on replay)
+
+```text
+Tq ≤ T0 < T1 ≤ T2 ≤ T3
+available_at = retrieved_at = first_seen_at = valid_from = T1        (response-derived heads)
+OPEN only if T1 < S − prematch_guard; then T1 < valid_to ≤ S − prematch_guard
+every Tp ≤ T1 + provider_future_tolerance (5 s)
+consumed at D only if T3 ≤ D and (valid_to is None or D < valid_to) and D < S − prematch_guard
+```
+
+`D ≥ T3` alone does not make visibility deterministic. A record can have `ready_at ≤ D`
+and still be committed after the decision runner read the log. Rule: **acquisition and
+decision phases are serialized.** The decision runner takes `D` only after it acquires the
+acquisition-quiescence lock (the `acquisition.jsonl` coordinator plus an adapter run lock).
+The frozen `verify_for_pack` unique-head check would detect any late record with
+`ready_at ≤ D`, so a violation fails closed; it can never silently change a replay.
+
+### 6.4 Provider timestamp anomalies (no normalization of offsets)
+
+`SOURCE_AVAILABILITY.md` rule 2 ("naive timestamps, non-UTC timestamps … fail closed") is
+frozen authority. Slice 1 therefore **rejects** rather than normalizes:
+
+| Anomaly | Result |
+| --- | --- |
+| naive (no offset) | book → BLOCKED `TIMESTAMP_NAIVE` |
+| explicit non-zero offset (e.g. `+01:00`) | book → BLOCKED `TIMESTAMP_NON_UTC` |
+| unparseable / wrong JSON type | book → BLOCKED `TIMESTAMP_INVALID` |
+| `Tp > T1 + 5 s` | book → BLOCKED `TIMESTAMP_FUTURE` |
+| `S` missing/invalid | event → BLOCKED `EVENT_START_INVALID` |
+| `S ≤ T1` while status says pre-match | event → BLOCKED `CONTRADICTORY_STATUS` |
+| `|Hd − T1| > 120 s` or `Hd` missing (live) | response quarantined `CLOCK_SKEW` |
+| `T1 ≤ T0` or quota time regression | `ClockFault`: runner halts |
+
+If the G2 live capture shows OddsPapi emitting offsets, normalization needs a new ADR.
+It is *not* silently allowed.
+
+---
+
+## 7. Canonical request identity and credential handling — D3
+
+### 7.1 Principle
+
+The credential and the canonical request never share a data structure. The request is
+built as data from a pinned endpoint spec. The credential exists only as a `Secret`, held
+by the transport. The transport adds the credential to the outgoing wire request at send
+time. That happens after the canonical request has been hashed, persisted and logged.
+
+### 7.2 Endpoint spec (`adapters/config/oddspapi_v4_endpoints.json`)
+
+Each entry: `role` (`META_SPORTS`, `META_TOURNAMENTS`, `META_BOOKMAKERS`, `META_MARKETS`,
+`FIXTURES`, `ODDS`), `method` (`GET`), `scheme` (`https`), `host` (lowercase, pinned),
+`path` (exact, no trailing slash), `params` (each: `name`, `type` `int|str|date|csv_set`,
+`required`, `set_valued`, `allowed_values?`), `credential_param` (the single name
+used for the key, e.g. `apiKey`), `cacheable` (`true` for `META_*` only; `ODDS` is
+always `false`), `cache_ttl_seconds`, `response_schema_id`, `doc_reference`,
+`verified_live` (`false` until G2).
+
+Paths and parameter names come from Prep A's reading of the OddsPapi v4 documentation
+(base host and per-role paths such as sports, tournaments, bookmakers, markets, fixtures,
+and odds by tournament). They are **provisional**. G2 verifies each one against a live
+response before any recurring capture.
+
+### 7.3 Canonical request
+
+```json
+{
+  "domain": "genesis.adapters.oddspapi.request.v1",
+  "provider_id": "oddspapi",
+  "api_version": "v4",
+  "role": "ODDS",
+  "method": "GET",
+  "scheme": "https",
+  "host": "<pinned lowercase host>",
+  "path": "<pinned path>",
+  "query": [["<name>", "<canonical value>"], ...],
+  "headers": [["accept", "application/json"], ["accept-encoding", "identity"]],
+  "body": null
+}
+```
+
+Canonicalization rules:
+
+1. Parameters come only from typed arguments validated against the spec. Unknown names are
+   rejected.
+2. Any parameter whose name case-folds to the spec's `credential_param`, or to any of
+   `{apikey, api_key, key, token, access_token, secret}`, is **rejected at build time**. It
+   is never dropped silently.
+3. Values render deterministically: `int` as a base-10 string with no sign or leading
+   zeros; `str` as NFC-normalized, matching `^[A-Za-z0-9_.:-]{1,64}$`; `date` as
+   `YYYY-MM-DD`; `csv_set` as sorted, de-duplicated, comma-joined (only where
+   `set_valued: true`, e.g. the bookmaker filter).
+4. `query` is sorted by `(name, value)`. `headers` is the fixed allowlist above,
+   lowercase names, sorted.
+5. `provider_request_hash = sha256(canonical_json(request))` (frozen
+   `genesis.repro.canonical_json`: sorted keys, compact separators, UTF-8, trailing LF).
+6. The canonical bytes are written immutably to `requests/<provider_request_hash>.json`.
+   The file is content-addressed, so its name is its own integrity check.
+7. `source_uri` for raw evidence is `oddspapi-request:sha256:<provider_request_hash>`. The
+   raw contract's `uri_pattern` is `oddspapi-request:sha256:*`. No URL string is ever
+   persisted.
+
+Identity uses:
+
+- Quota: `provider_request_hash` is passed to `QuotaLedger.request(...,
+  provider_request_hash=h)`. It is part of the frozen request fingerprint.
+- Cache: `cache_key = "oddspapi:v4:" + role + ":" + h`. `VerifiedCacheStore` binds
+  `provider_request_hash = h`.
+- Quota `request_id = "oddspapi-attempt:" + sha256(canonical_json({"domain":
+  "genesis.adapters.oddspapi.attempt.v1", "provider_request_hash": h, "window_id": w,
+  "attempt": n}))`. It is deterministic per planned attempt, so a crash-restart cannot
+  mint a second reservation for the same attempt (§14.4).
+
+### 7.4 `Secret`
+
+- `Secret.__repr__`/`__str__` return `Secret(<fingerprint>)`, where fingerprint =
+  first 12 hex of `sha256(b"genesis.adapters.credential-fp.v1\0" + key)`.
+- Serialization and copying are blocked: `__reduce__`, `__getstate__`, `__copy__` and
+  `__deepcopy__` raise. `canonical_json` fails on it because it is not a JSON type.
+- `Secret.reveal_for_transport(token)` returns the value only when called with the
+  transport module's private capability token (plain Python, not a security boundary). A
+  static test (FRZ-06) proves no other module calls it.
+
+### 7.5 Storage (after G1 only)
+
+- File path given by `GENESIS_ODDSPAPI_CREDENTIAL_FILE`. It must lie outside the repository
+  worktree and outside `GENESIS_ADAPTER_ROOT`. POSIX mode must be `0600` and owned by the
+  runner user. On Windows, the ACL must grant only the runner user. The file holds one line
+  with the key. Anything else is refused.
+- The fingerprint recorded in the G1 approval must match the loaded key, otherwise the
+  runner refuses.
+- No environment variable ever holds the key itself.
+
+### 7.6 Never persisted, never logged
+
+- The transport sends with redirects **disabled**. A 3xx is `PROVIDER_ERROR`, never
+  followed, because a redirect could carry the key to another host. The host is pinned.
+  TLS verification uses the system trust store and is never disabled.
+- Transport exceptions become `sanitized_error = {"class": type(exc).__name__, "errno":
+  getattr(exc, "errno", None)}`. `str(exc)` and `exc.args` are never recorded, because they
+  can contain the full URL.
+- Allowlisted response headers only: `date`, `content-type`, `content-length`,
+  `content-encoding`, `etag`, `last-modified`, `retry-after`, and names matching
+  `^x-(ratelimit|requests)-[a-z-]{1,40}$`. Values are length-capped at 256 characters.
+- **Response secret scan** before any persistence: the body is searched for the key in
+  raw, percent-encoded (upper and lower), base64 and hex forms. On a match the body is
+  **not** stored. Only `{sha256, byte_length}` plus a redacted derivative (each match
+  replaced by `[REDACTED]`) is written to `quarantine/`, labelled
+  `redacted_derivative` (never raw evidence). The response gets
+  `QUARANTINED / SECRET_ECHO`, live acquisition halts, and a human must rotate the key.
+- End-of-stage runtime scan (`verify.scan_runtime_for_secret`) walks every file under
+  `GENESIS_ADAPTER_ROOT` for the same forms. Any hit fails the stage.
+
+---
+
+## 8. Identity rules — D7
+
+### 8.1 Genesis ID function
+
+```text
+gid(kind, **parts) = kind + ":" + sha256(canonical_json({
+    "domain": "genesis.adapters.identity.v1", "kind": kind, "parts": parts}))
+```
+
+The full 64-hex digest is used. It is never truncated and never joined with a delimiter, so
+it has no ambiguity of the kind `canonical.stable_id` has with `"|"`.
+
+**Native ID canonicalization.** Each provider ID field has a declared JSON type in the
+response schema (`int` or `str`). A value of the other type is `SCHEMA_REJECTED`, so no
+coercion happens (`17` ≠ `"17"`). Ints are rendered base-10. Strings must match
+`^[A-Za-z0-9_.:-]{1,64}$`. `native_type` is part of every native-derived ID.
+
+### 8.2 Entities
+
+| Entity | Genesis ID | Established by | Never established by |
+| --- | --- | --- | --- |
+| Competition | pinned slug, e.g. `soccer.eng.premier-league`, `soccer.esp.laliga` | `oddspapi_v4_identity_map.json`: `{provider_tournament_id, native_type, genesis_competition_id, sport:"soccer"}`. Exactly two entries in slice 1 | tournament name, country name |
+| Participant | `gid("part", provider="oddspapi", ns="v4.participant", native_type, native)` | provider participant ID | team name (stored as `display_name` attribute only) |
+| Event | `gid("evt", provider="oddspapi", ns="v4.fixture", native_type, native)` | provider fixture ID, bound on first sight to (competition, home, away) in `IdentityRegistry` | names, kickoff time |
+| Bookmaker | pinned slug, e.g. `bk.<slug>` | identity map `{provider_bookmaker_key, genesis_bookmaker_id, kind:"fixed_odds_sportsbook", declared:true}` | display name |
+| Market | `gid("mkt", event_id, family, line, period)` | market map entry for the provider market ID (plus line field where the provider encodes lines separately) | market name, outcome labels |
+| Selection | `gid("sel", market_id, selection)`, `selection ∈ {HOME, DRAW, AWAY, OVER, UNDER}` | market map outcome ID → selection code | labels such as "1", "X", "Over" |
+| Market book (PIT entity) | `gid("book", market_id, bookmaker_id)` | the (market, bookmaker) pair | — |
+
+### 8.3 Identity registry (append-only, `identity.jsonl`)
+
+- Row `fixture_bound`: `{event_id, provider_fixture_id, native_type, competition_id,
+  home_participant_id, away_participant_id, first_seen_at: T1, raw_observation_id}`.
+  It is written the first time a fixture ID is seen in a schema-valid response.
+- Row `participant_seen`: `{participant_id, provider_participant_id, display_name,
+  first_seen_at, raw_observation_id}`. Name drift appends a new row (`NAME_DRIFT` note).
+  Drift never changes identity.
+- **Conflict:** a later response binds the same fixture ID to a different competition, home
+  or away participant, or swaps home and away. Result: `IDENTITY_CONFLICT`, the event is
+  **quarantined** (§15 F-21) and a human must review. A human resolution is a new identity
+  map version and so a new derivation source (§13.3).
+- Home = away, or a missing participant ID, gives `PARTICIPANT_AMBIGUOUS`.
+- Every normalized document pins `identity_registry_head = {sequence, record_hash}` of the
+  registry state used, so re-derivation replays exactly that prefix.
+- **Scheduled start join.** If the ODDS response carries fixture start and participants,
+  those are used (same `T1`). Otherwise the parser joins the newest FIXTURES observation
+  with `T1_fixtures ≤ T1_odds` and `T1_odds − T1_fixtures ≤ 86400 s`, pinning its
+  `observation_id` in the document. A missing or older snapshot gives
+  `EVENT_METADATA_STALE` (BLOCKED). G2 decides which case holds.
+
+### 8.4 Bookmakers
+
+- The operational policy declares 1–3 bookmakers. The policy validator rejects more than 3,
+  and rejects any whose `kind ≠ fixed_odds_sportsbook`.
+- The canonical `MarketBookDocument` has **no** bookmaker-count limit. Test MKT-02
+  normalizes five bookmakers under a test-only policy.
+- Bookmakers in a response that are not declared are ignored. They stay in raw evidence,
+  are counted in coverage as `OUT_OF_SCOPE_BOOKMAKER`, and can later be derived from the
+  same raw bytes under a new policy (a new derivation source).
+
+### 8.5 Markets, lines, selections (exact O/U 2.5)
+
+`oddspapi_v4_market_map.json` entries:
+
+```json
+{"provider_market_id": <native>, "native_type": "int|str",
+ "family": "SOCCER_1X2_FT" | "SOCCER_TOTAL_GOALS_OU_FT",
+ "period": "FT_REGULAR",
+ "line": null | "2.5",
+ "line_source": "none" | "market_definition" | "outcome_field:<name>",
+ "outcomes": {"<provider_outcome_id>": "HOME"|"DRAW"|"AWAY"|"OVER"|"UNDER", ...},
+ "doc_reference": "...", "verified_live": false}
+```
+
+Rules:
+
+1. A provider market ID not in the map is out of scope. It is counted and never
+   normalized.
+2. The line is read from the declared `line_source`, parsed with `Decimal` from the JSON
+   literal (`parse_float=Decimal`), and must satisfy `Decimal(value) == Decimal("2.5")`
+   exactly. So `2.5`, `2.50` and `"2.5"` (if typed `str`) are equal, while `2.25`, `2.75`,
+   `1.5`, `3.5`, `2.4999` and any Asian quarter line are **excluded**, never merged.
+3. A missing or non-numeric line, or a line from a source other than the declared one, is
+   excluded (`LINE_UNIDENTIFIED`).
+4. Two entries resolving to the same (event, family, line, bookmaker) in one response:
+   identical content collapses; different content gives BLOCKED `CONTRADICTORY_DUPLICATE`.
+5. Outcomes are mapped **only by provider outcome ID**. A book is complete only when it has
+   exactly the family's selection set (1X2: HOME, DRAW, AWAY; O/U: OVER, UNDER). A missing
+   outcome gives BLOCKED `INCOMPLETE_SELECTIONS`. An extra, unmapped outcome ID inside a
+   mapped market gives BLOCKED `UNMAPPED_OUTCOME` (schema drift).
+6. Provider market and outcome IDs for slice 1 are pinned from the G2 `META_MARKETS`
+   capture. Until then the map holds synthetic fixture IDs flagged
+   `"fixture_only": true`, and the operational loader refuses any map that still has
+   fixture-only entries.
+
+---
+
+## 9. Canonical market representation and immutable schemas — D6 (resolves Q4)
+
+The frozen `MarketSnapshot` is left untouched. Slice 1 owns one normalized document type.
+It is published as an `EvidenceStore` artifact and is the payload of one PIT record.
+
+### 9.1 `MarketBookDocument` (schema `genesis.adapters.oddspapi.market-book.v1`)
+
+```json
+{
+  "schema": "genesis.adapters.oddspapi.market-book.v1",
+  "derivation_version": "mb1-<16hex>",
+  "provider": "oddspapi", "api_version": "v4",
+  "raw_artifact_hash": "<64hex>", "raw_observation_id": "<64hex>",
+  "provider_request_hash": "<64hex>",
+  "acquisition_id": "<64hex>",
+  "identity_registry_head": {"sequence": 0, "record_hash": "<64hex>"},
+  "expected_scope_hash": "<64hex>|null",
+  "fixture_join_observation_id": "<64hex>|null",
+  "sport": "soccer", "competition_id": "soccer.eng.premier-league",
+  "event_id": "evt:<64hex>", "provider_fixture_id": {"native_type": "int", "value": "123"},
+  "home_participant_id": "part:<64hex>", "away_participant_id": "part:<64hex>",
+  "scheduled_start_as_known": "2026-10-03T14:00:00.000000Z",
+  "bookmaker_id": "bk.<slug>", "provider_bookmaker_key": "<key>",
+  "market_id": "mkt:<64hex>", "market_family": "SOCCER_TOTAL_GOALS_OU_FT",
+  "line": "2.5", "period": "FT_REGULAR",
+  "entity_id": "book:<64hex>",
+  "market_state": "OPEN|SUSPENDED|ABSENT|BLOCKED|INVALIDATED",
+  "state_reasons": ["<AdapterFailure code>", ...],
+  "selections": {
+    "OVER":  {"selection_id": "sel:<64hex>", "provider_outcome_id": {...}, "odds_decimal": "1.91"},
+    "UNDER": {"selection_id": "sel:<64hex>", "provider_outcome_id": {...}, "odds_decimal": "1.95"}
+  },
+  "provider_status": {"event": {...raw typed values...}, "market": {...}, "outcomes": {...}},
+  "provider_timestamps": {"<field path>": "<iso as given>", ...},
+  "times": {"request_started_at": "…Z", "response_received_at": "…Z"},
+  "valid_from": "…Z", "valid_to": "…Z|null",
+  "side": "BACK"
+}
+```
+
+- `selections` is present **only** when `market_state = OPEN`. Every other state omits it,
+  so any manifest `field_id` such as `$.selections.OVER.odds_decimal` fails the frozen
+  "field is absent from exact bytes" check. A non-OPEN head can never supply a price
+  (test EV-06).
+- `odds_decimal` is `format(Decimal(literal).normalize(), "f")`, parsed from the JSON
+  literal with `parse_float=Decimal`. It must be finite, within `1.01 ≤ odds ≤ 1000`, and
+  have at most 4 fractional digits.
+- The document depends **only** on raw bytes, the acquisition record (`T0`, `T1`,
+  request), pinned map and policy digests (through `derivation_version`), the pinned
+  identity-registry prefix, the expected-scope artifact and the fixture-join observation.
+  It holds no `T2`/`T3` and no clock reads, so re-derivation is byte-identical (EV-03).
+- Serialization: `genesis.repro.canonical_json`. `artifact_hash = sha256(bytes)`.
+
+### 9.2 `derivation_version`
+
+```text
+derivation_version = "mb1-" + sha256(canonical_json({
+   "code_version": genesis_adapters.oddspapi.normalize.CODE_VERSION,
+   "identity_map_digest": ..., "market_map_digest": ..., "status_map_digest": ...,
+   "policy_digest": ..., "endpoint_spec_digest": ...}))[:16]
+```
+
+It is the normalized contract's `parser_version`, and it is embedded in the contract ID
+and PIT `source_id` (§11.2). Any change to code semantics, maps or policy therefore
+creates a new source (§13.3).
+
+### 9.3 Other adapter-owned immutable records
+
+| Record | Store | Key fields |
+| --- | --- | --- |
+| `CanonicalRequest` | `requests/<h>.json` | §7.3 |
+| `AcquisitionRecord` rows | `acquisition.jsonl` | `acquisition_id` (= quota `request_id` digest part), `window_id`, `purpose` (`SCHEDULED`/`CONDITIONAL`/`RETRY`/`METADATA`/`G2_VERIFICATION`), `attempt`, `provider_request_hash`, row types `planned` → `quota_decided{Tq, reason, units, cache_entry_id?}` → `sent{T0}` → `completed{T1, outcome, http_status, headers, byte_length, raw_observation_id?, sanitized_error?}` → `normalized{T2, T3, derivation_version, expected_scope_hash, identity_registry_head, normalized_observation_ids[], pit_record_ids[], coverage_entry_ids[]}` or `reconciled{outcome: ORPHANED_RESERVATION}` |
+| `IdentityRegistry` rows | `identity.jsonl` | §8.3 |
+| Expected scope | `scopes/<hash>.json` | §12.4 |
+| `AdapterAuthorityLedger` rows | `authority.jsonl` | §16.6 |
+
+---
+
+## 10. Provider status allowlists — D8
+
+`oddspapi_v4_status_map.json`:
+
+```json
+{"event_status": [{"field": "<path>", "json_type": "int|str|bool", "value": <v>,
+                   "genesis": "PREMATCH" | "NOT_PREMATCH", "doc_reference": "...",
+                   "verified_live": false}],
+ "market_status": [{"field": ..., "json_type": ..., "value": ..., "genesis": "OPEN" | "SUSPENDED"}],
+ "outcome_status": [{"field": ..., "json_type": ..., "value": ..., "genesis": "ACTIVE" | "INACTIVE"}]}
+```
+
+Rules:
+
+1. Matching is on `(field, json_type, value)`. `1` and `"1"` are different. Anything not
+   listed is `UNKNOWN_*_STATUS`, which gives a BLOCKED head (identity resolvable) or an
+   exclusion (identity not resolvable).
+2. The book is OPEN only if the event is `PREMATCH`, the market is `OPEN` (or the provider
+   has no market-level status and the schema declares that), every required outcome is
+   `ACTIVE` with a valid price, and every timestamp check passes.
+3. Any `INACTIVE` outcome or `SUSPENDED` market gives SUSPENDED (no prices).
+4. Event `NOT_PREMATCH` (live, finished, postponed, cancelled, abandoned, …) gives BLOCKED
+   `EVENT_NOT_PREMATCH` for every in-scope book of that event.
+5. **Contradictions** give BLOCKED `CONTRADICTORY_STATUS`:
+   - event `NOT_PREMATCH` with an `ACTIVE` outcome;
+   - `PREMATCH` with `S ≤ T1`;
+   - an `ACTIVE` outcome with a missing, zero or `≤ 1.0` price;
+   - two status fields for the same level that disagree.
+6. Where Prep A found the provider documentation ambiguous, the value is **left out** of the
+   map (so it is unknown and BLOCKED) until G2 evidence and a human-reviewed map update add
+   it.
+7. G3 requires every map entry used by the source to have `verified_live: true`.
+8. Each map row carries `doc_reference`. The map digest is part of `derivation_version`.
+
+**Price coherence** (versioned policy): for OPEN books, `Σ 1/odds` must lie in
+`[1.00, 1.30]` for 1X2 and `[1.00, 1.20]` for O/U. Outside the band gives BLOCKED
+`PRICE_INCOHERENT` (`CONTRADICTORY_EVIDENCE`).
+
+---
+
+## 11. Raw versus normalized evidence — D12
+
+### 11.1 Flow (strict order; each step durable before the next)
+
+```text
+plan → gate checks (§16) → QuotaGate.reserve (Tq) ──blocked──▶ acquisition(quota_decided, blocked) + coverage NOT_ATTEMPTED; stop
+   │allowed (billable) / verified cache hit (META_* only → cached bytes; no new observation; stop)
+   ▼
+acquisition(sent, T0) → transport → T1
+   ▼
+secret scan ──hit──▶ quarantine hash+len+redacted derivative; halt
+   ▼
+raw EvidenceStore.publish (PROSPECTIVE_CAPTURED)  → acquisition(completed, raw_observation_id)
+   ▼
+[META_* only] VerifiedCacheStore.publish(bytes, expires = T1 + cache_ttl)
+   ▼
+skew check / status-code / strict JSON / envelope schema ──fail──▶ coverage REJECTED; stop (raw retained)
+   ▼
+parser (pure) → ParsedResponse (books, tombstones, exclusions)
+   ▼
+T2 ← clock; for each book: normalized EvidenceStore.publish (DERIVED)
+             for each OPEN book: StructuredEvidenceStore.publish(ResearchEvidence)
+   ▼
+T3 ← clock; for each book: PITStore.append(BitemporalRecord)
+   ▼
+CoverageLedger entries; acquisition(normalized, …)
+```
+
+### 11.2 Contracts and sources (registered at Stage 3/5 in the runtime registries)
+
+| Item | Raw | Normalized |
+| --- | --- | --- |
+| `contract_id` | `oddspapi-v4-raw-response-v1` | `oddspapi-v4-market-book-<derivation_version>` |
+| `provider` | `oddspapi` | `oddspapi` |
+| `source_type` | `oddspapi_v4_rest_response` | `oddspapi_v4_market_book` |
+| `uri_pattern` | `oddspapi-request:sha256:*` | `genesis-derived:oddspapi-v4-market-book:<derivation_version>:*` |
+| `source_uri` | `oddspapi-request:sha256:<h>` | `genesis-derived:oddspapi-v4-market-book:<derivation_version>:<entity_id>:<raw_observation_id>` |
+| `availability_class` | `PROSPECTIVE_CAPTURED` (`supports_prospective_capture=True`) | `DERIVED` (per `SOURCE_AVAILABILITY.md`: parsed projections are derived artifacts carrying the raw hash and parser version) |
+| `parser_version` | `raw-capture-v1` | `<derivation_version>` |
+| `timestamp_precision` | `microsecond` | `microsecond` |
+| `availability_rule` | `retrieved_at = trusted T1` | `available at T1; ready at T3; valid until valid_to` |
+| `licensing_note` | pinned at G1 from the reverified terms. Fixture-only value: `FIXTURE-ONLY-NO-PROVIDER-TERMS` | same |
+| PIT `source_id` | — (raw is never a PIT input) | `oddspapi.v4.soccer.market_book.<derivation_version>` |
+| `SourceInputBinding` | — | 1:1 normalized contract ↔ PIT source, `approval_reference` = G3 record ID |
+
+### 11.3 Observation field values
+
+| Field | Raw observation | Normalized observation |
+| --- | --- | --- |
+| `retrieved_at` | `T1` | `T1` |
+| `first_seen_at` | `T1` | `T1` |
+| `parse_ready_at` | `T1` | `T2` |
+| `publisher_timestamp` | `None` (`Hd` lives in the acquisition row) | max `Tp` of the book, or `None` |
+| `valid_from` / `valid_to` | `None` / `None` | `T1` / per §6.2 |
+| `upstream_version` | `v4` | `v4` |
+| `content_type` | response `content-type` (must start with `application/json`) | `application/json` |
+
+### 11.4 PIT record per book
+
+```text
+record_id   = "pit:" + sha256(canonical_json({"domain":"genesis.adapters.pit-record.v1",
+                        "source_id": S_ID, "artifact_hash": normalized_artifact_hash}))
+entity_id   = book entity_id          source_id = S_ID
+payload_hash= normalized_artifact_hash
+available_at= T1   published_at = max Tp | None   retrieved_at = T1   ready_at = T3
+valid_from  = T1 (T_inv for INVALIDATED)          valid_to = per §6.2
+superseded_by = None   superseded_at = None
+```
+
+`record_id` is keyed on the artifact, not the observation (whose ID includes `T2`). A
+crash-resume re-publish therefore cannot create a second PIT record for the same book.
+The resume path looks up the existing normalized observation with
+`EvidenceStore.get_observations(artifact_hash)`. It requires exactly one observation under
+the normalized contract and reuses it (PIT-08).
+
+### 11.5 Reconciliation with the frozen `FeatureInputManifest-v1`
+
+The adapter builds manifest bodies (`manifest.py`) for one (event, market) at cutoff `D`:
+
+- `event_id`, `market_id`: Genesis IDs.
+- `required_inputs[]`, one per (bookmaker, selection) used:
+  - `role: "feature"`, `input_key: "odds.<bookmaker_id>.<SELECTION>"`,
+    `entity_id: book entity_id`, `source_id: S_ID`,
+    `source_contract_id: normalized contract`;
+  - `source_capability_version` and `source_capability_record_hash`: the unique capability
+    head row at `D` (`record_hash` of that `capabilities.jsonl` row);
+  - `raw_artifact_hash`: **the normalized artifact hash**. This is the frozen field's
+    meaning: the verifier compares it to `observation.artifact_hash` and to
+    `record.payload_hash`;
+  - `observation_id`: the normalized observation. `pit_record_id` and `pit_record_hash`
+    come from the PIT row;
+  - `field_id: "$.selections.<SELECTION>.odds_decimal"` (dict-only path, as the frozen
+    walker needs), `transform_artifact_hash: identity_transform_hash(field_id)`.
+- `structured_evidence_hashes`: the `ResearchEvidence` digests of the pinned OPEN books.
+- The adapter-side check that raw → normalized is sound is `verify.verify_derivation`. It
+  loads the raw bytes by `raw_artifact_hash` from the document, replays the parser at the
+  pinned `derivation_version` with the pinned registry prefix, scope and join, and
+  requires byte equality with the normalized artifact. Raw bytes are therefore bound
+  transitively: the normalized hash commits to `raw_artifact_hash` and
+  `raw_observation_id`.
+- An `EvidencePack` for these manifests has `source_artifact_hashes` = the set of
+  normalized artifact hashes. The frozen `verify_for_pack` then passes **unchanged**
+  (test EV-05).
+
+Raw responses are not listed as separate `evidence`-role inputs in slice 1. Doing so would
+require a separate PIT source for raw captures (the binding is 1:1). That adds a
+capability and binding with no safety benefit over transitive binding plus
+`verify_derivation`. It is deferred (§21).
+
+### 11.6 `ResearchEvidence` per OPEN book
+
+`evidence_id = gid("rev", observation_id)`, `event_id`,
+`category = "market_price.bookmaker_back"`,
+`normalized_claim = canonical_json({"market_id", "bookmaker_id", "line",
+"odds": {SEL: odds}}).decode().rstrip("\n")`, `source_ref = ProvenanceRef(
+artifact_hash=normalized hash, contract_id, source_uri, retrieved_at=T1,
+parse_ready_at=T2, availability_class=DERIVED, parser_version=derivation_version,
+observation_id)`, `source_timestamp = max Tp | None`, `retrieved_at = T1`,
+`status = CONFIRMED`, `freshness_expires_at = valid_to`,
+`extractor_version = derivation_version`, `ready_at = T2`.
+
+---
+
+## 12. Freshness, staleness, cache, carry-forward — D9 (resolves Q5)
+
+### 12.1 Policy constants (`oddspapi_slice1_policy.json`, digest in `derivation_version`)
+
+| Constant | Value |
+| --- | --- |
+| `price_ttl_seconds` | 3600 |
+| `prematch_guard_seconds` | 300 |
+| `provider_future_tolerance_seconds` | 5 |
+| `clock_skew_max_seconds` | 120 |
+| `wall_monotonic_drift_max_ms` | 1000 |
+| `fixture_join_max_age_seconds` | 86400 |
+| `max_response_bytes` | 8388608 |
+| `odds_min` / `odds_max` / `odds_max_fraction_digits` | `"1.01"` / `"1000"` / 4 |
+| `overround_1x2` / `overround_ou` | `["1.00","1.30"]` / `["1.00","1.20"]` |
+| `cache_ttl_seconds` META_SPORTS/TOURNAMENTS/BOOKMAKERS/MARKETS | 2592000 (30 days) |
+| `cache_ttl_seconds` FIXTURES | 86400 |
+| `cache_ttl_seconds` ODDS | not cacheable |
+
+### 12.2 Rules
+
+1. **Freshness is measured from `T1` only**, never from provider timestamps.
+2. An OPEN price is usable at `D` only when it is the unique as-of head and `T3 ≤ D <
+   valid_to`, where `valid_to = min(T1 + 3600 s, S − 300 s)`. The frozen PIT admissibility
+   applies this, so no second freshness implementation exists that could disagree.
+3. After `valid_to` the book has **no usable observation**. The reader returns
+   `Unusable(STALE)`, and the consumer maps it to `PASS_STALE_EVIDENCE`.
+4. **No carry-forward, ever.** A price is never re-stamped, re-emitted with a new
+   `valid_from`, extended by a failed or blocked refresh, or revived by a cache hit.
+5. **Suspended / pulled markets.** A SUSPENDED observation or an ABSENT tombstone becomes
+   the head (latest `valid_from`) and blocks every older OPEN record, even one still inside
+   its TTL.
+6. **Tombstones never expire** (`valid_to = None`). An older OPEN record cannot resurface
+   after a tombstone ages, whatever happens to `S`. Only a newer capture supersedes a
+   tombstone.
+7. **Verified cache hit** means: the frozen `QuotaLedger.request` returned `reason ==
+   "verified_cache_hit"` for a `CacheReference`, after `VerifiedCacheStore.resolve`
+   re-verified the bytes (hash and length), provider, policy digest, exact
+   `provider_request_hash`, `captured_at ≤ Tq < expires_at` and no invalidation. A hit
+   costs 0 units and returns the **original** capture's bytes. It is used only for `META_*`
+   (identity/market maps, fixture join), and it **never** creates an odds observation or a
+   PIT record. A fixture join through a cache hit uses the original capture's
+   `observation_id` and `T1` for its age check.
+8. **ODDS are never cached**: `QuotaGate` refuses to publish or look up a cache entry for
+   role `ODDS` (FR-04). Crash de-duplication for ODDS uses the acquisition ledger (§14.4).
+9. **No silent fallback.** A cache miss, expiry, invalidation or verification failure is
+   recorded (the quota row is a `quota_billable_call` and the acquisition row carries
+   `cache_miss_reason`), then the billable path runs under quota.
+
+### 12.3 Reader (`reader.MarketBookReader.head(entity_id, D)`)
+
+1. `capabilities.require_ready_at(S_ID, D)`, otherwise `Unusable(DATA_CAPABILITY_NOT_READY)`.
+2. `pit.as_of_query(entity_id, D, source_id=S_ID)`. A `PITViolation` becomes
+   `Unusable(AMBIGUOUS)`.
+3. Empty result → `Unusable(MISSING_OR_STALE)`.
+4. Head = the unique record with max `valid_from`. Load the normalized observation by
+   `payload_hash`; it must be exactly one under the contract.
+5. `market_state ≠ OPEN` → `Unusable(<state>, reasons)`.
+6. Check `D < S − guard` again from the document.
+7. Return `UsableBook`.
+
+The reader never falls back to an older record.
+
+### 12.4 Expected scope (for ABSENT tombstones)
+
+Before sending an ODDS request, the runner computes the expected scope: the set of book
+entities that (a) belong to the request's competitions and declared bookmakers and (b) have
+an admissible OPEN or SUSPENDED head at `Tq`. The set is written immutably to
+`scopes/<hash>.json` and its hash recorded in the acquisition row. After a **complete**
+response (§15 row F-13), every expected-scope book not present gets an ABSENT tombstone
+(`valid_from = T1`). A partial or failed response produces **no** tombstones.
+
+---
+
+## 13. Corrections and supersession — D5 (resolves Q2)
+
+The frozen facts are: `PITStore.append` is append-only with no update path; `record_id`
+is unique; `as_of_query` raises on equal top `valid_from`; `verify_for_pack` requires
+the pinned record to be the unique max-`valid_from` admissible head at the cutoff.
+
+| Case | Mechanism | Historical as-of |
+| --- | --- | --- |
+| C-a Provider serves a new price | New observation, `valid_from = T1_new`, becomes the head | Cutoffs before `T3_new` still resolve to the old head |
+| C-b Market suspended, pulled, or event no longer pre-match | SUSPENDED / ABSENT / BLOCKED head (no prices, `valid_to = None`) | Same |
+| C-c Operator invalidates an observation (e.g. provider palpable error) | Operator CLI appends an INVALIDATED tombstone for the entity with `valid_from = T_inv` (trusted clock, `> T1` of the current head), a normalized document (`market_state = INVALIDATED`, `retrieved_at = T_inv`, reason, reference to the invalidated observation) and a PIT record. The request is refused if a newer head already exists (no effect needed; recorded as `INVALIDATION_MOOT` in the authority ledger) | Cutoffs `< T_inv` unchanged. Manifests built earlier still verify (PIT-06) |
+| C-d Parser, map or policy defect (derivation correction) | New `derivation_version` → new normalized contract, new PIT `source_id`, new binding and new capability (UNKNOWN until G3-lite approval). The old source gets a capability row `BLOCKED` at `T_fix` (a downgrade is allowed for adapter code; an upgrade never is). There is **no** re-derivation into the new source for past `T1` for decision use: such records would have `ready_at = T_fix` and are already past `valid_to`. Re-derivation for audit writes to a scratch store only | At `D < T_fix` the old source was READY, so reconstruction is unchanged. At `D ≥ T_fix` the old source fails `require_ready_at` and the new source serves only new captures |
+| C-e Identity mapping error | Same as C-d (maps are inside `derivation_version`). Affected events are quarantined until the new source is READY | Same as C-d |
+| C-f Provider revises historical data | Out of scope (no historical endpoints) | — |
+
+Invariants:
+
+- `superseded_by` and `superseded_at` are **always `None`**. No record is ever rewritten.
+- At most **one** market-book source may be READY at any `D`. The manifest builder and
+  reader enumerate the known `oddspapi.v4.soccer.market_book.*` sources and fail closed on
+  zero or more than one.
+- A raw artifact is never re-published under different bytes (frozen `immutable_write`).
+- Coverage entries use the frozen `supersedes_entry_id` only to link an adapter's own later
+  coverage entry (e.g. quarantine released by a new source) to the earlier one. Coverage is
+  audit, not decision input.
+
+---
+
+## 14. Quota, retries, polling — D10
+
+### 14.1 Frozen authority reused unchanged
+
+- Live: `QuotaLedger(path, policy=load_quota_policy("config/oddspapi_quota_policy_v2.json"),
+  cache_store=VerifiedCacheStore(...))`. `require_operational()` enforces
+  `oddspapi` and `(250, 220, 30, 7)`.
+- Tests: `QuotaPolicy.test_fixture(...)` with `allow_test_policy=True`. The runner refuses a
+  test policy in live mode.
+- Every attempt calls `request(request_id=…, occurred_at=Tq, billable_units=1,
+  budget_class=BudgetClass.NORMAL, authorization_id=None, cache=CacheReference|None,
+  provider_id="oddspapi", provider_request_hash=h)`.
+- **The adapter never constructs `QuotaReserveAuthorization`, never calls
+  `grant_authorization`/`revoke_authorization`, and never passes
+  `BudgetClass.RESERVE`** (FRZ-07). The 30-unit reserve stays exclusively under human
+  control. If the normal budget runs out, acquisition stops.
+
+### 14.2 Charging rules
+
+| Situation | Charge | Rationale |
+| --- | --- | --- |
+| Allowed billable reservation | 1 unit before sending | The frozen ledger has no post-call accounting. Reserve-before-send is the only conservative order |
+| Any failure after reservation (DNS, connect, TLS, timeout, reset, 3xx/4xx/5xx, 429, schema error) | Stays charged. **No refunds** (none exist in the frozen API) | The provider may meter any request that reached it. Over-counting is safe |
+| Retry | New attempt with a new `request_id` (`attempt+1`), charged again | Frozen request IDs are single-use |
+| Verified cache hit (META_* only) | 0 units (`quota_verified_cache_hit`) | Frozen S4 semantics |
+| Endpoint documented as non-metered | **Charged 1 unit anyway** | The frozen ledger has no zero-unit billable call. Bypassing the ledger is forbidden. Genuine zero-unit accounting would be a foundation reopen (§20 FR-4), and slice 1 doesn't need it |
+| Gate refusal (no approval, no credential, circuit open) | Not reserved: gates are checked **before** `request()` | Nothing is sent |
+| Provider-reported usage > ledger `monthly_used` (quota headers, if G2 verifies them) | Halt all live acquisition (`QUOTA_DIVERGENCE`); human review | Possible key misuse or unknown metering. The adapter never "tops up" the ledger with synthetic rows |
+
+### 14.3 Retry and circuit breaker
+
+- At most **1** retry per planned window. Only for `NO_RESPONSE` (no HTTP status received)
+  or HTTP 5xx. It fires at least 120 s after `T1` (or the failure time), only while the
+  window is still before `S − guard` for its fixtures, and only with quota headroom.
+  Retries draw on unplanned headroom, not the conditional pool.
+- No retry on 3xx, 4xx, 429, schema, secret-echo or clock failures.
+- 429: circuit open for that endpoint role until the next UTC day. Two 429s in one UTC day
+  open the circuit for all roles until the next day.
+- 401/403: circuit open for all roles indefinitely, plus a capability row `BLOCKED` for
+  every market-book source. A human must re-approve (G1 re-check).
+
+### 14.4 Crash and idempotency
+
+- `request_id` is deterministic per (window, request, attempt).
+- On restart, a `quota_decided` row with no `completed` row becomes `reconciled{outcome:
+  ORPHANED_RESERVATION}`. It stays charged and is **not** re-sent under the same ID.
+  Calling `request()` again with the same ID and a new `occurred_at` makes the frozen
+  ledger raise `RegistryConflict`. That surfaces as a halt, never a retry.
+- A `completed` row with raw evidence but no `normalized` row resumes normalization
+  deterministically. New `T2`/`T3` are stamped at resume time, which is later and therefore
+  conservative.
+
+### 14.5 Budget and polling (envelope from Prep C)
+
+| Pool | Monthly ceiling | Daily |
+| --- | --- | --- |
+| Metadata (`META_*`, cache 30 d) | ≤ 4 | — |
+| Fixtures (2 competitions × ~2/week, cache 24 h) | ≤ 18 | — |
+| Scheduled odds (inventory + pre-match windows) | ≤ 135 | scheduled total (all pools) ≤ 6/day |
+| Conditional targeted refresh | ≤ 30 (≤ 1/day) | — |
+| **Planned total** | **≤ 187** | — |
+| Unplanned headroom (retries, cache misses) | 33 (= 220 − 187) | 7-unit daily cap enforced by the frozen ledger |
+| Protected reserve | 30. Never touched by the adapter | — |
+
+Scheduler (`scheduler.py`, pure, deterministic from the fixture list and the policy):
+
+- **Kickoff clusters:** fixtures of either competition whose kickoffs fall inside the same
+  3-hour block.
+- **Windows by priority:**
+  1. `T-75m` per cluster;
+  2. `T-6h` per matchday;
+  3. daily inventory (08:00 UTC, only if a fixture is within 72 h);
+  4. fixtures refresh (Mon and Thu 06:00 UTC);
+  5. monthly metadata.
+- Where the endpoint supports several tournaments and bookmakers per call (verified at G2),
+  one call covers both competitions and all declared bookmakers. Otherwise it is one call
+  per competition.
+- **Projection:** at plan time, `monthly_used + remaining_planned ≤ 187` and each day's
+  plan ≤ 6. If not, drop windows from the lowest priority up, never the other way round.
+  The plan and every drop are recorded.
+- **Conditional targeted refresh** (never automatic). All of these must hold:
+  1. A PAPER consumer registered a refresh request for a specific (event, market)
+     whose head is unusable only because of `STALE` or `MISSING`, not because of a
+     BLOCKED/SUSPENDED state.
+  2. `S − guard − now ≥ 15 min`.
+  3. The conditional pool has capacity (≤ 1/day, ≤ 30/month).
+  4. The frozen ledger allows it: daily < 7 and normal < 220.
+  5. The projection still covers the remaining scheduled windows.
+  6. The circuit is closed.
+
+  A refused refresh is recorded with its reason.
+
+---
+
+## 15. Failure semantics — D13
+
+Default: **no usable observation**. Columns: *Evidence* = what is retained; *Coverage* =
+frozen `CoverageStatus` + frozen `ReasonCode` (adapter detail code in `note`); *Head* =
+PIT effect. "BLOCKED head" means a BLOCKED `MarketBookDocument` + PIT record for each
+affected in-scope book whose entity is resolvable; unresolvable items get coverage only.
+
+| # | Failure | Evidence retained | Coverage | Observation / head |
+| --- | --- | --- | --- | --- |
+| F-01 | Gate missing (no G1/G2/G2R, circuit open, wrong clock, test policy in live) | acquisition `planned` + refusal | NOT_ATTEMPTED, `CONFIGURATION_MISMATCH` | none |
+| F-02 | Quota blocked (daily/normal/genesis/provider exhausted) | quota `quota_request_blocked` row + acquisition | NOT_ATTEMPTED, `ATTEMPT_BUDGET_EXHAUSTED` | none; prior heads age out by TTL |
+| F-03 | Quota time regressed / `ClockFault` | quota row (if written) + acquisition; halt | NOT_ATTEMPTED, `CONFIGURATION_MISMATCH` (`CLOCK_FAULT`) | none; runner halts |
+| F-04 | Credential missing, bad permissions, fingerprint mismatch | acquisition refusal | NOT_ATTEMPTED, `CONFIGURATION_MISMATCH` | none; halt |
+| F-05 | Transport error before any response | quota charged; acquisition `completed{NO_RESPONSE, sanitized_error}` | MISSING, `MISSING_EVIDENCE` | none; ≤ 1 retry (§14.3) |
+| F-06 | Truncated body / length mismatch / oversize | partial bytes stored as raw (`outcome=TRUNCATED`) after secret scan | REJECTED, `SCHEMA_REJECTED` | none, no tombstones |
+| F-07 | 3xx | raw body (scanned) + headers | REJECTED, `SOURCE_CONTRACT_VIOLATION` (`REDIRECT_REFUSED`) | none |
+| F-08 | 401/403 | raw body (scanned) | REJECTED, `CONFIGURATION_MISMATCH` (`AUTH_REJECTED`) | none; capability BLOCKED; circuit open |
+| F-09 | 429 | raw body (scanned) + retry-after | NOT_ATTEMPTED, `ATTEMPT_BUDGET_EXHAUSTED` (`RATE_LIMITED`) | none; circuit per §14.3 |
+| F-10 | 5xx / provider error envelope in 2xx | raw body | MISSING, `MISSING_EVIDENCE` (`PROVIDER_ERROR`) | none; ≤ 1 retry (5xx only) |
+| F-11 | Secret echoed in body | **no raw bytes**; hash + length + redacted derivative in `quarantine/` | QUARANTINED, `ARTIFACT_TAMPERED` (`SECRET_ECHO`) | none; halt; human rotates key |
+| F-12 | Clock skew / missing Date (live) | raw | QUARANTINED, `CRITICAL_UNCERTAINTY` (`CLOCK_SKEW`) | none |
+| F-13 | Non-JSON, invalid UTF-8, duplicate keys, NaN/Infinity, wrong content-type | raw | REJECTED, `SCHEMA_REJECTED` | none, no tombstones |
+| F-14 | Envelope schema mismatch (missing required keys, wrong types) | raw | REJECTED, `SCHEMA_REJECTED` | none, no tombstones |
+| F-15 | Partial payload (provider completeness flag, or a required list missing for part of the scope) | raw | REJECTED (scope), `MISSING_EVIDENCE` (`PARTIAL_RESPONSE`) | well-formed books present **are** emitted; **no ABSENT tombstones** |
+| F-16 | Competition not allowlisted | raw | REJECTED, `UNSUPPORTED_MARKET` (`OUT_OF_SCOPE_COMPETITION`), aggregated | none |
+| F-17 | Bookmaker not declared / market ID not mapped / line ≠ 2.5 / line unidentified | raw | REJECTED, `UNSUPPORTED_MARKET` (`OUT_OF_SCOPE_*` / `LINE_UNIDENTIFIED`), aggregated | none (never merged) |
+| F-18 | Duplicate book with differing content | raw | REJECTED, `CONTRADICTORY_EVIDENCE` (`CONTRADICTORY_DUPLICATE`) | BLOCKED head |
+| F-19 | Incomplete or unmapped outcome set | raw | REJECTED, `SCHEMA_REJECTED` | BLOCKED head |
+| F-20 | Invalid price / incoherent overround | raw | REJECTED, `PRICE_SANITY_FAILED` / `CONTRADICTORY_EVIDENCE` | BLOCKED head |
+| F-21 | Fixture identity conflict | raw + registry conflict row | AMBIGUOUS, `AMBIGUOUS_IDENTITY` (`IDENTITY_CONFLICT`) | BLOCKED heads for all known books of the event; quarantine until a new derivation source |
+| F-22 | Participant ambiguous (home = away, missing ID, wrong type) | raw | AMBIGUOUS, `AMBIGUOUS_IDENTITY` | BLOCKED heads if the fixture ID resolves, else none |
+| F-23 | Unknown event / market / outcome status | raw | REJECTED, `CRITICAL_UNCERTAINTY` (`UNKNOWN_*_STATUS`) | BLOCKED head(s) |
+| F-24 | Contradictory status | raw | REJECTED, `CONTRADICTORY_EVIDENCE` | BLOCKED head(s) |
+| F-25 | Market suspended / outcome inactive | raw | AVAILABLE (state recorded; artifact = normalized hash) | SUSPENDED head (no prices) |
+| F-26 | Event not pre-match | raw | REJECTED, `EXPIRED` (`EVENT_NOT_PREMATCH`) | BLOCKED heads |
+| F-27 | Capture after guard (`T1 ≥ S − 300 s`) | raw | REJECTED, `EXPIRED` (`PREMATCH_WINDOW_CLOSED`) | none (older OPEN records already end at `S − guard`) |
+| F-28 | Provider timestamp anomaly (§6.4) | raw | REJECTED, `NOT_AVAILABLE_AT_DECISION` (`TIMESTAMP_*`) | BLOCKED head |
+| F-29 | Fixture join missing or stale | raw | MISSING, `STALE_EVIDENCE` (`EVENT_METADATA_STALE`) | BLOCKED heads |
+| F-30 | Expected book absent from a complete response | raw + scope artifact | AVAILABLE (state recorded) | ABSENT head |
+| F-31 | Config / map digest mismatch at runtime | none new | NOT_ATTEMPTED, `CONFIGURATION_MISMATCH` | none; halt |
+| F-32 | Evidence immutability conflict / tampered bytes on read | existing bytes untouched | QUARANTINED, `ARTIFACT_TAMPERED` | none; halt |
+| F-33 | PIT append conflict | none new | QUARANTINED, `ARTIFACT_TAMPERED` | none; halt |
+| F-34 | Cache miss / expiry / invalid (META_*) | quota billable row + acquisition `cache_miss_reason` | (per billable outcome) | per billable outcome; never silent |
+| F-35 | Orphaned reservation after crash | acquisition `reconciled` | MISSING, `MISSING_EVIDENCE` (`ORPHANED_RESERVATION`) | none |
+| F-36 | Two READY market-book sources at `D` / no READY source | — | (reader) `Unusable` | none usable (`PASS_DATA_CAPABILITY_NOT_READY` or ambiguity) |
+| F-37 | Quota divergence vs provider headers | acquisition + headers | NOT_ATTEMPTED, `CONFIGURATION_MISMATCH` (`QUOTA_DIVERGENCE`) | none; halt |
+
+`errors.AdapterFailure` enumerates every detail code above. Each code maps to exactly one
+frozen `ReasonCode`, and a test (FM-00) asserts the mapping is total.
+
+---
+
+## 16. Authority and approval gates — D11 (resolves Q9)
+
+Code can check gates. Only a human can satisfy them. Agents (including the implementing
+model) **must never** create, edit or append gate records, store a credential, or make a
+request to an OddsPapi host.
+
+### 16.1 G0 — architecture accepted (before Stage 0)
+
+The human accepts this document at its commit SHA and records it in
+`adapters/DECISIONS/ADR-A001-v05-slice1-architecture.md` (status ACCEPTED, approver,
+date, reviewed commit). That permits Stages 0–7 with fixtures only.
+
+### 16.2 G1 — storing a read-only API credential
+
+Prerequisites:
+
+- Stages 0–7 GREEN, including a GREEN secret-handling suite.
+- The human has **reverified OddsPapi terms** (the frozen policy carries
+  `provider_terms_reverification_required: true`): free allowance ≥ 250 calls/month,
+  per-request metering, permitted personal/research use and local storage of responses,
+  one account per person. A dated snapshot goes in `adapters/evidence/provider_terms/`
+  with its SHA-256. If the allowance is **< 250** or metering is not per-request, stop:
+  §20 FR-1 (**FOUNDATION REOPEN REQUIRED**).
+- The key belongs to the operator's single legitimate account and is used only for
+  read-only data access.
+- Storage path and permissions comply with §7.5.
+- A rotation/revocation procedure is written in `adapters/README.md`.
+
+Record: `{gate:"G1", approval_reference, approver, granted_at (trusted clock),
+terms_snapshot_sha256, licensing_note (exact string for contracts), credential_fingerprint,
+credential_path_policy, valid_through}`.
+
+### 16.3 G2 — the first live OddsPapi requests
+
+Prerequisites: G1; OS time-sync attestation; the runner in `--live-verification` mode.
+
+Scope: an **exhaustive list of ≤ 5 canonical requests** pinned by `provider_request_hash`.
+For example: `META_BOOKMAKERS`, `META_MARKETS` (soccer), `META_TOURNAMENTS` (soccer),
+`FIXTURES` (one competition), `ODDS` (one competition, declared bookmakers). The record also
+fixes a maximum call count equal to the list length and a validity window ≤ 72 h. The
+runner refuses any request not on the list.
+
+Output (raw only; no normalization emitted operationally):
+
+- a **schema verification report** comparing live bytes with the doc-derived fixture
+  schemas (fields, types, status values, timestamp formats and offsets, `Date` header
+  presence, content-encoding, quota headers, multi-tournament and bookmaker-filter support);
+- proposed pinned map values (tournament, market, outcome and bookmaker IDs) as a
+  **human-reviewed commit** to `adapters/config/`. The commit flips the corresponding
+  `verified_live: true`. It creates a new `derivation_version`.
+
+Record: `{gate:"G2", approval_reference, approver, granted_at, request_hashes[],
+max_calls, valid_from, valid_through}`.
+
+### 16.4 G2R — recurring scheduled capture (capability still not READY)
+
+Prerequisites:
+
+- G2 report accepted.
+- Maps pinned with no `fixture_only` entries.
+- Fixtures regenerated from, or checked against, the live schema, with RED→GREEN evidence
+  of every parser change.
+- Scheduler plan within §14.5.
+
+Record: `{gate:"G2R", derivation_version, policy_digest, plan_digest, valid_from,
+valid_through ≤ 35 days}`.
+
+During G2R, market-book sources are registered with `operational_status = UNKNOWN` and
+`point_in_time_reliability = "unverified"`. PIT records accumulate but nothing is
+consumable, because `require_ready_at` fails.
+
+### 16.5 G3 — marking a provider capability READY
+
+Prerequisites (all evidenced under `adapters/evidence/G3/`):
+
+1. ≥ 14 consecutive days of G2R capture with no unresolved CRITICAL/HIGH failure
+   (F-08, F-11, F-12, F-21, F-31–F-33, F-37 count as CRITICAL).
+2. 100% of normalized documents pass `verify_derivation`. `QuotaLedger.verify()`,
+   `EvidenceStore.verify_manifest()`, `VerifiedCacheStore.verify()` and PIT/identity/
+   acquisition ledger verification all pass. The runtime secret scan is clean.
+3. Every status-map and market-map entry used is `verified_live: true`.
+4. Clock attestation plus zero `CLOCK_SKEW` quarantines in the last 7 days.
+5. Frozen suite unchanged and GREEN. Freeze guard GREEN.
+6. An **independent hostile review** of the adapter branch (same standard as the T-series
+   audits) finds no unresolved CRITICAL/HIGH.
+
+Record: `{gate:"G3", derivation_version, source_id, contract_id, review_reference,
+evidence_hashes[], approver, granted_at}`.
+
+Then the operator CLI (not adapter runtime code) appends:
+
+- `SourceCapability(source_id, provider="oddspapi", access_method="rest_pregame_v4",
+  cost_tier="free_250", …, point_in_time_reliability="prospective_verified",
+  revision_behaviour="append_only_supersede", operational_status=READY, recorded_at=now,
+  version=derivation_version+"-ready-1")`;
+- the `SourceInputBinding(approval_reference=G3 record id)`;
+- `MarketCapability(..., market_supported_by_data_adapter=True, all others None)`.
+
+Adapter runtime code may only ever register `BLOCKED` or `UNKNOWN` capability rows (G-03).
+
+### 16.6 Gate record integrity
+
+- `AdapterAuthorityLedger` is an `AppendOnlyJsonl` at `authority.jsonl`. It is operator-
+  owned and written only by `cli.py approve`. That command refuses to run without an
+  interactive TTY and a typed confirmation phrase, and it requires `approval_reference` to
+  name an out-of-band human artifact (e.g. a signed tag, a PR approval URL, or an ADR
+  commit).
+- Gate checks verify the record exists, is inside its window, and pins digests matching the
+  current config and code (`derivation_version`, request hashes, credential fingerprint).
+- **Honest limit.** File-level controls cannot prove that a human wrote a record. Integrity
+  rests on operator discipline, the implementation prompt's prohibition, and review of the
+  authority ledger at G3. §21 records this.
+
+---
+
+## 17. Interfaces (Python, `genesis_adapters`)
+
+```python
+# clock.py
+class ClockFault(RuntimeError): ...
+class TrustedClock(Protocol):
+    def now(self) -> str: ...                      # canonical iso_utc
+class SystemUtcClock:                              # the only production clock
+    def __init__(self, *, drift_max_ms: int = 1000, floor: str | None = None): ...
+    def now(self) -> str: ...
+
+# secrets.py
+class Secret:
+    fingerprint: str
+    def reveal_for_transport(self, token: object) -> str: ...
+def scan_for_secret(data: bytes, secret: Secret) -> bool: ...   # raw/pct/base64/hex forms
+
+# ids.py
+def gid(kind: str, **parts: object) -> str: ...
+def native_id(value: object, *, declared_type: Literal["int", "str"]) -> dict: ...
+
+# jsonstrict.py
+class StrictJsonError(ValueError): ...
+def loads_strict(data: bytes, *, max_bytes: int) -> Any: ...   # Decimal floats, dup keys, NaN
+
+# oddspapi/endpoints.py
+@dataclass(frozen=True)
+class CanonicalRequest:
+    role: str; method: str; scheme: str; host: str; path: str
+    query: tuple[tuple[str, str], ...]; headers: tuple[tuple[str, str], ...]
+    api_version: str = "v4"
+    def to_json(self) -> dict: ...
+    def canonical_bytes(self) -> bytes: ...
+    @property
+    def provider_request_hash(self) -> str: ...
+def build_request(spec: EndpointSpec, **params: object) -> CanonicalRequest: ...
+
+# oddspapi/transport.py
+@dataclass(frozen=True)
+class TransportResult:
+    outcome: Literal["RESPONSE", "NO_RESPONSE", "TRUNCATED"]
+    http_status: int | None; headers: tuple[tuple[str, str], ...]
+    body: bytes | None; sanitized_error: dict | None
+    request_started_at: str; response_received_at: str | None
+class Transport(Protocol):
+    def send(self, request: CanonicalRequest, *, clock: TrustedClock) -> TransportResult: ...
+
+# oddspapi/quota_gate.py
+class QuotaGate:
+    def __init__(self, ledger: QuotaLedger, cache: VerifiedCacheStore, *, cache_index_path: Path): ...
+    def reserve(self, *, request: CanonicalRequest, request_id: str, occurred_at: str) -> QuotaDecision: ...
+    def cached_bytes(self, decision: QuotaDecision, request: CanonicalRequest) -> bytes | None: ...
+    def publish_cache(self, request: CanonicalRequest, payload: bytes, *, captured_at: str) -> None: ...  # META_* only
+
+# oddspapi/acquisition.py
+class AcquisitionRunner:
+    def __init__(self, *, root: Path, clock: TrustedClock, transport: Transport,
+                 quota: QuotaGate, authority: AdapterAuthorityLedger, config: AdapterConfig,
+                 live: bool): ...
+    def acquire(self, plan_item: PlanItem) -> AcquisitionOutcome: ...
+    def reconcile_after_restart(self) -> tuple[str, ...]: ...
+
+# oddspapi/parser.py  (PURE)
+@dataclass(frozen=True)
+class ParseContext:
+    acquisition_id: str; request: CanonicalRequest; raw_artifact_hash: str
+    raw_observation_id: str; request_started_at: str; response_received_at: str
+    date_header: str | None; maps: AdapterMaps; policy: SlicePolicy
+    identity_prefix: tuple[dict, ...]; expected_scope: frozenset[str] | None
+    fixture_join: FixtureSnapshot | None; response_complete_hint: bool
+def parse_odds_response(raw: bytes, ctx: ParseContext) -> ParsedResponse: ...
+
+# oddspapi/normalize.py  (PURE)
+CODE_VERSION: str
+def market_book_documents(parsed: ParsedResponse, ctx: ParseContext) -> tuple[bytes, ...]: ...
+
+# oddspapi/emit.py
+def emit_response(parsed: ParsedResponse, docs: tuple[bytes, ...], *, stores: AdapterStores,
+                  clock: TrustedClock) -> EmitResult: ...        # stamps T2, T3
+def emit_invalidation(entity_id: str, *, invalidated_observation_id: str, reason: str,
+                      stores: AdapterStores, clock: TrustedClock) -> EmitResult: ...
+
+# oddspapi/reader.py
+class MarketBookReader:
+    def head(self, entity_id: str, decision_at: str) -> UsableBook | Unusable: ...
+
+# oddspapi/manifest.py
+def build_manifest_body(*, event_id: str, market_id: str, decision_at: str,
+                        books: Sequence[UsableBook], selections: Sequence[str],
+                        stores: AdapterStores) -> dict: ...
+
+# oddspapi/verify.py
+def verify_derivation(normalized_observation_id: str, *, stores: AdapterStores) -> None: ...
+def scan_runtime_for_secret(root: Path, secret: Secret) -> tuple[Path, ...]: ...
+def verify_frozen_trees(repo: Path, commit: str = "HEAD") -> None: ...
+
+# oddspapi/scheduler.py  (PURE)
+def plan_month(fixtures: Sequence[FixtureInfo], *, policy: SlicePolicy, month: str,
+               used: QuotaUsage) -> MonthPlan: ...
+def admit_conditional_refresh(request: RefreshRequest, *, state: SchedulerState,
+                              now: str) -> RefreshDecision: ...
+
+# oddspapi/authority.py
+class AdapterAuthorityLedger:
+    def require_gate(self, gate: str, *, at: str, **pins: str) -> dict: ...
+```
+
+---
+
+## 18. Test matrix (RED → GREEN)
+
+Each test is written first and shown RED (import error or wrong behaviour) against the
+stage's starting commit, then GREEN. Transcripts go in `adapters/evidence/S<n>/`.
+
+### Freeze and boundaries
+
+| ID | Test | RED before |
+| --- | --- | --- |
+| FRZ-01 | The six `HEAD:<tree>` SHAs equal §2.1 | guard absent |
+| FRZ-02 | The guard **fails** on a synthetic commit (temp clone) that adds `src/genesis/x.py` and on one that edits `config/…json` | guard absent |
+| FRZ-03 | `git status --porcelain -- src tests config tools DECISIONS v04_pack` is empty after the adapter suite runs | — |
+| FRZ-04 | Frozen suite command GREEN with the same pass/skip counts as the Stage 0 baseline transcript (gate command, recorded) | — |
+| FRZ-05 | AST: `genesis_adapters` imports only public names from `genesis.*`; no attribute assignment to `genesis` modules or classes; no subclass of a frozen authority class overriding a method | scanner absent |
+| FRZ-06 | AST: `socket`, `ssl`, `http.*`, `urllib.request`, `requests`, `httpx`, `aiohttp` imported only by `transport_http.py`; `Secret.reveal_for_transport` called only there | scanner absent |
+| FRZ-07 | AST: no `QuotaReserveAuthorization`, `grant_authorization`, `revoke_authorization` or `BudgetClass.RESERVE` in `genesis_adapters` | scanner absent |
+| FRZ-08 | AST: `FixedClock` and `FakeTransport` defined only in `adapter_tests`; `OperationalStatus.READY` never referenced by adapter runtime modules (only `cli.py approve`) | scanner absent |
+
+### Credentials and request identity
+
+| ID | Test |
+| --- | --- |
+| REQ-01 | Builder rejects the credential param and its case/alias variants (`apiKey`, `APIKEY`, `api_key`, `token`, …) |
+| REQ-02 | Golden vectors: a pinned request → pinned `provider_request_hash`; param order and bookmaker-set order do not change the hash |
+| REQ-03 | Changing path, any param value, bookmaker set, API version or host changes the hash |
+| REQ-04 | Full fixture pipeline with sentinel secret `GENESIS-SENTINEL-KEY-…`: no file under the runtime root, no log line and no exception message contains the raw, percent-encoded, base64 or hex form |
+| REQ-05 | `Secret`: `repr`/`str` masked; `json`, `pickle`, `copy` and `deepcopy` raise; `canonical_json` refuses |
+| REQ-06 | A transport exception whose message contains the secret URL → acquisition row holds only the sanitized class/errno |
+| REQ-07 | Response body echoing the secret → no raw object stored, quarantine hash + redacted derivative, halt (F-11) |
+| REQ-08 | Raw `source_uri` = `oddspapi-request:sha256:<h>` and matches the contract `uri_pattern`; canonical bytes stored at `requests/<h>.json` with `sha256(file) == h` |
+
+### Clock and timestamps
+
+| ID | Test |
+| --- | --- |
+| CLK-01 | `SystemUtcClock` is non-decreasing; a simulated wall jump > 1000 ms raises `ClockFault`; a floor below durable heads raises |
+| CLK-02 | Live runner refuses `FixedClock`, a test quota policy, and missing time-sync attestation |
+| CLK-03 | Persisted `Tq ≤ T0 < T1 ≤ T2 ≤ T3`; replay rejects rows violating it |
+| CLK-04 | `|Hd − T1| = 121 s` → quarantine; 120 s → accepted; missing `Date` in live mode → quarantine |
+| TS-01…05 | Naive, non-UTC offset, unparseable, future (`T1 + 6 s` rejected, `T1 + 5 s` accepted), `S ≤ T1` while pre-match → BLOCKED with the exact reason code |
+| TS-06 | `T1 = S − 300 s` → no OPEN (F-27); `T1 = S − 301 s` → OPEN with `valid_to = S − 300 s` |
+| TS-07 | PIT fields equal §11.4 exactly for OPEN and for each tombstone state |
+
+### Identity
+
+| ID | Test |
+| --- | --- |
+| ID-01 | Golden `gid` vectors for every kind |
+| ID-02 | `17` vs `"17"` in one ID field → `SCHEMA_REJECTED` |
+| ID-03 | Same names with different provider IDs → different participants; same ID with a new name → same participant plus a `NAME_DRIFT` row |
+| ID-04 | Fixture rebound to other participants, competition or swapped home/away → `IDENTITY_CONFLICT`, BLOCKED heads for known books, quarantine |
+| ID-05 | Home = away / missing participant ID → `PARTICIPANT_AMBIGUOUS` |
+| ID-06 | Non-allowlisted tournament → no observation, aggregated coverage |
+| ID-07 | Undeclared bookmaker → excluded; declared-set order irrelevant |
+| ID-08 | Mutation: changing every display name in a fixture leaves every Genesis ID and artifact hash unchanged, except `participant_seen` drift rows |
+| ID-09 | Operational loader refuses maps containing `fixture_only` entries |
+
+### Markets
+
+| ID | Test |
+| --- | --- |
+| MKT-01 | 3 bookmakers × {1X2, O/U 2.5} → 6 books, distinct `entity_id`, same `market_id` across bookmakers |
+| MKT-02 | 5 bookmakers normalize under a test-only policy; the operational policy validator rejects > 3 and non-sportsbook kinds |
+| MKT-03 | Lines {1.5, 2.25, 2.5, 2.75, 3.5} → only 2.5 emitted; `2.50` literal ≡ 2.5; `2.4999` excluded |
+| MKT-04 | Two differing 2.5 entries for one bookmaker → BLOCKED `CONTRADICTORY_DUPLICATE`; identical duplicates collapse |
+| MKT-05 | O/U market without a line, or line from an undeclared source → excluded |
+| MKT-06 | 1X2 missing draw → BLOCKED `INCOMPLETE_SELECTIONS`; extra unmapped outcome → BLOCKED `UNMAPPED_OUTCOME` |
+| MKT-07 | Odds: `1.0`, `0`, `-2`, `NaN`, `Infinity`, `1000.5`, `1.23456` rejected; `2` → `"2"`; `1.910` → `"1.91"`; the value never passes through `float` |
+| MKT-08 | Overround bands: just inside passes, just outside → BLOCKED |
+| MKT-09 | Swapping outcome labels while keeping outcome IDs changes no mapping |
+
+### Status
+
+| ID | Test |
+| --- | --- |
+| ST-01 | Every allowlisted value maps exactly |
+| ST-02 | Unknown event status → BLOCKED, no `selections` key |
+| ST-03 | Unknown market/outcome status → BLOCKED |
+| ST-04 | Contradictions (finished + active price; active + missing price) → BLOCKED `CONTRADICTORY_STATUS` |
+| ST-05 | Suspended → SUSPENDED head that supersedes an earlier OPEN still inside its TTL (reader returns `Unusable(SUSPENDED)`) |
+| ST-06 | Type-mismatched status value (`1` vs `"1"`) → unknown |
+
+### Evidence
+
+| ID | Test |
+| --- | --- |
+| EV-01 | Raw bytes stored byte-exact; full SHA-256; `get_bytes` verifies |
+| EV-02 | Tampering an object file → `get_bytes`/`verify_manifest` fail; re-publishing different bytes at an existing path → `ImmutableConflict` |
+| EV-03 | For every fixture, `verify_derivation` reproduces byte-identical normalized documents from raw bytes, the acquisition record and pinned context |
+| EV-04 | Normalized observations match the contract (`parser_version = derivation_version`, DERIVED, `source_uri` pattern); the document carries `raw_artifact_hash` and `raw_observation_id` |
+| EV-05 | End-to-end: build a manifest body at `D`, publish it, build an `EvidencePack` v2 → frozen `verify_for_pack` returns the pinned records (test registries: capability READY, binding approved with a `synthetic-test-only-` reference) |
+| EV-06 | A manifest pinning a SUSPENDED/BLOCKED/ABSENT head fails the frozen verifier; a manifest pinning an OPEN record that is no longer the head fails it too |
+| EV-07 | Malformed JSON, duplicate keys, NaN, invalid UTF-8, wrong content-type, oversize → raw retained, no normalized observation, coverage REJECTED |
+| EV-08 | Partial payload → present books emitted, zero ABSENT tombstones |
+
+### PIT and corrections
+
+| ID | Test |
+| --- | --- |
+| PIT-01 | Two captures: as-of between `T3_1` and `T3_2` → first; after `T3_2` → second |
+| PIT-02 | As-of at `T3 − 1 µs` → not visible |
+| PIT-03 | Two records with equal `valid_from` for one entity → reader `Unusable(AMBIGUOUS)` (frozen `PITViolation`) |
+| PIT-04 | SUSPENDED/BLOCKED head blocks an older OPEN still within its TTL, and keeps blocking after the old OPEN's `valid_to` and after a changed `S` |
+| PIT-05 | Complete response lacking an expected-scope book → ABSENT tombstone; partial or failed response → none |
+| PIT-06 | Invalidation: as-of `< T_inv` returns the original, `≥ T_inv` → `Unusable(INVALIDATED)`; a manifest built at an earlier `D` still verifies; invalidating a non-head → `INVALIDATION_MOOT`, no record |
+| PIT-07 | Derivation change: new source; old capability BLOCKED at `T_fix`; as-of `< T_fix` uses the old source; `≥ T_fix` the old source fails; two READY sources → fail closed |
+| PIT-08 | `superseded_*` always `None`; `record_id` deterministic from (source, artifact); crash between normalized publish and PIT append → resume reuses the observation, one PIT row |
+| PIT-09 | Wipe the derived stores, rebuild from raw + acquisition ledger → identical normalized artifact hashes and PIT `record_id`s |
+
+### Freshness and cache
+
+| ID | Test |
+| --- | --- |
+| FR-01 | As-of at `T1 + 3600 s − 1 µs` usable; at `T1 + 3600 s` → `Unusable(MISSING_OR_STALE)` |
+| FR-02 | `valid_to` capped at `S − 300 s` |
+| FR-03 | A failed or blocked refresh leaves the old record's `valid_to` unchanged and adds no record |
+| FR-04 | ODDS: cache publish and lookup refused; a cache hit never creates a normalized observation or PIT record |
+| FR-05 | META cache hit: 0 units, frozen `quota_verified_cache_hit` row; expired or invalidated entry → billable row with `cache_miss_reason` |
+| FR-06 | Cache entry for a different `provider_request_hash` → not usable |
+
+### Quota
+
+| ID | Test |
+| --- | --- |
+| Q-01 | Every `sent` acquisition has exactly one prior allowed quota row with the same `request_id` and `provider_request_hash`; no send without it |
+| Q-02 | Eighth request of a UTC day → blocked, not sent, F-02 coverage |
+| Q-03 | 221st normal unit → blocked; adapter never requests RESERVE |
+| Q-04 | Timeout, 5xx, 429, 401 each stay charged; a retry is charged under a new `request_id` |
+| Q-05 | Retry policy table (§14.3) exhaustively |
+| Q-06 | Crash after reservation → `ORPHANED_RESERVATION`, no re-send; re-request with the same ID and a new time → halt (frozen `RegistryConflict`) |
+| Q-07 | Clock regression vs ledger head → `ClockFault` halt |
+| Q-08 | Scheduler: plan ≤ 187/month, ≤ 6/day, priority drop order; conditional refresh admitted only when all §14.5 conditions hold |
+| Q-09 | Provider usage header > ledger → `QUOTA_DIVERGENCE` halt |
+| Q-10 | Live mode loads the frozen active policy unchanged (digest `3cdf9e3e…a0f9`); tests only with `test_fixture` |
+
+### Gates
+
+| ID | Test |
+| --- | --- |
+| G-01 | Live transport refuses without G1/G2 (or G2R) records, a matching credential fingerprint, file permissions and time-sync attestation |
+| G-02 | Under G2 only the pinned request hashes are sendable, at most `max_calls`, inside the window |
+| G-03 | Adapter runtime can register BLOCKED/UNKNOWN capability rows only; READY only via `cli.py approve` after a G3 record |
+| G-04 | 401/403 → capability BLOCKED for all market-book sources, circuit open |
+
+### Failure matrix
+
+| ID | Test |
+| --- | --- |
+| FM-00 | `AdapterFailure → ReasonCode` mapping is total and single-valued |
+| FM-01…37 | Table-driven: for each §15 row, assert retained evidence, coverage status/reason/note, and the observation/head effect |
+
+---
+
+## 19. Staged implementation sequence
+
+Global GREEN criteria for **every** stage:
+
+1. Adapter suite fully GREEN.
+2. Frozen suite GREEN with counts identical to the Stage 0 baseline.
+3. `compileall` clean.
+4. `git diff --check` clean.
+5. FRZ-01/02/03/05–08 GREEN.
+6. No file changed under a frozen tree.
+7. RED and GREEN transcripts plus `HASHES.sha256` committed under `adapters/evidence/S<n>/`.
+8. One commit per stage (or RED commit + GREEN commit), message prefix `v05(S<n>):`.
+
+| Stage | Build | Stage-specific GREEN |
+| --- | --- | --- |
+| **S0** Skeleton + freeze guard | `adapters/` tree, `README.md`, nested `.gitattributes`, `adapter_tests/__init__.py`, `support.py` shell, `verify.verify_frozen_trees`, static scanners | FRZ-01…08. Frozen-suite baseline transcript recorded (platform, Python, counts) |
+| **S1** Primitives | `ids`, `jsonstrict`, `clock`, `secrets.Secret` (no loader), `config` (loaders + digests + `derivation_version`), `endpoints` | REQ-01/02/03/05/08 (hash part), CLK-01, ID-01/02, MKT-07 (literal parsing) |
+| **S2** Quota + acquisition | `quota_gate`, `transport` protocol, `FakeTransport` (tests), `acquisition` ledger/runner (fixture mode), retry/circuit, restart reconciliation | Q-01…07, Q-10, CLK-03, REQ-06, F-01…F-05, F-07…F-10, F-35 |
+| **S3** Raw capture | Raw contract registration, secret scan, skew check, size cap, raw publish, META cache publish | EV-01/02/07, REQ-07, CLK-04, FR-05/06, F-06, F-11…F-14, F-34 |
+| **S4** Parsing + normalization (pure) | `maps`, `identity_registry`, `parser`, `normalize`, doc-derived fixtures + `FIXTURES.sha256` | MKT-*, ST-*, ID-02…09, TS-01…06, EV-03/04/08, F-15…F-29 (document level) |
+| **S5** Emission + PIT + reader | `emit` (normalized evidence, structured evidence, PIT, coverage), expected scope, tombstones, invalidation, derivation-versioned sources, `reader` | PIT-01…09, FR-01…04, TS-07, ST-05, F-25…F-33, F-36 |
+| **S6** Manifest + end-to-end | `manifest`, `verify_derivation`, full fixture pipeline, failure matrix, runtime secret scan, deterministic rebuild | EV-05/06, PIT-09, FM-00…37, REQ-04 |
+| **S7** Scheduler, authority, dormant live transport | `scheduler`, `authority`, `transport_http` (tested **only** against a loopback HTTPS test server with a self-signed CA injected for tests; the production host is pinned and never contacted), `CredentialSource` (tested with a temp file holding the sentinel), `cli` | Q-08/09, G-01…04, CLK-02, F-37. Proof that no test contacts a non-loopback address (socket audit hook in `adapter_tests`) |
+| **STOP** | — | Implementation ends here. G1, G2, G2R and G3 are human actions (§16). The implementing agent does not perform them |
+
+---
+
+## 20. Foundation reopen register
+
+**No FOUNDATION REOPEN is required for slice 1.** These are the known triggers:
+
+| ID | Trigger | Why it would need a reopen | Status |
+| --- | --- | --- | --- |
+| FR-1 | G1 terms reverification finds allowance < 250/month or non-per-request metering | `QuotaPolicy.require_operational` hard-codes `(250, 220, 30, 7)` and `config/oddspapi_quota_policy_v2.json` is frozen | **FOUNDATION REOPEN REQUIRED if triggered.** Acquisition must not start |
+| FR-2 | A second quota/ingestion writer, multi-host deployment, or foundation consumers needing trusted time | `QuotaLedger`/ingestion accept writer-declared times (freeze residual). The adapter mitigates only its own path (§6.1) | Deferred; **reopen required before** any second writer |
+| FR-3 | A foundation consumer (selection/execution) must read bookmaker prices directly | `MarketSnapshot` lacks bookmaker/line/status vocabulary and has no consumer | Deferred. Slice 1 is adapter-owned |
+| FR-4 | Wish to account documented non-metered endpoints at 0 units | The frozen ledger rejects `billable_units ≤ 0` on billable rows | Deferred. Slice 1 charges 1 unit (safe over-count) |
+| FR-5 | Logging redaction gap (`apiKey`/`apikey`, URL-embedded secrets not masked by `genesis.logging._redact`) | Frozen `SENSITIVE_KEYS` | Deferred hygiene fix. Slice 1 never passes secrets to any logger (REQ-04) |
+| FR-6 | Retroactive PIT supersession | Not needed: tombstone heads and derivation sources replace it (§13) | Closed by design. No reopen |
+
+---
+
+## 21. Residual assumptions and deferred work
+
+Verified at G2 (until then, fixture-only):
+
+- A1 Endpoint paths, parameter names, multi-tournament and bookmaker-filter support, and
+  the `apiKey` query-parameter credential placement (Prep A).
+- A2 Response field names and types for fixtures, participants, market/outcome IDs, lines,
+  prices and statuses. Whether ODDS responses include kickoff and participants (§8.3).
+- A3 Provider timestamp formats and offsets. The semantics of per-outcome timestamps
+  ("changed" vs "checked") — provenance only until verified.
+- A4 `Date` header presence. Content-encoding behaviour with `accept-encoding: identity`.
+  Quota/usage headers.
+- A5 Status value sets. Ambiguous documented values stay excluded (BLOCKED) until
+  evidenced.
+- A6 Whether any declared bookmaker is an exchange. Exchanges are excluded regardless.
+
+Policy assumptions (versioned; change = new `derivation_version`):
+
+- A7 TTL 3600 s, guard 300 s, skew 120 s, overround bands, odds bounds, 14-day G3 capture
+  length.
+- A8 Budget split 4/18/135/30 within 187. Windows and priorities (§14.5).
+
+Operational:
+
+- A9 Single process, single host, file-backed stores (frozen assumption). The filesystem
+  handles ~10⁵ small artifacts per month.
+- A10 Gate-record authenticity rests on operator discipline (§16.6).
+- A11 The frozen-suite baseline count on the implementation platform is recorded at S0,
+  not assumed. The freeze record's 493/1-skip is Windows; Linux skips the containment tests.
+
+Deferred (not slice 1):
+
+- Raw captures as separate `evidence`-role manifest inputs (§11.5).
+- Historical reconstruction.
+- Additional competitions, markets, lines or bookmakers.
+- Exchanges and LAY (needs the LAY price-sanity fix first).
+- Cross-provider participant crosswalk.
+- The Betfair and The Odds API adapters (future-source candidates per Prep A).
+- Cloud scheduling.
+- A `MarketSnapshot` projection (FR-3).
+
+---
+
+## 22. Prep B resolution index
+
+Numbering follows the task brief where it gave numbers; other items are indexed by topic.
+
+| Prep B item | Resolution |
+| --- | --- |
+| Freeze semantics vs new files under frozen trees | §2: new sibling tree `adapters/`; tree-SHA invariance guard |
+| Q1 / Q3: `available_at` vs `retrieved_at`, `first_seen_at`, `parse_ready_at`; trusted clock | §6 |
+| Q2: corrections/supersession for immutable PIT records | §13 |
+| Reject vs normalize non-UTC offsets | §6.4: reject (frozen `SOURCE_AVAILABILITY.md` rule 2) |
+| Q4: `MarketSnapshot` lacks bookmaker/line/status | §9: adapter-owned `MarketBookDocument`; `MarketSnapshot` untouched (§20 FR-3) |
+| Q5: staleness / cache freshness / polling | §12, §14.5 |
+| Provider-request-hash canonicalization | §7.3 |
+| Trusted-clock authority | §6.1 |
+| Q9: authority for credentials / live read-only calls | §16 |
+| Source/market readiness and human-approval boundaries | §16.4–16.5; `MarketCapability` stays not-ready for qualification |
+| No repository-defined adapter location | §4 |
+
+Contradictions found in the repository and how they are settled:
+
+| # | Contradiction | Settlement |
+| --- | --- | --- |
+| X1 | `V04_FOUNDATION_FREEZE.md` says to branch from `4f11606`; the tag is `2278e2a` | Both have identical executable trees. The guard pins tree SHAs, not a base commit (§2.1.6) |
+| X2 | `SOURCE_AVAILABILITY.md` rule 5 ("corrections add a new record") vs `BitemporalRecord.superseded_*` fields that can't be set retroactively | Corrections are new heads/sources. `superseded_*` always `None` (§13) |
+| X3 | `DATA_DICTIONARY.md` presents `MarketSnapshot` as the price record, but nothing consumes it and it can't express bookmaker/line | Adapter-owned document. No foundation edit (§9) |
+| X4 | `OPERATIONS_RUNBOOK.md` "do not add credentials to this repository" vs a live provider needing a key | Key lives outside the repository and runtime root, behind G1 (§7.5) |
+| X5 | Frozen log redaction claims sensitive-key masking but misses `apiKey` and URL-embedded secrets | Secrets unreachable by construction. Deferred hygiene (§20 FR-5) |
+| X6 | The v0.4 blueprint allows "non-metered endpoints accordingly", but the frozen ledger cannot record zero-unit billable calls | Charge 1 unit (§14.2). Deferred FR-4 |
+| X7 | Feature manifest field `raw_artifact_hash` vs the need to pin decision-consumable normalized bytes | The field carries the normalized artifact hash. Raw is bound transitively plus `verify_derivation` (§11.5) |
+
+---
+
+## 23. Implementation prompt (copy-paste)
+
+```text
+ROLE
+You are implementing Project Genesis V0.5 slice 1 (OddsPapi read-only adapter) exactly as
+specified by the design authority V05_ADAPTER_ARCHITECTURE.md at the repository root.
+That document is binding. Where it and your judgement differ, it wins; if it is
+internally inconsistent or impossible against the frozen code, STOP and report the exact
+conflict — do not work around it.
+
+REPOSITORY STATE
+- Work on the branch you were given, which descends from tag v0.4-foundation-freeze
+  (2278e2a68083f7ac58d796b1ed9c43d50020b6b0).
+- Frozen trees (NO-TOUCH, no file added/edited/deleted/renamed): src/, tests/, config/,
+  tools/, DECISIONS/, v04_pack/. Their tree SHAs must stay exactly:
+    src 51cb635bc42b993815b6c02a23c4c3ceb7d98476
+    tests e90b298180068fec03ba7e2fa81957082e7fb3ce
+    config abd22db01ff482a8da84634ee740ba382b68c804
+    tools a0e3411edb4e068fd4708050516cb6870834e7ac
+    DECISIONS cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64
+    v04_pack 3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12
+- Also never modify: remediation_evidence/**, .gitignore, top-level .gitattributes,
+  pyproject.toml, requirements.lock. Never rewrite history, force-push, or amend.
+- All new work goes under adapters/ exactly per §4 (package genesis_adapters in
+  adapters/src, tests package adapter_tests in adapters/adapter_tests, config in
+  adapters/config, evidence in adapters/evidence/S<n>/). Runtime data defaults to
+  runtime/adapters/oddspapi (already git-ignored) and is never committed.
+
+ABSOLUTE PROHIBITIONS
+- No network access to any OddsPapi (or other provider) host. No credential creation,
+  storage or use. No real API key anywhere. Tests use the sentinel
+  "GENESIS-SENTINEL-KEY-0123456789abcdef" only.
+- Do not create, edit or append any gate/approval record (G0–G3), any file under
+  adapters/approvals or authority.jsonl outside tests' temp dirs, or any ADR marked
+  ACCEPTED. Do not register any SourceCapability as READY outside test temp registries.
+- Do not construct QuotaReserveAuthorization, call grant_authorization /
+  revoke_authorization, or use BudgetClass.RESERVE.
+- Do not monkeypatch, subclass-override or call private (_-prefixed) members of any
+  genesis.* module. Use only public frozen APIs listed in §5.
+- Do not import socket/ssl/http/urllib.request/requests/httpx/aiohttp anywhere except
+  genesis_adapters/oddspapi/transport_http.py (Stage 7), whose tests use only a loopback
+  test server.
+- Never use float for odds, lines or money; parse JSON with parse_float=Decimal.
+- Never normalize non-UTC provider timestamps; reject per §6.4.
+- Never carry a price forward, re-stamp an observation, or create an observation from a
+  cache hit. ODDS responses are never cached.
+- Never record str(exception) from transport code; never persist a URL string.
+
+METHOD
+- Implement Stages S0 → S7 of §19 in order. For each stage:
+  1. Write the stage's tests from §18 first; run them and save the RED transcript to
+     adapters/evidence/S<n>/RED.txt (import errors / failing asserts are acceptable RED).
+  2. Implement the minimum code to make them GREEN, following §6–§17 field-for-field
+     (names, schemas, time rules, IDs, reason mappings, failure table rows).
+  3. Run, and save transcripts to adapters/evidence/S<n>/:
+       python -m unittest discover -s adapters/adapter_tests -t adapters -v   (GREEN.txt)
+       python -m unittest discover -s tests -t . -v                            (FROZEN.txt)
+       python -m compileall -q src tests adapters/src adapters/adapter_tests
+       git diff --check
+       for t in src tests config tools DECISIONS v04_pack; do git rev-parse HEAD:$t; done
+     plus HASHES.sha256 over the transcripts.
+  4. GREEN requires: all adapter tests pass; frozen suite pass/skip counts identical to the
+     S0 baseline; freeze guard and static scanners pass; no frozen-tree change.
+  5. Commit with prefix "v05(S<n>): …". Push only to the assigned branch.
+- Fixtures: build doc-derived synthetic OddsPapi v4 payloads under
+  adapters/adapter_tests/fixtures/oddspapi/v4/, clearly marked fixture_only, with
+  FIXTURES.sha256. Include: happy path (2 competitions, 3 bookmakers, 1X2 + O/U lines
+  1.5/2.25/2.5/2.75/3.5), 5-bookmaker variant, every failure row F-01…F-37 that is
+  payload-driven, identity conflicts, status unknown/contradictory, timestamp anomalies,
+  partial payload, secret echo, duplicate keys, NaN, oversize.
+- Clocks: production code receives a TrustedClock; tests use FixedClock from
+  adapter_tests/support.py only. Parsers/normalizers are pure and never read a clock.
+- Determinism: canonical_json from genesis.repro for every hashed/persisted JSON; gid()
+  per §8.1; derivation_version per §9.2; PIT record_id per §11.4.
+- Evidence flow order exactly per §11.1; PIT timestamps exactly per §6.2/§11.4.
+- The end-to-end test (EV-05) must pass the frozen FeatureInputManifestStore.verify_for_pack
+  unchanged, using temp registries with a synthetic-test-only binding reference.
+
+STOP CONDITIONS (report and halt, do not improvise)
+- Any requirement appears to need a change inside a frozen tree → report it as
+  "FOUNDATION REOPEN REQUIRED: <item>" with the exact frozen file/line and stop.
+- Any test would need network access, a real credential, or an approval record.
+- Frozen suite count changes, or any frozen tree SHA changes.
+- After S7: stop. Do not attempt G1/G2/G2R/G3 or any live request.
+
+DELIVERABLE
+- Stages S0–S7 committed with RED/GREEN evidence, adapters/README.md with run commands,
+  and a final adapters/evidence/S7/SUMMARY.md listing: per-stage test counts, frozen-suite
+  counts, freeze-guard output, every §18 test ID with pass status, and any deviation
+  (there should be none) with justification.
+```

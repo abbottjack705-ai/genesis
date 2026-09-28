@@ -101,22 +101,39 @@ job per research process) and is torn down with the process.
 
 ## Implementation status and the disabled-activation guard
 
-This ADR is accompanied by a **disabled scaffold**, not an activation:
+The OS primitives are now **implemented and exercised** (not a scaffold), yet
+real-campaign activation remains **disabled**:
 
-- `src/genesis/protected_isolation.py` defines the confinement policy as data
-  (`ResearchProcessConfinement`) and a planner (`plan_confinement`) that emits
-  the exact OS mechanism above as an inspectable, testable descriptor. Its
-  applicator (`apply_confinement`) is **fail-closed**: it refuses to run unless
-  an approval token that no code can currently supply is presented, so real
-  OS confinement cannot be activated by this change.
-- `launch_trusted_protected_evaluator` still raises for any non-test launch
-  (`local_checkpoint_test_only` must be True). The test-only launch path is
-  behaviourally unchanged (no confinement is applied, no timing changes), so
-  the synthetic checkpoint and its retained tests are unaffected.
-- Real activation therefore remains **disabled**: turning it on requires (a)
-  operator approval of this ADR, (b) implementing the AppContainer/Job-Object
-  primitives behind `apply_confinement`, and (c) a fresh independent hostile
-  re-audit.
+- `src/genesis/protected_confinement_win.py` implements the real Windows
+  primitives: a Job Object (`ConfinementJob`: `ACTIVE_PROCESS`=1, per-job memory
+  cap, `KILL_ON_JOB_CLOSE`), a capability-less AppContainer
+  (`AppContainerProfile`: no network capability), revocable filesystem ACL
+  grants (`grant_container_access`/`revoke_container_access`), and a confined
+  **suspended** launch with an explicit inherited-handle allowlist that assigns
+  the process to the job before resuming it (`launch_confined_worker`). Each
+  primitive is verified by benign local integration tests plus mocked
+  fail-closed tests (`tests/test_astra_t6_fb_os_containment.py`).
+- `src/genesis/protected_isolation.py` orchestrates them
+  (`ConfinedResearchProcess` / `launch_confined_research`): profile + job +
+  explicit grants + confined launch, with fail-closed teardown (closing the job
+  kills the tree, then ACLs are revoked and the profile deleted). If any step
+  fails, no worker runs unconfined.
+- Confinement is wired into the launch **only** via `confine_research=True` on
+  the `local_checkpoint_test_only` path, and defaults off. The default
+  (unconfined) checkpoint path and its timing are byte-for-byte unchanged. The
+  worker's strict path resolution tolerates the confinement's denial of ancestor
+  name-resolution by falling back to a best-effort resolve **only** on the
+  container's `PermissionError` (never unconfined), so the boundary can stay
+  minimal ("explicit filesystem access only") without the container being able
+  to enumerate the user's home or appdata.
+- Real activation remains **disabled**: `launch_trusted_protected_evaluator`
+  still raises for any non-test launch; `ACTIVATION_ENABLED` is `False`; and
+  `apply_confinement`, the *real-activation* entry point, still refuses
+  regardless of arguments. Enabling real protected campaigns under this boundary
+  requires (a) operator approval of this ADR, (b) the deployment-time
+  provisioning it describes (a stable container identity with its runtime/code
+  ACLs provisioned once, rather than per launch), and (c) a fresh independent
+  hostile re-audit.
 
 ## Explicit non-decisions
 

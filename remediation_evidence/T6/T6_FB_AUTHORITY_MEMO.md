@@ -151,15 +151,67 @@ filesystem, **no** network capability) + Job Object (single active process, no
 breakaway, `KILL_ON_JOB_CLOSE` for fail-closed teardown), with a named POSIX
 analog.
 
-`src/genesis/protected_isolation.py` is a **disabled scaffold**:
-`ResearchProcessConfinement` encodes the four fixed properties (and refuses to
-relax network/child-process/teardown), `plan_confinement` emits the exact OS
-mechanism as inspectable data, and `apply_confinement` is **fail-closed** — it
-refuses regardless of any token, so this change cannot activate OS confinement.
-It is **not** wired into the local-checkpoint launch, so lifecycle timing and the
-test-only path are byte-for-byte unchanged. ADR-0003's real-activation guard on
+`src/genesis/protected_isolation.py` holds the policy + orchestration
+(`ResearchProcessConfinement` encodes the four fixed properties and refuses to
+relax network/child-process/teardown; `plan_confinement` emits the mechanism as
+inspectable data; `apply_confinement`, the *real-activation* entry, stays
+fail-closed). ADR-0003's real-activation guard on
 `launch_trusted_protected_evaluator` is preserved (non-test launches still
 raise). It does **not** claim the audit hook is a sandbox.
+
+## Part 2b — the real Windows containment primitives (implemented, activation disabled)
+
+The OS boundary is now **implemented and exercised**, not a scaffold
+(`src/genesis/protected_confinement_win.py`):
+
+- **Job Object** (`ConfinementJob`): `ACTIVE_PROCESS`=1 (no escaping child
+  process, breakaway off), per-job/per-process memory cap, `KILL_ON_JOB_CLOSE`
+  (closing the handle kills the tree → deterministic teardown).
+- **AppContainer** (`AppContainerProfile`): a per-launch capability SID created
+  with an **empty** capability set, so the process has **no** network capability;
+  its `SECURITY_CAPABILITIES` is passed to the launch.
+- **Explicit filesystem ACLs** (`grant_container_access`/`revoke_container_access`
+  via `icacls`): read/execute on the runtime + Genesis source + import roots,
+  read/write on the workdir; everything else denied by default; revoked on
+  teardown.
+- **Confined suspended launch** (`launch_confined_worker`): the worker is created
+  `CREATE_SUSPENDED` inside the AppContainer with an explicit
+  `PROC_THREAD_ATTRIBUTE_HANDLE_LIST` (only the three std handles inherited),
+  **assigned to the Job Object before `ResumeThread`**, and fails closed —
+  terminating any partially-created process — on any error.
+- **Orchestration + teardown** (`ConfinedResearchProcess`/`launch_confined_research`):
+  profile + job + grants + launch, tearing down job → ACLs → profile; fail-closed
+  throughout.
+
+Wiring: `_start_research_process(confine=…)` / `launch_trusted_protected_evaluator(
+confine_research=…)` opt the **local checkpoint/test path** into confinement.
+Default is off, so the 480-test baseline, lifecycle timing and the unconfined
+launch are byte-for-byte unchanged. Real activation stays disabled
+(`ACTIVATION_ENABLED=False`, `apply_confinement` fail-closed, launcher guard
+intact).
+
+One worker adaptation was required and is confined-only: the worker's strict path
+resolution (`_program_module_path`, `_module_path`, `_audit_function`) now uses
+`_resolve_strict_confined`, which falls back to a best-effort resolve **only** on
+the AppContainer's `PermissionError` (raised because `GetFinalPathNameByHandle`
+must read ancestor directory names the container is deliberately not granted).
+Unconfined, strict resolution always succeeds, so the fallback is never taken and
+behaviour is unchanged; confined, the OS boundary (read-only import root, no
+symlink creation, no access outside the grants) preserves the import-root
+containment guarantee the strict resolve gave. This keeps the fs boundary minimal
+("explicit filesystem access only") rather than granting the container the
+ancestor chain (which would let it enumerate the user's home/appdata).
+
+Verification (`tests/test_astra_t6_fb_os_containment.py`, benign + inert): live
+kill-on-close, one-process limit, memory limit, AppContainer SID/no-capability,
+ACL grant/revoke, and a full confined launch asserting the AppContainer token,
+denied network capability (loopback-listener only — no external host), restricted
+filesystem (granted OK / ungranted DENIED), one-process, and deterministic
+teardown; a full protected-path confined launch that still certifies and leaves
+the guard intact; mocked fail-closed tests for the Job Object flags, the confined
+launch, and the orchestrator. The plan/scaffold object is **not** relied on as
+evidence. Live AppContainer tests skip cleanly where the environment cannot
+create a container.
 
 ## Preserved invariants
 
@@ -183,22 +235,28 @@ boundary.
 - `FB_GREEN_postfix.txt` — F-B reachability + OS-confinement tests GREEN.
 - `FB_RECONCILED_GREEN.txt` — the full reconciled test set (reachability +
   definition-snapshot + OS-confinement) GREEN.
-- `FB_FULL_SUITE.txt` — full `unittest discover` on the reconciled tree.
+- `FB_FULL_SUITE.txt` — full `unittest discover` on the final tree.
 - `FB_PROTECTED_SET.txt` — targeted protected/lifecycle/scan-cost/contention set.
+- `FB_CONTAINMENT.txt` — the OS-containment suite (`test_astra_t6_fb_os_containment.py`).
 - `FB_SELFREVIEW.txt` — inert adversarial self-review sweep.
 - `FB_REAUDIT_HANDOFF.md` — handoff for the independent E11 re-audit.
 
 ## Test results (exact counts from the raw logs)
 
-- Full discovery (reconciled tree): see `FB_FULL_SUITE.txt` for the exact
-  `Ran N … OK (skipped=1)` line; the 1 skip is the pre-existing H3 symlink test
-  on this platform.
+- Full discovery (final tree): see `FB_FULL_SUITE.txt` for the exact
+  `Ran N … OK (skipped=1[, +N environment skips])` line; the 1 always-present
+  skip is the pre-existing H3 symlink test. Live AppContainer containment tests
+  skip cleanly where the environment cannot create a container.
 - New/reconciled regressions: RED 7/10 on the pre-fix worker (`bdb5fd8`) → GREEN
   post-fix across `test_astra_t6_fb_e11_reachability.py` (13, black-box),
   `test_astra_t6_fb_definition_snapshot.py` (16, white-box, reconciled from the
-  parallel suite) and `test_astra_t6_fb_os_confinement.py` (9).
+  parallel suite), `test_astra_t6_fb_os_confinement.py` (9, policy/guard) and
+  `test_astra_t6_fb_os_containment.py` (13, real primitives — mocked + benign
+  live).
 - Targeted protected/lifecycle/contention set: OK (`FB_PROTECTED_SET.txt`),
-  including the R9 eight-concurrent-request test and the scan-cost test; the
-  broadened definition snapshot added no timeout regression.
+  including the R9 eight-concurrent-request test and the scan-cost test; neither
+  the broadened definition snapshot nor the confined-only resolve fallback added
+  a timeout regression.
 - Self-review sweep: 10 inert vectors blocked, 4 benign certify (`FB_SELFREVIEW.txt`).
-- No `protected … unavailable` contention flakes observed; 15 s timeouts unchanged.
+- No `protected … unavailable` contention flakes observed in the committed runs;
+  15 s timeouts unchanged.

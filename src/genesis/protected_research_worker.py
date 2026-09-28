@@ -482,6 +482,40 @@ def _real_path(value: object) -> Path | None:
         return None
 
 
+def _resolve_strict_confined(unresolved: Path) -> Path | None:
+    """Strictly resolve an existing path, tolerating the ADR-0004 OS confinement.
+
+    Unconfined this is exactly ``Path.resolve(strict=True)``. Inside the
+    AppContainer, strict resolution (``GetFinalPathNameByHandle``) is denied for a
+    granted-but-arbitrarily-located path, because it must read the *names* of the
+    ancestor directories, and the container is granted only the leaf roots it
+    needs, by design -- granting the ancestor chain would let it enumerate the
+    user's home and appdata, defeating "explicit filesystem access only". On that
+    ``PermissionError`` we fall back to a best-effort resolve and require the path
+    to still exist.
+
+    This does not weaken the boundary. The point of the strict resolve is to stop
+    a symlink inside an import root from pointing the containment check outside
+    it; under the OS confinement that attack is already impossible -- the import
+    root is granted read-only, the container cannot create a symlink, and it can
+    reach no path outside its explicit grants -- so the import-root containment
+    check the caller performs still holds. Unconfined, strict resolution always
+    succeeds here, so the fallback is never taken and behaviour is unchanged.
+    """
+
+    try:
+        return unresolved.resolve(strict=True)
+    except PermissionError:
+        candidate = unresolved.resolve(strict=False)
+        try:
+            exists = candidate.exists()
+        except OSError:
+            return None
+        return candidate if exists else None
+    except (OSError, RuntimeError):
+        return None
+
+
 def _audit_program_code(code: types.CodeType) -> None:
     """Reject unbound code paths anywhere in the hashed module before it runs."""
 
@@ -803,10 +837,7 @@ def _module_path(module: ModuleType) -> Path | None:
     value = vars(module).get("__file__")
     if not isinstance(value, str):
         return None
-    try:
-        return Path(value).resolve(strict=True)
-    except (OSError, RuntimeError):
-        return None
+    return _resolve_strict_confined(Path(value))
 
 
 def _program_module_path(module_name: str, roots: tuple[Path, ...]) -> Path:
@@ -819,11 +850,8 @@ def _program_module_path(module_name: str, roots: tuple[Path, ...]) -> Path:
             root / relative.with_suffix(".py"),
             root / relative / "__init__.py",
         ):
-            try:
-                candidate = unresolved.resolve(strict=True)
-            except (OSError, RuntimeError):
-                continue
-            if not candidate.is_file() or not candidate.is_relative_to(root):
+            candidate = _resolve_strict_confined(unresolved)
+            if candidate is None or not candidate.is_file() or not candidate.is_relative_to(root):
                 continue
             candidates.add(candidate)
     if len(candidates) != 1:
@@ -863,11 +891,11 @@ def _audit_function(
         # state. Their mutable function attributes were still checked above.
         module_path_value = value.__globals__.get("__file__")
         if isinstance(module_path_value, str):
-            try:
-                if _inside(Path(module_path_value).resolve(strict=True), roots):
-                    raise ValueError("custom imported function capability is unsupported")
-            except (OSError, RuntimeError):
-                raise ValueError("imported function origin is uninspectable") from None
+            resolved = _resolve_strict_confined(Path(module_path_value))
+            if resolved is None:
+                raise ValueError("imported function origin is uninspectable")
+            if _inside(resolved, roots):
+                raise ValueError("custom imported function capability is unsupported")
         return
     if value.__closure__ is not None:
         raise ValueError("research function closure state is unsupported")

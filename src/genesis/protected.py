@@ -1001,8 +1001,9 @@ def _start_research_process(
     *,
     research_workdir: Path,
     allowed_program_import_roots: tuple[Path, ...],
+    confine: bool = False,
 ) -> tuple[
-    subprocess.Popen[bytes],
+    Any,
     "queue.Queue[bytes | None]",
     threading.Thread,
     dict[str, Any],
@@ -1010,19 +1011,59 @@ def _start_research_process(
     environment = _research_environment(research_workdir)
     worker_path = Path(__file__).with_name("protected_research_worker.py").resolve()
     creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-    process = subprocess.Popen(
-        [sys.executable, "-I", "-S", str(worker_path)],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        cwd=str(research_workdir),
-        env=environment,
-        close_fds=True,
-        creationflags=creationflags,
-    )
+    argv = [sys.executable, "-I", "-S", str(worker_path)]
+    confinement_handle = None
+    if confine:
+        # ADR-0004 OS confinement, used ONLY by the local checkpoint/test path.
+        # The default (unconfined) launch below is byte-for-byte unchanged, so the
+        # existing suites and lifecycle timing are untouched. Fails closed: if the
+        # boundary cannot be established, no worker is launched.
+        import genesis.protected_isolation as isolation
+
+        confined_env = dict(environment)
+        # The AppContainer profile store lives under %LOCALAPPDATA%\Packages, so
+        # the loader needs LOCALAPPDATA to start Python inside the container. This
+        # is an OS bootstrap key required to start Python under the container,
+        # which ADR-0003 permits; it carries no credential, label or PYTHONPATH.
+        local_appdata = os.environ.get("LOCALAPPDATA")
+        if local_appdata:
+            confined_env["LOCALAPPDATA"] = local_appdata
+        confinement = isolation.ResearchProcessConfinement(
+            program_import_roots=allowed_program_import_roots,
+            research_workdir=research_workdir,
+        )
+        confinement_handle = isolation.launch_confined_research(
+            confinement,
+            argv,
+            environment=confined_env,
+            cwd=str(research_workdir),
+            # The confined worker reads only: the Python runtime, the Genesis
+            # source root it imports (src/, the worker's parents[1]), and -- via
+            # the confinement's import roots -- the hashed program. Everything
+            # else stays denied.
+            runtime_dirs=(
+                Path(sys.executable).resolve().parent,
+                worker_path.parents[1],
+            ),
+            container_name="genesis-protected-research-" + secrets.token_hex(8),
+        )
+        process: Any = confinement_handle.process
+        process._confinement = confinement_handle
+    else:
+        process = subprocess.Popen(
+            argv,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            cwd=str(research_workdir),
+            env=environment,
+            close_fds=True,
+            creationflags=creationflags,
+        )
     if process.stdin is None or process.stdout is None:
         process.kill()
         process.wait(10)
+        _dispose_confinement(process)
         raise ProtectedEvaluationError("protected research unavailable")
     messages: "queue.Queue[bytes | None]" = queue.Queue()
     reader = threading.Thread(
@@ -1073,6 +1114,7 @@ def _start_research_process(
         process.wait(10)
         process.stdin.close()
         process.stdout.close()
+        _dispose_confinement(process)
         raise ProtectedEvaluationError("protected research unavailable") from None
     boundary = {
         "schema_version": RESEARCH_BOUNDARY_SCHEMA,
@@ -1082,8 +1124,25 @@ def _start_research_process(
         "environment_keys": tuple(sorted(environment)),
         "working_directory": str(research_workdir),
         "research_ready_before_evaluator": True,
+        "os_confinement": confinement_handle is not None,
     }
     return process, messages, reader, boundary
+
+
+def _dispose_confinement(process: Any) -> None:
+    """Tear down OS confinement attached to a research process, if any.
+
+    Closing the confinement closes the Job Object (killing the process tree),
+    revokes the granted filesystem ACLs and deletes the AppContainer profile.
+    A no-op for the default (unconfined) launch.
+    """
+
+    handle = getattr(process, "_confinement", None)
+    if handle is not None:
+        try:
+            handle.close()
+        except Exception:
+            pass
 
 
 class ProtectedEvaluationClient:
@@ -1338,6 +1397,7 @@ class ProtectedEvaluationClient:
             if self._research_process.stdout is not None:
                 self._research_process.stdout.close()
             self._research_reader.join(10)
+            _dispose_confinement(self._research_process)
 
     def crash_after_reservation_for_test(self, request: EvaluationRequest) -> None:
         if not self._allow_fault_injection:
@@ -1388,8 +1448,16 @@ def launch_trusted_protected_evaluator(
     trusted_label_roots: Iterable[str | Path] = (),
     allow_fault_injection: bool = False,
     local_checkpoint_test_only: bool = False,
+    confine_research: bool = False,
 ) -> ProtectedEvaluationClient:
-    """Launch research first, then the separate trusted label evaluator."""
+    """Launch research first, then the separate trusted label evaluator.
+
+    ``confine_research`` opts the local checkpoint into the ADR-0004 OS
+    confinement (AppContainer + Job Object) for the research worker. It is
+    honoured only on the ``local_checkpoint_test_only`` path and defaults off, so
+    the guard below still blocks all real-campaign activation and the default
+    (unconfined) checkpoint behaviour and timing are unchanged.
+    """
 
     if not local_checkpoint_test_only:
         raise RegistryConflict(
@@ -1430,6 +1498,7 @@ def launch_trusted_protected_evaluator(
             sealed_frames,
             research_workdir=resolved_workdir,
             allowed_program_import_roots=import_roots,
+            confine=confine_research,
         )
     )
 
@@ -1442,6 +1511,7 @@ def launch_trusted_protected_evaluator(
         if research_process.stdout is not None:
             research_process.stdout.close()
         research_reader.join(10)
+        _dispose_confinement(research_process)
 
     # Materialize raw labels and create the evaluator endpoint only after the
     # fresh-interpreter research worker has completed its label-free startup.

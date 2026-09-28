@@ -1,0 +1,19 @@
+# SHA-256 manifest — T6 F-B / E11 OS-containment verdict evidence (audited commit 4f11606615c7650f3bd74c7ccf5d2fb7a5a753c5).
+# In-repo entries are repo-relative paths, stored -text (LF) so any checkout reproduces them; this file excludes itself.
+# Provenance entries record the original Windows artifacts as delivered by the repository owner: the raw bundle and the
+# byte-exact UTF-16 PowerShell captures inside it. The in-repo *.txt are UTF-8/LF normalizations of those captures
+# (UTF-16 -> UTF-8, BOM stripped, CRLF -> LF); the originals are preserved verbatim in FB_E11_windows_evidence_raw.zip.
+
+# --- In-repo artifacts (this commit) ---
+02d84dd333f6aca312d08ff44f0f058391ce074bd38aaaf5e7df79470f7e5397  remediation_evidence/T6/FB_E11_OS_CONTAINMENT_VERDICT.md
+e148cc82268f3b30cd109762fe9e05b923c7e24bc65a4645d386f0d8e36bb947  remediation_evidence/T6/FB_E11_ENV.txt
+4ff0da553a7ab4fea9812b781722480b79bf5dc003489280aa4653ca4bc4bc78  remediation_evidence/T6/FB_E11_SERVICES.txt
+8484a4268fd7d07c7f7aeb27008b5e6ba4aadf9cf6a85a5e7ac84d9428586c75  remediation_evidence/T6/FB_E11_CONTAINMENT.txt
+4175742b1076a122e0a8dc89afbebaf07b573cc5f2f2b9ad7bb0e303137251a9  remediation_evidence/T6/FB_E11_FULLSUITE.txt
+481af6624dfca9fbcd35778bb4942cbabcb926d0c4bcc839366fc5f89a3072ff  remediation_evidence/T6/FB_E11_windows_evidence_raw.zip
+
+# --- Provenance: original delivered UTF-16 captures (bytes preserved inside the raw .zip above) ---
+c3c9c1771166210d0368a95bcb9aade99bf1fde912659b1057c4b7ec96d3c3a6  original/e11_env.txt
+1aee297247f6c9659fc2fee4473d04a753ef2687043373234970323b99ac1321  original/e11_services.txt
+ceb215c134b3b8e306c5a4f71030c92b7f9df5010d75312be7e2e46f764b3aed  original/e11_containment.txt
+c6b5ff73b459f8c5d97c7ab56d13a0846ab933e5a49d94eb040c9271741784f2  original/e11_fullsuite.txt

@@ -1,0 +1,70 @@
+python : test_grant_then_revoke_container_access 
+(tests.test_astra_t6_fb_os_containment.AppContainerLiveTests.test_grant_then_revoke_container_access) ... ok
+At line:1 char:1
++ python -m unittest -v tests.test_astra_t6_fb_os_containment tests.tes ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (test_grant_then..._access) ... ok:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+test_profile_yields_a_capabilityless_appcontainer_sid 
+(tests.test_astra_t6_fb_os_containment.AppContainerLiveTests.test_profile_yields_a_capabilityless_appcontainer_sid) ... ok
+test_created_worker_is_terminated_if_job_assignment_fails 
+(tests.test_astra_t6_fb_os_containment.ConfinedLaunchFailClosedTests.test_created_worker_is_terminated_if_job_assignment_fails) ... 
+ok
+test_launch_fails_closed_on_invalid_security_capabilities 
+(tests.test_astra_t6_fb_os_containment.ConfinedLaunchFailClosedTests.test_launch_fails_closed_on_invalid_security_capabilities) ... 
+ok
+test_confined_checkpoint_launch_certifies_and_guard_holds 
+(tests.test_astra_t6_fb_os_containment.ConfinedProtectedLaunchLiveTests.test_confined_checkpoint_launch_certifies_and_guard_holds) 
+... ok
+test_confined_worker_boundary_and_teardown 
+(tests.test_astra_t6_fb_os_containment.ConfinedWorkerLiveTests.test_confined_worker_boundary_and_teardown) ... 
+C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\case.py:589: ResourceWarning: unclosed file <_io.FileIO name=3 
+mode='wb' closefd=True>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\case.py:589: ResourceWarning: unclosed file <_io.FileIO name=4 
+mode='rb' closefd=True>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_kill_on_close_terminates_the_process_tree 
+(tests.test_astra_t6_fb_os_containment.JobObjectLiveTests.test_kill_on_close_terminates_the_process_tree) ... ok
+test_memory_limit_denies_an_over_limit_allocation 
+(tests.test_astra_t6_fb_os_containment.JobObjectLiveTests.test_memory_limit_denies_an_over_limit_allocation) ... ok
+test_one_process_limit_blocks_a_grandchild 
+(tests.test_astra_t6_fb_os_containment.JobObjectLiveTests.test_one_process_limit_blocks_a_grandchild) ... ok
+test_job_creation_fails_closed_when_set_information_fails 
+(tests.test_astra_t6_fb_os_containment.JobObjectMockedTests.test_job_creation_fails_closed_when_set_information_fails) ... ok
+test_job_sets_kill_on_close_active_process_and_memory_limits 
+(tests.test_astra_t6_fb_os_containment.JobObjectMockedTests.test_job_sets_kill_on_close_active_process_and_memory_limits) ... ok
+test_orchestrator_fails_closed_and_releases_profile_if_job_fails (tests.test_astra_t6_fb_os_containment.OrchestratorFailClosedTests.
+test_orchestrator_fails_closed_and_releases_profile_if_job_fails) ... ok
+test_orchestrator_fails_closed_and_tears_down_if_launch_fails 
+(tests.test_astra_t6_fb_os_containment.OrchestratorFailClosedTests.test_orchestrator_fails_closed_and_tears_down_if_launch_fails) 
+... ok
+test_real_activation_still_refused_by_launcher 
+(tests.test_astra_t6_fb_os_confinement.ADR0003ActivationGuardPreservedTests.test_real_activation_still_refused_by_launcher) ... ok
+test_activation_flag_is_off (tests.test_astra_t6_fb_os_confinement.ADR0004ActivationDisabledTests.test_activation_flag_is_off) ... 
+ok
+test_apply_confinement_is_fail_closed_regardless_of_token 
+(tests.test_astra_t6_fb_os_confinement.ADR0004ActivationDisabledTests.test_apply_confinement_is_fail_closed_regardless_of_token) 
+... ok
+test_plan_encodes_no_network_explicit_fs_no_children_kill_on_close (tests.test_astra_t6_fb_os_confinement.ADR0004ConfinementPolicyTe
+sts.test_plan_encodes_no_network_explicit_fs_no_children_kill_on_close) ... ok
+test_policy_defaults_deny_network_and_children_and_kill_on_teardown (tests.test_astra_t6_fb_os_confinement.ADR0004ConfinementPolicyT
+ests.test_policy_defaults_deny_network_and_children_and_kill_on_teardown) ... ok
+test_policy_refuses_filesystem_grant_overlapping_a_label_root 
+(tests.test_astra_t6_fb_os_confinement.ADR0004ConfinementPolicyTests.test_policy_refuses_filesystem_grant_overlapping_a_label_root) 
+... ok
+test_policy_refuses_to_disable_teardown_kill 
+(tests.test_astra_t6_fb_os_confinement.ADR0004ConfinementPolicyTests.test_policy_refuses_to_disable_teardown_kill) ... ok
+test_policy_refuses_to_grant_child_processes 
+(tests.test_astra_t6_fb_os_confinement.ADR0004ConfinementPolicyTests.test_policy_refuses_to_grant_child_processes) ... ok
+test_policy_refuses_to_grant_network 
+(tests.test_astra_t6_fb_os_confinement.ADR0004ConfinementPolicyTests.test_policy_refuses_to_grant_network) ... ok
+
+----------------------------------------------------------------------
+Ran 22 tests in 141.237s
+
+OK

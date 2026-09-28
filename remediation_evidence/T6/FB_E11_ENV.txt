@@ -1,0 +1,2 @@
+IS_WINDOWS=True APPCONTAINER=True
+('11', '10.0.26200', 'SP0', 'Multiprocessor Free')

@@ -1,0 +1,22 @@
+[
+ {
+  "categoryName": "England",
+  "categorySlug": "england",
+  "futureFixtures": 12,
+  "liveFixtures": 0,
+  "tournamentId": 17,
+  "tournamentName": "Premier League",
+  "tournamentSlug": "premier-league",
+  "upcomingFixtures": 3
+ },
+ {
+  "categoryName": "Spain",
+  "categorySlug": "spain",
+  "futureFixtures": 10,
+  "liveFixtures": 0,
+  "tournamentId": 8,
+  "tournamentName": "LaLiga",
+  "tournamentSlug": "laliga",
+  "upcomingFixtures": 3
+ }
+]

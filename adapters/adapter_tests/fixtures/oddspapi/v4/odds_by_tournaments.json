@@ -1,0 +1,2204 @@
+[
+ {
+  "bookmakerOdds": {
+   "fixture-book-a": {
+    "bookmakerFixtureId": "b1",
+    "bookmakerIsActive": true,
+    "fixturePath": "/p",
+    "markets": {
+     "101": {
+      "bookmakerMarketId": "m1",
+      "outcomes": {
+       "101": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       },
+       "102": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.3
+         }
+        }
+       },
+       "103": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.5
+         }
+        }
+       }
+      }
+     },
+     "1010": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.9
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.96
+         }
+        }
+       }
+      }
+     },
+     "1011": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.3
+         }
+        }
+       },
+       "2002": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       }
+      }
+     },
+     "1012": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       }
+      }
+     },
+     "1013": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       }
+      }
+     },
+     "1014": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.6
+         }
+        }
+       },
+       "2002": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.5
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   "fixture-book-b": {
+    "bookmakerFixtureId": "b1",
+    "bookmakerIsActive": true,
+    "fixturePath": "/p",
+    "markets": {
+     "101": {
+      "bookmakerMarketId": "m1",
+      "outcomes": {
+       "101": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.15
+         }
+        }
+       },
+       "102": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.45
+         }
+        }
+       },
+       "103": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.55
+         }
+        }
+       }
+      }
+     },
+     "1010": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.93
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.93
+         }
+        }
+       }
+      }
+     },
+     "1011": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.3
+         }
+        }
+       },
+       "2002": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       }
+      }
+     },
+     "1012": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       }
+      }
+     },
+     "1013": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       }
+      }
+     },
+     "1014": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.6
+         }
+        }
+       },
+       "2002": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.5
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   "fixture-book-c": {
+    "bookmakerFixtureId": "b1",
+    "bookmakerIsActive": true,
+    "fixturePath": "/p",
+    "markets": {
+     "101": {
+      "bookmakerMarketId": "m1",
+      "outcomes": {
+       "101": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.0
+         }
+        }
+       },
+       "102": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.3
+         }
+        }
+       },
+       "103": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.7
+         }
+        }
+       }
+      }
+     },
+     "1010": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.88
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.98
+         }
+        }
+       }
+      }
+     },
+     "1011": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.3
+         }
+        }
+       },
+       "2002": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       }
+      }
+     },
+     "1012": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       }
+      }
+     },
+     "1013": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       }
+      }
+     },
+     "1014": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.6
+         }
+        }
+       },
+       "2002": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.5
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   "fixture-exchange": {
+    "bookmakerFixtureId": "b1",
+    "bookmakerIsActive": true,
+    "fixturePath": "/p",
+    "markets": {
+     "101": {
+      "bookmakerMarketId": "m1",
+      "outcomes": {
+       "101": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.12
+         }
+        }
+       },
+       "102": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       },
+       "103": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.6
+         }
+        }
+       }
+      }
+     },
+     "1010": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.92
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.94
+         }
+        }
+       }
+      }
+     },
+     "1011": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.3
+         }
+        }
+       },
+       "2002": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       }
+      }
+     },
+     "1012": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       }
+      }
+     },
+     "1013": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       }
+      }
+     },
+     "1014": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.6
+         }
+        }
+       },
+       "2002": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.5
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   "pinnacle": {
+    "bookmakerFixtureId": "b1",
+    "bookmakerIsActive": true,
+    "fixturePath": "/p",
+    "markets": {
+     "101": {
+      "bookmakerMarketId": "m1",
+      "outcomes": {
+       "101": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.1
+         }
+        }
+       },
+       "102": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       },
+       "103": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.6
+         }
+        }
+       }
+      }
+     },
+     "1010": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.91
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.95
+         }
+        }
+       }
+      }
+     },
+     "1011": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.3
+         }
+        }
+       },
+       "2002": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       }
+      }
+     },
+     "1012": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       }
+      }
+     },
+     "1013": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       }
+      }
+     },
+     "1014": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.6
+         }
+        }
+       },
+       "2002": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.5
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "fixtureId": "id1000001761301153",
+  "hasOdds": true,
+  "participant1Id": 35,
+  "participant1Name": "Team Alpha",
+  "participant2Id": 42,
+  "participant2Name": "Team Bravo",
+  "seasonId": 123456,
+  "sportId": 10,
+  "sportName": "Soccer",
+  "startTime": "2026-10-03T14:00:00.000Z",
+  "statusId": 0,
+  "statusName": "Not yet started",
+  "tournamentId": 17,
+  "tournamentName": "Premier League",
+  "trueEndTime": null,
+  "trueStartTime": null,
+  "updatedAt": "2026-10-01T11:59:00.000Z"
+ },
+ {
+  "bookmakerOdds": {
+   "fixture-book-a": {
+    "bookmakerFixtureId": "b1",
+    "bookmakerIsActive": true,
+    "fixturePath": "/p",
+    "markets": {
+     "101": {
+      "bookmakerMarketId": "m1",
+      "outcomes": {
+       "101": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       },
+       "102": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.3
+         }
+        }
+       },
+       "103": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.5
+         }
+        }
+       }
+      }
+     },
+     "1010": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.9
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.96
+         }
+        }
+       }
+      }
+     },
+     "1011": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.3
+         }
+        }
+       },
+       "2002": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       }
+      }
+     },
+     "1012": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       }
+      }
+     },
+     "1013": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       }
+      }
+     },
+     "1014": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.6
+         }
+        }
+       },
+       "2002": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.5
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   "fixture-book-b": {
+    "bookmakerFixtureId": "b1",
+    "bookmakerIsActive": true,
+    "fixturePath": "/p",
+    "markets": {
+     "101": {
+      "bookmakerMarketId": "m1",
+      "outcomes": {
+       "101": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.15
+         }
+        }
+       },
+       "102": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.45
+         }
+        }
+       },
+       "103": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.55
+         }
+        }
+       }
+      }
+     },
+     "1010": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.93
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.93
+         }
+        }
+       }
+      }
+     },
+     "1011": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.3
+         }
+        }
+       },
+       "2002": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       }
+      }
+     },
+     "1012": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       }
+      }
+     },
+     "1013": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       }
+      }
+     },
+     "1014": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.6
+         }
+        }
+       },
+       "2002": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.5
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   "fixture-book-c": {
+    "bookmakerFixtureId": "b1",
+    "bookmakerIsActive": true,
+    "fixturePath": "/p",
+    "markets": {
+     "101": {
+      "bookmakerMarketId": "m1",
+      "outcomes": {
+       "101": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.0
+         }
+        }
+       },
+       "102": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.3
+         }
+        }
+       },
+       "103": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.7
+         }
+        }
+       }
+      }
+     },
+     "1010": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.88
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.98
+         }
+        }
+       }
+      }
+     },
+     "1011": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.3
+         }
+        }
+       },
+       "2002": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       }
+      }
+     },
+     "1012": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       }
+      }
+     },
+     "1013": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       }
+      }
+     },
+     "1014": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.6
+         }
+        }
+       },
+       "2002": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.5
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   "fixture-exchange": {
+    "bookmakerFixtureId": "b1",
+    "bookmakerIsActive": true,
+    "fixturePath": "/p",
+    "markets": {
+     "101": {
+      "bookmakerMarketId": "m1",
+      "outcomes": {
+       "101": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.12
+         }
+        }
+       },
+       "102": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       },
+       "103": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.6
+         }
+        }
+       }
+      }
+     },
+     "1010": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.92
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.94
+         }
+        }
+       }
+      }
+     },
+     "1011": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.3
+         }
+        }
+       },
+       "2002": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       }
+      }
+     },
+     "1012": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       }
+      }
+     },
+     "1013": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       }
+      }
+     },
+     "1014": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.6
+         }
+        }
+       },
+       "2002": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.5
+         }
+        }
+       }
+      }
+     }
+    }
+   },
+   "pinnacle": {
+    "bookmakerFixtureId": "b1",
+    "bookmakerIsActive": true,
+    "fixturePath": "/p",
+    "markets": {
+     "101": {
+      "bookmakerMarketId": "m1",
+      "outcomes": {
+       "101": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.1
+         }
+        }
+       },
+       "102": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       },
+       "103": {
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.6
+         }
+        }
+       }
+      }
+     },
+     "1010": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.91
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.95
+         }
+        }
+       }
+      }
+     },
+     "1011": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.3
+         }
+        }
+       },
+       "2002": {
+        "handicap": 1.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 3.4
+         }
+        }
+       }
+      }
+     },
+     "1012": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.25,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       }
+      }
+     },
+     "1013": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.05
+         }
+        }
+       },
+       "2002": {
+        "handicap": 2.75,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.8
+         }
+        }
+       }
+      }
+     },
+     "1014": {
+      "bookmakerMarketId": "m",
+      "outcomes": {
+       "2001": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 2.6
+         }
+        }
+       },
+       "2002": {
+        "handicap": 3.5,
+        "players": {
+         "0": {
+          "active": true,
+          "betslip": null,
+          "bookmakerOutcomeId": "x",
+          "changedAt": "2026-10-01T11:58:30.000Z",
+          "limit": 1000,
+          "playerName": null,
+          "price": 1.5
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "fixtureId": "id1000001761301999",
+  "hasOdds": true,
+  "participant1Id": 61,
+  "participant1Name": "Team Charlie",
+  "participant2Id": 62,
+  "participant2Name": "Team Delta",
+  "seasonId": 123456,
+  "sportId": 10,
+  "sportName": "Soccer",
+  "startTime": "2026-10-04T19:00:00.000Z",
+  "statusId": 0,
+  "statusName": "Not yet started",
+  "tournamentId": 8,
+  "tournamentName": "LaLiga",
+  "trueEndTime": null,
+  "trueStartTime": null,
+  "updatedAt": "2026-10-01T11:59:00.000Z"
+ }
+]

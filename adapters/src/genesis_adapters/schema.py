@@ -30,9 +30,14 @@ class SchemaDefinitionError(ValueError):
 
 @dataclass(frozen=True)
 class DriftFinding:
+    """One deviation. ``trail`` holds the path as separate components (list indexes as ``int``,
+    object keys as ``str``) so a caller can attribute the finding to an entity without parsing
+    ``path``; it does not take part in equality, hashing or ordering."""
+
     path: str
     kind: Kind
     scope: Scope
+    trail: tuple = field(default=(), compare=False)
 
 
 @dataclass(frozen=True)
@@ -152,49 +157,49 @@ def validate_closed(value: Any, schema: ClosedSchema) -> tuple[DriftFinding, ...
 
     findings: set[DriftFinding] = set()
     if type(value) is not list:
-        findings.add(DriftFinding("$", "WRONG_TYPE", "RESPONSE"))
+        findings.add(DriftFinding("$", "WRONG_TYPE", "RESPONSE", ()))
     else:
         root = schema.objects[schema.root_ref]
         for index, item in enumerate(value):
-            _object(item, root, f"$[{index}]", schema, "RESPONSE", findings)
+            _object(item, root, f"$[{index}]", (index,), schema, "RESPONSE", findings)
     return tuple(sorted(findings, key=lambda f: (f.path, f.kind, f.scope)))
 
 
-def _object(value: Any, obj: ObjectSchema, path: str, schema: ClosedSchema, container_scope: str,
-            findings: set[DriftFinding]) -> None:
+def _object(value: Any, obj: ObjectSchema, path: str, trail: tuple, schema: ClosedSchema,
+            container_scope: str, findings: set[DriftFinding]) -> None:
     if type(value) is not dict:
-        findings.add(DriftFinding(path, "WRONG_TYPE", container_scope))
+        findings.add(DriftFinding(path, "WRONG_TYPE", container_scope, trail))
         return
     for key in sorted(value):
         if key not in obj.keys:
-            findings.add(DriftFinding(f"{path}.{key}", "UNKNOWN_KEY", obj.scope))
+            findings.add(DriftFinding(f"{path}.{key}", "UNKNOWN_KEY", obj.scope, trail + (key,)))
     for key, spec in obj.keys.items():
         if key not in value:
             if spec.required:
                 findings.add(DriftFinding(f"{path}.{key}", "MISSING_REQUIRED",
-                                          "RESPONSE" if spec.identity else obj.scope))
+                                          "RESPONSE" if spec.identity else obj.scope, trail + (key,)))
             continue
-        _field(value[key], spec, f"{path}.{key}", obj.scope, schema, findings)
+        _field(value[key], spec, f"{path}.{key}", trail + (key,), obj.scope, schema, findings)
 
 
-def _field(value: Any, spec: FieldSpec, path: str, scope: str, schema: ClosedSchema,
+def _field(value: Any, spec: FieldSpec, path: str, trail: tuple, scope: str, schema: ClosedSchema,
            findings: set[DriftFinding]) -> None:
     matched = [t for t in spec.types if _matches(value, t)]
     if not matched:
-        findings.add(DriftFinding(path, "WRONG_TYPE", "RESPONSE" if spec.identity else scope))
+        findings.add(DriftFinding(path, "WRONG_TYPE", "RESPONSE" if spec.identity else scope, trail))
         return
     kind = matched[0]
     if spec.values is not None and kind in ("int", "str") and value not in spec.values:
-        findings.add(DriftFinding(path, "UNKNOWN_ENUM", "RESPONSE" if spec.identity else scope))
+        findings.add(DriftFinding(path, "UNKNOWN_ENUM", "RESPONSE" if spec.identity else scope, trail))
     if kind == "object":
-        _object(value, schema.objects[spec.ref], path, schema, scope, findings)
+        _object(value, schema.objects[spec.ref], path, trail, schema, scope, findings)
     elif kind == "object_map":
         inner = schema.objects[spec.ref]
         for key in sorted(value):
             if not _MAP_KEY.match(key):
-                findings.add(DriftFinding(f"{path}.{key}", "UNKNOWN_KEY", scope))
-            _object(value[key], inner, f"{path}.{key}", schema, scope, findings)
+                findings.add(DriftFinding(f"{path}.{key}", "UNKNOWN_KEY", scope, trail + (key,)))
+            _object(value[key], inner, f"{path}.{key}", trail + (key,), schema, scope, findings)
     elif kind == "array":
         inner = schema.objects[spec.ref]
         for index, item in enumerate(value):
-            _object(item, inner, f"{path}[{index}]", schema, scope, findings)
+            _object(item, inner, f"{path}[{index}]", trail + (index,), schema, scope, findings)

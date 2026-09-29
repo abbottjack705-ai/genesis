@@ -1,0 +1,46 @@
+[
+ {
+  "handicap": 0,
+  "marketId": 101,
+  "marketLength": 1,
+  "marketName": "Full Time Result",
+  "marketType": "1x2",
+  "outcomes": [
+   {
+    "outcomeId": 101,
+    "outcomeName": "1"
+   },
+   {
+    "outcomeId": 102,
+    "outcomeName": "X"
+   },
+   {
+    "outcomeId": 103,
+    "outcomeName": "2"
+   }
+  ],
+  "period": "fulltime",
+  "playerProp": false,
+  "sportId": 10
+ },
+ {
+  "handicap": 2.5,
+  "marketId": 1010,
+  "marketLength": 1,
+  "marketName": "Over Under 2.5",
+  "marketType": "totals",
+  "outcomes": [
+   {
+    "outcomeId": 2001,
+    "outcomeName": "Over"
+   },
+   {
+    "outcomeId": 2002,
+    "outcomeName": "Under"
+   }
+  ],
+  "period": "fulltime",
+  "playerProp": false,
+  "sportId": 10
+ }
+]

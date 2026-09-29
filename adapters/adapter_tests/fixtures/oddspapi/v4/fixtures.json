@@ -1,0 +1,40 @@
+[
+ {
+  "fixtureId": "id1000001761301153",
+  "hasOdds": true,
+  "participant1Id": 35,
+  "participant1Name": "Team Alpha",
+  "participant2Id": 42,
+  "participant2Name": "Team Bravo",
+  "seasonId": 123456,
+  "sportId": 10,
+  "sportName": "Soccer",
+  "startTime": "2026-10-03T14:00:00.000Z",
+  "statusId": 0,
+  "statusName": "Not yet started",
+  "tournamentId": 17,
+  "tournamentName": "Premier League",
+  "trueEndTime": null,
+  "trueStartTime": null,
+  "updatedAt": "2026-10-01T11:59:00.000Z"
+ },
+ {
+  "fixtureId": "id1000001761301999",
+  "hasOdds": true,
+  "participant1Id": 61,
+  "participant1Name": "Team Charlie",
+  "participant2Id": 62,
+  "participant2Name": "Team Delta",
+  "seasonId": 123456,
+  "sportId": 10,
+  "sportName": "Soccer",
+  "startTime": "2026-10-04T19:00:00.000Z",
+  "statusId": 0,
+  "statusName": "Not yet started",
+  "tournamentId": 8,
+  "tournamentName": "LaLiga",
+  "trueEndTime": null,
+  "trueStartTime": null,
+  "updatedAt": "2026-10-01T11:59:00.000Z"
+ }
+]

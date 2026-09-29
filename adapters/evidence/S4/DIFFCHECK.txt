@@ -1,0 +1,8 @@
+# S4 git diff --check
+# command: git diff --check (worktree) and git diff --cached --check
+# start: 2026-09-29T09:07:20Z
+# python: Python 3.12.10
+# HEAD (base): b95465ecf455ba29de58370c94b9aa084024e645
+----
+# exit: 0
+# exit(cached): 0

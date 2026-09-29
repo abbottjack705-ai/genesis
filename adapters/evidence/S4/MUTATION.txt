@@ -1,0 +1,29 @@
+# S4 mutation smoke test: parser.py mutations vs the S4 parser tests (every mutation must be KILLED)
+# command: python mutate.py . adapters/src/genesis_adapters/oddspapi/parser.py 'test_v05_parser_*.py' muts_parser.py
+# start: 2026-09-29T09:07:34Z
+# HEAD (base): b95465ecf455ba29de58370c94b9aa084024e645
+----
+KILLED    price max ignored
+KILLED    price min ignored
+KILLED    fraction digits ignored
+KILLED    coherence low edge dropped
+KILLED    coherence high edge dropped
+KILLED    coherence exclusive
+KILLED    naive timestamp accepted
+KILLED    offset normalized
+KILLED    future check off
+KILLED    join freshness ignored
+KILLED    guard suppression off
+KILLED    start<=T1 contradiction off
+KILLED    home==away allowed
+KILLED    tombstones when partial
+KILLED    inactive bookmaker ignored
+KILLED    duplicates always identical
+KILLED    line equality loosened
+KILLED    undeclared bookmaker kept
+KILLED    unmapped outcome ignored
+KILLED    identity conflict ignored
+KILLED    not-prematch ignored
+KILLED    suspension dropped for inactive outcome
+KILLED    price <=1 allowed
+# exit: 0

@@ -1,4 +1,8 @@
 {
+  "bookmaker_status": [
+    {"doc_reference": "odds-by-tournaments example: bookmakerOdds[*].bookmakerIsActive", "field": "bookmakerIsActive", "genesis": "ACTIVE", "json_type": "bool", "value": true, "verified_live": false},
+    {"doc_reference": "odds-by-tournaments example: bookmakerOdds[*].bookmakerIsActive", "field": "bookmakerIsActive", "genesis": "INACTIVE", "json_type": "bool", "value": false, "verified_live": false}
+  ],
   "event_status": [
     {"doc_reference": "oddspapi.io/en/docs/get-fixtures statusId 0 = Not yet started", "field": "statusId", "genesis": "PREMATCH", "json_type": "int", "value": 0, "verified_live": false},
     {"doc_reference": "oddspapi.io/en/docs/get-fixtures statusId 1 = Live", "field": "statusId", "genesis": "NOT_PREMATCH", "json_type": "int", "value": 1, "verified_live": false},

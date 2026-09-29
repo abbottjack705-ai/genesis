@@ -93,7 +93,7 @@
             "seasonId": {"inert": true, "required": true, "type": "int"},
             "sportId": {"required": true, "type": "int"},
             "sportName": {"inert": true, "type": "str"},
-            "startTime": {"required": true, "timestamp": true, "type": "str"},
+            "startTime": {"timestamp": true, "type": "str"},
             "statusId": {"required": true, "type": "int"},
             "statusName": {"inert": true, "type": "str"},
             "tournamentId": {"required": true, "type": "int"},
@@ -127,7 +127,7 @@
             "exchangeMeta": {"ref": "exchange_meta", "type": "object"},
             "limit": {"inert": true, "type": ["number", "null"]},
             "playerName": {"inert": true, "type": ["str", "null"]},
-            "price": {"required": true, "type": "number"}
+            "price": {"type": ["number", "null"]}
           },
           "scope": "BOOK"
         }

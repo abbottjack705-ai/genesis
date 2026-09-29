@@ -355,3 +355,34 @@ def scan_all(scanner, *, exclude: tuple[str, ...] = (), **kwargs) -> list[str]:
             continue
         problems += scanner(rel, source, **kwargs)
     return problems
+
+
+# -- FR-07: nothing in the adapter deletes, moves or rewrites files -----------------------
+_DESTRUCTIVE = {"remove", "unlink", "rmdir", "removedirs", "rmtree", "rename", "renames", "move",
+                "write_text", "write_bytes", "truncate"}
+
+
+def scan_no_delete(rel: str, source: str) -> list[str]:
+    """Quota cache objects and authority rows referenced by ledger rows must stay forever, so the
+    adapter has no code path that deletes, moves or rewrites files (design 12.2 rule 10).
+    Durable writes go through ``immutable_write`` and ``AppendOnlyJsonl`` only."""
+
+    tree = ast.parse(source)
+    problems: list[str] = []
+    for node in _walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        label = func.attr if isinstance(func, ast.Attribute) else (func.id if isinstance(func, ast.Name) else None)
+        if label in _DESTRUCTIVE:
+            problems.append(f"{rel}:{node.lineno}: destructive file operation {label}()")
+        if label == "open":
+            mode = None
+            if len(node.args) >= 2 and isinstance(node.args[1], ast.Constant):
+                mode = node.args[1].value
+            for keyword in node.keywords:
+                if keyword.arg == "mode" and isinstance(keyword.value, ast.Constant):
+                    mode = keyword.value.value
+            if isinstance(mode, str) and any(flag in mode for flag in "wx+"):
+                problems.append(f"{rel}:{node.lineno}: file opened for rewriting")
+    return problems

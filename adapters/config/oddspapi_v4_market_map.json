@@ -1,0 +1,81 @@
+{
+  "families": {
+    "SOCCER_1X2_FT": {"period": "FT_REGULAR", "required_line": null, "selections": ["HOME", "DRAW", "AWAY"]},
+    "SOCCER_TOTAL_GOALS_OU_FT": {"period": "FT_REGULAR", "required_line": "2.5", "selections": ["OVER", "UNDER"]}
+  },
+  "markets": [
+    {
+      "doc_reference": "oddspapi.io/en/docs/get-markets: marketId 101 Full Time Result 1x2 (doc-derived)",
+      "family": "SOCCER_1X2_FT",
+      "fixture_only": true,
+      "line": null,
+      "line_source": "none",
+      "native_type": "int",
+      "outcomes": {"101": "HOME", "102": "DRAW", "103": "AWAY"},
+      "period": "FT_REGULAR",
+      "provider_market_id": 101,
+      "verified_live": false
+    },
+    {
+      "doc_reference": "synthetic fixture market id (O/U goals, line carried on the outcome objects)",
+      "family": "SOCCER_TOTAL_GOALS_OU_FT",
+      "fixture_only": true,
+      "line": null,
+      "line_source": "outcome_field:handicap",
+      "native_type": "int",
+      "outcomes": {"2001": "OVER", "2002": "UNDER"},
+      "period": "FT_REGULAR",
+      "provider_market_id": 1010,
+      "verified_live": false
+    },
+    {
+      "doc_reference": "synthetic fixture market id (O/U goals, alternate line)",
+      "family": "SOCCER_TOTAL_GOALS_OU_FT",
+      "fixture_only": true,
+      "line": null,
+      "line_source": "outcome_field:handicap",
+      "native_type": "int",
+      "outcomes": {"2001": "OVER", "2002": "UNDER"},
+      "period": "FT_REGULAR",
+      "provider_market_id": 1011,
+      "verified_live": false
+    },
+    {
+      "doc_reference": "synthetic fixture market id (O/U goals, alternate line)",
+      "family": "SOCCER_TOTAL_GOALS_OU_FT",
+      "fixture_only": true,
+      "line": null,
+      "line_source": "outcome_field:handicap",
+      "native_type": "int",
+      "outcomes": {"2001": "OVER", "2002": "UNDER"},
+      "period": "FT_REGULAR",
+      "provider_market_id": 1012,
+      "verified_live": false
+    },
+    {
+      "doc_reference": "synthetic fixture market id (O/U goals, alternate line)",
+      "family": "SOCCER_TOTAL_GOALS_OU_FT",
+      "fixture_only": true,
+      "line": null,
+      "line_source": "outcome_field:handicap",
+      "native_type": "int",
+      "outcomes": {"2001": "OVER", "2002": "UNDER"},
+      "period": "FT_REGULAR",
+      "provider_market_id": 1013,
+      "verified_live": false
+    },
+    {
+      "doc_reference": "synthetic fixture market id (O/U goals, alternate line)",
+      "family": "SOCCER_TOTAL_GOALS_OU_FT",
+      "fixture_only": true,
+      "line": null,
+      "line_source": "outcome_field:handicap",
+      "native_type": "int",
+      "outcomes": {"2001": "OVER", "2002": "UNDER"},
+      "period": "FT_REGULAR",
+      "provider_market_id": 1014,
+      "verified_live": false
+    }
+  ],
+  "schema": "genesis.adapters.oddspapi.market-map.v1"
+}

@@ -1,0 +1,246 @@
+"""AdapterFailure detail codes and their mapping to the frozen ``genesis.reasons.ReasonCode``.
+
+Every detail code named by design section 15 (F-01 .. F-43, including F-11b) is enumerated
+here. Each maps to exactly one frozen ``ReasonCode`` (test FM-00 asserts totality). The
+frozen enum is never extended; the adapter detail code travels in coverage ``note`` fields.
+"""
+
+from __future__ import annotations
+
+from enum import StrEnum
+
+from genesis.reasons import ReasonCode
+
+
+class AdapterFailure(StrEnum):
+    # F-01 .. F-04: gates, quota, clock, credentials
+    GATE_MISSING = "GATE_MISSING"
+    CIRCUIT_OPEN = "CIRCUIT_OPEN"
+    LIVE_CLOCK_REQUIRED = "LIVE_CLOCK_REQUIRED"
+    TEST_POLICY_IN_LIVE = "TEST_POLICY_IN_LIVE"
+    QUOTA_BLOCKED = "QUOTA_BLOCKED"
+    CLOCK_FAULT = "CLOCK_FAULT"
+    CREDENTIAL_MISSING = "CREDENTIAL_MISSING"
+    CREDENTIAL_PERMISSIONS = "CREDENTIAL_PERMISSIONS"
+    CREDENTIAL_FINGERPRINT_MISMATCH = "CREDENTIAL_FINGERPRINT_MISMATCH"
+    # F-05 .. F-14: transport, HTTP, body, encoding
+    NO_RESPONSE = "NO_RESPONSE"
+    TRUNCATED_BODY = "TRUNCATED_BODY"
+    OVERSIZE_BODY = "OVERSIZE_BODY"
+    REDIRECT_REFUSED = "REDIRECT_REFUSED"
+    AUTH_REJECTED = "AUTH_REJECTED"
+    RATE_LIMITED = "RATE_LIMITED"
+    PROVIDER_ERROR = "PROVIDER_ERROR"
+    SECRET_ECHO = "SECRET_ECHO"
+    UNINSPECTABLE_BODY = "UNINSPECTABLE_BODY"
+    CLOCK_SKEW = "CLOCK_SKEW"
+    NOT_JSON = "NOT_JSON"
+    INVALID_UTF8 = "INVALID_UTF8"
+    DUPLICATE_KEYS = "DUPLICATE_KEYS"
+    NONFINITE_NUMBER = "NONFINITE_NUMBER"
+    WRONG_CONTENT_TYPE = "WRONG_CONTENT_TYPE"
+    ENVELOPE_SCHEMA_MISMATCH = "ENVELOPE_SCHEMA_MISMATCH"
+    # F-15 .. F-24: content
+    PARTIAL_RESPONSE = "PARTIAL_RESPONSE"
+    OUT_OF_SCOPE_COMPETITION = "OUT_OF_SCOPE_COMPETITION"
+    OUT_OF_SCOPE_BOOKMAKER = "OUT_OF_SCOPE_BOOKMAKER"
+    OUT_OF_SCOPE_MARKET = "OUT_OF_SCOPE_MARKET"
+    OUT_OF_SCOPE_LINE = "OUT_OF_SCOPE_LINE"
+    LINE_UNIDENTIFIED = "LINE_UNIDENTIFIED"
+    CONTRADICTORY_DUPLICATE = "CONTRADICTORY_DUPLICATE"
+    INCOMPLETE_SELECTIONS = "INCOMPLETE_SELECTIONS"
+    UNMAPPED_OUTCOME = "UNMAPPED_OUTCOME"
+    INVALID_PRICE = "INVALID_PRICE"
+    PRICE_INCOHERENT = "PRICE_INCOHERENT"
+    IDENTITY_CONFLICT = "IDENTITY_CONFLICT"
+    PARTICIPANT_AMBIGUOUS = "PARTICIPANT_AMBIGUOUS"
+    # F-23 .. F-30: status, time, state
+    UNKNOWN_EVENT_STATUS = "UNKNOWN_EVENT_STATUS"
+    UNKNOWN_MARKET_STATUS = "UNKNOWN_MARKET_STATUS"
+    UNKNOWN_OUTCOME_STATUS = "UNKNOWN_OUTCOME_STATUS"
+    CONTRADICTORY_STATUS = "CONTRADICTORY_STATUS"
+    MARKET_SUSPENDED = "MARKET_SUSPENDED"
+    OUTCOME_INACTIVE = "OUTCOME_INACTIVE"
+    EVENT_NOT_PREMATCH = "EVENT_NOT_PREMATCH"
+    PREMATCH_WINDOW_CLOSED = "PREMATCH_WINDOW_CLOSED"
+    TIMESTAMP_NAIVE = "TIMESTAMP_NAIVE"
+    TIMESTAMP_NON_UTC = "TIMESTAMP_NON_UTC"
+    TIMESTAMP_INVALID = "TIMESTAMP_INVALID"
+    TIMESTAMP_FUTURE = "TIMESTAMP_FUTURE"
+    EVENT_START_INVALID = "EVENT_START_INVALID"
+    EVENT_METADATA_STALE = "EVENT_METADATA_STALE"
+    BOOK_ABSENT = "BOOK_ABSENT"
+    # F-31 .. F-43: integrity, cache, capability, drift, invalidation, boundary
+    CONFIG_DIGEST_MISMATCH = "CONFIG_DIGEST_MISMATCH"
+    EVIDENCE_CONFLICT = "EVIDENCE_CONFLICT"
+    PIT_APPEND_CONFLICT = "PIT_APPEND_CONFLICT"
+    CACHE_MISS = "CACHE_MISS"
+    ORPHANED_RESERVATION = "ORPHANED_RESERVATION"
+    DATA_CAPABILITY_NOT_READY = "DATA_CAPABILITY_NOT_READY"
+    AMBIGUOUS_SOURCE = "AMBIGUOUS_SOURCE"
+    QUOTA_DIVERGENCE = "QUOTA_DIVERGENCE"
+    SCHEMA_DRIFT = "SCHEMA_DRIFT"
+    NOT_PUBLISHED_AT_CUTOFF = "NOT_PUBLISHED_AT_CUTOFF"
+    PARITY_FAILURE = "PARITY_FAILURE"
+    INVALIDATED = "INVALIDATED"
+    MODULE_PROVENANCE = "MODULE_PROVENANCE"
+    QUOTA_REPLAY_BROKEN = "QUOTA_REPLAY_BROKEN"
+    WINDOW_BOUNDARY_GUARD = "WINDOW_BOUNDARY_GUARD"
+    # reader results and invalidation reasons (design sections 12.3 and 13.2)
+    MISSING_OR_STALE = "MISSING_OR_STALE"
+    STALE = "STALE"
+    AMBIGUOUS = "AMBIGUOUS"
+    DERIVATION_UNVERIFIED = "DERIVATION_UNVERIFIED"
+    PROVIDER_ERROR_NOTICE = "PROVIDER_ERROR_NOTICE"
+    OPERATOR_INVALIDATION = "OPERATOR_INVALIDATION"
+    SUSPENDED = "SUSPENDED"
+    ABSENT = "ABSENT"
+    BLOCKED = "BLOCKED"
+    # a role whose provider metering cannot be bounded before sending (design 7.2, 14.2, BILL-03)
+    ROLE_NOT_USABLE = "ROLE_NOT_USABLE"
+
+
+class GateMissing(RuntimeError):
+    """A required approval gate record is absent, expired or does not match (F-01)."""
+
+
+class CredentialProblem(RuntimeError):
+    """Credential missing, wrongly permissioned or not matching its approved fingerprint (F-04).
+
+    ``code`` is the AdapterFailure name; no credential text is ever carried.
+    """
+
+    def __init__(self, code: str):
+        super().__init__(code)
+        self.code = code
+
+
+class AcquisitionHalt(RuntimeError):
+    """Acquisition must stop (clock fault, credential problem, broken quota replay, secret echo).
+
+    ``code`` is an :class:`AdapterFailure`. The halt is recorded durably before this is raised.
+    """
+
+    def __init__(self, code: "AdapterFailure"):
+        super().__init__(str(code))
+        self.code = code
+
+
+R = ReasonCode
+REASON_CODE_MAP: dict[AdapterFailure, ReasonCode] = {
+    AdapterFailure.GATE_MISSING: R.CONFIGURATION_MISMATCH,
+    AdapterFailure.CIRCUIT_OPEN: R.CONFIGURATION_MISMATCH,
+    AdapterFailure.LIVE_CLOCK_REQUIRED: R.CONFIGURATION_MISMATCH,
+    AdapterFailure.TEST_POLICY_IN_LIVE: R.CONFIGURATION_MISMATCH,
+    AdapterFailure.QUOTA_BLOCKED: R.ATTEMPT_BUDGET_EXHAUSTED,
+    AdapterFailure.CLOCK_FAULT: R.CONFIGURATION_MISMATCH,
+    AdapterFailure.CREDENTIAL_MISSING: R.CONFIGURATION_MISMATCH,
+    AdapterFailure.CREDENTIAL_PERMISSIONS: R.CONFIGURATION_MISMATCH,
+    AdapterFailure.CREDENTIAL_FINGERPRINT_MISMATCH: R.CONFIGURATION_MISMATCH,
+    AdapterFailure.NO_RESPONSE: R.MISSING_EVIDENCE,
+    AdapterFailure.TRUNCATED_BODY: R.SCHEMA_REJECTED,
+    AdapterFailure.OVERSIZE_BODY: R.SCHEMA_REJECTED,
+    AdapterFailure.REDIRECT_REFUSED: R.SOURCE_CONTRACT_VIOLATION,
+    AdapterFailure.AUTH_REJECTED: R.CONFIGURATION_MISMATCH,
+    AdapterFailure.RATE_LIMITED: R.ATTEMPT_BUDGET_EXHAUSTED,
+    AdapterFailure.PROVIDER_ERROR: R.MISSING_EVIDENCE,
+    AdapterFailure.SECRET_ECHO: R.ARTIFACT_TAMPERED,
+    AdapterFailure.UNINSPECTABLE_BODY: R.SCHEMA_REJECTED,
+    AdapterFailure.CLOCK_SKEW: R.CRITICAL_UNCERTAINTY,
+    AdapterFailure.NOT_JSON: R.SCHEMA_REJECTED,
+    AdapterFailure.INVALID_UTF8: R.SCHEMA_REJECTED,
+    AdapterFailure.DUPLICATE_KEYS: R.SCHEMA_REJECTED,
+    AdapterFailure.NONFINITE_NUMBER: R.SCHEMA_REJECTED,
+    AdapterFailure.WRONG_CONTENT_TYPE: R.SCHEMA_REJECTED,
+    AdapterFailure.ENVELOPE_SCHEMA_MISMATCH: R.SCHEMA_REJECTED,
+    AdapterFailure.PARTIAL_RESPONSE: R.MISSING_EVIDENCE,
+    AdapterFailure.OUT_OF_SCOPE_COMPETITION: R.UNSUPPORTED_MARKET,
+    AdapterFailure.OUT_OF_SCOPE_BOOKMAKER: R.UNSUPPORTED_MARKET,
+    AdapterFailure.OUT_OF_SCOPE_MARKET: R.UNSUPPORTED_MARKET,
+    AdapterFailure.OUT_OF_SCOPE_LINE: R.UNSUPPORTED_MARKET,
+    AdapterFailure.LINE_UNIDENTIFIED: R.UNSUPPORTED_MARKET,
+    AdapterFailure.CONTRADICTORY_DUPLICATE: R.CONTRADICTORY_EVIDENCE,
+    AdapterFailure.INCOMPLETE_SELECTIONS: R.SCHEMA_REJECTED,
+    AdapterFailure.UNMAPPED_OUTCOME: R.SCHEMA_REJECTED,
+    AdapterFailure.INVALID_PRICE: R.PRICE_SANITY_FAILED,
+    AdapterFailure.PRICE_INCOHERENT: R.CONTRADICTORY_EVIDENCE,
+    AdapterFailure.IDENTITY_CONFLICT: R.AMBIGUOUS_IDENTITY,
+    AdapterFailure.PARTICIPANT_AMBIGUOUS: R.AMBIGUOUS_IDENTITY,
+    AdapterFailure.UNKNOWN_EVENT_STATUS: R.CRITICAL_UNCERTAINTY,
+    AdapterFailure.UNKNOWN_MARKET_STATUS: R.CRITICAL_UNCERTAINTY,
+    AdapterFailure.UNKNOWN_OUTCOME_STATUS: R.CRITICAL_UNCERTAINTY,
+    AdapterFailure.CONTRADICTORY_STATUS: R.CONTRADICTORY_EVIDENCE,
+    AdapterFailure.MARKET_SUSPENDED: R.ACCEPTED,
+    AdapterFailure.OUTCOME_INACTIVE: R.ACCEPTED,
+    AdapterFailure.EVENT_NOT_PREMATCH: R.EXPIRED,
+    AdapterFailure.PREMATCH_WINDOW_CLOSED: R.EXPIRED,
+    AdapterFailure.TIMESTAMP_NAIVE: R.NOT_AVAILABLE_AT_DECISION,
+    AdapterFailure.TIMESTAMP_NON_UTC: R.NOT_AVAILABLE_AT_DECISION,
+    AdapterFailure.TIMESTAMP_INVALID: R.NOT_AVAILABLE_AT_DECISION,
+    AdapterFailure.TIMESTAMP_FUTURE: R.NOT_AVAILABLE_AT_DECISION,
+    AdapterFailure.EVENT_START_INVALID: R.NOT_AVAILABLE_AT_DECISION,
+    AdapterFailure.EVENT_METADATA_STALE: R.STALE_EVIDENCE,
+    AdapterFailure.BOOK_ABSENT: R.ACCEPTED,
+    AdapterFailure.CONFIG_DIGEST_MISMATCH: R.CONFIGURATION_MISMATCH,
+    AdapterFailure.EVIDENCE_CONFLICT: R.ARTIFACT_TAMPERED,
+    AdapterFailure.PIT_APPEND_CONFLICT: R.ARTIFACT_TAMPERED,
+    AdapterFailure.CACHE_MISS: R.STALE_EVIDENCE,
+    AdapterFailure.ORPHANED_RESERVATION: R.MISSING_EVIDENCE,
+    AdapterFailure.DATA_CAPABILITY_NOT_READY: R.NOT_READY_AT_DECISION,
+    AdapterFailure.AMBIGUOUS_SOURCE: R.NOT_READY_AT_DECISION,
+    AdapterFailure.QUOTA_DIVERGENCE: R.CONFIGURATION_MISMATCH,
+    AdapterFailure.SCHEMA_DRIFT: R.SCHEMA_REJECTED,
+    AdapterFailure.NOT_PUBLISHED_AT_CUTOFF: R.NOT_AVAILABLE_AT_DECISION,
+    AdapterFailure.PARITY_FAILURE: R.SOURCE_CONTRACT_VIOLATION,
+    AdapterFailure.INVALIDATED: R.CONTRADICTORY_EVIDENCE,
+    AdapterFailure.MODULE_PROVENANCE: R.CONFIGURATION_MISMATCH,
+    AdapterFailure.QUOTA_REPLAY_BROKEN: R.ARTIFACT_TAMPERED,
+    AdapterFailure.WINDOW_BOUNDARY_GUARD: R.ATTEMPT_BUDGET_EXHAUSTED,
+    AdapterFailure.MISSING_OR_STALE: R.STALE_EVIDENCE,
+    AdapterFailure.STALE: R.STALE_EVIDENCE,
+    AdapterFailure.AMBIGUOUS: R.CONTRADICTORY_EVIDENCE,
+    AdapterFailure.DERIVATION_UNVERIFIED: R.ARTIFACT_TAMPERED,
+    AdapterFailure.PROVIDER_ERROR_NOTICE: R.CONTRADICTORY_EVIDENCE,
+    AdapterFailure.OPERATOR_INVALIDATION: R.CONTRADICTORY_EVIDENCE,
+    AdapterFailure.SUSPENDED: R.ACCEPTED,
+    AdapterFailure.ABSENT: R.ACCEPTED,
+    AdapterFailure.BLOCKED: R.CRITICAL_UNCERTAINTY,
+    AdapterFailure.ROLE_NOT_USABLE: R.CONFIGURATION_MISMATCH,
+}
+
+# What a decision-time consumer records when the reader returns ``Unusable(<code>)``
+# (design section 12.2 rule 3 and 12.3).
+PASS_REASON_MAP: dict[AdapterFailure, ReasonCode] = {
+    AdapterFailure.STALE: R.PASS_STALE_EVIDENCE,
+    AdapterFailure.MISSING_OR_STALE: R.PASS_STALE_EVIDENCE,
+    AdapterFailure.DATA_CAPABILITY_NOT_READY: R.PASS_DATA_CAPABILITY_NOT_READY,
+    AdapterFailure.AMBIGUOUS_SOURCE: R.PASS_DATA_CAPABILITY_NOT_READY,
+    AdapterFailure.SUSPENDED: R.PASS_MISSING_EVIDENCE,
+    AdapterFailure.ABSENT: R.PASS_MISSING_EVIDENCE,
+    AdapterFailure.NOT_PUBLISHED_AT_CUTOFF: R.PASS_MISSING_EVIDENCE,
+    AdapterFailure.BLOCKED: R.PASS_UNKNOWN_STATE,
+    AdapterFailure.AMBIGUOUS: R.PASS_UNKNOWN_STATE,
+    AdapterFailure.INVALIDATED: R.PASS_CONTRADICTION,
+    AdapterFailure.PARITY_FAILURE: R.PASS_GATE_ERROR,
+    AdapterFailure.DERIVATION_UNVERIFIED: R.PASS_GATE_ERROR,
+    AdapterFailure.PREMATCH_WINDOW_CLOSED: R.PASS_EXPIRED_CANDIDATE,
+}
+
+
+def _member(failure: AdapterFailure | str) -> AdapterFailure:
+    try:
+        return AdapterFailure(failure)
+    except ValueError:
+        raise KeyError(str(failure)) from None
+
+
+def reason_code(failure: AdapterFailure | str) -> ReasonCode:
+    """The one frozen ReasonCode for an adapter detail code (KeyError if unknown)."""
+
+    return REASON_CODE_MAP[_member(failure)]
+
+
+def pass_reason(failure: AdapterFailure | str) -> ReasonCode:
+    """The V0.4 PASS_* code a consumer records for an ``Unusable`` reader result."""
+
+    return PASS_REASON_MAP[_member(failure)]

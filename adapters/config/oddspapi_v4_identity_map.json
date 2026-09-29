@@ -1,0 +1,75 @@
+{
+  "bookmakers": [
+    {
+      "declared": true,
+      "doc_reference": "oddspapi.io/en/docs/get-odds-by-tournament example bookmaker (doc-derived)",
+      "fixture_only": true,
+      "genesis_bookmaker_id": "bk.pinnacle",
+      "kind": "fixed_odds_sportsbook",
+      "provider_bookmaker_key": "pinnacle",
+      "verified_live": false
+    },
+    {
+      "declared": true,
+      "doc_reference": "synthetic fixture bookmaker",
+      "fixture_only": true,
+      "genesis_bookmaker_id": "bk.fixture-book-a",
+      "kind": "fixed_odds_sportsbook",
+      "provider_bookmaker_key": "fixture-book-a",
+      "verified_live": false
+    },
+    {
+      "declared": true,
+      "doc_reference": "synthetic fixture bookmaker",
+      "fixture_only": true,
+      "genesis_bookmaker_id": "bk.fixture-book-b",
+      "kind": "fixed_odds_sportsbook",
+      "provider_bookmaker_key": "fixture-book-b",
+      "verified_live": false
+    },
+    {
+      "declared": false,
+      "doc_reference": "synthetic fixture bookmaker (known, not declared)",
+      "fixture_only": true,
+      "genesis_bookmaker_id": "bk.fixture-book-c",
+      "kind": "fixed_odds_sportsbook",
+      "provider_bookmaker_key": "fixture-book-c",
+      "verified_live": false
+    },
+    {
+      "declared": false,
+      "doc_reference": "synthetic fixture exchange (excluded by design: no lay/size vocabulary)",
+      "fixture_only": true,
+      "genesis_bookmaker_id": "bk.fixture-exchange",
+      "kind": "exchange",
+      "provider_bookmaker_key": "fixture-exchange",
+      "verified_live": false
+    }
+  ],
+  "competitions": [
+    {
+      "doc_reference": "oddspapi.io/en/docs/get-fixtures example tournamentId 17 (doc-derived)",
+      "expected_category_name": "England",
+      "expected_tournament_name": "Premier League",
+      "fixture_only": true,
+      "genesis_competition_id": "soccer.eng.premier-league",
+      "native_type": "int",
+      "provider_tournament_id": 17,
+      "sport": "soccer",
+      "verified_live": false
+    },
+    {
+      "doc_reference": "assumed tournamentId 8 (unverified; provisional)",
+      "expected_category_name": "Spain",
+      "expected_tournament_name": "LaLiga",
+      "fixture_only": true,
+      "genesis_competition_id": "soccer.esp.laliga",
+      "native_type": "int",
+      "provider_tournament_id": 8,
+      "sport": "soccer",
+      "verified_live": false
+    }
+  ],
+  "provider_sport": {"native_type": "int", "provider_sport_id": 10, "sport": "soccer"},
+  "schema": "genesis.adapters.oddspapi.identity-map.v1"
+}

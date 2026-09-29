@@ -1,0 +1,7 @@
+# S1 compileall
+# command: python -m compileall -q src tests adapters/src adapters/adapter_tests
+# start: 2026-09-29T01:54:07Z
+# python: Python 3.12.10
+# HEAD (base): 63e06a1ce32eac15b28a525b2340eae280f7c0ed
+----
+# exit: 0

@@ -1,0 +1,148 @@
+# S1 RED transcript (S1 tests written before S1 production code)
+# command: PYTHONPYCACHEPREFIX=<fresh> python -B -m unittest discover -s adapters/adapter_tests -t adapters -v
+# start: 2026-09-28T21:20:31Z
+# base HEAD: c8dfafdff3be611fa6255a03ed361bc46d7ad8fe (+ uncommitted S0 work and S1 tests)
+----
+adapter_tests.test_v05_clock (unittest.loader._FailedTest.adapter_tests.test_v05_clock) ... ERROR
+adapter_tests.test_v05_config (unittest.loader._FailedTest.adapter_tests.test_v05_config) ... ERROR
+adapter_tests.test_v05_errors (unittest.loader._FailedTest.adapter_tests.test_v05_errors) ... ERROR
+test_slice_policy_names_are_the_only_source_of_provisional_numbers (adapter_tests.test_v05_frz10.Frz10Tests.test_slice_policy_names_are_the_only_source_of_provisional_numbers) ... ERROR
+adapter_tests.test_v05_ids (unittest.loader._FailedTest.adapter_tests.test_v05_ids) ... ERROR
+adapter_tests.test_v05_jsonstrict (unittest.loader._FailedTest.adapter_tests.test_v05_jsonstrict) ... ERROR
+adapter_tests.test_v05_request (unittest.loader._FailedTest.adapter_tests.test_v05_request) ... ERROR
+adapter_tests.test_v05_schema (unittest.loader._FailedTest.adapter_tests.test_v05_schema) ... ERROR
+adapter_tests.test_v05_secrets (unittest.loader._FailedTest.adapter_tests.test_v05_secrets) ... ERROR
+
+======================================================================
+ERROR: adapter_tests.test_v05_clock (unittest.loader._FailedTest.adapter_tests.test_v05_clock)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests.test_v05_clock
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_clock.py", line 7, in <module>
+    from genesis_adapters import clock as clk
+ImportError: cannot import name 'clock' from 'genesis_adapters' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\__init__.py)
+
+
+======================================================================
+ERROR: adapter_tests.test_v05_config (unittest.loader._FailedTest.adapter_tests.test_v05_config)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests.test_v05_config
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_config.py", line 11, in <module>
+    from genesis_adapters import config as cfg
+ImportError: cannot import name 'config' from 'genesis_adapters' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\__init__.py)
+
+
+======================================================================
+ERROR: adapter_tests.test_v05_errors (unittest.loader._FailedTest.adapter_tests.test_v05_errors)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests.test_v05_errors
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_errors.py", line 9, in <module>
+    from genesis_adapters import errors as err
+ImportError: cannot import name 'errors' from 'genesis_adapters' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\__init__.py)
+
+
+======================================================================
+ERROR: test_slice_policy_names_are_the_only_source_of_provisional_numbers (adapter_tests.test_v05_frz10.Frz10Tests.test_slice_policy_names_are_the_only_source_of_provisional_numbers)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_frz10.py", line 91, in test_slice_policy_names_are_the_only_source_of_provisional_numbers
+    from genesis_adapters import config as cfg
+ImportError: cannot import name 'config' from 'genesis_adapters' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\__init__.py)
+
+======================================================================
+ERROR: adapter_tests.test_v05_ids (unittest.loader._FailedTest.adapter_tests.test_v05_ids)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests.test_v05_ids
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_ids.py", line 9, in <module>
+    from genesis_adapters import ids
+ImportError: cannot import name 'ids' from 'genesis_adapters' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\__init__.py)
+
+
+======================================================================
+ERROR: adapter_tests.test_v05_jsonstrict (unittest.loader._FailedTest.adapter_tests.test_v05_jsonstrict)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests.test_v05_jsonstrict
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_jsonstrict.py", line 8, in <module>
+    from genesis_adapters import jsonstrict
+ImportError: cannot import name 'jsonstrict' from 'genesis_adapters' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\__init__.py)
+
+
+======================================================================
+ERROR: adapter_tests.test_v05_request (unittest.loader._FailedTest.adapter_tests.test_v05_request)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests.test_v05_request
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_request.py", line 13, in <module>
+    from genesis_adapters.config import load_policy
+ModuleNotFoundError: No module named 'genesis_adapters.config'
+
+
+======================================================================
+ERROR: adapter_tests.test_v05_schema (unittest.loader._FailedTest.adapter_tests.test_v05_schema)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests.test_v05_schema
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_schema.py", line 9, in <module>
+    from genesis_adapters import schema as sch
+ImportError: cannot import name 'schema' from 'genesis_adapters' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\__init__.py)
+
+
+======================================================================
+ERROR: adapter_tests.test_v05_secrets (unittest.loader._FailedTest.adapter_tests.test_v05_secrets)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests.test_v05_secrets
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_secrets.py", line 15, in <module>
+    from genesis_adapters import secrets as sec
+ImportError: cannot import name 'secrets' from 'genesis_adapters' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\__init__.py)
+
+
+----------------------------------------------------------------------
+Ran 52 tests in 15.899s
+
+FAILED (errors=9)
+# end: 2026-09-28T21:20:48Z

@@ -1,0 +1,169 @@
+{
+  "schema": "genesis.adapters.oddspapi.response-schemas.v1",
+  "schemas": {
+    "oddspapi.v4.bookmakers.v1": {
+      "objects": {
+        "bookmaker": {
+          "keys": {
+            "bookmakerName": {"inert": true, "required": true, "type": "str"},
+            "slug": {"required": true, "type": "str"}
+          },
+          "scope": "RESPONSE"
+        }
+      },
+      "root": {"ref": "bookmaker", "type": "array"}
+    },
+    "oddspapi.v4.fixtures.v1": {
+      "objects": {
+        "fixture": {
+          "keys": {
+            "fixtureId": {"identity": true, "required": true, "type": "str"},
+            "hasOdds": {"inert": true, "required": true, "type": "bool"},
+            "participant1Id": {"required": true, "type": "int"},
+            "participant1Name": {"inert": true, "required": true, "type": "str"},
+            "participant2Id": {"required": true, "type": "int"},
+            "participant2Name": {"inert": true, "required": true, "type": "str"},
+            "seasonId": {"inert": true, "required": true, "type": "int"},
+            "sportId": {"required": true, "type": "int"},
+            "sportName": {"inert": true, "required": true, "type": "str"},
+            "startTime": {"required": true, "timestamp": true, "type": "str"},
+            "statusId": {"required": true, "type": "int"},
+            "statusName": {"inert": true, "required": true, "type": "str"},
+            "tournamentId": {"required": true, "type": "int"},
+            "tournamentName": {"inert": true, "required": true, "type": "str"},
+            "trueEndTime": {"required": true, "timestamp": true, "type": ["str", "null"]},
+            "trueStartTime": {"required": true, "timestamp": true, "type": ["str", "null"]},
+            "updatedAt": {"required": true, "timestamp": true, "type": "str"}
+          },
+          "scope": "EVENT"
+        }
+      },
+      "root": {"ref": "fixture", "type": "array"}
+    },
+    "oddspapi.v4.markets.v1": {
+      "objects": {
+        "market_definition": {
+          "keys": {
+            "handicap": {"required": true, "type": "number"},
+            "marketId": {"required": true, "type": "int"},
+            "marketLength": {"inert": true, "required": true, "type": "int"},
+            "marketName": {"inert": true, "required": true, "type": "str"},
+            "marketType": {"required": true, "type": "str"},
+            "outcomes": {"ref": "outcome_definition", "required": true, "type": "array"},
+            "period": {"required": true, "type": "str"},
+            "playerProp": {"required": true, "type": "bool"},
+            "sportId": {"required": true, "type": "int"}
+          },
+          "scope": "RESPONSE"
+        },
+        "outcome_definition": {
+          "keys": {
+            "outcomeId": {"required": true, "type": "int"},
+            "outcomeName": {"inert": true, "required": true, "type": "str"}
+          },
+          "scope": "RESPONSE"
+        }
+      },
+      "root": {"ref": "market_definition", "type": "array"}
+    },
+    "oddspapi.v4.odds_by_tournaments.v1": {
+      "objects": {
+        "bookmaker_block": {
+          "keys": {
+            "bookmakerFixtureId": {"inert": true, "type": "str"},
+            "bookmakerIsActive": {"required": true, "type": "bool"},
+            "fixturePath": {"inert": true, "type": "str"},
+            "markets": {"ref": "market", "required": true, "type": "object_map"}
+          },
+          "scope": "EVENT_BOOKMAKER"
+        },
+        "exchange_meta": {
+          "keys": {},
+          "scope": "BOOK"
+        },
+        "fixture": {
+          "keys": {
+            "bookmakerOdds": {"ref": "bookmaker_block", "required": true, "type": "object_map"},
+            "fixtureId": {"identity": true, "required": true, "type": "str"},
+            "hasOdds": {"inert": true, "required": true, "type": "bool"},
+            "participant1Id": {"required": true, "type": "int"},
+            "participant1Name": {"inert": true, "type": "str"},
+            "participant2Id": {"required": true, "type": "int"},
+            "participant2Name": {"inert": true, "type": "str"},
+            "seasonId": {"inert": true, "required": true, "type": "int"},
+            "sportId": {"required": true, "type": "int"},
+            "sportName": {"inert": true, "type": "str"},
+            "startTime": {"required": true, "timestamp": true, "type": "str"},
+            "statusId": {"required": true, "type": "int"},
+            "statusName": {"inert": true, "type": "str"},
+            "tournamentId": {"required": true, "type": "int"},
+            "tournamentName": {"inert": true, "type": "str"},
+            "trueEndTime": {"required": true, "timestamp": true, "type": ["str", "null"]},
+            "trueStartTime": {"required": true, "timestamp": true, "type": ["str", "null"]},
+            "updatedAt": {"required": true, "timestamp": true, "type": "str"}
+          },
+          "scope": "EVENT"
+        },
+        "market": {
+          "keys": {
+            "bookmakerMarketId": {"inert": true, "type": "str"},
+            "outcomes": {"ref": "outcome", "required": true, "type": "object_map"}
+          },
+          "scope": "BOOK"
+        },
+        "outcome": {
+          "keys": {
+            "handicap": {"type": ["number", "str"]},
+            "players": {"ref": "price", "required": true, "type": "object_map"}
+          },
+          "scope": "BOOK"
+        },
+        "price": {
+          "keys": {
+            "active": {"required": true, "type": "bool"},
+            "betslip": {"inert": true, "type": ["str", "null"]},
+            "bookmakerOutcomeId": {"inert": true, "type": "str"},
+            "changedAt": {"required": true, "timestamp": true, "type": "str"},
+            "exchangeMeta": {"ref": "exchange_meta", "type": "object"},
+            "limit": {"inert": true, "type": ["number", "null"]},
+            "playerName": {"inert": true, "type": ["str", "null"]},
+            "price": {"required": true, "type": "number"}
+          },
+          "scope": "BOOK"
+        }
+      },
+      "root": {"ref": "fixture", "type": "array"}
+    },
+    "oddspapi.v4.sports.v1": {
+      "objects": {
+        "sport": {
+          "keys": {
+            "sportId": {"required": true, "type": "int"},
+            "sportName": {"inert": true, "required": true, "type": "str"},
+            "sportSlug": {"inert": true, "required": true, "type": "str"}
+          },
+          "scope": "RESPONSE"
+        }
+      },
+      "root": {"ref": "sport", "type": "array"}
+    },
+    "oddspapi.v4.tournaments.v1": {
+      "objects": {
+        "tournament": {
+          "keys": {
+            "categoryName": {"required": true, "type": "str"},
+            "categorySlug": {"inert": true, "required": true, "type": "str"},
+            "futureFixtures": {"inert": true, "required": true, "type": "int"},
+            "liveFixtures": {"inert": true, "required": true, "type": "int"},
+            "tournamentId": {"required": true, "type": "int"},
+            "tournamentName": {"required": true, "type": "str"},
+            "tournamentSlug": {"inert": true, "required": true, "type": "str"},
+            "upcomingFixtures": {"inert": true, "required": true, "type": "int"}
+          },
+          "scope": "RESPONSE"
+        }
+      },
+      "root": {"ref": "tournament", "type": "array"}
+    }
+  }
+}

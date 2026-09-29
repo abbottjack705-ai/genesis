@@ -174,3 +174,211 @@ def shared_clone(dest: Path) -> Path:
     subprocess.run(["git", "clone", "--quiet", "--shared", "--no-checkout", str(REPO), str(dest)],
                    check=True, capture_output=True)
     return dest
+
+
+# ---------------------------------------------------------------------------------------
+# Transport doubles and the acquisition rig (test-only; FRZ-08 forbids these in production)
+# ---------------------------------------------------------------------------------------
+import json  # noqa: E402
+from dataclasses import dataclass, field  # noqa: E402
+from types import SimpleNamespace  # noqa: E402
+
+
+class Crash(BaseException):
+    """Simulated process death. Deliberately NOT an Exception: adapter code never catches it."""
+
+
+@dataclass
+class Scripted:
+    kind: str = "RESPONSE"                   # RESPONSE | NO_RESPONSE | TRUNCATED | RAISE | CRASH
+    status: int | None = 200
+    body: bytes | None = b"[]"
+    headers: tuple = (("content-type", "application/json"),)
+    latency: float = 0.05                    # seconds between T0 and T1
+    error_class: str = "TimeoutError"
+    errno: int | None = None
+    exc: BaseException | None = None
+    t1: str | None = None                    # force the response-received stamp
+
+
+def ok(body: bytes = b"[]", **kw) -> Scripted:
+    return Scripted(body=body, **kw)
+
+
+def status(code: int, body: bytes = b"{}", **kw) -> Scripted:
+    return Scripted(status=code, body=body, **kw)
+
+
+def no_response(error_class: str = "TimeoutError", errno: int | None = None, **kw) -> Scripted:
+    return Scripted(kind="NO_RESPONSE", status=None, body=None, error_class=error_class, errno=errno, **kw)
+
+
+def truncated(body: bytes = b"[1,", **kw) -> Scripted:
+    return Scripted(kind="TRUNCATED", body=body, **kw)
+
+
+def raises(exc: BaseException) -> Scripted:
+    return Scripted(kind="RAISE", exc=exc)
+
+
+def crash() -> Scripted:
+    return Scripted(kind="CRASH")
+
+
+class FakeTransport:
+    """Scripted transport. Stamps T0/T1 from the injected clock like the real one must."""
+
+    def __init__(self, script=(), default: Scripted | None = None):
+        self.script = list(script)
+        self.default = default if default is not None else ok()
+        self.calls: list = []
+
+    def send(self, request, *, clock, deadline_at):
+        from genesis_adapters.oddspapi.transport import TransportResult
+
+        self.calls.append(SimpleNamespace(role=request.role, hash=request.provider_request_hash,
+                                          deadline_at=deadline_at, request=request))
+        step = self.script.pop(0) if self.script else self.default
+        if callable(step):                       # a step may be built from the clock at send time
+            step = step(clock)
+        t0 = clock.now()
+        if step.kind == "CRASH":
+            raise Crash()
+        if step.kind == "RAISE":
+            raise step.exc
+        if step.latency and hasattr(clock, "advance"):
+            clock.advance(seconds=step.latency)
+        t1 = step.t1 or clock.now()
+        if step.kind == "NO_RESPONSE":
+            return TransportResult("NO_RESPONSE", None, (), None,
+                                   {"class": step.error_class, "errno": step.errno}, t0, None)
+        return TransportResult(step.kind, step.status, tuple(step.headers), step.body, None, t0, t1)
+
+
+def http_date(iso_value: str) -> str:
+    """RFC 7231 ``Date`` header value for a canonical UTC timestamp (whole seconds)."""
+
+    from email.utils import format_datetime
+
+    return format_datetime(_parse(iso_value), usegmt=True)
+
+
+def test_quota_policy(*, daily: int = 7, normal: int = 220, reserve: int = 30, allowance: int = 250):
+    from genesis.quota import QuotaInterpretation, QuotaPolicy
+
+    return QuotaPolicy.test_fixture(QuotaInterpretation.A, provider_monthly_allowance=allowance,
+                                    normal_monthly_budget=normal, reserve_units=reserve,
+                                    daily_billable_budget=daily)
+
+
+@dataclass
+class Rig:
+    root: Path
+    clock: object
+    transport: FakeTransport
+    quota_ledger: object
+    cache: object
+    gate: object
+    runner: object
+    specs: dict
+    policy: object
+    evidence: object = None
+    contracts: object = None
+    capture: object = None
+    blocked: list = field(default_factory=list)
+
+    @property
+    def acq_path(self) -> Path:
+        return self.root / "acquisition.jsonl"
+
+    @property
+    def coverage_path(self) -> Path:
+        return self.root / "coverage.jsonl"
+
+
+def read_jsonl(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    return [json.loads(line) for line in path.read_bytes().splitlines() if line.strip()]
+
+
+def load_schemas():
+    from genesis_adapters import schema as schema_mod
+
+    document = json.loads((CONFIG / "oddspapi_v4_response_schemas.json").read_text(encoding="utf-8"))
+    return {name: schema_mod.load_closed_schema(name, body) for name, body in document["schemas"].items()}
+
+
+def build_rig(root: Path, *, clock=None, script=(), quota_policy=None, live: bool = False,
+              authority=None, credential_check=None, checkpoint=None, specs=None, policy=None,
+              transport=None, quota_ledger=None, cache=None, halt_hook=None, capability_blocker=None,
+              capture: bool = False, secret=None, require_date: bool = False):
+    from genesis.evidence import EvidenceStore
+    from genesis.provenance import SourceContractRegistry
+    from genesis.quota import QuotaLedger, VerifiedCacheStore
+
+    from genesis_adapters.config import load_policy
+    from genesis_adapters.oddspapi import endpoints as ep
+    from genesis_adapters.oddspapi.acquisition import AcquisitionRunner
+    from genesis_adapters.oddspapi.quota_gate import QuotaGate
+
+    policy = policy or load_policy(CONFIG / "oddspapi_slice1_policy.json")
+    specs = specs or ep.load_endpoints(CONFIG / "oddspapi_v4_endpoints.json", policy)
+    clock = clock or FixedClock(step_micros=1000)
+    cache = cache or VerifiedCacheStore(root / "quota" / "cache")
+    if quota_ledger is None:
+        quota_ledger = QuotaLedger(root / "quota" / "ledger.jsonl", policy=quota_policy or test_quota_policy(),
+                                   allow_test_policy=True, cache_store=cache)
+    gate = QuotaGate(quota_ledger, cache, cache_index_path=root / "quota" / "cache-index.jsonl")
+    transport = transport or FakeTransport(script)
+    blocked: list = []
+
+    def blocker(reason):
+        blocked.append(reason)
+        if capability_blocker is not None:
+            capability_blocker(reason)
+
+    config = SimpleNamespace(endpoints=specs, policy=policy, schemas=load_schemas())
+    evidence = contracts = raw_capture = None
+    if capture:
+        from genesis_adapters.oddspapi.raw_capture import RawCapture, register_raw_contract
+
+        contracts = SourceContractRegistry(root / "contracts.jsonl")
+        register_raw_contract(contracts, licensing_note="FIXTURE-ONLY-NO-PROVIDER-TERMS")
+        evidence = EvidenceStore(root / "evidence", contracts=contracts)
+        raw_capture = RawCapture(root=root, evidence=evidence, gate=gate, config=config, secret=secret,
+                                 require_date=require_date, licensing_note="FIXTURE-ONLY-NO-PROVIDER-TERMS")
+    runner = AcquisitionRunner(root=root, clock=clock, transport=transport, quota=gate,
+                               authority=authority, config=config, live=live,
+                               credential_check=credential_check, checkpoint=checkpoint,
+                               capability_blocker=blocker, capture=raw_capture)
+    return Rig(root, clock, transport, quota_ledger, cache, gate, runner, specs, policy, evidence,
+               contracts, raw_capture, blocked)
+
+
+def odds_item(*, window: str = "w1", attempt: int = 1, purpose: str = "SCHEDULED", specs=None,
+              not_after: str | None = None, **overrides):
+    from genesis_adapters.config import load_policy
+    from genesis_adapters.oddspapi import endpoints as ep
+    from genesis_adapters.oddspapi.acquisition import PlanItem
+
+    if specs is None:
+        specs = ep.load_endpoints(CONFIG / "oddspapi_v4_endpoints.json",
+                                  load_policy(CONFIG / "oddspapi_slice1_policy.json"))
+    params = {"bookmaker": ["pinnacle"], "tournamentIds": [17, 8], "oddsFormat": "decimal"}
+    params.update(overrides)
+    request = ep.build_request(specs["ODDS"], **params)
+    return PlanItem(window_id=window, purpose=purpose, request=request, attempt=attempt, not_after=not_after)
+
+
+def meta_item(role: str = "META_TOURNAMENTS", *, window: str = "wm", attempt: int = 1, specs=None):
+    from genesis_adapters.config import load_policy
+    from genesis_adapters.oddspapi import endpoints as ep
+    from genesis_adapters.oddspapi.acquisition import PlanItem
+
+    if specs is None:
+        specs = ep.load_endpoints(CONFIG / "oddspapi_v4_endpoints.json",
+                                  load_policy(CONFIG / "oddspapi_slice1_policy.json"))
+    params = {"META_TOURNAMENTS": {"sportId": 10}}.get(role, {})
+    return PlanItem(window_id=window, purpose="METADATA", request=ep.build_request(specs[role], **params),
+                    attempt=attempt)

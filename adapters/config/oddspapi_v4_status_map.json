@@ -1,0 +1,15 @@
+{
+  "event_status": [
+    {"doc_reference": "oddspapi.io/en/docs/get-fixtures statusId 0 = Not yet started", "field": "statusId", "genesis": "PREMATCH", "json_type": "int", "value": 0, "verified_live": false},
+    {"doc_reference": "oddspapi.io/en/docs/get-fixtures statusId 1 = Live", "field": "statusId", "genesis": "NOT_PREMATCH", "json_type": "int", "value": 1, "verified_live": false},
+    {"doc_reference": "oddspapi.io/en/docs/get-fixtures statusId 2 = Finished", "field": "statusId", "genesis": "NOT_PREMATCH", "json_type": "int", "value": 2, "verified_live": false},
+    {"doc_reference": "oddspapi.io/en/docs/get-fixtures statusId 3 = Cancelled", "field": "statusId", "genesis": "NOT_PREMATCH", "json_type": "int", "value": 3, "verified_live": false}
+  ],
+  "market_level_status": "DECLARED_ABSENT",
+  "market_status": [],
+  "outcome_status": [
+    {"doc_reference": "odds-by-tournaments example: players[*].active", "field": "active", "genesis": "ACTIVE", "json_type": "bool", "value": true, "verified_live": false},
+    {"doc_reference": "odds-by-tournaments example: players[*].active", "field": "active", "genesis": "INACTIVE", "json_type": "bool", "value": false, "verified_live": false}
+  ],
+  "schema": "genesis.adapters.oddspapi.status-map.v1"
+}

@@ -1,0 +1,29 @@
+# isolation reruns of the two errors in FROZEN_RUN1_contention.txt (quiet machine, no other python processes)
+# command: python -m unittest <t5 ipc protocol-violation test> <t6 capability allowlist test>  (x3)
+# start: 2026-09-28T21:52:25Z
+----
+## run 1
+test_request_after_a_protocol_violation_fails_closed_until_restart (tests.test_astra_t5_ipc_request_binding.T5IpcRequestBindingTests.test_request_after_a_protocol_violation_fails_closed_until_restart) ... ok
+test_every_capability_module_fails_closed (tests.test_astra_t6_fa_capability_allowlist.T6CapabilityAllowlistTests.test_every_capability_module_fails_closed) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 59.695s
+
+OK
+## run 2
+test_request_after_a_protocol_violation_fails_closed_until_restart (tests.test_astra_t5_ipc_request_binding.T5IpcRequestBindingTests.test_request_after_a_protocol_violation_fails_closed_until_restart) ... ok
+test_every_capability_module_fails_closed (tests.test_astra_t6_fa_capability_allowlist.T6CapabilityAllowlistTests.test_every_capability_module_fails_closed) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 17.093s
+
+OK
+## run 3
+test_request_after_a_protocol_violation_fails_closed_until_restart (tests.test_astra_t5_ipc_request_binding.T5IpcRequestBindingTests.test_request_after_a_protocol_violation_fails_closed_until_restart) ... ok
+test_every_capability_module_fails_closed (tests.test_astra_t6_fa_capability_allowlist.T6CapabilityAllowlistTests.test_every_capability_module_fails_closed) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 16.238s
+
+OK
+# end: 2026-09-28T21:53:59Z

@@ -48,6 +48,22 @@ python -m compileall -q src tests adapters/src adapters/adapter_tests
 git diff --check
 ```
 
+## Checkout requirement: LF line endings
+
+The runtime module-provenance guard (FRZ-09) compares the **bytes** of every loaded
+`genesis.*` module with the frozen Git blob. A checkout that converts line endings (Git for
+Windows with `core.autocrlf=true` turns `src/genesis/*.py` into CRLF) therefore fails closed with
+`MODULE_HASH_MISMATCH`. This is by design: the guard must not normalize what it verifies, and the
+frozen `src/` tree cannot carry an `.gitattributes` rule (that would change a frozen tree SHA).
+Clone or configure with LF for the frozen sources:
+
+```text
+git clone -c core.autocrlf=false <url>          # or: git config core.autocrlf false  (then re-checkout)
+```
+
+Adapter fixtures and pinned config are protected on every checkout by `adapters/.gitattributes`
+(`-text`), so only the frozen `src/` needs this setting.
+
 ## Freeze check
 
 ```text

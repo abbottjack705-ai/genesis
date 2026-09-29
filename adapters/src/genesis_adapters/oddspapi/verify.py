@@ -99,3 +99,32 @@ def compare_frozen_transcripts(baseline_text: str, current_text: str) -> dict:
     if current != baseline:
         raise FreezeViolation(f"frozen-suite counts differ: baseline={baseline} current={current}")
     return current
+
+
+def scan_runtime_for_secret(root: Path, secret, *, policy=None) -> tuple[Path, ...]:
+    """Every file under ``root`` whose NAME (relative path) or CONTENT contains ``secret`` in any
+    section-7.6 form. Run at stage end and at G3 (design section 7.6, test SEC-05).
+
+    ``policy`` defaults to the pinned slice-1 policy file (fragment thresholds come from it).
+    """
+
+    import os
+
+    from genesis_adapters import config as config_module
+    from genesis_adapters import secrets as secrets_module
+
+    base = Path(root)
+    if not base.is_dir():
+        raise FileNotFoundError("runtime root does not exist")
+    if policy is None:
+        policy = config_module.load_policy(
+            Path(__file__).resolve().parents[3] / "config" / config_module.POLICY_FILE)
+    scanner = secrets_module.SecretScanner(secret, policy=policy)
+    hits: list[Path] = []
+    for directory, _dirs, files in os.walk(base):
+        for name in files:
+            path = Path(directory) / name
+            relative = path.relative_to(base).as_posix().encode("utf-8", "replace")
+            if scanner.scan(relative).hit or scanner.scan(path.read_bytes()).hit:
+                hits.append(path)
+    return tuple(sorted(hits))

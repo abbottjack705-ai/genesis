@@ -36,6 +36,7 @@ HTTP_OK = 200
 HTTP_AUTH = (401, 403)
 TOO_MANY_REQUESTS = 429
 PURPOSES = ("SCHEDULED", "CONDITIONAL", "RETRY", "METADATA", "G2_VERIFICATION")
+LIVE_SEND = "LIVE_SEND"             # the one gate check before any live send (authority.LiveGate)
 # Provisional (design 21 A12, verified at G2): the provider's count of requests used in its current
 # accounting window, reported in an allowlisted response header. Absent -> nothing to reconcile.
 PROVIDER_USAGE_HEADER = "x-requests-used"
@@ -517,20 +518,20 @@ class AcquisitionRunner:
         return self.quota.head_time(), self.ledger.last_recorded_at()
 
     # -- live gates ----------------------------------------------------------------------
-    def _live_failure(self, tq: str, request: CanonicalRequest) -> AdapterFailure | None:
+    def _live_failure(self, tq: str, request: CanonicalRequest) -> tuple[AdapterFailure, str | None] | None:
         if not self.live:
             return None
         if not is_production_clock(self.clock):
-            return AdapterFailure.LIVE_CLOCK_REQUIRED
+            return AdapterFailure.LIVE_CLOCK_REQUIRED, None
         if self.quota.ledger.policy.test_only:
-            return AdapterFailure.TEST_POLICY_IN_LIVE
+            return AdapterFailure.TEST_POLICY_IN_LIVE, None
         if self.authority is None:
-            return AdapterFailure.GATE_MISSING
+            return AdapterFailure.GATE_MISSING, None
         try:
-            self.authority.require_gate("G2R", at=tq, provider_request_hash=request.provider_request_hash,
+            self.authority.require_gate(LIVE_SEND, at=tq, provider_request_hash=request.provider_request_hash,
                                         role=request.role)
-        except GateMissing:
-            return AdapterFailure.GATE_MISSING
+        except GateMissing as missing:
+            return AdapterFailure.GATE_MISSING, str(missing)
         return None
 
     # -- the attempt -----------------------------------------------------------------------
@@ -566,9 +567,9 @@ class AcquisitionRunner:
                      genesis_debit_units=spec.genesis_debit_units)
         if not spec.usable:
             return self._refuse(aid, request_id, request, AdapterFailure.ROLE_NOT_USABLE, stamp)
-        failure = self._live_failure(tq, request)
-        if failure is not None:
-            return self._refuse(aid, request_id, request, failure, stamp)
+        refusal = self._live_failure(tq, request)
+        if refusal is not None:
+            return self._refuse(aid, request_id, request, refusal[0], stamp, detail=refusal[1])
         blocking = self.ledger.circuit_open(request.role, stamp)
         if blocking is not None:                            # a durable halt/circuit is honoured first
             return self._refuse(aid, request_id, request, AdapterFailure.CIRCUIT_OPEN, stamp, detail=blocking)

@@ -209,3 +209,9 @@ def scan_many(items: Iterable[bytes], secret: Secret, *, policy) -> SecretScanRe
     for item in items:
         classes.update(scanner.scan(item).detection_classes)
     return SecretScanResult(bool(classes), tuple(sorted(classes)))
+
+
+def contains_raw(secret: Secret, text: str) -> bool:
+    """True when ``text`` contains the key verbatim (used to refuse a key held in the environment, design 7.5)."""
+
+    return bool(text) and secret.reveal_for_scan(_SCAN_TOKEN) in text

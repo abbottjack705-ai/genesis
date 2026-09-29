@@ -35,6 +35,13 @@ $env:PYTHONPYCACHEPREFIX = (New-Item -ItemType Directory -Path (Join-Path $env:T
 python -B -m unittest discover -s adapters/adapter_tests -t adapters -v
 ```
 
+Expected: every test passes. Where the account cannot create symbolic links (the Windows default), one
+credential test is skipped; another test covers the same branch by simulating what `os.lstat` reports. Tests
+that need the real UTC clock (TX-01, the loopback CLI run, the live-gate tests) skip inside the day-boundary
+guard zone (23:57–00:02 UTC with the pinned policy). An audit hook installed by `adapter_tests/__init__.py`
+refuses every network contact except the loopback interface, and the last test asserts that no test attempted
+one (the hook's own self-test clears the two refusals it provokes on purpose).
+
 Frozen suite (unchanged command, unchanged meaning; ~10 minutes):
 
 ```text
@@ -76,3 +83,76 @@ Expected tree SHAs: `src 51cb635b…`, `tests e90b2981…`, `config abd22db0…`
 
 Line endings: `adapters/.gitattributes` stores `adapter_tests/fixtures/**` and `config/**` without
 end-of-line conversion so pinned digests hold on every checkout.
+
+## Package map (`src/genesis_adapters`)
+
+| Module | Role |
+| --- | --- |
+| `provenance_guard.py` | runtime module-provenance guard (FRZ-09) |
+| `ids.py`, `jsonstrict.py`, `schema.py`, `clock.py`, `secrets.py`, `config.py`, `errors.py` | primitives: identities, strict JSON, closed schemas, trusted clock, `Secret` and the secret detector, pinned configuration and `derivation_version`, failure taxonomy |
+| `credential.py` | the credential file loader (design 7.5; only after G1) |
+| `cli.py` | operator command line (the only writer of gate records, READY rows and halt resets) |
+| `oddspapi/endpoints.py` | endpoint specs and canonical requests (no credential ever) |
+| `oddspapi/quota_gate.py`, `acquisition.py`, `transport.py`, `boundability.py` | frozen quota ledger use, acquisition ledger and runner, boundary guard, retries, crash reconciliation |
+| `oddspapi/raw_capture.py` | pre-persistence secret scan, bounded decoding, quarantine, raw evidence |
+| `oddspapi/maps.py`, `identity_registry.py`, `parser.py`, `normalize.py` | pure parsing and `MarketBookDocument` normalization |
+| `oddspapi/emit.py`, `invalidation.py`, `scope.py`, `capability.py`, `reader.py` | emission, invalidation, expected scope, capability downgrades, the verifier-parity reader |
+| `oddspapi/derivation.py`, `manifest.py`, `pipeline.py` | `verify_derivation`, manifest bodies, the end-to-end fixture pipeline |
+| `oddspapi/scheduler.py`, `authority.py`, `transport_http.py` | window planning, gate checks, the dormant HTTPS transport |
+| `oddspapi/verify.py` | freeze guard, runtime secret scan, frozen-transcript comparison |
+
+## Operator command line (only after the human gates; never run by the implementing agent)
+
+All commands run with isolated bytecode (the startup guard refuses otherwise, FRZ-09) and with the
+frozen `src` and `adapters/src` on the path:
+
+```text
+# bash (PowerShell: set the same two variables with $env:... and use ';' in PYTHONPATH)
+export PYTHONPATH="adapters/src:src" PYTHONPYCACHEPREFIX="$(mktemp -d)"
+python -B -m genesis_adapters.cli plan   --fixtures F.json --month 2026-10 --as-of 2026-10-01T00:00:00.000000Z --used 0
+python -B -m genesis_adapters.cli report --root <runtime root>     # Genesis debit vs provider-reported usage
+python -B -m genesis_adapters.cli verify --root <runtime root>     # verify_derivation for 100% of documents
+python -B -m genesis_adapters.cli approve --root <runtime root> --record gate.json        # interactive, operator only
+python -B -m genesis_adapters.cli approve-ready --root <runtime root> --at ... --derivation-version ... \
+       --source-id ... --contract-id ... --cost-tier ...                                  # after a G3 record only
+python -B -m genesis_adapters.cli reset --root <runtime root> --approval-reference adr:... --reason "..."
+python -B -m genesis_adapters.cli run --root <runtime root> --plan plan.json --mode G2|G2R
+```
+
+`run` refuses without: a G1 record whose credential fingerprint matches the loaded key; a G2 record
+pinning the planned request hashes (G2 mode: raw capture only, at most `max_calls` sends inside its window)
+or a G2R record pinning the running `derivation_version` and `policy_digest`; an OS time-sync attestation;
+the frozen active quota policy; and the production clock. `--connect`/`--ca-file` accept loopback test
+addresses and a test CA only. `approve`, `approve-ready` and `reset` refuse without an interactive terminal,
+the typed confirmation phrase and an `approval_reference` naming an out-of-band artifact (`adr:`,
+`signed-tag:`, `pr-approval:` or an `https://` link). Gate bounds live in `config/oddspapi_gate_limits.json`.
+
+## Credential storage, rotation and revocation (G1 prerequisite, design 7.5)
+
+1. The key lives in ONE file named by `GENESIS_ODDSPAPI_CREDENTIAL_FILE`, outside this repository and
+   outside the runtime root, holding exactly one line (the key), ended by a single LF or by nothing (a CRLF
+   ending, as Windows text-mode writers produce, is refused as `CREDENTIAL_MISSING` rather than guessed at).
+   POSIX: mode `0600`, owned by the runner user.
+   Windows: an ACL that names only the runner user (`icacls <file> /inheritance:r /grant:r "<user>:F"`).
+   No environment variable may hold the key itself; the runner refuses if one does.
+2. The G1 record pins the key's fingerprint (`Secret.fingerprint`); a different key is refused.
+3. **Rotate**: create the new key at the provider; replace the file's single line; a human records a new G1
+   record with the new fingerprint; then revoke the old key at the provider.
+4. **Revoke immediately** after any `SECRET_ECHO` (F-11) or `AUTH_REJECTED` (F-08): acquisition is already
+   halted and every market-book capability is `BLOCKED`. Revoke the key at the provider, rotate as above,
+   review `quarantine.jsonl` (secret-safe metadata only), and only then clear the halt with `reset`.
+5. Before G3 and after every run: `verify` plus `verify.scan_runtime_for_secret(root, secret)` must be clean.
+
+## Test-only material
+
+`adapter_tests/fixtures/tls/` holds a throwaway loopback test CA certificate (`test-ca.pem`) and one server
+certificate and key (`server.pem`, `server.key`) for the pinned host name; the CA's private key was destroyed
+after signing, so no further certificate can be minted from it. They are trusted only by a client that injects
+`test-ca.pem`, which the CLI accepts only together with a loopback address. They exist only so the dormant
+HTTPS transport can be exercised against 127.0.0.1; the suite's audit hook refuses any non-loopback contact.
+
+## Mutation smoke (optional, evidence in `evidence/S<n>/MUTATION.txt`)
+
+The out-of-tree helper that produced those files applies one source mutation at a time, runs the named test
+modules with `PYTHONPATH=adapters` and isolated bytecode, and restores the source in a `finally`. A mutation
+counts as killed only if the baseline run (no mutation) passed first.

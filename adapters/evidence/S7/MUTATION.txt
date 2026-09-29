@@ -1,0 +1,80 @@
+# S7 mutation smoke test: transport_http.py, credential.py, authority.py, scheduler.py, cli.py (every mutant must be KILLED)
+# harness: mutate.py runs an unmutated baseline first and aborts if it fails; each mutant runs the listed modules with -B and a fresh PYTHONPYCACHEPREFIX
+# start: 2026-09-29T15:13:18Z
+# HEAD (base): 9c35c5cde9d065ab4857a46e8d5a9d324b6347ad + S7 working tree
+----
+## oddspapi/transport_http.py vs test_v05_transport_http + test_v05_tx01 (TX-01, loopback CLI run)
+baseline: PASS (OK)
+KILLED    TLS verification may be disabled
+KILLED    hostname check off in the default context
+KILLED    a send may start exactly at the deadline
+KILLED    size cap not enforced
+KILLED    complete body read past its end
+KILLED    T1 may repeat T0 on a coarse clock
+KILLED    error record keeps the exception text
+KILLED    process control swallowed
+KILLED    SystemExit keeps its text
+KILLED    the original KeyboardInterrupt re-raised
+## credential.py vs test_v05_credential
+baseline: PASS (OK (skipped=1))
+KILLED    links followed (stat instead of lstat)
+KILLED    a file inside the repository accepted
+KILLED    a file inside the runtime root accepted
+KILLED    Windows ACL not checked
+KILLED    a swapped file accepted
+KILLED    a second hard-link name accepted
+SURVIVED  a CRLF line accepted
+KILLED    the key may live in the environment
+KILLED    fingerprint not compared
+## oddspapi/authority.py vs test_v05_authority
+baseline: PASS (OK)
+KILLED    unpinned request accepted by G2
+KILLED    G2 max_calls ignored
+KILLED    G2 max_calls off by one
+KILLED    G1 fingerprint not pinned
+KILLED    any attestation accepted
+KILLED    G2R derivation not pinned
+KILLED    G2R policy not pinned
+KILLED    a record granted in the future is valid
+KILLED    a window that has not opened is valid
+KILLED    an expired record is valid
+KILLED    unknown keys accepted
+KILLED    G2 cap off by one
+KILLED    G2 max_calls may differ from the pinned count
+KILLED    G2 window bound off by one
+KILLED    G2R window bound off by one
+KILLED    sends before the window counted
+## oddspapi/scheduler.py vs test_v05_scheduler
+baseline: PASS (OK)
+KILLED    windows planned inside a guard zone
+KILLED    odds windows after the pre-match guard kept
+KILLED    drops taken from the highest priority
+KILLED    daily cap off by one
+KILLED    pool ceiling ignores units already used
+KILLED    projection ignores units already used
+KILLED    any head refreshed
+KILLED    refresh lead off by one
+KILLED    conditional daily cap off by one
+KILLED    conditional pool off by one
+KILLED    frozen normal ceiling ignored
+KILLED    projection forgets the refresh itself
+KILLED    open circuit ignored
+KILLED    refresh inside a guard zone
+## cli.py vs test_v05_cli + test_v05_authority
+baseline: PASS (OK)
+KILLED    no terminal needed
+KILLED    any typed phrase confirms
+KILLED    approve accepts any reference
+KILLED    reset accepts any reference
+KILLED    READY without a G3 record
+KILLED    run without a G1 record
+KILLED    a test CA without a loopback address
+KILLED    startup guard skipped
+# end: 2026-09-29T15:33:02Z
+#
+# Result: 57 mutants, 56 KILLED, 1 SURVIVED. The survivor ("a CRLF line accepted") is an equivalent mutant, not
+# a test gap: Secret() (secrets.py) itself refuses every control character (U+0000-U+001F, U+007F), so a key
+# line ending in CR is still refused as CREDENTIAL_MISSING with the loader's explicit CR check removed; that
+# check is kept because it states the one-line rule where the file is read. The symbolic-link branch, whose
+# real-link test cannot run on this account, is covered here by "links followed (stat instead of lstat)",
+# killed by the simulated-lstat test. Sources were compared with a pre-run backup afterwards: byte-identical.

@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import uuid
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -249,6 +250,9 @@ class FakeTransport:
         if step.latency and hasattr(clock, "advance"):
             clock.advance(seconds=step.latency)
         t1 = step.t1 or clock.now()
+        while step.t1 is None and not hasattr(clock, "advance") and _parse(t1) <= _parse(t0):
+            time.sleep(0.001)                    # a real clock: like the real transport, T1 is a later tick
+            t1 = clock.now()
         if step.kind == "NO_RESPONSE":
             return TransportResult("NO_RESPONSE", None, (), None,
                                    {"class": step.error_class, "errno": step.errno}, t0, None)

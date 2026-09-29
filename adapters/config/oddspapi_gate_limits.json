@@ -1,0 +1,6 @@
+{
+  "g2_requests_cap": 5,
+  "g2_window_hours": 72,
+  "g2r_window_days": 35,
+  "schema": "genesis.adapters.gate-limits.v1"
+}

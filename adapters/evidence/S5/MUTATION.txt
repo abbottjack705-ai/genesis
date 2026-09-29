@@ -1,0 +1,38 @@
+# S5 mutation smoke test: reader.py and emit.py mutations vs the S5 tests (every mutation must be KILLED)
+# harness: mutate.py runs an unmutated baseline first and aborts if it fails
+# start: 2026-09-29T10:24:15Z
+# HEAD (base): 9de0790a73acdf1820374383a7c2fb755a8252ba
+----
+## reader.py vs adapter_tests.test_v05_reader
+baseline: PASS (OK)
+KILLED    head = first by record_id
+KILLED    head = last by record_id
+KILLED    tie accepted
+KILLED    published_at ignored
+KILLED    expired newer capture ignored
+KILLED    two READY sources accepted
+KILLED    capability head uniqueness ignored
+KILLED    binding not required
+KILLED    suspended treated as usable
+KILLED    derivation check ignored
+KILLED    contract mismatches ignored
+KILLED    capability not ready accepted
+## emit.py vs adapter_tests.test_v05_emit,test_v05_emit_crash,test_v05_invalidation,test_v05_pit,test_v05_derivation_source
+baseline: PASS (OK)
+KILLED    differing PIT record accepted
+KILLED    existing observation not verified
+KILLED    normalized acquisition not re-verified
+KILLED    derivation mismatch accepted
+KILLED    any acquisition accepted
+KILLED    tie not re-read
+KILLED    clock floor not enforced
+KILLED    superseded treated as head
+KILLED    coverage class mapping flipped
+KILLED    identity rows applied first
+KILLED    coverage duplicates allowed
+KILLED    t3 not after publication
+KILLED    structured evidence skipped
+KILLED    resume recording ignored
+KILLED    ledger floor not enforced
+KILLED    t3 not after reused observations
+# end: 2026-09-29T10:51:03Z

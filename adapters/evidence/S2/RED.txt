@@ -1,0 +1,77 @@
+# S2 RED transcript: S2 tests against the S1 tree (S2 production modules absent)
+# NOTE: the S2 tests were written first, but the S2 production code was DRAFTED before this run;
+#       it was moved aside (not deleted) so this RED run reflects the S1 tree exactly.
+# command: PYTHONPYCACHEPREFIX=<fresh> python -B -m unittest discover -s adapters/adapter_tests -t adapters -v
+# start: 2026-09-29T01:54:43Z
+# HEAD: 1bc60010e86033d5c2cf65a94f9503ab61f08794
+----
+adapter_tests.test_v05_acquisition (unittest.loader._FailedTest.adapter_tests.test_v05_acquisition) ... ERROR
+adapter_tests.test_v05_boundability (unittest.loader._FailedTest.adapter_tests.test_v05_boundability) ... ERROR
+adapter_tests.test_v05_boundary (unittest.loader._FailedTest.adapter_tests.test_v05_boundary) ... ERROR
+adapter_tests.test_v05_quota_gate (unittest.loader._FailedTest.adapter_tests.test_v05_quota_gate) ... ERROR
+
+======================================================================
+ERROR: adapter_tests.test_v05_acquisition (unittest.loader._FailedTest.adapter_tests.test_v05_acquisition)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests.test_v05_acquisition
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_acquisition.py", line 16, in <module>
+    from genesis_adapters.oddspapi import acquisition as acq
+ImportError: cannot import name 'acquisition' from 'genesis_adapters.oddspapi' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\__init__.py)
+
+
+======================================================================
+ERROR: adapter_tests.test_v05_boundability (unittest.loader._FailedTest.adapter_tests.test_v05_boundability)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests.test_v05_boundability
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_boundability.py", line 10, in <module>
+    from genesis_adapters.oddspapi import boundability as bnd
+ImportError: cannot import name 'boundability' from 'genesis_adapters.oddspapi' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\__init__.py)
+
+
+======================================================================
+ERROR: adapter_tests.test_v05_boundary (unittest.loader._FailedTest.adapter_tests.test_v05_boundary)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests.test_v05_boundary
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_boundary.py", line 11, in <module>
+    from genesis_adapters.oddspapi import acquisition as acq
+ImportError: cannot import name 'acquisition' from 'genesis_adapters.oddspapi' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\__init__.py)
+
+
+======================================================================
+ERROR: adapter_tests.test_v05_quota_gate (unittest.loader._FailedTest.adapter_tests.test_v05_quota_gate)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: adapter_tests.test_v05_quota_gate
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\unittest\loader.py", line 339, in _get_module_from_name
+    __import__(name)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_quota_gate.py", line 11, in <module>
+    from genesis_adapters.oddspapi import quota_gate
+ImportError: cannot import name 'quota_gate' from 'genesis_adapters.oddspapi' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\__init__.py)
+
+
+----------------------------------------------------------------------
+Ran 140 tests in 21.711s
+
+FAILED (errors=4)
+# end: 2026-09-29T01:55:06Z

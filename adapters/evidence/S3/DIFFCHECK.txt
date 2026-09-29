@@ -1,0 +1,8 @@
+# S3 git diff --check
+# command: git diff --check (worktree) and git diff --cached --check
+# start: 2026-09-29T02:40:54Z
+# python: Python 3.12.10
+# HEAD (base): 78bedb92cccbee4ac46df640eedf47879957f378
+----
+# exit: 0
+# exit(cached): 0

@@ -1,0 +1,7 @@
+# S3 compileall
+# command: python -m compileall -q src tests adapters/src adapters/adapter_tests
+# start: 2026-09-29T02:40:52Z
+# python: Python 3.12.10
+# HEAD (base): 78bedb92cccbee4ac46df640eedf47879957f378
+----
+# exit: 0

@@ -26,6 +26,7 @@ from genesis_adapters.errors import (
 from genesis_adapters.ids import gid
 from genesis_adapters.oddspapi.endpoints import RAW_CONTRACT_ID, CanonicalRequest
 from genesis_adapters.oddspapi.quota_gate import QuotaCharge
+from genesis_adapters.oddspapi.raw_capture import CaptureConflict, Captured
 from genesis_adapters.oddspapi.transport import Transport, TransportResult, sanitize_exception
 
 SCHEMA_VERSION = "acquisition-ledger-v1"
@@ -405,6 +406,8 @@ class AcquisitionOutcome:
     detail: str | None = None
     next_not_before: str | None = None
     cached_bytes: bytes | None = None
+    parsed: Any = None
+    captured: Captured | None = None
 
 
 def attempt_id(request_hash: str, window_id: str, attempt: int) -> str:
@@ -429,6 +432,19 @@ _COVERAGE_STATUS = {
     AdapterFailure.REDIRECT_REFUSED: CoverageStatus.REJECTED,
     AdapterFailure.AUTH_REJECTED: CoverageStatus.REJECTED,
     AdapterFailure.TRUNCATED_BODY: CoverageStatus.REJECTED,
+    AdapterFailure.OVERSIZE_BODY: CoverageStatus.REJECTED,
+    AdapterFailure.NOT_JSON: CoverageStatus.REJECTED,
+    AdapterFailure.INVALID_UTF8: CoverageStatus.REJECTED,
+    AdapterFailure.DUPLICATE_KEYS: CoverageStatus.REJECTED,
+    AdapterFailure.NONFINITE_NUMBER: CoverageStatus.REJECTED,
+    AdapterFailure.WRONG_CONTENT_TYPE: CoverageStatus.REJECTED,
+    AdapterFailure.ENVELOPE_SCHEMA_MISMATCH: CoverageStatus.REJECTED,
+    AdapterFailure.SCHEMA_DRIFT: CoverageStatus.REJECTED,
+    AdapterFailure.CLOCK_SKEW: CoverageStatus.QUARANTINED,
+    AdapterFailure.SECRET_ECHO: CoverageStatus.QUARANTINED,
+    AdapterFailure.UNINSPECTABLE_BODY: CoverageStatus.QUARANTINED,
+    AdapterFailure.QUOTA_REPLAY_BROKEN: CoverageStatus.QUARANTINED,
+    AdapterFailure.EVIDENCE_CONFLICT: CoverageStatus.QUARANTINED,
 }
 
 
@@ -482,7 +498,8 @@ class AcquisitionRunner:
                              not_before=None)
             self._record("acq_halted", at, reason=failure.value)
             if aid is not None:
-                self._coverage(aid, request, CoverageStatus.NOT_ATTEMPTED, failure, at)
+                self._coverage(aid, request, _COVERAGE_STATUS.get(failure, CoverageStatus.NOT_ATTEMPTED),
+                               failure, at)
         raise AcquisitionHalt(failure)
 
     def _refuse(self, aid: str, request_id: str, request: CanonicalRequest, failure: AdapterFailure, at: str,
@@ -554,6 +571,9 @@ class AcquisitionRunner:
             return self._refuse(aid, request_id, request, AdapterFailure.CIRCUIT_OPEN, stamp, detail=blocking)
         if behind:
             self._halt(aid, request, AdapterFailure.CLOCK_FAULT, stamp, refused=True)
+        if self.live and (self.capture is None or not self.capture.scans_for_secret):
+            # live evidence must never be stored unscanned: no scanner, no send (F-04)
+            self._halt(aid, request, AdapterFailure.CREDENTIAL_MISSING, tq, refused=True)
         if self.credential_check is not None:
             try:
                 self.credential_check()
@@ -654,16 +674,72 @@ class AcquisitionRunner:
             return self._finish_no_response(aid, request_id, request, charge, self._safe_stamp(t1),
                                             {"class": "DeadlineExceeded", "errno": None}, sent=True)
         failure = self._classify(result)
-        length = len(result.body) if result.body is not None else None
+        captured = None
+        if self.capture is not None and result.body is not None:
+            try:
+                captured = self.capture.store(aid=aid, request=request, result=result, t1=t1)
+            except CaptureConflict:
+                at = self._safe_stamp(t1)
+                self._record("acq_completed", at, acquisition_id=aid, T1=t1, outcome=result.outcome,
+                             http_status=result.http_status, headers=[], content_encoding=None,
+                             byte_length=None, raw_observation_id=None, sanitized_error=None,
+                             provider_reported_usage=None, failure=AdapterFailure.EVIDENCE_CONFLICT.value)
+                self._halt(aid, request, AdapterFailure.EVIDENCE_CONFLICT, at, refused=False)
+            self._mark("after_raw")
+        if captured is not None and captured.kind == "SECRET":
+            failure = captured.failure
+        elif captured is not None and captured.failure is not None and failure is None:
+            failure = captured.failure
+        length = captured.byte_length if captured is not None else (
+            len(result.body) if result.body is not None else None)
         at = self._safe_stamp(t1)
         self._record("acq_completed", at, acquisition_id=aid, T1=t1, outcome=result.outcome,
-                     http_status=result.http_status, headers=[], content_encoding=None, byte_length=length,
-                     raw_observation_id=None, sanitized_error=None, provider_reported_usage=None,
+                     http_status=result.http_status,
+                     headers=[list(pair) for pair in captured.headers] if captured is not None else [],
+                     content_encoding=captured.content_encoding if captured is not None else None,
+                     byte_length=length,
+                     raw_observation_id=captured.raw_observation_id if captured is not None else None,
+                     sanitized_error=None, provider_reported_usage=None,
                      failure=failure.value if failure else None)
-        if failure is not None:
-            self._after_failure(aid, request, failure, at, parse_utc(t1))
+        parsed = None
+        moment = parse_utc(t1)
+        if captured is not None and captured.kind in ("SECRET", "UNINSPECTABLE"):
+            self._record("acq_quarantined", at, acquisition_id=aid, quarantine_id=captured.quarantine_id)
+            if captured.kind == "SECRET":
+                self._coverage(aid, request, CoverageStatus.QUARANTINED, AdapterFailure.SECRET_ECHO, at)
+                if self.capability_blocker is not None:
+                    self.capability_blocker(AdapterFailure.SECRET_ECHO.value)
+                self._record("acq_halted", at, reason=AdapterFailure.SECRET_ECHO.value)
+                raise AcquisitionHalt(AdapterFailure.SECRET_ECHO)
+            self._after_failure(aid, request, failure, at, moment)
+        elif failure is not None:
+            self._after_failure(aid, request, failure, at, moment)
+        elif captured is not None:
+            failure, parsed = self._after_success(aid, request, result, captured, t1, at)
         return AcquisitionOutcome(aid, request_id, AttemptOutcome.RESPONSE if result.outcome == "RESPONSE"
-                                  else AttemptOutcome.TRUNCATED, failure, charge=charge, result=result)
+                                  else AttemptOutcome.TRUNCATED, failure, charge=charge, result=result,
+                                  parsed=parsed, captured=captured)
+
+    def _after_success(self, aid: str, request: CanonicalRequest, result: TransportResult, captured: Captured,
+                       t1: str, at: str) -> tuple[AdapterFailure | None, Any]:
+        """HTTP 200 with stored raw bytes: metadata cache publish, then skew/type/JSON/envelope."""
+
+        spec = self.config.endpoints[request.role]
+        verdict = self.capture.validate(request=request, captured=captured, t1=t1)
+        if verdict.failure is None:
+            if spec.cacheable:                # only a response that passed every content check is cached
+                self.quota.publish_cache(request, captured.decoded, captured_at=t1,
+                                         ttl_seconds=spec.cache_ttl_seconds)
+            return None, verdict.parsed
+        failure = verdict.failure
+        if failure == AdapterFailure.CLOCK_SKEW:
+            quarantine_id = self.capture.write_quarantine(aid, request, result, t1, failure.value, set(),
+                                                          captured.byte_length)
+            self._record("acq_quarantined", at, acquisition_id=aid, quarantine_id=quarantine_id)
+            self._record("acq_sends_suspended", at, reason=failure.value,
+                         until=iso_utc(UtcBoundaries().next_day(parse_utc(t1))))
+        self._coverage(aid, request, _COVERAGE_STATUS.get(failure, CoverageStatus.REJECTED), failure, at)
+        return failure, None
 
     def _after_failure(self, aid: str, request: CanonicalRequest, failure: AdapterFailure, at: str,
                        t1: datetime) -> None:

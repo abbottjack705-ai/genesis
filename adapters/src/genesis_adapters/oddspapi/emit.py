@@ -171,8 +171,11 @@ def _publish_observation(stores: AdapterStores, document: NormalizedDocument, *,
         upstream_version=UPSTREAM_VERSION, parser_version=stores.derivation_version,
         content_type=NORMALIZED_CONTENT_TYPE, licensing_note=stores.licensing_note,
         availability_class=AvailabilityClass.DERIVED)
-    existing = [item for item in stores.evidence.get_observations(document.artifact_hash)
-                if item.contract_id == stores.contract_id]
+    try:
+        existing = [item for item in stores.evidence.get_observations(document.artifact_hash)
+                    if item.contract_id == stores.contract_id]
+    except (OSError, ValueError):                              # tampered or unreadable existing evidence (F-32)
+        raise EmitConflict(AdapterFailure.EVIDENCE_CONFLICT, "existing evidence does not verify") from None
     if not existing:
         try:
             return stores.evidence.publish(document.data, parse_ready_at=t2, **wanted)
@@ -191,7 +194,7 @@ def _publish_observation(stores: AdapterStores, document: NormalizedDocument, *,
     return existing[0]
 
 
-def _research_evidence(document: NormalizedDocument, observation: EvidenceObservation,
+def research_evidence(document: NormalizedDocument, observation: EvidenceObservation,
                        body: dict[str, Any], stores: AdapterStores) -> ResearchEvidence:
     claim = canonical_json({"market_id": body["market_id"], "bookmaker_id": body["bookmaker_id"],
                             "line": body["line"],
@@ -224,7 +227,11 @@ def append_pit_once(stores: AdapterStores, record: BitemporalRecord) -> str:
     an existing row is never replaced.
     """
 
-    for row in stores.pit.log.records():
+    try:
+        rows = stores.pit.log.records()
+    except (OSError, ValueError):                              # a PIT log that no longer verifies (F-33)
+        raise EmitConflict(AdapterFailure.PIT_APPEND_CONFLICT, "the PIT log does not verify") from None
+    for row in rows:
         if row.get("record_type") == "pit_record" and row.get("record_id") == record.record_id:
             existing = BitemporalRecord(**{key: row[key] for key in BitemporalRecord.__dataclass_fields__})
             if dataclasses.replace(existing, ready_at=record.ready_at) != record:
@@ -361,6 +368,36 @@ def emit_response(parsed: ParsedResponse, ctx: ParseContext, *, stores: AdapterS
         return EmitResult(row["T2"], row["T3"], tuple(row["normalized_observation_ids"]), (),
                           tuple(row["pit_record_ids"]), tuple(row["coverage_entry_ids"]), len(applied), True)
 
+    core = emit_documents(parsed, ctx, stores=stores, clock=clock, checkpoint=checkpoint, documents=documents)
+    stamp = clock.now()
+    require_not_before(stamp, core.t3)
+    stores.acquisition.append(
+        "acq_normalized", recorded_at=stamp, acquisition_id=ctx.acquisition_id, T2=core.t2, T3=core.t3,
+        derivation_version=stores.derivation_version, expected_scope_hash=ctx.expected_scope_hash,
+        identity_registry_head=identity_mod.head_of(ctx.identity_prefix),
+        normalized_observation_ids=list(core.observation_ids), pit_record_ids=list(core.pit_record_ids),
+        coverage_entry_ids=list(core.coverage_entry_ids))
+    _mark(checkpoint, "after_normalized_row")
+    applied = stores.identity.apply(parsed.identity_rows)
+    _mark(checkpoint, "after_identity")
+    return dataclasses.replace(core, identity_rows_applied=len(applied))
+
+
+def emit_documents(parsed: ParsedResponse, ctx: ParseContext, *, stores: AdapterStores, clock: TrustedClock,
+                   checkpoint: Callable[[str], None] | None = None,
+                   documents: Sequence[NormalizedDocument] | None = None) -> EmitResult:
+    """Steps 1-5 of the module doc (observations, structured evidence, T3, PIT, coverage); idempotent.
+
+    ``emit_response`` wraps this with the acquisition checks, the normalized row and the identity rows;
+    a rebuild into empty stores (PIT-09) calls it directly.
+    """
+
+    if ctx.derivation_version != stores.derivation_version:
+        raise EmitConflict(AdapterFailure.CONFIG_DIGEST_MISMATCH, "the parse context is not this derivation")
+    if parsed.failure is not None:
+        raise EmitConflict(parsed.failure, "a response rejected as a whole emits nothing")
+    documents = build_documents(parsed, ctx) if documents is None else documents
+    t1 = iso_utc(ctx.response_received_at)
     t2 = clock.now()
     require_not_before(t2, t1)
     _mark(checkpoint, "after_t2")
@@ -373,7 +410,7 @@ def emit_response(parsed: ParsedResponse, ctx: ParseContext, *, stores: AdapterS
         _mark(checkpoint, f"after_observation:{index}")
         if document.state == STATE_OPEN:
             body = json.loads(document.data)
-            evidence = _research_evidence(document, observation, body, stores)
+            evidence = research_evidence(document, observation, body, stores)
             try:
                 structured.append(stores.structured.publish(evidence))
             except (RegistryConflict, ValueError):
@@ -389,19 +426,8 @@ def emit_response(parsed: ParsedResponse, ctx: ParseContext, *, stores: AdapterS
     coverage_ids = [append_coverage_once(stores, item)
                     for item in _coverage_entries(stores, parsed, ctx, documents, recorded_at=t3)]
     _mark(checkpoint, "after_coverage")
-    stamp = clock.now()
-    require_not_before(stamp, t3)
-    stores.acquisition.append(
-        "acq_normalized", recorded_at=stamp, acquisition_id=ctx.acquisition_id, T2=t2, T3=t3,
-        derivation_version=stores.derivation_version, expected_scope_hash=ctx.expected_scope_hash,
-        identity_registry_head=identity_mod.head_of(ctx.identity_prefix),
-        normalized_observation_ids=[item.observation_id for item in observations], pit_record_ids=pit_ids,
-        coverage_entry_ids=coverage_ids)
-    _mark(checkpoint, "after_normalized_row")
-    applied = stores.identity.apply(parsed.identity_rows)
-    _mark(checkpoint, "after_identity")
     return EmitResult(t2, t3, tuple(item.observation_id for item in observations), tuple(structured),
-                      tuple(pit_ids), tuple(coverage_ids), len(applied))
+                      tuple(pit_ids), tuple(coverage_ids), 0)
 
 
 # --------------------------------------------------------------------------------------

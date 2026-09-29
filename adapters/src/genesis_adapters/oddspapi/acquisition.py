@@ -36,6 +36,9 @@ HTTP_OK = 200
 HTTP_AUTH = (401, 403)
 TOO_MANY_REQUESTS = 429
 PURPOSES = ("SCHEDULED", "CONDITIONAL", "RETRY", "METADATA", "G2_VERIFICATION")
+# Provisional (design 21 A12, verified at G2): the provider's count of requests used in its current
+# accounting window, reported in an allowlisted response header. Absent -> nothing to reconcile.
+PROVIDER_USAGE_HEADER = "x-requests-used"
 
 
 class AttemptOutcome:
@@ -693,14 +696,18 @@ class AcquisitionRunner:
         length = captured.byte_length if captured is not None else (
             len(result.body) if result.body is not None else None)
         at = self._safe_stamp(t1)
+        usage = self._provider_usage(captured, t1)
         self._record("acq_completed", at, acquisition_id=aid, T1=t1, outcome=result.outcome,
                      http_status=result.http_status,
                      headers=[list(pair) for pair in captured.headers] if captured is not None else [],
                      content_encoding=captured.content_encoding if captured is not None else None,
                      byte_length=length,
                      raw_observation_id=captured.raw_observation_id if captured is not None else None,
-                     sanitized_error=None, provider_reported_usage=None,
+                     sanitized_error=None, provider_reported_usage=usage,
                      failure=failure.value if failure else None)
+        if usage is not None and usage["reported"] is not None and usage["reported"] > usage["genesis_debited"]:
+            # the provider counted more than Genesis debited: the budget can no longer be trusted (F-37)
+            self._halt(aid, request, AdapterFailure.QUOTA_DIVERGENCE, at, refused=False)
         parsed = None
         moment = parse_utc(t1)
         if captured is not None and captured.kind in ("SECRET", "UNINSPECTABLE"):
@@ -719,6 +726,19 @@ class AcquisitionRunner:
         return AcquisitionOutcome(aid, request_id, AttemptOutcome.RESPONSE if result.outcome == "RESPONSE"
                                   else AttemptOutcome.TRUNCATED, failure, charge=charge, result=result,
                                   parsed=parsed, captured=captured)
+
+    def _provider_usage(self, captured: Captured | None, t1: str) -> dict | None:
+        """The provider-reported usage (provisional header) next to the Genesis debit of the same UTC month."""
+
+        if captured is None:
+            return None
+        values = [value for name, value in captured.headers if name == PROVIDER_USAGE_HEADER]
+        if not values:
+            return None
+        text = values[0].strip()
+        reported = int(text) if text.isascii() and text.isdigit() else None
+        return {"header": PROVIDER_USAGE_HEADER, "reported": reported,
+                "genesis_debited": self.quota.ledger.usage(t1)[1], "window": "utc_month"}
 
     def _after_success(self, aid: str, request: CanonicalRequest, result: TransportResult, captured: Captured,
                        t1: str, at: str) -> tuple[AdapterFailure | None, Any]:

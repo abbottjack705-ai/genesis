@@ -1,0 +1,56 @@
+# S6 mutation smoke test: derivation.py, pipeline.py, manifest.py and the F-37 check in acquisition.py (every mutant must be KILLED)
+# harness: mutate.py runs an unmutated baseline first and aborts if it fails
+# start: 2026-09-29T12:24:08Z
+# HEAD (base): ff7f4baf0426c57c4c17d0cb7bbe3865d3c9f46c + S6 working tree
+----
+## derivation.py vs test_v05_pipeline (DerivationFailureTests, EndToEndTests, FixtureJoinTests)
+baseline: PASS (OK)
+SURVIVED  re-derived bytes not compared
+SURVIVED  pinned registry prefix not checked
+SKIPPED (anchor count 0) running configuration not checked
+SURVIVED  later fixtures capture joined
+SURVIVED  observation metadata not checked
+KILLED    unknown kind passes
+SKIPPED (anchor count 0) foreign document accepted
+## pipeline.py vs test_v05_pipeline (Configuration, CrashResume, Rebuild) + FM-32/33
+baseline: PASS (OK)
+KILLED    configuration drift ignored
+KILLED    resume leaves identity rows unfinished
+KILLED    provenance guard ignored
+KILLED    emission conflict not halted
+KILLED    tamper coverage not quarantined
+SURVIVED  rebuild registry divergence ignored
+KILLED    scope not pinned from the normalized row
+## manifest.py vs test_v05_manifest.BuildTests
+baseline: PASS (OK)
+SKIPPED (anchor count 0) stale book accepted
+KILLED    other event accepted
+KILLED    missing selection accepted
+KILLED    empty manifest accepted
+## acquisition.py (F-37) vs FM-37
+baseline: PASS (OK)
+KILLED    divergence never halts
+KILLED    divergence off by one
+# end: 2026-09-29T12:31:25Z
+
+# Mutants that SURVIVED or were SKIPPED above exposed tests that only caught a defect through a second, overlapping
+# check (or anchors that did not match). The tests were sharpened to isolate each check (assert the specific
+# failure; same metadata for forged documents; a real later FIXTURES capture; a diverged rebuild registry) and
+# every one of those mutants was re-run:
+## RERUN after strengthening the tests (derivation survivors, skipped anchors fixed)
+## derivation.py vs test_v05_pipeline.DerivationFailureTests
+baseline: PASS (OK)
+KILLED    re-derived bytes not compared
+KILLED    pinned registry prefix not checked
+KILLED    later fixtures capture joined
+KILLED    observation metadata not checked
+KILLED    unknown kind passes
+KILLED    running configuration not checked
+KILLED    foreign document accepted
+## pipeline.py (rebuild guard) vs DerivationFailureTests + RebuildTests
+baseline: PASS (OK)
+KILLED    rebuild registry divergence ignored
+## manifest.py (stale book) vs test_v05_manifest.BuildTests
+baseline: PASS (OK)
+KILLED    stale book accepted
+# end: 2026-09-29T14:10:57Z

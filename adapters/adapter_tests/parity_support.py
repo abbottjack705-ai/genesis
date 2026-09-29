@@ -65,7 +65,7 @@ def manifest_body(stores: emit.AdapterStores, pins, *, decision_at: str) -> tupl
             "pit_record_id": record.record_id, "pit_record_hash": row["record_hash"], "field_id": field_id,
             "transform_artifact_hash": identity_transform_hash(field_id)})
         if document.get("market_state") == "OPEN":
-            structured.add(emit._research_evidence(NormalizedDocument(
+            structured.add(emit.research_evidence(NormalizedDocument(
                 record.entity_id, "OPEN", stores.evidence.get_bytes(record.payload_hash), record.valid_from,
                 document["valid_to"], observation.publisher_timestamp), observation, document, stores).digest)
     if not inputs:

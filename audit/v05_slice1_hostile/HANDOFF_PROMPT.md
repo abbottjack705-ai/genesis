@@ -1,5 +1,12 @@
 # Handoff prompt — finish the V0.5 slice-1 hostile audit package
 
+> **Status after session 2 (2026-09-30).** Tasks 1–3 below were executed on the Windows host (the
+> candidate is still not on origin; it was cloned from the local branch and bound by SHA). Verdict:
+> **REMEDIATION REQUIRED** (HA-013 MEDIUM confirmed, HA-006 LOW confirmed, HA-004 open). Still to do,
+> on a host with nothing else running: the candidate's complete adapter suite in isolation (411/573
+> passed before a memory kill) and `attacks/a15_mutation.py`; then, after remediation, the re-audit in
+> `REMEDIATION_HANDOFF.md` §4. The original prompt is kept below for the record.
+
 (Copy everything below the line into the next model's task.)
 
 ---

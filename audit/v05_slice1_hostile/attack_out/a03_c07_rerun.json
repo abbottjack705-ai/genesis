@@ -1,0 +1,130 @@
+{
+ "checks": 19,
+ "failed": 0,
+ "results": [
+  {
+   "area": "A3",
+   "check": "baseline: fixture ODDS response emits books",
+   "pass": true,
+   "books": 12
+  },
+  {
+   "area": "A3",
+   "check": "C07a raw publish: temp written, no link (+stray .pending): the injected crash fired",
+   "pass": true
+  },
+  {
+   "area": "A3",
+   "check": "C07a raw publish: temp written, no link (+stray .pending): restart made no send and no reserve() for the known attempt",
+   "pass": true,
+   "sends": 0,
+   "reserve_calls": 0
+  },
+  {
+   "area": "A3",
+   "check": "C07a raw publish: temp written, no link (+stray .pending): at most one Genesis debit for the attempt, unchanged by restart",
+   "pass": true,
+   "before": 1,
+   "after": 1
+  },
+  {
+   "area": "A3",
+   "check": "C07a raw publish: temp written, no link (+stray .pending): re-acquiring the same plan item is DUPLICATE/REFUSED",
+   "pass": true,
+   "outcome": "REFUSED",
+   "failure": "ORPHANED_RESERVATION"
+  },
+  {
+   "area": "A3",
+   "check": "C07a raw publish: temp written, no link (+stray .pending): no stray .pending file after an in-process crash",
+   "pass": true,
+   "pending": []
+  },
+  {
+   "area": "A3",
+   "check": "C07a raw publish: temp written, no link (+stray .pending): uncompleted attempt reconciled ORPHANED_RESERVATION",
+   "pass": true,
+   "state": "RECONCILED",
+   "reconciled": "ORPHANED_RESERVATION"
+  },
+  {
+   "area": "A3",
+   "check": "C07a raw publish: temp written, no link (+stray .pending): send_state is MAY_HAVE_BEEN_SENT exactly when acq_sent was durable",
+   "pass": true,
+   "send_state": "MAY_HAVE_BEEN_SENT",
+   "sent_durable": true
+  },
+  {
+   "area": "A3",
+   "check": "C07a raw publish: temp written, no link (+stray .pending): no PIT record from an uncompleted attempt",
+   "pass": true,
+   "records": 0
+  },
+  {
+   "area": "A3",
+   "check": "C07a raw publish: temp written, no link (+stray .pending): retry is a new attempt with a new request_id and its own debit",
+   "pass": true,
+   "outcome": "RESPONSE",
+   "sends": 1
+  },
+  {
+   "area": "A3",
+   "check": "C07b raw publish: object linked, no observation: the injected crash fired",
+   "pass": true
+  },
+  {
+   "area": "A3",
+   "check": "C07b raw publish: object linked, no observation: restart made no send and no reserve() for the known attempt",
+   "pass": true,
+   "sends": 0,
+   "reserve_calls": 0
+  },
+  {
+   "area": "A3",
+   "check": "C07b raw publish: object linked, no observation: at most one Genesis debit for the attempt, unchanged by restart",
+   "pass": true,
+   "before": 1,
+   "after": 1
+  },
+  {
+   "area": "A3",
+   "check": "C07b raw publish: object linked, no observation: re-acquiring the same plan item is DUPLICATE/REFUSED",
+   "pass": true,
+   "outcome": "REFUSED",
+   "failure": "ORPHANED_RESERVATION"
+  },
+  {
+   "area": "A3",
+   "check": "C07b raw publish: object linked, no observation: no stray .pending file after an in-process crash",
+   "pass": true,
+   "pending": []
+  },
+  {
+   "area": "A3",
+   "check": "C07b raw publish: object linked, no observation: uncompleted attempt reconciled ORPHANED_RESERVATION",
+   "pass": true,
+   "state": "RECONCILED",
+   "reconciled": "ORPHANED_RESERVATION"
+  },
+  {
+   "area": "A3",
+   "check": "C07b raw publish: object linked, no observation: send_state is MAY_HAVE_BEEN_SENT exactly when acq_sent was durable",
+   "pass": true,
+   "send_state": "MAY_HAVE_BEEN_SENT",
+   "sent_durable": true
+  },
+  {
+   "area": "A3",
+   "check": "C07b raw publish: object linked, no observation: no PIT record from an uncompleted attempt",
+   "pass": true,
+   "records": 0
+  },
+  {
+   "area": "A3",
+   "check": "C07b raw publish: object linked, no observation: retry is a new attempt with a new request_id and its own debit",
+   "pass": true,
+   "outcome": "RESPONSE",
+   "sends": 1
+  }
+ ]
+}

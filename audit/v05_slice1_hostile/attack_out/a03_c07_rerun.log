@@ -1,0 +1,20 @@
+[PASS] A3 baseline: fixture ODDS response emits books {"books": 12}
+[PASS] A3 C07a raw publish: temp written, no link (+stray .pending): the injected crash fired 
+[PASS] A3 C07a raw publish: temp written, no link (+stray .pending): restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C07a raw publish: temp written, no link (+stray .pending): at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C07a raw publish: temp written, no link (+stray .pending): re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "REFUSED", "failure": "ORPHANED_RESERVATION"}
+[PASS] A3 C07a raw publish: temp written, no link (+stray .pending): no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C07a raw publish: temp written, no link (+stray .pending): uncompleted attempt reconciled ORPHANED_RESERVATION {"state": "RECONCILED", "reconciled": "ORPHANED_RESERVATION"}
+[PASS] A3 C07a raw publish: temp written, no link (+stray .pending): send_state is MAY_HAVE_BEEN_SENT exactly when acq_sent was durable {"send_state": "MAY_HAVE_BEEN_SENT", "sent_durable": true}
+[PASS] A3 C07a raw publish: temp written, no link (+stray .pending): no PIT record from an uncompleted attempt {"records": 0}
+[PASS] A3 C07a raw publish: temp written, no link (+stray .pending): retry is a new attempt with a new request_id and its own debit {"outcome": "RESPONSE", "sends": 1}
+[PASS] A3 C07b raw publish: object linked, no observation: the injected crash fired 
+[PASS] A3 C07b raw publish: object linked, no observation: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C07b raw publish: object linked, no observation: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C07b raw publish: object linked, no observation: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "REFUSED", "failure": "ORPHANED_RESERVATION"}
+[PASS] A3 C07b raw publish: object linked, no observation: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C07b raw publish: object linked, no observation: uncompleted attempt reconciled ORPHANED_RESERVATION {"state": "RECONCILED", "reconciled": "ORPHANED_RESERVATION"}
+[PASS] A3 C07b raw publish: object linked, no observation: send_state is MAY_HAVE_BEEN_SENT exactly when acq_sent was durable {"send_state": "MAY_HAVE_BEEN_SENT", "sent_durable": true}
+[PASS] A3 C07b raw publish: object linked, no observation: no PIT record from an uncompleted attempt {"records": 0}
+[PASS] A3 C07b raw publish: object linked, no observation: retry is a new attempt with a new request_id and its own debit {"outcome": "RESPONSE", "sends": 1}
+== 19 checks, 0 failed

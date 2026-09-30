@@ -1,0 +1,46 @@
+{
+ "checks": 6,
+ "failed": 0,
+ "results": [
+  {
+   "area": "A1",
+   "check": "P-1 (candidate layout): manifest entries == every .py of frozen src tree, blob SHA-1 and SHA-256 equal",
+   "pass": true,
+   "expected": 36,
+   "got": 36,
+   "missing": [],
+   "extra": []
+  },
+  {
+   "area": "A1",
+   "check": "manifest names the frozen src tree and schema",
+   "pass": true,
+   "src_tree": "51cb635bc42b993815b6c02a23c4c3ceb7d98476"
+  },
+  {
+   "area": "A1",
+   "check": "manifest SHA-256 equals the pin in verify.py",
+   "pass": true,
+   "manifest_sha256": "9a50e370cb27919ee6b13e85a2b325cdaf6691c3b1168a2bc1294f1604e22fdf"
+  },
+  {
+   "area": "A1",
+   "check": "manifest bytes are canonical JSON with one trailing LF (no CRLF)",
+   "pass": true
+  },
+  {
+   "area": "A1",
+   "check": "A-1: in a core.autocrlf=true checkout the startup guard refuses (never normalizes CRLF)",
+   "pass": true,
+   "checkout_has_crlf": true,
+   "verdict": "REFUSED MODULE_HASH_MISMATCH"
+  },
+  {
+   "area": "A1",
+   "check": "A-1: the adapter suite in the CRLF checkout fails closed at the package guard",
+   "pass": true,
+   "exit": 1,
+   "tail": "FAILED (failures=21, errors=82, skipped=1)"
+  }
+ ]
+}

@@ -1,0 +1,371 @@
+{
+ "policy": {
+  "request_timeout_seconds": 60,
+  "clock_skew_max_seconds": 120
+ },
+ "guard_zone_each_day_utc": "[23:57:00 , 00:02:00)",
+ "expected_send_pattern_per_boundary": {
+  "B - m - 1us": true,
+  "B - m": false,
+  "B - timeout": false,
+  "B - 1us": false,
+  "B": false,
+  "B + skew - 1us": false,
+  "B + skew": true
+ },
+ "pattern_consistent_across_boundaries": true,
+ "grid": {
+  "day_plain": {
+   "B - m - 1us": {
+    "Tq": "2026-10-03T23:56:59.999999Z",
+    "W1": true,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": true
+   },
+   "B - m": {
+    "Tq": "2026-10-03T23:57:00.000000Z",
+    "W1": false,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B - timeout": {
+    "Tq": "2026-10-03T23:59:00.000000Z",
+    "W1": false,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B - 1us": {
+    "Tq": "2026-10-03T23:59:59.999999Z",
+    "W1": false,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B": {
+    "Tq": "2026-10-04T00:00:00.000000Z",
+    "W1": true,
+    "W2": true,
+    "W3": false,
+    "W4": true,
+    "send": false
+   },
+   "B + skew - 1us": {
+    "Tq": "2026-10-04T00:01:59.999999Z",
+    "W1": true,
+    "W2": true,
+    "W3": false,
+    "W4": true,
+    "send": false
+   },
+   "B + skew": {
+    "Tq": "2026-10-04T00:02:00.000000Z",
+    "W1": true,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": true
+   }
+  },
+  "month_30_to_31": {
+   "B - m - 1us": {
+    "Tq": "2026-09-30T23:56:59.999999Z",
+    "W1": true,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": true
+   },
+   "B - m": {
+    "Tq": "2026-09-30T23:57:00.000000Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B - timeout": {
+    "Tq": "2026-09-30T23:59:00.000000Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B - 1us": {
+    "Tq": "2026-09-30T23:59:59.999999Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B": {
+    "Tq": "2026-10-01T00:00:00.000000Z",
+    "W1": true,
+    "W2": true,
+    "W3": false,
+    "W4": false,
+    "send": false
+   },
+   "B + skew - 1us": {
+    "Tq": "2026-10-01T00:01:59.999999Z",
+    "W1": true,
+    "W2": true,
+    "W3": false,
+    "W4": false,
+    "send": false
+   },
+   "B + skew": {
+    "Tq": "2026-10-01T00:02:00.000000Z",
+    "W1": true,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": true
+   }
+  },
+  "month_31_to_30": {
+   "B - m - 1us": {
+    "Tq": "2026-11-30T23:56:59.999999Z",
+    "W1": true,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": true
+   },
+   "B - m": {
+    "Tq": "2026-11-30T23:57:00.000000Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B - timeout": {
+    "Tq": "2026-11-30T23:59:00.000000Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B - 1us": {
+    "Tq": "2026-11-30T23:59:59.999999Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B": {
+    "Tq": "2026-12-01T00:00:00.000000Z",
+    "W1": true,
+    "W2": true,
+    "W3": false,
+    "W4": false,
+    "send": false
+   },
+   "B + skew - 1us": {
+    "Tq": "2026-12-01T00:01:59.999999Z",
+    "W1": true,
+    "W2": true,
+    "W3": false,
+    "W4": false,
+    "send": false
+   },
+   "B + skew": {
+    "Tq": "2026-12-01T00:02:00.000000Z",
+    "W1": true,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": true
+   }
+  },
+  "feb_nonleap_2027": {
+   "B - m - 1us": {
+    "Tq": "2027-02-28T23:56:59.999999Z",
+    "W1": true,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": true
+   },
+   "B - m": {
+    "Tq": "2027-02-28T23:57:00.000000Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B - timeout": {
+    "Tq": "2027-02-28T23:59:00.000000Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B - 1us": {
+    "Tq": "2027-02-28T23:59:59.999999Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B": {
+    "Tq": "2027-03-01T00:00:00.000000Z",
+    "W1": true,
+    "W2": true,
+    "W3": false,
+    "W4": false,
+    "send": false
+   },
+   "B + skew - 1us": {
+    "Tq": "2027-03-01T00:01:59.999999Z",
+    "W1": true,
+    "W2": true,
+    "W3": false,
+    "W4": false,
+    "send": false
+   },
+   "B + skew": {
+    "Tq": "2027-03-01T00:02:00.000000Z",
+    "W1": true,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": true
+   }
+  },
+  "feb_leap_2028": {
+   "B - m - 1us": {
+    "Tq": "2028-02-29T23:56:59.999999Z",
+    "W1": true,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": true
+   },
+   "B - m": {
+    "Tq": "2028-02-29T23:57:00.000000Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B - timeout": {
+    "Tq": "2028-02-29T23:59:00.000000Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B - 1us": {
+    "Tq": "2028-02-29T23:59:59.999999Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B": {
+    "Tq": "2028-03-01T00:00:00.000000Z",
+    "W1": true,
+    "W2": true,
+    "W3": false,
+    "W4": false,
+    "send": false
+   },
+   "B + skew - 1us": {
+    "Tq": "2028-03-01T00:01:59.999999Z",
+    "W1": true,
+    "W2": true,
+    "W3": false,
+    "W4": false,
+    "send": false
+   },
+   "B + skew": {
+    "Tq": "2028-03-01T00:02:00.000000Z",
+    "W1": true,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": true
+   }
+  },
+  "year_end": {
+   "B - m - 1us": {
+    "Tq": "2026-12-31T23:56:59.999999Z",
+    "W1": true,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": true
+   },
+   "B - m": {
+    "Tq": "2026-12-31T23:57:00.000000Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B - timeout": {
+    "Tq": "2026-12-31T23:59:00.000000Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B - 1us": {
+    "Tq": "2026-12-31T23:59:59.999999Z",
+    "W1": false,
+    "W2": false,
+    "W3": true,
+    "W4": true,
+    "send": false
+   },
+   "B": {
+    "Tq": "2027-01-01T00:00:00.000000Z",
+    "W1": true,
+    "W2": true,
+    "W3": false,
+    "W4": false,
+    "send": false
+   },
+   "B + skew - 1us": {
+    "Tq": "2027-01-01T00:01:59.999999Z",
+    "W1": true,
+    "W2": true,
+    "W3": false,
+    "W4": false,
+    "send": false
+   },
+   "B + skew": {
+    "Tq": "2027-01-01T00:02:00.000000Z",
+    "W1": true,
+    "W2": true,
+    "W3": true,
+    "W4": true,
+    "send": true
+   }
+  }
+ },
+ "sanity_bound": {
+  "zone_seconds": 300,
+  "must_be_lt_3600": true
+ }
+}

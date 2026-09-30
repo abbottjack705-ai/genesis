@@ -1,0 +1,166 @@
+{
+ "checks": 17,
+ "failed": 0,
+ "results": [
+  {
+   "area": "A7",
+   "check": "policy timeout/skew equal the oracle's edge-table inputs",
+   "pass": true
+  },
+  {
+   "area": "A7",
+   "check": "boundary_guard equals the oracle W1-W4 table at every edge of 6 boundaries (and reschedules to the first permitted microsecond)",
+   "pass": true,
+   "mismatches": []
+  },
+  {
+   "area": "A7",
+   "check": "TX-01 ordinary failure at connect -> sanitized result, class/errno only, nothing leaks",
+   "pass": true,
+   "outcome": "NO_RESPONSE",
+   "error": {
+    "class": "OSError",
+    "errno": 5
+   },
+   "warnings": 0
+  },
+  {
+   "area": "A7",
+   "check": "TX-01 ordinary failure at write -> sanitized result, class/errno only, nothing leaks",
+   "pass": true,
+   "outcome": "NO_RESPONSE",
+   "error": {
+    "class": "OSError",
+    "errno": 5
+   },
+   "warnings": 0
+  },
+  {
+   "area": "A7",
+   "check": "TX-01 ordinary failure at read_head -> sanitized result, class/errno only, nothing leaks",
+   "pass": true,
+   "outcome": "NO_RESPONSE",
+   "error": {
+    "class": "OSError",
+    "errno": 5
+   },
+   "warnings": 0
+  },
+  {
+   "area": "A7",
+   "check": "TX-01 ordinary failure at read_body -> sanitized result, class/errno only, nothing leaks",
+   "pass": true,
+   "outcome": "TRUNCATED",
+   "error": {
+    "class": "OSError",
+    "errno": 5
+   },
+   "warnings": 0
+  },
+  {
+   "area": "A7",
+   "check": "TX-01 a warning naming the keyed URL is swallowed inside the send path",
+   "pass": true,
+   "outcome": "RESPONSE",
+   "warnings": 0
+  },
+  {
+   "area": "A7",
+   "check": "TX-01 KeyboardInterrupt(url) arrives as a fresh KeyboardInterrupt() from None; no keyed frame local",
+   "pass": true,
+   "got": "KeyboardInterrupt",
+   "args": [],
+   "cause": "None",
+   "context": "None",
+   "notes": null,
+   "leaking_locals": []
+  },
+  {
+   "area": "A7",
+   "check": "TX-01 SystemExit(37) arrives as a fresh SystemExit(37,) from None; no keyed frame local",
+   "pass": true,
+   "got": "SystemExit",
+   "args": [
+    37
+   ],
+   "cause": "None",
+   "context": "None",
+   "notes": null,
+   "leaking_locals": []
+  },
+  {
+   "area": "A7",
+   "check": "TX-01 SystemExit(url) arrives as a fresh SystemExit(1,) from None; no keyed frame local",
+   "pass": true,
+   "got": "SystemExit",
+   "args": [
+    1
+   ],
+   "cause": "None",
+   "context": "None",
+   "notes": null,
+   "leaking_locals": []
+  },
+  {
+   "area": "A7",
+   "check": "TX-01 SystemExit(None) arrives as a fresh SystemExit() from None; no keyed frame local",
+   "pass": true,
+   "got": "SystemExit",
+   "args": [],
+   "cause": "None",
+   "context": "None",
+   "notes": null,
+   "leaking_locals": []
+  },
+  {
+   "area": "A7",
+   "check": "BND-04: T0 at/after the deadline -> nothing written, NO_RESPONSE",
+   "pass": true,
+   "sent": 0,
+   "outcome": "NO_RESPONSE"
+  },
+  {
+   "area": "A7",
+   "check": "BND-04: a slow body is cut at the deadline (TRUNCATED/NO_RESPONSE, never a late RESPONSE)",
+   "pass": true,
+   "outcome": "TRUNCATED",
+   "error": {
+    "class": "TimeoutError",
+    "errno": null
+   }
+  },
+  {
+   "area": "A7",
+   "check": "HA-008: a stuck clock is re-read only within the drift budget and returned as read (no invented T1)",
+   "pass": true,
+   "waited_s": 0.313,
+   "reads": 20
+  },
+  {
+   "area": "A7",
+   "check": "HA-008: a 16 ms clock yields T1 strictly after T0",
+   "pass": true,
+   "t0": "2026-09-30T08:19:37.952000Z",
+   "t1": "2026-09-30T08:19:37.968000Z"
+  },
+  {
+   "area": "A7",
+   "check": "HA-008: a stuck wall clock under SystemUtcClock raises ClockFault within the drift budget",
+   "pass": true,
+   "fault": "WALL_CLOCK_JUMP"
+  },
+  {
+   "area": "A7",
+   "check": "HA-008: T1 == T0 from a transport halts the runner CLOCK_FAULT; no RESPONSE row, no evidence",
+   "pass": true,
+   "halted": "CLOCK_FAULT",
+   "rows": [
+    "acq_planned",
+    "acq_quota_decided",
+    "acq_sent",
+    "acq_completed",
+    "acq_halted"
+   ]
+  }
+ ]
+}

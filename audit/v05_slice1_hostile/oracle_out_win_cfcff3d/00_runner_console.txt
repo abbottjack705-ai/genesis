@@ -1,0 +1,25 @@
+=== 01_frozen_identity
+exit=0
+=== 02_provenance_crlf
+exit=1
+=== 04_pit_head_expected
+exit=0
+=== 09_quota_semantics
+exit=0
+=== 07_boundary_edges
+exit=0
+=== 06_secret_corpus
+exit=0
+=== 12_tls_key
+exit=0
+=== 13_static_scan
+exit=1
+=== frozen suite at cfcff3dbb285eaa48a6cfc1eceedb91e27662c81 (must be 493 run / same skips as S0 baseline)
+Ran 493 tests in 1414.154s
+
+OK (skipped=1)
+=== adapter suite
+Ran 573 tests in 43740.433s
+
+FAILED (errors=16, skipped=1)
+FRZ-03 dirty lines: 0

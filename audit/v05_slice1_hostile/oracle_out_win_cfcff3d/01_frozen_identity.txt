@@ -1,0 +1,92 @@
+{
+  "commit": "cfcff3dbb285eaa48a6cfc1eceedb91e27662c81",
+  "all_pass": true,
+  "results": {
+    "I-1_tree_ids": {
+      "pass": true,
+      "detail": {
+        "src": {
+          "pinned": "51cb635bc42b993815b6c02a23c4c3ceb7d98476",
+          "actual": "51cb635bc42b993815b6c02a23c4c3ceb7d98476",
+          "equal": true
+        },
+        "tests": {
+          "pinned": "e90b298180068fec03ba7e2fa81957082e7fb3ce",
+          "actual": "e90b298180068fec03ba7e2fa81957082e7fb3ce",
+          "equal": true
+        },
+        "config": {
+          "pinned": "abd22db01ff482a8da84634ee740ba382b68c804",
+          "actual": "abd22db01ff482a8da84634ee740ba382b68c804",
+          "equal": true
+        },
+        "tools": {
+          "pinned": "a0e3411edb4e068fd4708050516cb6870834e7ac",
+          "actual": "a0e3411edb4e068fd4708050516cb6870834e7ac",
+          "equal": true
+        },
+        "DECISIONS": {
+          "pinned": "cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64",
+          "actual": "cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64",
+          "equal": true
+        },
+        "v04_pack": {
+          "pinned": "3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12",
+          "actual": "3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12",
+          "equal": true
+        }
+      }
+    },
+    "I-2_frozen_diff_empty": {
+      "pass": true,
+      "detail": []
+    },
+    "I-3_only_adapters": {
+      "pass": true,
+      "changed_count": 185,
+      "outside_adapters": []
+    },
+    "I-4_no_touch_list": {
+      "pass": true,
+      "detail": []
+    },
+    "I-5_frozen_blobs_lf": {
+      "pass": true,
+      "detail": []
+    },
+    "I-6_nested_gitattributes": {
+      "pass": true,
+      "detail": [
+        "# Byte-exact fixtures and pinned config: no end-of-line conversion on any checkout.",
+        "adapter_tests/fixtures/** -text",
+        "config/** -text",
+        "# Raw transcripts are byte evidence (hashed in HASHES.sha256): keep their exact bytes.",
+        "evidence/** -text whitespace=-trailing-space,-blank-at-eof"
+      ]
+    },
+    "I-7_stage_commits": {
+      "pass": true,
+      "claimed": [
+        "63e06a1",
+        "1bc6001",
+        "78bedb9",
+        "b95465e",
+        "9de0790",
+        "ff7f4ba",
+        "9c35c5c",
+        "cfcff3d"
+      ],
+      "actual": [
+        "63e06a1ce32eac15b28a525b2340eae280f7c0ed",
+        "1bc60010e86033d5c2cf65a94f9503ab61f08794",
+        "78bedb92cccbee4ac46df640eedf47879957f378",
+        "b95465ecf455ba29de58370c94b9aa084024e645",
+        "9de0790a73acdf1820374383a7c2fb755a8252ba",
+        "ff7f4baf0426c57c4c17d0cb7bbe3865d3c9f46c",
+        "9c35c5cde9d065ab4857a46e8d5a9d324b6347ad",
+        "cfcff3dbb285eaa48a6cfc1eceedb91e27662c81"
+      ]
+    }
+  }
+}
+exit=0

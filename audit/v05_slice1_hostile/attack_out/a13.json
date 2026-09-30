@@ -1,0 +1,44 @@
+{
+ "checks": 5,
+ "failed": 5,
+ "results": [
+  {
+   "area": "A13",
+   "check": "16.4: a G2R-style capture leaves an UNKNOWN capability row for its market-book source",
+   "pass": false,
+   "capability_rows": 0
+  },
+  {
+   "area": "A13",
+   "check": "16.2/16.6: a gate record's granted_at is stamped by the trusted clock, not taken from the file",
+   "pass": false,
+   "exit": 0,
+   "stored_granted_at": "2000-01-01T00:00:00.000000Z"
+  },
+  {
+   "area": "A13",
+   "check": "16.5: the READY row is recorded at the trusted-clock 'now' of the approval, never at an operator-chosen earlier time",
+   "pass": false,
+   "exit": 0,
+   "ready_recorded_at": "2000-01-01T00:00:00.000000Z"
+  },
+  {
+   "area": "A13",
+   "check": "consequence: a cutoff taken between capture and the approval moment must not replay as usable",
+   "pass": false,
+   "decision_at": "2026-10-01T12:00:01.008000Z",
+   "approval_moment": "2026-10-01T12:30:00.010000Z",
+   "reader": "UsableBook",
+   "note": "usable here means the capability timeline was rewritten after the fact"
+  },
+  {
+   "area": "A13",
+   "check": "7.6/F-11: after SECRET_ECHO, sends stay halted until a re-G1 with a new credential exists",
+   "pass": false,
+   "halted_before": "SECRET_ECHO",
+   "reset_exit": 0,
+   "blocking_after": null,
+   "g1_records": 0
+  }
+ ]
+}

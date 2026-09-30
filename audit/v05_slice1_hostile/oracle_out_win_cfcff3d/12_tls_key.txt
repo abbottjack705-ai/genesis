@@ -1,0 +1,32 @@
+{
+  "K-1_2_private_keys": [
+    {
+      "path": "adapters/adapter_tests/fixtures/tls/server.key",
+      "size": 241,
+      "type": "PRIVATE KEY",
+      "encrypted": false,
+      "under_test_fixtures": true
+    }
+  ],
+  "K-3_runtime_tls_references": [
+    "adapters/src/genesis_adapters/oddspapi/transport_http.py:131: def tls_context(cafile: str | None = None) -> ssl.SSLContext:",
+    "adapters/src/genesis_adapters/oddspapi/transport_http.py:134: context = ssl.create_default_context(cafile=cafile) if cafile else ssl.create_default_context()",
+    "adapters/src/genesis_adapters/oddspapi/transport_http.py:135: context.check_hostname = True",
+    "adapters/src/genesis_adapters/oddspapi/transport_http.py:149: context = ssl_context if ssl_context is not None else ssl.create_default_context()",
+    "adapters/src/genesis_adapters/oddspapi/transport_http.py:150: if context.verify_mode != ssl.CERT_REQUIRED or not context.check_hostname:"
+  ],
+  "K-4_export_ignore_present": false,
+  "K-4_build_system": false,
+  "K-5_scanner_classification": "Any PEM private-key block is flagged by gitleaks (private-key), trufflehog (PrivateKey), detect-secrets (PrivateKeyDetector); GitHub push protection flags generic private keys when enabled.",
+  "K-6_certificates": [
+    {
+      "path": "adapters/adapter_tests/fixtures/tls/server.pem",
+      "x509": "subject=CN=api.oddspapi.io\r\nX509v3 Subject Alternative Name: \r\n    DNS:api.oddspapi.io\r\nnotAfter=Sep 24 10:40:27 2046 GMT"
+    },
+    {
+      "path": "adapters/adapter_tests/fixtures/tls/test-ca.pem",
+      "x509": "subject=CN=Genesis adapter TEST-ONLY loopback CA\r\nnotAfter=Sep 24 10:40:27 2046 GMT"
+    }
+  ]
+}
+exit=0

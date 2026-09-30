@@ -1,0 +1,221 @@
+{
+ "checks": 16,
+ "failed": 0,
+ "results": [
+  {
+   "area": "A6",
+   "check": "clean fixture response (REQ-04 shape): clean response stored; no form of the configured key anywhere under the root",
+   "pass": true,
+   "outcome": "RESPONSE",
+   "leaks": [],
+   "raw_objects": 13
+  },
+  {
+   "area": "A6",
+   "check": "raw key in body: SECRET_ECHO halt, no raw object, metadata-only quarantine, no form or body hash anywhere, capability BLOCKED",
+   "pass": true,
+   "halted": "SECRET_ECHO",
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1,
+   "classes": [
+    "BODY_FRAGMENT",
+    "BODY_RAW"
+   ],
+   "blocked": [
+    "blocked"
+   ]
+  },
+  {
+   "area": "A6",
+   "check": "utf-16be key in body: SECRET_ECHO halt, no raw object, metadata-only quarantine, no form or body hash anywhere, capability BLOCKED",
+   "pass": true,
+   "halted": "SECRET_ECHO",
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1,
+   "classes": [
+    "BODY_FRAGMENT",
+    "BODY_UTF16"
+   ],
+   "blocked": [
+    "blocked"
+   ]
+  },
+  {
+   "area": "A6",
+   "check": "percent-encoded upper key: SECRET_ECHO halt, no raw object, metadata-only quarantine, no form or body hash anywhere, capability BLOCKED",
+   "pass": true,
+   "halted": "SECRET_ECHO",
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1,
+   "classes": [
+    "BODY_FRAGMENT",
+    "BODY_PERCENT"
+   ],
+   "blocked": [
+    "blocked"
+   ]
+  },
+  {
+   "area": "A6",
+   "check": "base64 at offset 1: SECRET_ECHO halt, no raw object, metadata-only quarantine, no form or body hash anywhere, capability BLOCKED",
+   "pass": true,
+   "halted": "SECRET_ECHO",
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1,
+   "classes": [
+    "BODY_BASE64"
+   ],
+   "blocked": [
+    "blocked"
+   ]
+  },
+  {
+   "area": "A6",
+   "check": "hex upper key: SECRET_ECHO halt, no raw object, metadata-only quarantine, no form or body hash anywhere, capability BLOCKED",
+   "pass": true,
+   "halted": "SECRET_ECHO",
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1,
+   "classes": [
+    "BODY_HEX",
+    "BODY_HEX_FRAGMENT"
+   ],
+   "blocked": [
+    "blocked"
+   ]
+  },
+  {
+   "area": "A6",
+   "check": "threshold-length fragment: SECRET_ECHO halt, no raw object, metadata-only quarantine, no form or body hash anywhere, capability BLOCKED",
+   "pass": true,
+   "halted": "SECRET_ECHO",
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1,
+   "classes": [
+    "BODY_FRAGMENT"
+   ],
+   "blocked": [
+    "blocked"
+   ]
+  },
+  {
+   "area": "A6",
+   "check": "key in a non-allowlisted header value: SECRET_ECHO halt, no raw object, metadata-only quarantine, no form or body hash anywhere, capability BLOCKED",
+   "pass": true,
+   "halted": "SECRET_ECHO",
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1,
+   "classes": [
+    "HEADER_VALUE"
+   ],
+   "blocked": [
+    "blocked"
+   ]
+  },
+  {
+   "area": "A6",
+   "check": "key in a header name: SECRET_ECHO halt, no raw object, metadata-only quarantine, no form or body hash anywhere, capability BLOCKED",
+   "pass": true,
+   "halted": "SECRET_ECHO",
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1,
+   "classes": [
+    "HEADER_NAME"
+   ],
+   "blocked": [
+    "blocked"
+   ]
+  },
+  {
+   "area": "A6",
+   "check": "key in a 500 error body: SECRET_ECHO halt, no raw object, metadata-only quarantine, no form or body hash anywhere, capability BLOCKED",
+   "pass": true,
+   "halted": "SECRET_ECHO",
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1,
+   "classes": [
+    "BODY_FRAGMENT",
+    "BODY_RAW"
+   ],
+   "blocked": [
+    "blocked"
+   ]
+  },
+  {
+   "area": "A6",
+   "check": "key only inside the gzip-decoded body: SECRET_ECHO halt, no raw object, metadata-only quarantine, no form or body hash anywhere, capability BLOCKED",
+   "pass": true,
+   "halted": "SECRET_ECHO",
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1,
+   "classes": [
+    "BODY_FRAGMENT",
+    "BODY_RAW"
+   ],
+   "blocked": [
+    "blocked"
+   ]
+  },
+  {
+   "area": "A6",
+   "check": "key only in wire bytes after a gzip member: SECRET_ECHO halt, no raw object, metadata-only quarantine, no form or body hash anywhere, capability BLOCKED",
+   "pass": true,
+   "halted": "SECRET_ECHO",
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1,
+   "classes": [
+    "BODY_FRAGMENT",
+    "BODY_PERCENT",
+    "BODY_RAW"
+   ],
+   "blocked": [
+    "blocked"
+   ]
+  },
+  {
+   "area": "A6",
+   "check": "unsupported content-encoding: UNINSPECTABLE quarantine, no raw object, no body hash, no halt",
+   "pass": true,
+   "halted": null,
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1
+  },
+  {
+   "area": "A6",
+   "check": "nested content-encoding: UNINSPECTABLE quarantine, no raw object, no body hash, no halt",
+   "pass": true,
+   "halted": null,
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1
+  },
+  {
+   "area": "A6",
+   "check": "gzip bomb over the ratio bound: UNINSPECTABLE quarantine, no raw object, no body hash, no halt",
+   "pass": true,
+   "halted": null,
+   "leaks": [],
+   "raw_objects": 0,
+   "quarantine": 1
+  },
+  {
+   "area": "A6",
+   "check": "SEC-05: scan_runtime_for_secret flags exactly the corpus files expected to hit",
+   "pass": true,
+   "wrong": [],
+   "hits": 36
+  }
+ ]
+}

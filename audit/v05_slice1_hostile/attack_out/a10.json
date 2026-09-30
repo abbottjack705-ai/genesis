@@ -1,0 +1,63 @@
+{
+ "checks": 8,
+ "failed": 0,
+ "results": [
+  {
+   "area": "A10",
+   "check": "F-32: conflicting bytes at the raw object path -> EVIDENCE_CONFLICT halt, bytes untouched, no PIT",
+   "pass": true,
+   "halted": "EVIDENCE_CONFLICT"
+  },
+  {
+   "area": "A10",
+   "check": "F-33: PIT record id already used with other content -> PIT_APPEND_CONFLICT halt, row not replaced",
+   "pass": true,
+   "halted": "PIT_APPEND_CONFLICT",
+   "rows": 1
+  },
+  {
+   "area": "A10",
+   "check": "EV-02: tampered raw bytes make verify_all fail (never a pass by omission)",
+   "pass": true,
+   "error": "ValueError"
+  },
+  {
+   "area": "A10",
+   "check": "INV-04: a head whose derivation no longer verifies is invalidated automatically",
+   "pass": true,
+   "effect": "INVALIDATED_HEAD_EMITTED"
+  },
+  {
+   "area": "A10",
+   "check": "PIT-06/INV-01: at T3_inv - 1us the original head is still usable; at T3_inv it is INVALIDATED",
+   "pass": true,
+   "before": "UsableBook",
+   "after": "INVALIDATED"
+  },
+  {
+   "area": "A10",
+   "check": "PIT-04/ST-05: SUSPENDED head blocks the older OPEN inside its TTL and after its valid_to",
+   "pass": true,
+   "mid": "SUSPENDED",
+   "late": "SUSPENDED"
+  },
+  {
+   "area": "A10",
+   "check": "HA-012: with no READY capability (G2R) a complete response lacking a bookmaker yields ABSENT tombstones for its expected books",
+   "pass": true,
+   "capability_rows": 0,
+   "absent": 4,
+   "dropped": "fixture-book-b",
+   "scope_hashes": [
+    true,
+    true
+   ]
+  },
+  {
+   "area": "A10",
+   "check": "INV-02: invalidating an already-superseded record -> NONE_ALREADY_SUPERSEDED, no PIT record",
+   "pass": true,
+   "effect": "NONE_ALREADY_SUPERSEDED"
+  }
+ ]
+}

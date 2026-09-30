@@ -1,0 +1,5 @@
+# Evidence is byte evidence (hashed in ARTIFACT_MANIFEST.sha256): no end-of-line conversion and no
+# whitespace rules on any checkout (Windows console output keeps its CRLF).
+oracle_out_win_cfcff3d/** -text -whitespace
+attack_out/** -text -whitespace
+*.log -text -whitespace

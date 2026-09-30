@@ -1,0 +1,46 @@
+{
+ "checks": 4,
+ "failed": 2,
+ "results": [
+  {
+   "area": "A12",
+   "check": "K1: committed key matches the committed server certificate, which names the real provider host",
+   "pass": true,
+   "key_matches_cert": true,
+   "san": [
+    "api.oddspapi.io"
+   ]
+  },
+  {
+   "area": "A12",
+   "check": "K2: server.key has export-ignore and is absent from git archive (HA-006 remediation 1)",
+   "pass": false,
+   "check_attr": "adapters/adapter_tests/fixtures/tls/server.key: export-ignore: unspecified",
+   "shipped": true
+  },
+  {
+   "area": "A12",
+   "check": "K3: the live CLI run path accepts an injected CA with a loopback address (seam reachable in live mode; HA-006 remediation 2 NOT met)",
+   "pass": false,
+   "transport_accepts_injected_ca": true,
+   "cli_parses_ca_file": true,
+   "cmd_run_wires_it": true,
+   "trust_store_count": 1
+  },
+  {
+   "area": "A12",
+   "check": "K4: non-loopback --connect values are refused",
+   "pass": true,
+   "cases": [
+    [
+     "10.0.0.1:443",
+     true
+    ],
+    [
+     "api.oddspapi.io:443",
+     true
+    ]
+   ]
+  }
+ ]
+}

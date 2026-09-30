@@ -1,0 +1,307 @@
+{
+ "checks": 21,
+ "failed": 0,
+ "results": [
+  {
+   "area": "A8",
+   "check": "baseline: every declared book of the fixture is OPEN",
+   "pass": true,
+   "books": 12
+  },
+  {
+   "area": "A8",
+   "check": "unknown event statusId (7) -> every book of the event BLOCKED, no price",
+   "pass": true,
+   "affected": 6,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "UNKNOWN_EVENT_STATUS"
+   ],
+   "target": null
+  },
+  {
+   "area": "A8",
+   "check": "statusId typed as string \"0\" -> unknown (1 != \"1\"), BLOCKED",
+   "pass": true,
+   "affected": 6,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "UNKNOWN_EVENT_STATUS"
+   ],
+   "target": null
+  },
+  {
+   "area": "A8",
+   "check": "event finished (statusId 2) with active prices -> BLOCKED (EVENT_NOT_PREMATCH or CONTRADICTORY)",
+   "pass": true,
+   "affected": 6,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "CONTRADICTORY_STATUS"
+   ],
+   "target": null
+  },
+  {
+   "area": "A8",
+   "check": "outcome active=false -> SUSPENDED (no price)",
+   "pass": true,
+   "affected": 1,
+   "states": [
+    "SUSPENDED"
+   ],
+   "reasons": [
+    "OUTCOME_INACTIVE"
+   ],
+   "target": [
+    "fixture-book-a",
+    "101",
+    "101",
+    false
+   ]
+  },
+  {
+   "area": "A8",
+   "check": "outcome active=\"true\" (wrong JSON type) -> not ACTIVE, never priced",
+   "pass": true,
+   "affected": 1,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "UNKNOWN_OUTCOME_STATUS"
+   ],
+   "target": [
+    "fixture-book-a",
+    "101",
+    "101",
+    "true"
+   ]
+  },
+  {
+   "area": "A8",
+   "check": "outcome active=null -> never priced",
+   "pass": true,
+   "affected": 1,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "UNKNOWN_OUTCOME_STATUS"
+   ],
+   "target": [
+    "fixture-book-a",
+    "101",
+    "101",
+    null
+   ]
+  },
+  {
+   "area": "A8",
+   "check": "deviation 7: ACTIVE outcome with null price -> BLOCKED CONTRADICTORY_STATUS",
+   "pass": true,
+   "affected": 1,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "CONTRADICTORY_STATUS"
+   ],
+   "target": [
+    "fixture-book-a",
+    "101",
+    "101",
+    null
+   ]
+  },
+  {
+   "area": "A8",
+   "check": "ACTIVE outcome with price 1.0 -> BLOCKED CONTRADICTORY_STATUS",
+   "pass": true,
+   "affected": 1,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "CONTRADICTORY_STATUS"
+   ],
+   "target": [
+    "fixture-book-a",
+    "101",
+    "101",
+    1.0
+   ]
+  },
+  {
+   "area": "A8",
+   "check": "ACTIVE outcome with price \"2.05\" (string) -> never priced",
+   "pass": true,
+   "affected": 1,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "SCHEMA_DRIFT"
+   ],
+   "target": [
+    "fixture-book-a",
+    "101",
+    "101",
+    "2.05"
+   ]
+  },
+  {
+   "area": "A8",
+   "check": "deviation 6: bookmakerIsActive=false -> that bookmaker's books SUSPENDED (no price)",
+   "pass": true,
+   "affected": 2,
+   "states": [
+    "SUSPENDED"
+   ],
+   "reasons": [
+    "MARKET_SUSPENDED"
+   ],
+   "target": [
+    "fixture-book-a",
+    false,
+    false
+   ]
+  },
+  {
+   "area": "A8",
+   "check": "deviation 6: bookmakerIsActive=1 (wrong type) -> BLOCKED, no price",
+   "pass": true,
+   "affected": 2,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "UNKNOWN_MARKET_STATUS"
+   ],
+   "target": [
+    "fixture-book-a",
+    1,
+    false
+   ]
+  },
+  {
+   "area": "A8",
+   "check": "deviation 6: bookmakerIsActive missing -> never priced",
+   "pass": true,
+   "affected": 2,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "UNKNOWN_MARKET_STATUS"
+   ],
+   "target": [
+    "fixture-book-a",
+    null,
+    true
+   ]
+  },
+  {
+   "area": "A8",
+   "check": "unknown key in an outcome/price object -> that book BLOCKED SCHEMA_DRIFT",
+   "pass": true,
+   "affected": 1,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "SCHEMA_DRIFT"
+   ],
+   "target": "outcome"
+  },
+  {
+   "area": "A8",
+   "check": "unknown key in a market object -> that book BLOCKED SCHEMA_DRIFT",
+   "pass": true,
+   "affected": 1,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "SCHEMA_DRIFT"
+   ],
+   "target": "market"
+  },
+  {
+   "area": "A8",
+   "check": "unknown key in a bookmaker block -> event x bookmaker BLOCKED SCHEMA_DRIFT",
+   "pass": true,
+   "affected": 2,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "SCHEMA_DRIFT"
+   ],
+   "target": "bookmaker"
+  },
+  {
+   "area": "A8",
+   "check": "unknown key in the event object -> every book of the event BLOCKED SCHEMA_DRIFT",
+   "pass": true,
+   "affected": 6,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "SCHEMA_DRIFT"
+   ],
+   "target": "event"
+  },
+  {
+   "area": "A8",
+   "check": "envelope drift -> response REJECTED, zero books, zero tombstones",
+   "pass": true,
+   "failure": "ENVELOPE_SCHEMA_MISMATCH"
+  },
+  {
+   "area": "A8",
+   "check": "deviation 7: startTime absent and no fixture join -> BLOCKED EVENT_METADATA_STALE, never OPEN",
+   "pass": true,
+   "affected": 6,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "EVENT_METADATA_STALE"
+   ],
+   "target": "startTime"
+  },
+  {
+   "area": "A8",
+   "check": "startTime with a +01:00 offset -> rejected, not normalized (6.4)",
+   "pass": true,
+   "affected": 6,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "EVENT_START_INVALID"
+   ],
+   "target": "offset"
+  },
+  {
+   "area": "A8",
+   "check": "naive provider timestamp -> BLOCKED TIMESTAMP_NAIVE",
+   "pass": true,
+   "affected": 1,
+   "states": [
+    "BLOCKED"
+   ],
+   "reasons": [
+    "TIMESTAMP_NAIVE"
+   ],
+   "target": "naive changedAt"
+  }
+ ]
+}

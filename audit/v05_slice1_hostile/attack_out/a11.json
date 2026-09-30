@@ -1,0 +1,127 @@
+{
+ "checks": 20,
+ "failed": 1,
+ "results": [
+  {
+   "area": "A11",
+   "check": "owner-only ACL, one LF line, outside repo and runtime root -> LOADED",
+   "pass": true,
+   "result": "LOADED"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005/7.5: Everyone:(R) added -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005/7.5: BUILTIN\\Users (by SID) added -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005/7.5: a DENY ACE for Everyone -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005/7.5: inheritance re-enabled -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005/7.5: CRLF line ending (deviation 19) -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_MISSING"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005/7.5: two lines -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_MISSING"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005/7.5: a second hard-link name -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  },
+  {
+   "area": "A11",
+   "check": "fingerprint mismatch -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_FINGERPRINT_MISMATCH"
+  },
+  {
+   "area": "A11",
+   "check": "key present in another environment variable -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  },
+  {
+   "area": "A11",
+   "check": "credential inside the runtime root -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  },
+  {
+   "area": "A11",
+   "check": "HA-004: credential reached through a junction that resolves into the runtime root -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS",
+   "junction_made": true
+  },
+  {
+   "area": "A11",
+   "check": "HA-004: a real file symbolic link -> refused",
+   "pass": false,
+   "note": "NOT RUN on this account (no SeCreateSymbolicLinkPrivilege / Developer Mode): OSError winerror=1314"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005 parser: de-DE extra principal -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005 parser: fr-FR extra principal -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005 parser: only the user, localized summary line -> LOADED",
+   "pass": true,
+   "result": "LOADED"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005 parser: user plus an unresolvable SID -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005 parser: user plus a DENY line -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005 parser: unknown line shape only -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  },
+  {
+   "area": "A11",
+   "check": "HA-005 parser: empty output -> refused",
+   "pass": true,
+   "result": "CREDENTIAL_PERMISSIONS"
+  }
+ ]
+}

@@ -1,0 +1,116 @@
+{
+ "checks": 17,
+ "failed": 0,
+ "results": [
+  {
+   "area": "A4/A5",
+   "check": "S1_single: reader never looser than the frozen verifier and never another head",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S1_single: every refusal where the verifier accepts is a documented adapter-only one",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S2_tie: reader never looser than the frozen verifier and never another head",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S2_tie: every refusal where the verifier accepts is a documented adapter-only one",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S3_invalidated: reader never looser than the frozen verifier and never another head",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S3_invalidated: every refusal where the verifier accepts is a documented adapter-only one",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S4_newer_expires_first: reader never looser than the frozen verifier and never another head",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S4_newer_expires_first: every refusal where the verifier accepts is a documented adapter-only one",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S5_correction_chain: reader never looser than the frozen verifier and never another head",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S5_correction_chain: every refusal where the verifier accepts is a documented adapter-only one",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S7_published_after_D: reader never looser than the frozen verifier and never another head",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S7_published_after_D: every refusal where the verifier accepts is a documented adapter-only one",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S8_two_sources: reader never looser than the frozen verifier and never another head",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "S8_two_sources: every refusal where the verifier accepts is a documented adapter-only one",
+   "pass": true,
+   "problems": []
+  },
+  {
+   "area": "A4/A5",
+   "check": "HA-002: in [valid_to_new, valid_to_old) the verifier revives OLD and the reader refuses STALE",
+   "pass": true,
+   "cutoffs": 3,
+   "readers": [
+    "UNUSABLE:STALE"
+   ]
+  },
+  {
+   "area": "A4/A5",
+   "check": "S7: head published after D -> NOT_PUBLISHED_AT_CUTOFF, never a fallback to OLD",
+   "pass": true,
+   "cutoffs": 3,
+   "readers": [
+    "UNUSABLE:NOT_PUBLISHED_AT_CUTOFF"
+   ]
+  },
+  {
+   "area": "A4/A5",
+   "check": "S8: two READY market-book sources -> AMBIGUOUS_SOURCE at every cutoff (13.4)",
+   "pass": true,
+   "readers": [
+    "UNUSABLE:AMBIGUOUS_SOURCE"
+   ]
+  }
+ ]
+}

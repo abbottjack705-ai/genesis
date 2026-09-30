@@ -1,0 +1,1208 @@
+[
+{
+"scenario": "S1_single",
+"D": "2026-10-03T09:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S1_single",
+"D": "2026-10-03T10:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S1_single",
+"D": "2026-10-03T10:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S1_single",
+"D": "2026-10-03T10:01:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S1_single",
+"D": "2026-10-03T10:02:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S1_single",
+"D": "2026-10-03T10:02:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S1_single",
+"D": "2026-10-03T10:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S1_single",
+"D": "2026-10-03T11:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S1_single",
+"D": "2026-10-03T11:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S2_tie",
+"D": "2026-10-03T09:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S2_tie",
+"D": "2026-10-03T10:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S2_tie",
+"D": "2026-10-03T10:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S2_tie",
+"D": "2026-10-03T10:01:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S2_tie",
+"D": "2026-10-03T10:02:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S2_tie",
+"D": "2026-10-03T10:02:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S2_tie",
+"D": "2026-10-03T10:02:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S2_tie",
+"D": "2026-10-03T10:03:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "AMBIGUOUS",
+"reader": "UNUSABLE:AMBIGUOUS",
+"verifier_accepts": []
+},
+{
+"scenario": "S2_tie",
+"D": "2026-10-03T10:03:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "AMBIGUOUS",
+"reader": "UNUSABLE:AMBIGUOUS",
+"verifier_accepts": []
+},
+{
+"scenario": "S2_tie",
+"D": "2026-10-03T10:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "AMBIGUOUS",
+"reader": "UNUSABLE:AMBIGUOUS",
+"verifier_accepts": []
+},
+{
+"scenario": "S2_tie",
+"D": "2026-10-03T11:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S2_tie",
+"D": "2026-10-03T11:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T09:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T10:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T10:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T10:01:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T10:02:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T10:02:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T10:09:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T10:10:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T10:10:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T10:10:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T10:11:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:INV",
+"reader": "UNUSABLE:INVALIDATED",
+"verifier_accepts": []
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T10:11:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:INV",
+"reader": "UNUSABLE:INVALIDATED",
+"verifier_accepts": []
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T10:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:INV",
+"reader": "UNUSABLE:INVALIDATED",
+"verifier_accepts": []
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T11:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:INV",
+"reader": "UNUSABLE:INVALIDATED",
+"verifier_accepts": []
+},
+{
+"scenario": "S3_invalidated",
+"D": "2026-10-03T11:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:INV",
+"reader": "UNUSABLE:INVALIDATED",
+"verifier_accepts": []
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T09:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:01:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:02:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "USABLE:OLD",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:02:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "USABLE:OLD",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:09:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "USABLE:OLD",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:10:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "USABLE:OLD",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:10:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "USABLE:OLD",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:11:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "USABLE:OLD",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:12:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:NEW",
+"reader": "USABLE:NEW",
+"verifier_accepts": [
+"NEW"
+]
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:12:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:NEW",
+"reader": "USABLE:NEW",
+"verifier_accepts": [
+"NEW"
+]
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:29:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:NEW",
+"reader": "USABLE:NEW",
+"verifier_accepts": [
+"NEW"
+]
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:30:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "UNUSABLE:STALE",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:30:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "UNUSABLE:STALE",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T10:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "UNUSABLE:STALE",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T11:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S4_newer_expires_first",
+"D": "2026-10-03T11:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T09:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:01:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:02:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:02:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:09:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:10:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:10:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:10:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "USABLE:A",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:11:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:SUSP",
+"reader": "UNUSABLE:SUSPENDED",
+"verifier_accepts": []
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:11:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:SUSP",
+"reader": "UNUSABLE:SUSPENDED",
+"verifier_accepts": []
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:19:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:SUSP",
+"reader": "UNUSABLE:SUSPENDED",
+"verifier_accepts": []
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:20:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:SUSP",
+"reader": "UNUSABLE:SUSPENDED",
+"verifier_accepts": []
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:20:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:SUSP",
+"reader": "UNUSABLE:SUSPENDED",
+"verifier_accepts": []
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:21:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:SUSP",
+"reader": "UNUSABLE:SUSPENDED",
+"verifier_accepts": []
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:22:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:C",
+"reader": "USABLE:C",
+"verifier_accepts": [
+"C"
+]
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:22:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:C",
+"reader": "USABLE:C",
+"verifier_accepts": [
+"C"
+]
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T10:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:C",
+"reader": "USABLE:C",
+"verifier_accepts": [
+"C"
+]
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T11:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:C",
+"reader": "USABLE:C",
+"verifier_accepts": [
+"C"
+]
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T11:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:C",
+"reader": "USABLE:C",
+"verifier_accepts": [
+"C"
+]
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T11:19:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:C",
+"reader": "USABLE:C",
+"verifier_accepts": [
+"C"
+]
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T11:20:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:SUSP",
+"reader": "UNUSABLE:STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S5_correction_chain",
+"D": "2026-10-03T11:20:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:SUSP",
+"reader": "UNUSABLE:STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T09:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:01:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:02:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "USABLE:OLD",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:02:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "USABLE:OLD",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:09:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "USABLE:OLD",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:10:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "USABLE:OLD",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:10:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "USABLE:OLD",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:11:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:OLD",
+"reader": "USABLE:OLD",
+"verifier_accepts": [
+"OLD"
+]
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:12:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:NEW|UNUSABLE_PUBLISHED_AFTER_D|NO_FALLBACK",
+"reader": "UNUSABLE:NOT_PUBLISHED_AT_CUTOFF",
+"verifier_accepts": []
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:12:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:NEW|UNUSABLE_PUBLISHED_AFTER_D|NO_FALLBACK",
+"reader": "UNUSABLE:NOT_PUBLISHED_AT_CUTOFF",
+"verifier_accepts": []
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:12:04.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:NEW|UNUSABLE_PUBLISHED_AFTER_D|NO_FALLBACK",
+"reader": "UNUSABLE:NOT_PUBLISHED_AT_CUTOFF",
+"verifier_accepts": []
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:12:05.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:NEW",
+"reader": "USABLE:NEW",
+"verifier_accepts": [
+"NEW"
+]
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:12:05.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:NEW",
+"reader": "USABLE:NEW",
+"verifier_accepts": [
+"NEW"
+]
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T10:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:NEW",
+"reader": "USABLE:NEW",
+"verifier_accepts": [
+"NEW"
+]
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T11:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:NEW",
+"reader": "USABLE:NEW",
+"verifier_accepts": [
+"NEW"
+]
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T11:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:NEW",
+"reader": "USABLE:NEW",
+"verifier_accepts": [
+"NEW"
+]
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T11:09:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:NEW",
+"reader": "USABLE:NEW",
+"verifier_accepts": [
+"NEW"
+]
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T11:10:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S7_published_after_D",
+"D": "2026-10-03T11:10:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:MISSING_OR_STALE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T09:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T09:59:59.999999Z",
+"source": ".mb1-other",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:00:00.000000Z",
+"source": ".mb1-other",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:00:00.000001Z",
+"source": ".mb1-other",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:01:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:01:59.999999Z",
+"source": ".mb1-other",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:02:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:02:00.000000Z",
+"source": ".mb1-other",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:02:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:02:00.000001Z",
+"source": ".mb1-other",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:04:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:04:59.999999Z",
+"source": ".mb1-other",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:05:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:05:00.000000Z",
+"source": ".mb1-other",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:05:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:05:00.000001Z",
+"source": ".mb1-other",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:05:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:05:59.999999Z",
+"source": ".mb1-other",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:06:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:06:00.000000Z",
+"source": ".mb1-other",
+"oracle": "HEAD:B",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"B"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:06:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:06:00.000001Z",
+"source": ".mb1-other",
+"oracle": "HEAD:B",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"B"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:59:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "HEAD:A",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"A"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T10:59:59.999999Z",
+"source": ".mb1-other",
+"oracle": "HEAD:B",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"B"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T11:00:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T11:00:00.000000Z",
+"source": ".mb1-other",
+"oracle": "HEAD:B",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"B"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T11:00:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T11:00:00.000001Z",
+"source": ".mb1-other",
+"oracle": "HEAD:B",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"B"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T11:04:59.999999Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T11:04:59.999999Z",
+"source": ".mb1-other",
+"oracle": "HEAD:B",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": [
+"B"
+]
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T11:05:00.000000Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T11:05:00.000000Z",
+"source": ".mb1-other",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T11:05:00.000001Z",
+"source": "k.mb1-test",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+},
+{
+"scenario": "S8_two_sources",
+"D": "2026-10-03T11:05:00.000001Z",
+"source": ".mb1-other",
+"oracle": "NONE",
+"reader": "UNUSABLE:AMBIGUOUS_SOURCE",
+"verifier_accepts": []
+}
+]

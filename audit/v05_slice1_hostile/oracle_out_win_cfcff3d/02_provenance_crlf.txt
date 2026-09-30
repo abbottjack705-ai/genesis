@@ -1,0 +1,300 @@
+{
+  "all_pass": false,
+  "results": {
+    "P-1_manifest_parity": {
+      "pass": false,
+      "expected_entries": 36,
+      "missing": [
+        "src/genesis/__init__.py",
+        "src/genesis/accounting.py",
+        "src/genesis/candidate_runs.py",
+        "src/genesis/canonical.py",
+        "src/genesis/capabilities.py",
+        "src/genesis/composition.py",
+        "src/genesis/config.py",
+        "src/genesis/coverage.py",
+        "src/genesis/decision.py",
+        "src/genesis/decision_output.py",
+        "src/genesis/evaluation.py",
+        "src/genesis/evidence.py",
+        "src/genesis/evidence_pack.py",
+        "src/genesis/execution.py",
+        "src/genesis/feature_manifest.py",
+        "src/genesis/labels.py",
+        "src/genesis/ledger.py",
+        "src/genesis/logging.py",
+        "src/genesis/owner_binding.py",
+        "src/genesis/pit.py",
+        "src/genesis/policy.py",
+        "src/genesis/protected.py",
+        "src/genesis/protected_confinement_win.py",
+        "src/genesis/protected_isolation.py",
+        "src/genesis/protected_research_worker.py",
+        "src/genesis/provenance.py",
+        "src/genesis/quota.py",
+        "src/genesis/reasons.py",
+        "src/genesis/registry.py",
+        "src/genesis/release_proof.py",
+        "src/genesis/repro.py",
+        "src/genesis/risk.py",
+        "src/genesis/runtime.py",
+        "src/genesis/selection.py",
+        "src/genesis/selection_evaluation.py",
+        "src/genesis/time.py"
+      ],
+      "extra": [
+        "entries",
+        "schema",
+        "src_tree"
+      ],
+      "mismatch": [
+        {
+          "path": "src/genesis/__init__.py",
+          "expected": {
+            "blob_sha1": "eaa72c0118d6f03003bc159ffdd66578ca12e33d",
+            "sha256": "5e30e1d9b5d0b6ac989c626097d51d4b902e985bd422b69eb5c29f6e931ddf98",
+            "size": 285,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/accounting.py",
+          "expected": {
+            "blob_sha1": "8575d63316ec4c9cf639012793815072250ffd4d",
+            "sha256": "259291e744e0dbbf0ae24602a34f6c28fd1cb612b73b78dc2ff919961bdec06b",
+            "size": 3950,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/candidate_runs.py",
+          "expected": {
+            "blob_sha1": "2eebaa0890d99ac92daaeb0d005843d82f0a3982",
+            "sha256": "78b99eebebe620f912d45a9572c0de4a443c89c5486eeeb10a60e4fe59248538",
+            "size": 3189,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/canonical.py",
+          "expected": {
+            "blob_sha1": "5d4557061b8f794e51a467d846808ae4e97cde8c",
+            "sha256": "33d041f3726e65e62f75314dc8d8184c20cdaf1916d83ba6e194ba4834d16d4e",
+            "size": 9640,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/capabilities.py",
+          "expected": {
+            "blob_sha1": "f8f0e9050d26cf5198dfde616c85a8a21861a7bd",
+            "sha256": "a5600541fcc3832092f4b881f4b1d1758056ff84e844386ea0263a8ec27424cb",
+            "size": 4776,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/composition.py",
+          "expected": {
+            "blob_sha1": "df06e52b0b7cc59e30e12c9a17add0af0d6e93cc",
+            "sha256": "dab6858583bbe4ae3a8cc36d84732df7b318df64469326ad5c17c50d193002c1",
+            "size": 9108,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/config.py",
+          "expected": {
+            "blob_sha1": "63f625723a011b733ea67fbe969a53db15b1541d",
+            "sha256": "275fbfe8361f176004c64c0dd0655aaf89486c17a385bc7237766cd57c288a2f",
+            "size": 3401,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/coverage.py",
+          "expected": {
+            "blob_sha1": "6f909ba0e9629832ee8b79c7992a7ed56fde1edd",
+            "sha256": "7df451804e4eda8f63ee8cb83645f344fbd6dcf58257816e5521e16589f11d63",
+            "size": 2436,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/decision.py",
+          "expected": {
+            "blob_sha1": "58487969f2690a3290db72b37d93c34ac91f1a4e",
+            "sha256": "6f1b292ea7b0d0f36700117ee2017cf939f0f547a376afc60c5cc02f89fe5803",
+            "size": 5209,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/decision_output.py",
+          "expected": {
+            "blob_sha1": "179c96effe8a3e22ef612ddd3068be8690472423",
+            "sha256": "934873be44053ae5b12cfe043b180e0344cbea3a2e5ae913f818f1820ebcc01a",
+            "size": 31574,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/evaluation.py",
+          "expected": {
+            "blob_sha1": "e5f7f7a05a57b86fee2f927e817e60d4d9454f3f",
+            "sha256": "e0de502cb28ec53134d07bc8d40dff5116b48f964a3d9b3aacc77f21d33ce758",
+            "size": 5527,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/evidence.py",
+          "expected": {
+            "blob_sha1": "ea7d9c6c7984b24eeff2f98ae194b635e6f5b49d",
+            "sha256": "8fdbcacdc57c486c769943b3231ebcd700ae2e74d85035d67416307af25d457d",
+            "size": 15127,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/evidence_pack.py",
+          "expected": {
+            "blob_sha1": "2dc24ba5675dd735be0bd5d2663ee115b9e90dac",
+            "sha256": "b48f0556804e672c498ca1443ade3494bf618bcff0ac34bf66a9cac87452c6e3",
+            "size": 7482,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/execution.py",
+          "expected": {
+            "blob_sha1": "9b51ccbc35bee5b552e0a0792cdc8af65b7c5dc5",
+            "sha256": "54034d42c18ba3312df324ccf55e96509a519b364035bc7ac7d5f19f531413b3",
+            "size": 50110,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/feature_manifest.py",
+          "expected": {
+            "blob_sha1": "61d08a3a93bffc9f6efdc23f3676a13a919ad63b",
+            "sha256": "ba1115b911552d963c5b3881c5e09ebdf0eda1f5c178866e9208edb18717d931",
+            "size": 15989,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/labels.py",
+          "expected": {
+            "blob_sha1": "4c78a38f3db47d88bd61cc412b91aa00246f4868",
+            "sha256": "865c97c66f3e3fb517893041f7be04052b2cddd630a0fead045866ea82635ba8",
+            "size": 4299,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/ledger.py",
+          "expected": {
+            "blob_sha1": "aadafa90c48840ffe1fcceb785e97b4cebaae095",
+            "sha256": "83e12f6cd612030d62ac2639206f23721f41fbc23a0cac123e74b89e9907ac08",
+            "size": 20915,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/logging.py",
+          "expected": {
+            "blob_sha1": "2da9aa609a712441466e5ff79933856fe200bf41",
+            "sha256": "568370f012587873482455a8b1c0c3f02a79971403fb8077fe35b5277083cabe",
+            "size": 1771,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/owner_binding.py",
+          "expected": {
+            "blob_sha1": "d12084b24c6a574d68900119bb74f441ac787ef6",
+            "sha256": "80b3d75dc6bcfb83e16e105dd981050458cd5745bf01baae9fe9cd009f1c3ff7",
+            "size": 10433,
+            "has_crlf": false
+          },
+          "candidate": {}
+        },
+        {
+          "path": "src/genesis/pit.py",
+          "expected": {
+            "blob_sha1": "050c071d3a37682ab5fbe925135e1baa88d6559b",
+            "sha256": "314bcda758b5d1e3c910cfa6c178cd0ba3e1606fb1bf39ffd4ade001f4e744f9",
+            "size": 11059,
+            "has_crlf": false
+          },
+          "candidate": {}
+        }
+      ],
+      "manifest_sha256": "9a50e370cb27919ee6b13e85a2b325cdaf6691c3b1168a2bc1294f1604e22fdf"
+    },
+    "P-2_working_tree_bytes": {
+      "pass": true,
+      "deviating": {}
+    },
+    "P-3_clean_copy_control": {
+      "pass": true,
+      "detail": {
+        "outcome": "PASSED",
+        "verdict_keys": [
+          "adapter_modules",
+          "flags",
+          "genesis_origin",
+          "manifest_sha256",
+          "modules",
+          "python",
+          "repo",
+          "site_dirs",
+          "sys_path",
+          "verdict"
+        ]
+      }
+    },
+    "P-3_crlf_refused": {
+      "pass": true,
+      "detail": {
+        "outcome": "REFUSED",
+        "class": "ModuleProvenanceError"
+      },
+      "note": "PASSED here means CRLF was normalized away -> DEFECT (fail-open)"
+    },
+    "P-4_edit_refused_control": {
+      "pass": true,
+      "detail": {
+        "outcome": "REFUSED",
+        "class": "ModuleProvenanceError"
+      }
+    },
+    "P-5_static_binary_read": {
+      "pass": false,
+      "text_mode_opens": [],
+      "normalization_tokens": [
+        "splitlines"
+      ]
+    }
+  }
+}
+exit=1

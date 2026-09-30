@@ -1,0 +1,200 @@
+[PASS] A3 baseline: fixture ODDS response emits books {"books": 12}
+[PASS] A3 C01 before the quota ledger row: the injected crash fired 
+[PASS] A3 C01 before the quota ledger row: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C01 before the quota ledger row: at most one Genesis debit for the attempt, unchanged by restart {"before": 0, "after": 0}
+[PASS] A3 C01 before the quota ledger row: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C01 before the quota ledger row: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C01 before the quota ledger row: uncompleted attempt reconciled NOT_RESERVED {"state": "RECONCILED", "reconciled": "NOT_RESERVED"}
+[PASS] A3 C01 before the quota ledger row: send_state is MAY_HAVE_BEEN_SENT exactly when acq_sent was durable {"send_state": "NOT_SENT", "sent_durable": false}
+[PASS] A3 C01 before the quota ledger row: no PIT record from an uncompleted attempt {"records": 0}
+[PASS] A3 C01 before the quota ledger row: retry is a new attempt with a new request_id and its own debit {"outcome": "RESPONSE", "sends": 1}
+[PASS] A3 C02 after the quota ledger row, before quota_decided: the injected crash fired 
+[PASS] A3 C02 after the quota ledger row, before quota_decided: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C02 after the quota ledger row, before quota_decided: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C02 after the quota ledger row, before quota_decided: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "REFUSED", "failure": "ORPHANED_RESERVATION"}
+[PASS] A3 C02 after the quota ledger row, before quota_decided: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C02 after the quota ledger row, before quota_decided: uncompleted attempt reconciled ORPHANED_RESERVATION {"state": "RECONCILED", "reconciled": "ORPHANED_RESERVATION"}
+[PASS] A3 C02 after the quota ledger row, before quota_decided: send_state is MAY_HAVE_BEEN_SENT exactly when acq_sent was durable {"send_state": "NOT_SENT", "sent_durable": false}
+[PASS] A3 C02 after the quota ledger row, before quota_decided: no PIT record from an uncompleted attempt {"records": 0}
+[PASS] A3 C02 after the quota ledger row, before quota_decided: retry is a new attempt with a new request_id and its own debit {"outcome": "RESPONSE", "sends": 1}
+[PASS] A3 C03 after acquisition quota_decided: the injected crash fired 
+[PASS] A3 C03 after acquisition quota_decided: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C03 after acquisition quota_decided: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C03 after acquisition quota_decided: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "REFUSED", "failure": "ORPHANED_RESERVATION"}
+[PASS] A3 C03 after acquisition quota_decided: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C03 after acquisition quota_decided: uncompleted attempt reconciled ORPHANED_RESERVATION {"state": "RECONCILED", "reconciled": "ORPHANED_RESERVATION"}
+[PASS] A3 C03 after acquisition quota_decided: send_state is MAY_HAVE_BEEN_SENT exactly when acq_sent was durable {"send_state": "NOT_SENT", "sent_durable": false}
+[PASS] A3 C03 after acquisition quota_decided: no PIT record from an uncompleted attempt {"records": 0}
+[PASS] A3 C03 after acquisition quota_decided: retry is a new attempt with a new request_id and its own debit {"outcome": "RESPONSE", "sends": 1}
+[PASS] A3 C04 after acquisition sent (before the transport): the injected crash fired 
+[PASS] A3 C04 after acquisition sent (before the transport): restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C04 after acquisition sent (before the transport): at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C04 after acquisition sent (before the transport): re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "REFUSED", "failure": "ORPHANED_RESERVATION"}
+[PASS] A3 C04 after acquisition sent (before the transport): no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C04 after acquisition sent (before the transport): uncompleted attempt reconciled ORPHANED_RESERVATION {"state": "RECONCILED", "reconciled": "ORPHANED_RESERVATION"}
+[PASS] A3 C04 after acquisition sent (before the transport): send_state is MAY_HAVE_BEEN_SENT exactly when acq_sent was durable {"send_state": "MAY_HAVE_BEEN_SENT", "sent_durable": true}
+[PASS] A3 C04 after acquisition sent (before the transport): no PIT record from an uncompleted attempt {"records": 0}
+[PASS] A3 C04 after acquisition sent (before the transport): retry is a new attempt with a new request_id and its own debit {"outcome": "RESPONSE", "sends": 1}
+[PASS] A3 C05a transport dies before the response: the injected crash fired 
+[PASS] A3 C05a transport dies before the response: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C05a transport dies before the response: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C05a transport dies before the response: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "REFUSED", "failure": "ORPHANED_RESERVATION"}
+[PASS] A3 C05a transport dies before the response: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C05a transport dies before the response: uncompleted attempt reconciled ORPHANED_RESERVATION {"state": "RECONCILED", "reconciled": "ORPHANED_RESERVATION"}
+[PASS] A3 C05a transport dies before the response: send_state is MAY_HAVE_BEEN_SENT exactly when acq_sent was durable {"send_state": "MAY_HAVE_BEEN_SENT", "sent_durable": true}
+[PASS] A3 C05a transport dies before the response: no PIT record from an uncompleted attempt {"records": 0}
+[PASS] A3 C05a transport dies before the response: retry is a new attempt with a new request_id and its own debit {"outcome": "RESPONSE", "sends": 1}
+[PASS] A3 C05b transport complete, result lost: the injected crash fired 
+[PASS] A3 C05b transport complete, result lost: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C05b transport complete, result lost: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C05b transport complete, result lost: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "REFUSED", "failure": "ORPHANED_RESERVATION"}
+[PASS] A3 C05b transport complete, result lost: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C05b transport complete, result lost: uncompleted attempt reconciled ORPHANED_RESERVATION {"state": "RECONCILED", "reconciled": "ORPHANED_RESERVATION"}
+[PASS] A3 C05b transport complete, result lost: send_state is MAY_HAVE_BEEN_SENT exactly when acq_sent was durable {"send_state": "MAY_HAVE_BEEN_SENT", "sent_durable": true}
+[PASS] A3 C05b transport complete, result lost: no PIT record from an uncompleted attempt {"records": 0}
+[PASS] A3 C05b transport complete, result lost: retry is a new attempt with a new request_id and its own debit {"outcome": "RESPONSE", "sends": 1}
+[PASS] A3 C06 inside the secret screen: the injected crash fired 
+[PASS] A3 C06 inside the secret screen: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C06 inside the secret screen: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C06 inside the secret screen: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "REFUSED", "failure": "ORPHANED_RESERVATION"}
+[PASS] A3 C06 inside the secret screen: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C06 inside the secret screen: uncompleted attempt reconciled ORPHANED_RESERVATION {"state": "RECONCILED", "reconciled": "ORPHANED_RESERVATION"}
+[PASS] A3 C06 inside the secret screen: send_state is MAY_HAVE_BEEN_SENT exactly when acq_sent was durable {"send_state": "MAY_HAVE_BEEN_SENT", "sent_durable": true}
+[PASS] A3 C06 inside the secret screen: no PIT record from an uncompleted attempt {"records": 0}
+[PASS] A3 C06 inside the secret screen: retry is a new attempt with a new request_id and its own debit {"outcome": "RESPONSE", "sends": 1}
+[FAIL] A3 C07a raw publish: temp written, no link (+stray .pending): case ran to completion {"error": "NotADirectoryError: [WinError 267] The directory name is invalid: 'C:\\\\Users\\\\abbot\\\\ha\\\\scratch\\\\ha_attacks\\\\C07a raw publish: te-jnv8aqbf'"}
+[FAIL] A3 C07b raw publish: object linked, no observation: case ran to completion {"error": "NotADirectoryError: [WinError 267] The directory name is invalid: 'C:\\\\Users\\\\abbot\\\\ha\\\\scratch\\\\ha_attacks\\\\C07b raw publish: ob-m_0568_e'"}
+[PASS] A3 C08a before the completed row: the injected crash fired 
+[PASS] A3 C08a before the completed row: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C08a before the completed row: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C08a before the completed row: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "REFUSED", "failure": "ORPHANED_RESERVATION"}
+[PASS] A3 C08a before the completed row: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C08a before the completed row: uncompleted attempt reconciled ORPHANED_RESERVATION {"state": "RECONCILED", "reconciled": "ORPHANED_RESERVATION"}
+[PASS] A3 C08a before the completed row: send_state is MAY_HAVE_BEEN_SENT exactly when acq_sent was durable {"send_state": "MAY_HAVE_BEEN_SENT", "sent_durable": true}
+[PASS] A3 C08a before the completed row: no PIT record from an uncompleted attempt {"records": 0}
+[PASS] A3 C08a before the completed row: retry is a new attempt with a new request_id and its own debit {"outcome": "RESPONSE", "sends": 1}
+[PASS] A3 C08b after the completed row: the injected crash fired 
+[PASS] A3 C08b after the completed row: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C08b after the completed row: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C08b after the completed row: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C08b after the completed row: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C08b after the completed row: completed capture resumes to NORMALIZED without a halt {"error": null, "state": "NORMALIZED"}
+[PASS] A3 C08b after the completed row: resumed history equals the no-crash baseline (artifacts, record ids, identity) 
+[PASS] A3 C08b after the completed row: every normalized document re-derives (verify_all) {"verified": 12, "books": 12}
+[PASS] A3 C08b after the completed row: every PIT record has one observation and ready_at >= parse_ready_at >= T1 {"records": 12}
+[PASS] A3 C08b after the completed row: T3 values across the response's PIT records (informational) {"distinct_ready_at": 1, "normalized_row_T3": "2026-10-01T12:01:00.009000Z"}
+[PASS] A3 C09a after T2, before the first normalized publish: the injected crash fired 
+[PASS] A3 C09a after T2, before the first normalized publish: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C09a after T2, before the first normalized publish: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C09a after T2, before the first normalized publish: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C09a after T2, before the first normalized publish: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C09a after T2, before the first normalized publish: completed capture resumes to NORMALIZED without a halt {"error": null, "state": "NORMALIZED"}
+[PASS] A3 C09a after T2, before the first normalized publish: resumed history equals the no-crash baseline (artifacts, record ids, identity) 
+[PASS] A3 C09a after T2, before the first normalized publish: every normalized document re-derives (verify_all) {"verified": 12, "books": 12}
+[PASS] A3 C09a after T2, before the first normalized publish: every PIT record has one observation and ready_at >= parse_ready_at >= T1 {"records": 12}
+[PASS] A3 C09a after T2, before the first normalized publish: T3 values across the response's PIT records (informational) {"distinct_ready_at": 1, "normalized_row_T3": "2026-10-01T12:01:00.009000Z"}
+[PASS] A3 C09b after the first normalized publish: the injected crash fired 
+[PASS] A3 C09b after the first normalized publish: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C09b after the first normalized publish: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C09b after the first normalized publish: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C09b after the first normalized publish: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C09b after the first normalized publish: completed capture resumes to NORMALIZED without a halt {"error": null, "state": "NORMALIZED"}
+[PASS] A3 C09b after the first normalized publish: resumed history equals the no-crash baseline (artifacts, record ids, identity) 
+[PASS] A3 C09b after the first normalized publish: every normalized document re-derives (verify_all) {"verified": 12, "books": 12}
+[PASS] A3 C09b after the first normalized publish: every PIT record has one observation and ready_at >= parse_ready_at >= T1 {"records": 12}
+[PASS] A3 C09b after the first normalized publish: T3 values across the response's PIT records (informational) {"distinct_ready_at": 1, "normalized_row_T3": "2026-10-01T12:01:00.009000Z"}
+[PASS] A3 C09c after the last normalized publish: the injected crash fired 
+[PASS] A3 C09c after the last normalized publish: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C09c after the last normalized publish: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C09c after the last normalized publish: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C09c after the last normalized publish: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C09c after the last normalized publish: completed capture resumes to NORMALIZED without a halt {"error": null, "state": "NORMALIZED"}
+[PASS] A3 C09c after the last normalized publish: resumed history equals the no-crash baseline (artifacts, record ids, identity) 
+[PASS] A3 C09c after the last normalized publish: every normalized document re-derives (verify_all) {"verified": 12, "books": 12}
+[PASS] A3 C09c after the last normalized publish: every PIT record has one observation and ready_at >= parse_ready_at >= T1 {"records": 12}
+[PASS] A3 C09c after the last normalized publish: T3 values across the response's PIT records (informational) {"distinct_ready_at": 1, "normalized_row_T3": "2026-10-01T12:01:00.009000Z"}
+[PASS] A3 C10 after the first structured evidence: the injected crash fired 
+[PASS] A3 C10 after the first structured evidence: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C10 after the first structured evidence: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C10 after the first structured evidence: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C10 after the first structured evidence: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C10 after the first structured evidence: completed capture resumes to NORMALIZED without a halt {"error": null, "state": "NORMALIZED"}
+[PASS] A3 C10 after the first structured evidence: resumed history equals the no-crash baseline (artifacts, record ids, identity) 
+[PASS] A3 C10 after the first structured evidence: every normalized document re-derives (verify_all) {"verified": 12, "books": 12}
+[PASS] A3 C10 after the first structured evidence: every PIT record has one observation and ready_at >= parse_ready_at >= T1 {"records": 12}
+[PASS] A3 C10 after the first structured evidence: T3 values across the response's PIT records (informational) {"distinct_ready_at": 1, "normalized_row_T3": "2026-10-01T12:01:00.009000Z"}
+[PASS] A3 C11a after T3, before the first PIT append: the injected crash fired 
+[PASS] A3 C11a after T3, before the first PIT append: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C11a after T3, before the first PIT append: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C11a after T3, before the first PIT append: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C11a after T3, before the first PIT append: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C11a after T3, before the first PIT append: completed capture resumes to NORMALIZED without a halt {"error": null, "state": "NORMALIZED"}
+[PASS] A3 C11a after T3, before the first PIT append: resumed history equals the no-crash baseline (artifacts, record ids, identity) 
+[PASS] A3 C11a after T3, before the first PIT append: every normalized document re-derives (verify_all) {"verified": 12, "books": 12}
+[PASS] A3 C11a after T3, before the first PIT append: every PIT record has one observation and ready_at >= parse_ready_at >= T1 {"records": 12}
+[PASS] A3 C11a after T3, before the first PIT append: T3 values across the response's PIT records (informational) {"distinct_ready_at": 1, "normalized_row_T3": "2026-10-01T12:01:00.009000Z"}
+[PASS] A3 C11b after the first PIT append (HA-011): the injected crash fired 
+[PASS] A3 C11b after the first PIT append (HA-011): restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C11b after the first PIT append (HA-011): at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C11b after the first PIT append (HA-011): re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C11b after the first PIT append (HA-011): no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C11b after the first PIT append (HA-011): completed capture resumes to NORMALIZED without a halt {"error": null, "state": "NORMALIZED"}
+[PASS] A3 C11b after the first PIT append (HA-011): resumed history equals the no-crash baseline (artifacts, record ids, identity) 
+[PASS] A3 C11b after the first PIT append (HA-011): every normalized document re-derives (verify_all) {"verified": 12, "books": 12}
+[PASS] A3 C11b after the first PIT append (HA-011): every PIT record has one observation and ready_at >= parse_ready_at >= T1 {"records": 12}
+[PASS] A3 C11b after the first PIT append (HA-011): T3 values across the response's PIT records (informational) {"distinct_ready_at": 2, "normalized_row_T3": "2026-10-01T12:01:00.009000Z"}
+[PASS] A3 C11c after a middle PIT append: the injected crash fired 
+[PASS] A3 C11c after a middle PIT append: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C11c after a middle PIT append: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C11c after a middle PIT append: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C11c after a middle PIT append: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C11c after a middle PIT append: completed capture resumes to NORMALIZED without a halt {"error": null, "state": "NORMALIZED"}
+[PASS] A3 C11c after a middle PIT append: resumed history equals the no-crash baseline (artifacts, record ids, identity) 
+[PASS] A3 C11c after a middle PIT append: every normalized document re-derives (verify_all) {"verified": 12, "books": 12}
+[PASS] A3 C11c after a middle PIT append: every PIT record has one observation and ready_at >= parse_ready_at >= T1 {"records": 12}
+[PASS] A3 C11c after a middle PIT append: T3 values across the response's PIT records (informational) {"distinct_ready_at": 2, "normalized_row_T3": "2026-10-01T12:01:00.009000Z"}
+[PASS] A3 C11d after the last PIT append: the injected crash fired 
+[PASS] A3 C11d after the last PIT append: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C11d after the last PIT append: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C11d after the last PIT append: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C11d after the last PIT append: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C11d after the last PIT append: completed capture resumes to NORMALIZED without a halt {"error": null, "state": "NORMALIZED"}
+[PASS] A3 C11d after the last PIT append: resumed history equals the no-crash baseline (artifacts, record ids, identity) 
+[PASS] A3 C11d after the last PIT append: every normalized document re-derives (verify_all) {"verified": 12, "books": 12}
+[PASS] A3 C11d after the last PIT append: every PIT record has one observation and ready_at >= parse_ready_at >= T1 {"records": 12}
+[PASS] A3 C11d after the last PIT append: T3 values across the response's PIT records (informational) {"distinct_ready_at": 1, "normalized_row_T3": "2026-10-01T12:01:00.009000Z"}
+[PASS] A3 C12 after coverage: the injected crash fired 
+[PASS] A3 C12 after coverage: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C12 after coverage: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C12 after coverage: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C12 after coverage: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C12 after coverage: completed capture resumes to NORMALIZED without a halt {"error": null, "state": "NORMALIZED"}
+[PASS] A3 C12 after coverage: resumed history equals the no-crash baseline (artifacts, record ids, identity) 
+[PASS] A3 C12 after coverage: every normalized document re-derives (verify_all) {"verified": 12, "books": 12}
+[PASS] A3 C12 after coverage: every PIT record has one observation and ready_at >= parse_ready_at >= T1 {"records": 12}
+[PASS] A3 C12 after coverage: T3 values across the response's PIT records (informational) {"distinct_ready_at": 1, "normalized_row_T3": "2026-10-01T12:01:00.009000Z"}
+[PASS] A3 C13a after the normalized row: the injected crash fired 
+[PASS] A3 C13a after the normalized row: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C13a after the normalized row: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C13a after the normalized row: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C13a after the normalized row: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C13a after the normalized row: completed capture resumes to NORMALIZED without a halt {"error": null, "state": "NORMALIZED"}
+[PASS] A3 C13a after the normalized row: resumed history equals the no-crash baseline (artifacts, record ids, identity) 
+[PASS] A3 C13a after the normalized row: every normalized document re-derives (verify_all) {"verified": 12, "books": 12}
+[PASS] A3 C13a after the normalized row: every PIT record has one observation and ready_at >= parse_ready_at >= T1 {"records": 12}
+[PASS] A3 C13a after the normalized row: T3 values across the response's PIT records (informational) {"distinct_ready_at": 1, "normalized_row_T3": "2026-10-01T12:00:00.008000Z"}
+[PASS] A3 C13b after the identity rows: the injected crash fired 
+[PASS] A3 C13b after the identity rows: restart made no send and no reserve() for the known attempt {"sends": 0, "reserve_calls": 0}
+[PASS] A3 C13b after the identity rows: at most one Genesis debit for the attempt, unchanged by restart {"before": 1, "after": 1}
+[PASS] A3 C13b after the identity rows: re-acquiring the same plan item is DUPLICATE/REFUSED {"outcome": "DUPLICATE", "failure": null}
+[PASS] A3 C13b after the identity rows: no stray .pending file after an in-process crash {"pending": []}
+[PASS] A3 C13b after the identity rows: completed capture resumes to NORMALIZED without a halt {"error": null, "state": "NORMALIZED"}
+[PASS] A3 C13b after the identity rows: resumed history equals the no-crash baseline (artifacts, record ids, identity) 
+[PASS] A3 C13b after the identity rows: every normalized document re-derives (verify_all) {"verified": 12, "books": 12}
+[PASS] A3 C13b after the identity rows: every PIT record has one observation and ready_at >= parse_ready_at >= T1 {"records": 12}
+[PASS] A3 C13b after the identity rows: T3 values across the response's PIT records (informational) {"distinct_ready_at": 1, "normalized_row_T3": "2026-10-01T12:00:00.008000Z"}
+[PASS] A3 C14 invalidation crash after_recorded: resumes to exactly one recorded row, one applied row, one INVALIDATED PIT record {"crashed": true, "error": null, "rows": ["invalidation_recorded", "invalidation_applied"], "invalidated_pit": 1}
+[PASS] A3 C15 invalidation crash after_invalidation_observation: resumes to exactly one recorded row, one applied row, one INVALIDATED PIT record {"crashed": true, "error": null, "rows": ["invalidation_recorded", "invalidation_applied"], "invalidated_pit": 1}
+[PASS] A3 C16 invalidation crash after_invalidation_pit: resumes to exactly one recorded row, one applied row, one INVALIDATED PIT record {"crashed": true, "error": null, "rows": ["invalidation_recorded", "invalidation_applied"], "invalidated_pit": 1}
+[PASS] A2 QuotaGate.reserve identical-fingerprint replay (informational: the frozen ledger re-answers allowed; protection must come from the acquisition ledger) {"first_allowed": true, "replay_allowed": true, "ledger_rows": 1}
+== 199 checks, 2 failed

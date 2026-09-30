@@ -1,0 +1,76 @@
+{
+  "X-01": {
+    "pass": true,
+    "transport_BaseException_count": 1,
+    "other": []
+  },
+  "X-02": {
+    "pass": true,
+    "detail": []
+  },
+  "X-03": {
+    "pass": true,
+    "detail": []
+  },
+  "X-04": {
+    "pass": true,
+    "detail": []
+  },
+  "X-05": {
+    "pass": false,
+    "detail": [
+      "adapters/src/genesis_adapters/oddspapi/acquisition.py:186 class LedgerInvariantError subclasses frozen RegistryConflict",
+      "adapters/src/genesis_adapters/oddspapi/identity_registry.py:36 class IdentityConflict subclasses frozen RegistryConflict",
+      "adapters/src/genesis_adapters/oddspapi/identity_registry.py:40 class IdentityRegistryInvalid subclasses frozen RegistryConflict",
+      "adapters/src/genesis_adapters/oddspapi/invalidation.py:46 class InvalidationLedgerInvalid subclasses frozen RegistryConflict"
+    ]
+  },
+  "X-06": {
+    "pass": true,
+    "detail": []
+  },
+  "X-07": {
+    "pass": true,
+    "detail": []
+  },
+  "X-08": {
+    "pass": true,
+    "detail": []
+  },
+  "X-09": {
+    "review": [
+      "adapters/src/genesis_adapters/secrets.py:107 Path.replace?"
+    ]
+  },
+  "X-10": {
+    "review": [
+      "adapters/src/genesis_adapters/oddspapi/acquisition.py:534 str(...)",
+      "adapters/src/genesis_adapters/oddspapi/transport_http.py:93 str(...)",
+      "adapters/src/genesis_adapters/oddspapi/transport_http.py:93 str(...)",
+      "adapters/src/genesis_adapters/oddspapi/transport_http.py:215 __traceback__",
+      "adapters/src/genesis_adapters/oddspapi/transport_http.py:220 __traceback__"
+    ]
+  },
+  "X-11": {
+    "pass": false,
+    "detail": [
+      "adapters/src/genesis_adapters/oddspapi/verify.py:57 raise FreezeViolation(\"frozen worktree is not clean: \" + str(len(output.splitlines())) + \" path(s)\")",
+      "adapters/src/genesis_adapters/provenance_guard.py:69 for line in listing.splitlines():",
+      "adapters/src/genesis_adapters/provenance_guard.py:231 lines = pth.read_text(encoding=\"utf-8\", errors=\"replace\").splitlines()"
+    ]
+  },
+  "X-12": {
+    "pass": true,
+    "detail": []
+  },
+  "X-13": {
+    "review": []
+  },
+  "X-14": {
+    "pass": true,
+    "detail": []
+  },
+  "X-15": {
+    "review": []
+  }
+}

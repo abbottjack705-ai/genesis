@@ -1,0 +1,70 @@
+== S1_single
+   from D=2026-10-03T09:59:59.999999Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T10:02:00.000000Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T11:00:00.000000Z  [k.mb1-test]  -> NONE
+== S2_tie
+   from D=2026-10-03T09:59:59.999999Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T10:02:00.000000Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T10:03:00.000000Z  [k.mb1-test]  -> AMBIGUOUS
+   from D=2026-10-03T11:00:00.000000Z  [k.mb1-test]  -> NONE
+== S3_invalidated
+   from D=2026-10-03T09:59:59.999999Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T10:02:00.000000Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T10:11:00.000000Z  [k.mb1-test]  -> HEAD:INV
+== S4_newer_expires_first
+   from D=2026-10-03T09:59:59.999999Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T10:02:00.000000Z  [k.mb1-test]  -> HEAD:OLD
+   from D=2026-10-03T10:12:00.000000Z  [k.mb1-test]  -> HEAD:NEW
+   from D=2026-10-03T10:30:00.000000Z  [k.mb1-test]  -> HEAD:OLD
+   from D=2026-10-03T11:00:00.000000Z  [k.mb1-test]  -> NONE
+== S5_correction_chain
+   from D=2026-10-03T09:59:59.999999Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T10:02:00.000000Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T10:11:00.000000Z  [k.mb1-test]  -> HEAD:SUSP
+   from D=2026-10-03T10:22:00.000000Z  [k.mb1-test]  -> HEAD:C
+   from D=2026-10-03T11:20:00.000000Z  [k.mb1-test]  -> HEAD:SUSP
+== S7_published_after_D
+   from D=2026-10-03T09:59:59.999999Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T10:02:00.000000Z  [k.mb1-test]  -> HEAD:OLD
+   from D=2026-10-03T10:12:00.000000Z  [k.mb1-test]  -> HEAD:NEW|UNUSABLE_PUBLISHED_AFTER_D|NO_FALLBACK
+   from D=2026-10-03T10:12:05.000000Z  [k.mb1-test]  -> HEAD:NEW
+   from D=2026-10-03T11:10:00.000000Z  [k.mb1-test]  -> NONE
+== S8_two_sources
+   from D=2026-10-03T09:59:59.999999Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T09:59:59.999999Z  [.mb1-other]  -> NONE
+   from D=2026-10-03T10:00:00.000000Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T10:00:00.000000Z  [.mb1-other]  -> NONE
+   from D=2026-10-03T10:00:00.000001Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T10:00:00.000001Z  [.mb1-other]  -> NONE
+   from D=2026-10-03T10:01:59.999999Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T10:01:59.999999Z  [.mb1-other]  -> NONE
+   from D=2026-10-03T10:02:00.000000Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T10:02:00.000000Z  [.mb1-other]  -> NONE
+   from D=2026-10-03T10:02:00.000001Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T10:02:00.000001Z  [.mb1-other]  -> NONE
+   from D=2026-10-03T10:04:59.999999Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T10:04:59.999999Z  [.mb1-other]  -> NONE
+   from D=2026-10-03T10:05:00.000000Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T10:05:00.000000Z  [.mb1-other]  -> NONE
+   from D=2026-10-03T10:05:00.000001Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T10:05:00.000001Z  [.mb1-other]  -> NONE
+   from D=2026-10-03T10:05:59.999999Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T10:05:59.999999Z  [.mb1-other]  -> NONE
+   from D=2026-10-03T10:06:00.000000Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T10:06:00.000000Z  [.mb1-other]  -> HEAD:B
+   from D=2026-10-03T10:06:00.000001Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T10:06:00.000001Z  [.mb1-other]  -> HEAD:B
+   from D=2026-10-03T10:59:59.999999Z  [k.mb1-test]  -> HEAD:A
+   from D=2026-10-03T10:59:59.999999Z  [.mb1-other]  -> HEAD:B
+   from D=2026-10-03T11:00:00.000000Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T11:00:00.000000Z  [.mb1-other]  -> HEAD:B
+   from D=2026-10-03T11:00:00.000001Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T11:00:00.000001Z  [.mb1-other]  -> HEAD:B
+   from D=2026-10-03T11:04:59.999999Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T11:04:59.999999Z  [.mb1-other]  -> HEAD:B
+   from D=2026-10-03T11:05:00.000000Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T11:05:00.000000Z  [.mb1-other]  -> NONE
+   from D=2026-10-03T11:05:00.000001Z  [k.mb1-test]  -> NONE
+   from D=2026-10-03T11:05:00.000001Z  [.mb1-other]  -> NONE
+wrote C:/Users/abbot/ha/audit/audit/v05_slice1_hostile/oracle_out_win_cfcff3d/EXPECTED_PIT_HEADS.json
+exit=0

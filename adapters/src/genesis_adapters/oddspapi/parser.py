@@ -111,6 +111,10 @@ class ParseContext:
     policy: Any                                     # SlicePolicy
     response_schema: schema.ClosedSchema
     derivation_version: str
+    # The competitions the request named (its tournamentIds through the pinned map), read from the stored
+    # canonical request. A requested competition the payload does not show is an unproven omission, so the
+    # response is partial and nothing is tombstoned (design 12.4, section 15 F-15; hostile audit F-03).
+    requested_competitions: tuple[str, ...]
     identity_prefix: tuple[Mapping[str, Any], ...] = ()
     expected_scope: Mapping[str, ExpectedBook] | None = None
     expected_scope_hash: str | None = None          # hash of the scope artifact the mapping came from
@@ -405,7 +409,8 @@ class _Parser:
     def run(self, payload: list, findings: tuple[schema.DriftFinding, ...]) -> ParsedResponse:
         attribution = _Attribution(findings, self.statuses, self.timestamp_keys)
         partial = not self.ctx.complete_hint or any(
-            f.kind == "MISSING_REQUIRED" and f.scope != "RESPONSE" for f in findings)
+            f.kind == "MISSING_REQUIRED" and f.scope != "RESPONSE" for f in findings) \
+            or bool(self._omitted_competitions(payload))
         groups: dict[str, list[tuple[int, dict]]] = {}
         for index, item in enumerate(payload):
             groups.setdefault(item[KEY_FIXTURE_ID], []).append((index, item))
@@ -422,6 +427,23 @@ class _Parser:
             exclusions=tuple(Exclusion(code, count) for code, count in sorted(self.exclusions.items())),
             identity_rows=tuple(self.identity_rows), quarantined_events=tuple(sorted(set(self.quarantined))),
             failure=None, partial=partial, findings=findings)
+
+    def _omitted_competitions(self, payload: list) -> tuple[str, ...]:
+        """Requested competitions with no in-scope fixture in ``payload`` (design 12.4, section 15 F-15).
+
+        The ODDS payload is a flat fixture list, so a requested tournament is visible only through its fixtures;
+        one with no fixture at all may simply be missing from this response. Only an exactly typed tournament id
+        (no ``"8"``, ``8.0`` or ``true``) of the pinned sport that maps to the competition counts as present."""
+
+        present = set()
+        for item in payload:
+            tournament, sport = item.get(KEY_TOURNAMENT), item.get(KEY_SPORT)
+            if type(tournament) is not int or type(sport) is not int or sport != self.maps.sport_id:
+                continue
+            competition = self.maps.competition("int", str(tournament))
+            if competition is not None:
+                present.add(competition.genesis_id)
+        return tuple(item for item in self.ctx.requested_competitions if item not in present)
 
     # -- one fixture ------------------------------------------------------------------------
     def _resolve_competition(self, fixture: dict, event_id: str) -> tuple[str | None, bool]:

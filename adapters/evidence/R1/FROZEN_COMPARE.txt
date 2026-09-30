@@ -1,0 +1,10 @@
+# R1 frozen-suite count comparison vs S0 baseline
+# command: verify.compare_frozen_transcripts(S0/FROZEN.txt, R1/FROZEN.txt)
+# start: 2026-09-30T14:59:20Z
+# python: Python 3.12.10
+# HEAD (base): cfcff3dbb285eaa48a6cfc1eceedb91e27662c81
+----
+baseline {'ran': 493, 'failures': 0, 'errors': 0, 'skipped': 1, 'ok': True}
+current  {'ran': 493, 'failures': 0, 'errors': 0, 'skipped': 1, 'ok': True}
+IDENTICAL: True
+# exit: 0

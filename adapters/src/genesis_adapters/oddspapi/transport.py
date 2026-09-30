@@ -31,10 +31,16 @@ class Transport(Protocol):
         """Send ``request``; the whole attempt must finish before ``deadline_at`` (= Tq + timeout)."""
 
 
+# What a sanitized error record holds instead of its class name when the record itself carries a form of the
+# key (design 7.6 item 3: "the scanner still guards the sanitized record"; see AcquisitionRunner._scanned_error).
+REDACTED_EXCEPTION_CLASS = "REDACTED_EXCEPTION_CLASS"
+
+
 def sanitize_exception(exc: BaseException) -> dict:
     """The only thing ever recorded about a transport failure: exception class name and errno.
 
-    Never ``str(exc)``, ``exc.args``, attributes, notes, ``__cause__`` or ``__context__``.
+    Never ``str(exc)``, ``exc.args``, attributes, notes, ``__cause__`` or ``__context__``. The class name is
+    still text, so the record is scanned for the key before it is persisted (the acquisition runner does that).
     """
 
     code = getattr(exc, "errno", None)

@@ -25,7 +25,9 @@ from genesis_adapters.oddspapi.parser import (
     STATE_ABSENT, STATE_OPEN, BookResult, ExpectedBook, ParseContext, ParsedResponse,
 )
 
-CODE_VERSION = "mb-normalize-1"
+# Part of derivation_version (design 9.2: any change to code semantics creates a new source). 2: a requested
+# tournament the response does not show makes the response partial, so it is never tombstoned (hostile audit F-03).
+CODE_VERSION = "mb-normalize-2"
 DOCUMENT_SCHEMA = "genesis.adapters.oddspapi.market-book.v1"
 KIND_RESPONSE = "RESPONSE"
 SIDE_BACK = "BACK"

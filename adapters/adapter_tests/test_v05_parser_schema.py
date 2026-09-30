@@ -156,12 +156,15 @@ class EnvelopeTests(unittest.TestCase):
             with self.subTest(body):
                 self.assertEqual(parse(body).failure.value, code)
 
-    def test_an_empty_response_is_complete_and_tombstones_every_expected_book(self):
-        scope = ps.scope_of(parse(odds_payload()))
-        parsed = parse(b"[]", expected_scope=scope)
-        self.assertTrue(parsed.complete)
-        self.assertEqual({t.entity_id for t in parsed.tombstones}, set(scope))
-        self.assertEqual(parsed.books, ())
+    def test_an_empty_response_to_a_request_that_named_tournaments_is_partial_and_tombstones_nothing(self):
+        # Hostile audit F-03 / R-3: this test used to assert the defect ("an empty response is complete and
+        # tombstones every expected book"). Design 12.4 / F-15: nothing proves those books absent.
+        scope = ps.scope_of(parse(odds_payload(), requested_competitions=ps.REQUESTED_COMPETITIONS))
+        parsed = parse(b"[]", expected_scope=scope, requested_competitions=ps.REQUESTED_COMPETITIONS)
+        self.assertFalse(parsed.complete)
+        self.assertEqual((parsed.tombstones, parsed.books), ((), ()))
+        vacuous = parse(b"[]", expected_scope={}, requested_competitions=())
+        self.assertTrue(vacuous.complete)                    # nothing requested and nothing expected
 
 
 class DocumentLevelDriftTests(unittest.TestCase):

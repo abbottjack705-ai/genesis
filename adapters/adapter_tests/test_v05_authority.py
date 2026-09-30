@@ -5,10 +5,12 @@ directory and names a ``synthetic-test-only`` reference."""
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import io
 import json
 import unittest
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from types import SimpleNamespace
 
 from genesis.time import iso_utc
@@ -64,6 +66,69 @@ def g3(granted: datetime, *, derivation: str, source: str, contract: str) -> dic
             "acceptance_evidence": {f"AC-{n}": "2" * 64 for n in range(1, 10)},
             "unobserved_paths_accepted": [],
             "observation_window": {"from": iso_utc(granted - timedelta(days=15)), "to": iso_utc(granted)}}
+
+
+class GateLimitPinTests(unittest.TestCase):
+    """R-2 (hostile audit F-02; design 16.3/16.4, oracle FZ-12/GT-02): the gate bounds are architecture-fixed, so
+    configuration can neither relax nor otherwise change them. The file's SHA-256 is pinned in code exactly like
+    the frozen-module manifest's; any other bytes are refused when the limits are loaded."""
+
+    SHIPPED = CONFIG / auth.GATE_LIMITS_FILE
+
+    def edited(self, base: Path, text: str) -> Path:
+        folder = base / "config"
+        folder.mkdir(exist_ok=True)
+        (folder / auth.GATE_LIMITS_FILE).write_bytes(text.encode("utf-8"))
+        return folder
+
+    def test_r2_the_shipped_file_holds_exactly_the_design_16_3_and_16_4_bounds(self):
+        limits = auth.load_gate_limits(CONFIG)
+        # design 16.3: a G2 record pins at most 5 requests inside a window of at most 72 hours;
+        # design 16.4: a G2R record covers at most 35 days
+        self.assertEqual((limits.g2_requests_cap, limits.g2_window_hours, limits.g2r_window_days), (5, 72, 35))
+
+    def test_r2_the_pinned_digest_is_the_digest_of_the_shipped_file(self):
+        self.assertEqual(hashlib.sha256(self.SHIPPED.read_bytes()).hexdigest(), auth.GATE_LIMITS_SHA256)
+
+    def test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load(self):
+        body = json.loads(self.SHIPPED.read_text(encoding="utf-8"))
+        variants = {
+            "one more request": {**body, "g2_requests_cap": 6},
+            "far more requests": {**body, "g2_requests_cap": 10000},
+            "longer G2 window": {**body, "g2_window_hours": 73},
+            "far longer G2 window": {**body, "g2_window_hours": 87600},
+            "longer G2R window": {**body, "g2r_window_days": 36},
+            "far longer G2R window": {**body, "g2r_window_days": 3650},
+            "tighter (still not the pinned file)": {**body, "g2_requests_cap": 4},
+        }
+        texts = {label: json.dumps(value, sort_keys=True, indent=2) + "\n" for label, value in variants.items()}
+        texts["the same values, reformatted"] = json.dumps(body, indent=4)
+        texts["the same values, trailing space"] = self.SHIPPED.read_text(encoding="utf-8") + " "
+        for label, text in texts.items():
+            with self.subTest(label), scratch_root() as base:
+                with self.assertRaises(auth.AuthorityRecordInvalid):
+                    auth.load_gate_limits(self.edited(base, text))
+
+    def test_r2_the_operator_cli_cannot_be_pointed_at_relaxed_limits(self):
+        from .pipeline_support import copy_config
+        body = json.loads(self.SHIPPED.read_text(encoding="utf-8"))
+        with scratch_root() as base:
+            config_dir = copy_config(base)
+            (config_dir / auth.GATE_LIMITS_FILE).write_text(json.dumps({**body, "g2_requests_cap": 50}),
+                                                            encoding="utf-8")
+            record_path = base / "g2.json"
+            granted = now_utc()
+            record_path.write_text(json.dumps(g2(granted, [f"{n:064x}" for n in range(50)])), encoding="utf-8")
+            args = SimpleNamespace(config=str(config_dir), root=str(base / "runtime"), record=str(record_path))
+            with self.assertRaises(auth.AuthorityRecordInvalid):
+                cli.cmd_approve(args, prompt=lambda _: cli.CONFIRMATION_PHRASE)
+            self.assertFalse((base / "runtime" / "authority.jsonl").exists())    # nothing was approved
+            plan = base / "plan.json"
+            plan.write_text("[]", encoding="utf-8")
+            run_args = SimpleNamespace(config=str(config_dir), root=str(base / "runtime"), plan=str(plan),
+                                       mode="G2", connect=None, ca_file=None)
+            with self.assertRaises(auth.AuthorityRecordInvalid):
+                cli.cmd_run(run_args)
 
 
 class RecordTests(unittest.TestCase):

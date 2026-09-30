@@ -94,10 +94,17 @@ def seed_acquisition(stores: emit.AdapterStores, ctx: parser.ParseContext, *, re
                   sanitized_error=None, provider_reported_usage=None, failure=None)
 
 
+# The request this emission harness answers: tournament 17 only, which is what ``small_payload()`` keeps (fixture
+# A). The parse context always carries the request's competitions; a request that also named tournament 8 would
+# make these reduced responses partial (design 12.4 / F-15, hostile audit F-03 - tested in test_v05_r1_*).
+HARNESS_REQUEST = (ps.MAPS.competition("int", "17").genesis_id,)
+
+
 def make_capture_ctx(stores: emit.AdapterStores, raw: bytes, *, t1: str, expected_scope=None, expected_hash=None,
                      fixture_join=None, complete_hint: bool = True, derivation_version: str | None = None,
-                     tag: str = "", policy=None, maps=None):
+                     tag: str = "", policy=None, maps=None, requested_competitions=HARNESS_REQUEST):
     return ps.make_ctx(
+        requested_competitions=requested_competitions,
         acquisition_id=hashlib.sha256(f"acquisition-{t1}-{tag}".encode()).hexdigest(),
         raw_observation_id=hashlib.sha256(f"raw-observation-{t1}-{tag}".encode()).hexdigest(),
         raw_artifact_hash=hashlib.sha256(raw).hexdigest(), request_started_at=iso(t1, seconds=-0.1),

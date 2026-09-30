@@ -1,0 +1,62 @@
+# R1 mutation smoke test of the remediation (every mutant must be KILLED)
+# harness: mutate.py runs an unmutated baseline first and aborts if it fails; each mutant runs the listed modules with -B and a fresh PYTHONPYCACHEPREFIX; the source is restored in a finally
+# start: 2026-09-30T09:47:01Z
+# HEAD (base): cfcff3dbb285eaa48a6cfc1eceedb91e27662c81 + R1 working tree
+----
+## R-1 oddspapi/acquisition.py (_scanned_error / _finish_no_response) vs test_v05_r1_sanitized_error
+baseline: PASS (OK)
+KILLED    sanitized record not scanned before persistence
+KILLED    scan verdict ignored
+KILLED    every record redacted when a key is configured
+KILLED    a hit keeps its class name
+KILLED    a hit keeps its errno
+## R-1 oddspapi/raw_capture.py (hits_secret) vs test_v05_r1_sanitized_error
+baseline: PASS (OK)
+KILLED    the capture's scan hook never reports a hit
+## R-2 oddspapi/authority.py (GATE_LIMITS_SHA256 / load_gate_limits) vs test_v05_authority
+baseline: PASS (OK)
+KILLED    gate-limits digest not checked
+KILLED    gate-limits digest pinned to other bytes
+## R-3 oddspapi/parser.py (_omitted_competitions / run) vs test_v05_r1_requested_tournaments
+baseline: PASS (OK)
+KILLED    an omitted requested tournament is ignored
+KILLED    a loosely typed tournament id counts as present
+KILLED    a fixture of another sport counts as present
+KILLED    any fixture at all makes every requested tournament present
+## R-3 oddspapi/derivation.py (odds_inputs reads the stored request) vs test_v05_r1_requested_tournaments
+baseline: PASS (OK)
+KILLED    the requested set is not read from the stored request
+## R-4 credential.py (unchanged code; the new real-OS link tests must kill these) vs test_v05_credential
+baseline: PASS (OK (skipped=1))
+KILLED    the location is checked on the unresolved path (junctions not followed)
+KILLED    the runtime-root location is not checked
+KILLED    a second hard-link name is accepted
+# end: 2026-09-30T09:57:00Z
+#
+# RE-RUN after a message-only change to test_v05_r1_sanitized_error.py (failure messages and sub-test labels no longer print
+# forms of the test sentinel; no assertion changed) - start: 2026-09-30T09:59:37Z
+## R-1 oddspapi/acquisition.py vs test_v05_r1_sanitized_error (final test file)
+baseline: PASS (OK)
+KILLED    sanitized record not scanned before persistence
+KILLED    scan verdict ignored
+KILLED    every record redacted when a key is configured
+KILLED    a hit keeps its class name
+KILLED    a hit keeps its errno
+## R-1 oddspapi/raw_capture.py vs test_v05_r1_sanitized_error (final test file)
+baseline: PASS (OK)
+KILLED    the capture's scan hook never reports a hit
+#
+# R-4 DIFFERENTIAL: the same credential mutant against the pre-existing S7 tests only, then against the new R-4 tests only
+## credential.py vs test_v05_credential.CredentialTests (the S7-era tests; a SURVIVED here is the gap R-4 closes)
+baseline: PASS (OK (skipped=1))
+SURVIVED  the location is checked on the unresolved path (junctions not followed)
+## credential.py vs test_v05_credential.UnprivilegedLinkAttackTests (the new R-4 tests)
+baseline: PASS (OK)
+KILLED    the location is checked on the unresolved path (junctions not followed)
+# end: 2026-09-30T10:00:28Z
+#
+# Result: 16 remediation mutants, 16 KILLED (R-1 6, R-2 2, R-3 5, R-4 3), and the R-1 re-run against the final
+# test file kills 6/6 again. The single SURVIVED line is the deliberate R-4 differential, not a remediation
+# survivor: a credential loader that stops following junctions passes every S7-era credential test and is killed
+# only by the new unprivileged real-OS link tests - the coverage gap F-04 named. Sources were compared with a
+# pre-run backup after every run: byte-identical.

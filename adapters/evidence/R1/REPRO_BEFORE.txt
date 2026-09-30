@@ -1,0 +1,18 @@
+# R1 REPRO_BEFORE: independent reproduction of F-01, F-02, F-03 on the unmodified candidate
+# NOTE (added after the run, disclosed): 3 occurrences of forms of the fixed PUBLIC test sentinel (adapter_tests/support.py SENTINEL_KEY, never a credential) were replaced by <SENTINEL-FORM> with redact_sentinel.py (in this directory), so this evidence stays clean under the auditor's secret sweep like the S0-S7 evidence; the implementation's section-7.6 scanner finds no form in any line afterwards; nothing else was changed.
+# command: PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B repro_findings.py (script kept in this directory as repro_findings.py)
+# start: 2026-09-30T09:16:03Z
+# HEAD: cfcff3dbb285eaa48a6cfc1eceedb91e27662c81; production code and tests unmodified (the only untracked path was adapters/evidence/R1/, this file)
+----
+# reproduction of F-01, F-02, F-03
+# python: 3.12.10
+F-01 [runner path: transport raised a sentinel-named class] stored sanitized_error={'class': '<SENTINEL-FORM>', 'errno': None} -> section-7.6 scanner hit=True classes=['FRAGMENT']
+F-01 [transport-reported sanitized error] stored sanitized_error={'class': '<SENTINEL-FORM>', 'errno': None} -> section-7.6 scanner hit=True classes=['FRAGMENT']
+F-01 [real HttpsTransport, connection raised] stored sanitized_error={'class': '<SENTINEL-FORM>', 'errno': None} -> section-7.6 scanner hit=True classes=['FRAGMENT']
+F-02 shipped limits: {'g2_requests_cap': 5, 'g2_window_hours': 72, 'g2r_window_days': 35}
+F-02 relaxed file ACCEPTED: GateLimits(g2_requests_cap=10000, g2_window_hours=87600, g2r_window_days=3650)
+F-02 a G2 record for 50 requests over 91 days VALIDATES under the relaxed file
+F-03 [tournament 8 omitted] requested tournamentIds=8,17: ABSENT tombstones=6 for fixtures ['id1000001761301999']; PARTIAL_RESPONSE coverage entries=[]
+F-03 [every requested tournament omitted] requested tournamentIds=8,17: ABSENT tombstones=12 for fixtures ['id1000001761301153', 'id1000001761301999']; PARTIAL_RESPONSE coverage entries=[]
+# end
+# exit: 0

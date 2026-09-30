@@ -14,6 +14,7 @@ attestation; and either a G2 record (live verification: only its pinned request 
 
 from __future__ import annotations
 
+import hashlib
 import json
 from dataclasses import dataclass
 from datetime import timedelta
@@ -41,12 +42,19 @@ _GATE_KEYS = {
 _CHAIN = frozenset({"previous_hash", "sequence", "record_hash"})
 _ACCEPTANCE = ("AC-1", "AC-2", "AC-3", "AC-4", "AC-5", "AC-6", "AC-7", "AC-8", "AC-9")
 GATE_LIMITS_FILE = "oddspapi_gate_limits.json"
+# SHA-256 of adapters/config/oddspapi_gate_limits.json (hostile audit F-02). The design 16.3/16.4 bounds - a G2
+# record pins at most 5 requests inside at most 72 hours, a G2R record covers at most 35 days - are fixed by the
+# architecture, not tunable. FRZ-10 keeps numbers out of code, so the file holding them is pinned exactly as the
+# frozen-module manifest is (oddspapi/verify.py): any other bytes (relaxed, tightened or merely reformatted) are
+# refused at load, and changing a bound takes a code change that names the new digest.
+GATE_LIMITS_SHA256 = "a1df0bc2daa37719f92ef9506e66aad53b4723e2e9682f913f8f6a566297a3d7"
 _LIMIT_KEYS = frozenset({"schema", "g2_requests_cap", "g2_window_hours", "g2r_window_days"})
 
 
 @dataclass(frozen=True)
 class GateLimits:
-    """Design 16.3/16.4 bounds, read from the pinned ``oddspapi_gate_limits.json`` (FRZ-10: no literal bounds)."""
+    """Design 16.3/16.4 bounds, read from the digest-pinned ``oddspapi_gate_limits.json`` (FRZ-10: no literal
+    bounds in code; ``GATE_LIMITS_SHA256``: no other values either)."""
 
     g2_requests_cap: int
     g2_window_hours: int
@@ -54,7 +62,10 @@ class GateLimits:
 
 
 def load_gate_limits(config_dir: Path) -> GateLimits:
-    body = json.loads((Path(config_dir) / GATE_LIMITS_FILE).read_text(encoding="utf-8"))
+    data = (Path(config_dir) / GATE_LIMITS_FILE).read_bytes()
+    if hashlib.sha256(data).hexdigest() != GATE_LIMITS_SHA256:
+        raise AuthorityRecordInvalid("the gate limits file is not the pinned design 16.3/16.4 file")
+    body = json.loads(data.decode("utf-8"))
     if type(body) is not dict or set(body) != _LIMIT_KEYS or body["schema"] != "genesis.adapters.gate-limits.v1":
         raise AuthorityRecordInvalid("the gate limits file has an unexpected shape")
     values = {name: body[name] for name in _LIMIT_KEYS - {"schema"}}

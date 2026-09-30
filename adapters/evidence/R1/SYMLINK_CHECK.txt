@@ -1,0 +1,23 @@
+# R1 SYMLINK_CHECK: can this host create a real symbolic link? (read-only diagnostics; nothing on the host was changed)
+# start: 2026-09-30T09:46:10Z
+----
+whoami.exe: jack\abbot
+-- whoami.exe /priv (the full privilege table of this token; SeCreateSymbolicLinkPrivilege is absent):
+PRIVILEGES INFORMATION
+----------------------
+Privilege Name                Description                          State
+============================= ==================================== ========
+SeShutdownPrivilege           Shut down the system                 Disabled
+SeChangeNotifyPrivilege       Bypass traverse checking             Enabled
+SeUndockPrivilege             Remove computer from docking station Disabled
+SeIncreaseWorkingSetPrivilege Increase a process working set       Disabled
+SeTimeZonePrivilege           Change the time zone                 Disabled
+-- Developer Mode (HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock AllowDevelopmentWithoutDevLicense):
+ERROR: The system was unable to find the specified registry key or value.
+-- os.symlink in a temporary directory:
+os.symlink refused: OSError winerror 1314 - A required privilege is not held by the client
+platform: Windows-11-10.0.26200-SP0 | python 3.12.10
+-- cmd mklink (file symbolic link):
+You do not have sufficient privilege to perform this operation.
+-- elevated (PowerShell: WindowsPrincipal.IsInRole(Administrator)): False
+# end

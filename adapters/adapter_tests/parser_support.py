@@ -28,6 +28,8 @@ FIXTURE_B = "id1000001761301999"          # LaLiga, kickoff 2026-10-04T19:00Z
 CONFIG_BODY = cfg.load_adapter_config(CONFIG, allow_fixture_only=True, code_version=normalize.CODE_VERSION)
 POLICY = CONFIG_BODY.policy
 MAPS = maps_mod.maps_from_config(CONFIG_BODY)
+# The competitions named by the request the base fixture answers (tournamentIds=17,8).
+REQUESTED_COMPETITIONS = tuple(sorted(MAPS.competition("int", tid).genesis_id for tid in ("17", "8")))
 SCHEMAS = load_schemas()
 ODDS_SCHEMA = SCHEMAS["oddspapi.v4.odds_by_tournaments.v1"]
 FIXTURES_SCHEMA = SCHEMAS["oddspapi.v4.fixtures.v1"]
@@ -76,8 +78,8 @@ def make_ctx(**overrides) -> parser.ParseContext:
     args = dict(acquisition_id=ACQUISITION, provider_request_hash=REQUEST_HASH, raw_artifact_hash=RAW_HASH,
                 raw_observation_id=RAW_OBSERVATION, request_started_at=T0, response_received_at=T1,
                 maps=MAPS, policy=POLICY, response_schema=ODDS_SCHEMA, derivation_version=DERIVATION,
-                identity_prefix=(), expected_scope=None, expected_scope_hash=None, fixture_join=None,
-                complete_hint=True)
+                requested_competitions=REQUESTED_COMPETITIONS, identity_prefix=(), expected_scope=None,
+                expected_scope_hash=None, fixture_join=None, complete_hint=True)
     args.update(overrides)
     return parser.ParseContext(**args)
 

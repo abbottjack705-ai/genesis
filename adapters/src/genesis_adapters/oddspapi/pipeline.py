@@ -122,7 +122,8 @@ class AdapterRuntime:
             expected = derivation.expected_scope_at(self.stores, self.maps, request, tq=tq)
             scope_hash = scope_mod.publish_scope(self.root, expected.values(), as_of=tq)
         return derivation.odds_inputs(self.stores, self.config, self.maps, acquisition_id, identity_prefix=prefix,
-                                      expected_scope=expected, expected_scope_hash=scope_hash, fixture_join=join)
+                                      expected_scope=expected, expected_scope_hash=scope_hash, fixture_join=join,
+                                      request_root=self.root)
 
     def normalize(self, acquisition_id: str) -> emit.EmitResult:
         self.check_configuration()
@@ -312,7 +313,7 @@ def rebuild_into(source: AdapterRuntime, target: emit.AdapterStores, *, clock) -
                                                source.maps, at=rows["acq_completed"]["T1"])
         inputs = derivation.odds_inputs(_Reading(source.stores.acquisition, target.evidence), source.config,
                                         source.maps, aid, identity_prefix=prefix, expected_scope=expected,
-                                        expected_scope_hash=scope_hash, fixture_join=join)
+                                        expected_scope_hash=scope_hash, fixture_join=join, request_root=source.root)
         parsed = parser.parse_odds_response(inputs.raw, inputs.ctx)
         results.append(emit.emit_documents(parsed, inputs.ctx, stores=target, clock=clock))
         target.identity.apply(parsed.identity_rows)

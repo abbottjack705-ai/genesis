@@ -1,0 +1,650 @@
+# R1 RED: the R-1..R-4 tests against the UNMODIFIED production code of cfcff3d (run BEFORE any production change)
+# NOTE (added after the run, disclosed): 48 occurrences of forms of the fixed PUBLIC test sentinel (adapter_tests/support.py SENTINEL_KEY, never a credential) were replaced by <SENTINEL-FORM> with redact_sentinel.py (in this directory), so this evidence stays clean under the auditor's secret sweep like the S0-S7 evidence; the implementation's section-7.6 scanner finds no form in any line afterwards; nothing else was changed.
+# production tree: git diff --stat cfcff3d -- adapters/src = 0 lines (none); only tests and adapters/evidence/R1 differ
+# expected: R-1 (F-01), R-2 (F-02), R-3 (F-03) tests FAIL or ERROR; R-4 (F-04) tests PASS (no production change is needed: the defence already exists, the tests add real-OS coverage)
+# command: PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B -m unittest -v adapter_tests.test_v05_r1_sanitized_error adapter_tests.test_v05_tx01 adapter_tests.test_v05_authority adapter_tests.test_v05_r1_requested_tournaments adapter_tests.test_v05_credential adapter_tests.test_v05_parser_schema
+# start: 2026-09-30T09:23:49Z
+# HEAD: cfcff3dbb285eaa48a6cfc1eceedb91e27662c81
+----
+test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) ... 
+  test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) [identifier] ... FAIL
+  test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) [verbatim] ... FAIL
+  test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) [lower case] ... FAIL
+  test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) [hex] ... FAIL
+  test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) [fragment] ... FAIL
+  test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) [percent-encoded] ... FAIL
+test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) ... 
+  test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [identifier] ... FAIL
+  test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [verbatim] ... FAIL
+  test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [lower case] ... FAIL
+  test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [hex] ... FAIL
+  test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [fragment] ... FAIL
+  test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [percent-encoded] ... FAIL
+test_r1_clean_records_are_kept_exactly (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_clean_records_are_kept_exactly) ... ok
+test_r1_the_real_https_transport_boundary_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_the_real_https_transport_boundary_is_scanned_too) ... 
+  test_r1_the_real_https_transport_boundary_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_the_real_https_transport_boundary_is_scanned_too) [<SENTINEL-FORM>] ... FAIL
+  test_r1_the_real_https_transport_boundary_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_the_real_https_transport_boundary_is_scanned_too) [<SENTINEL-FORM><SENTINEL-FORM>] ... FAIL
+test_r1_the_record_passes_through_the_scanner_before_it_is_appended (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_the_record_passes_through_the_scanner_before_it_is_appended) ... ERROR
+test_r1_without_a_configured_key_there_is_nothing_to_scan_for (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_without_a_configured_key_there_is_nothing_to_scan_for) ... ok
+test_cli_run_sends_one_keyed_request_and_keeps_only_scanned_raw_evidence (adapter_tests.test_v05_tx01.LoopbackRunTests.test_cli_run_sends_one_keyed_request_and_keeps_only_scanned_raw_evidence) ... ok
+test_tx01_keyboard_interrupt_keeps_its_meaning_and_arrives_fresh (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_keyboard_interrupt_keeps_its_meaning_and_arrives_fresh) ... ok
+test_tx01_ordinary_failures_at_every_stage_become_sanitized_results (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_ordinary_failures_at_every_stage_become_sanitized_results) ... ok
+test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted) ... 
+  test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted) [connect] ... FAIL
+  test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted) [write] ... FAIL
+  test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted) [read_headers] ... FAIL
+  test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted) [decode] ... FAIL
+test_tx01_system_exit_keeps_its_status_and_never_prints_text (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_system_exit_keeps_its_status_and_never_prints_text) ... ok
+test_approve_refuses_without_a_terminal_a_phrase_or_an_out_of_band_reference (adapter_tests.test_v05_authority.CapabilityGateTests.test_approve_refuses_without_a_terminal_a_phrase_or_an_out_of_band_reference) ... ok
+test_g03_ready_only_through_the_operator_cli_after_a_g3_record (adapter_tests.test_v05_authority.CapabilityGateTests.test_g03_ready_only_through_the_operator_cli_after_a_g3_record) ... ok
+test_g04_auth_rejection_blocks_every_market_book_source (adapter_tests.test_v05_authority.CapabilityGateTests.test_g04_auth_rejection_blocks_every_market_book_source) ... ok
+test_only_an_interactive_operator_reset_clears_a_durable_circuit (adapter_tests.test_v05_authority.CapabilityGateTests.test_only_an_interactive_operator_reset_clears_a_durable_circuit) ... ok
+test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) ... 
+  test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [one more request] ... FAIL
+  test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [far more requests] ... FAIL
+  test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [longer G2 window] ... FAIL
+  test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [far longer G2 window] ... FAIL
+  test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [longer G2R window] ... FAIL
+  test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [far longer G2R window] ... FAIL
+  test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [tighter (still not the pinned file)] ... FAIL
+  test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [the same values, reformatted] ... FAIL
+  test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [the same values, trailing space] ... FAIL
+test_r2_the_operator_cli_cannot_be_pointed_at_relaxed_limits (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_the_operator_cli_cannot_be_pointed_at_relaxed_limits) ... FAIL
+test_r2_the_pinned_digest_is_the_digest_of_the_shipped_file (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_the_pinned_digest_is_the_digest_of_the_shipped_file) ... ERROR
+test_r2_the_shipped_file_holds_exactly_the_design_16_3_and_16_4_bounds (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_the_shipped_file_holds_exactly_the_design_16_3_and_16_4_bounds) ... ok
+test_clk02_a_live_runner_refuses_a_test_clock_and_a_test_quota_policy (adapter_tests.test_v05_authority.LiveGateTests.test_clk02_a_live_runner_refuses_a_test_clock_and_a_test_quota_policy) ... ok
+test_g01_without_every_gate_element_nothing_is_sent (adapter_tests.test_v05_authority.LiveGateTests.test_g01_without_every_gate_element_nothing_is_sent) ... ok
+test_g02_only_pinned_requests_at_most_max_calls_inside_the_window (adapter_tests.test_v05_authority.LiveGateTests.test_g02_only_pinned_requests_at_most_max_calls_inside_the_window) ... ok
+test_g2r_must_pin_the_running_derivation_and_policy (adapter_tests.test_v05_authority.LiveGateTests.test_g2r_must_pin_the_running_derivation_and_policy) ... ok
+test_sent_counter_counts_only_sends_of_the_given_requests_since_the_window_opened (adapter_tests.test_v05_authority.LiveGateTests.test_sent_counter_counts_only_sends_of_the_given_requests_since_the_window_opened) ... ok
+test_only_the_operator_cli_can_reach_the_gate_ledger_or_write_ready (adapter_tests.test_v05_authority.RecordTests.test_only_the_operator_cli_can_reach_the_gate_ledger_or_write_ready) ... ok
+test_records_are_closed_and_bounded (adapter_tests.test_v05_authority.RecordTests.test_records_are_closed_and_bounded) ... ok
+test_r3_parser_a_request_for_the_present_tournament_only_is_complete (adapter_tests.test_v05_r1_requested_tournaments.ParserRequestedSetTests.test_r3_parser_a_request_for_the_present_tournament_only_is_complete) ... ERROR
+test_r3_parser_an_empty_response_to_a_request_is_partial (adapter_tests.test_v05_r1_requested_tournaments.ParserRequestedSetTests.test_r3_parser_an_empty_response_to_a_request_is_partial) ... ERROR
+test_r3_parser_an_omitted_requested_tournament_makes_the_response_partial (adapter_tests.test_v05_r1_requested_tournaments.ParserRequestedSetTests.test_r3_parser_an_omitted_requested_tournament_makes_the_response_partial) ... ERROR
+test_r3_parser_only_an_exactly_typed_in_scope_tournament_is_present (adapter_tests.test_v05_r1_requested_tournaments.ParserRequestedSetTests.test_r3_parser_only_an_exactly_typed_in_scope_tournament_is_present) ... ERROR
+test_r3_a_requested_tournament_present_with_no_odds_is_a_proven_absence (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_requested_tournament_present_with_no_odds_is_a_proven_absence) ... ok
+test_r3_a_tournament_block_missing_its_odds_list_is_partial (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_tournament_block_missing_its_odds_list_is_partial) ... ok
+test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted) ... 
+  test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted) [tournamentId as text] ... FAIL
+  test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted) [tournamentId as a float] ... FAIL
+  test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted) [tournamentId as a boolean] ... FAIL
+  test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted) [another sport] ... FAIL
+  test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted) [an unrequested tournament] ... FAIL
+test_r3_duplicate_blocks_of_one_tournament_never_stand_in_for_an_omitted_one (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_duplicate_blocks_of_one_tournament_never_stand_in_for_an_omitted_one) ... 
+  test_r3_duplicate_blocks_of_one_tournament_never_stand_in_for_an_omitted_one (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_duplicate_blocks_of_one_tournament_never_stand_in_for_an_omitted_one) [identical duplicate] ... FAIL
+  test_r3_duplicate_blocks_of_one_tournament_never_stand_in_for_an_omitted_one (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_duplicate_blocks_of_one_tournament_never_stand_in_for_an_omitted_one) [contradictory duplicate] ... FAIL
+test_r3_every_requested_tournament_omitted_is_partial_and_tombstones_nothing (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_every_requested_tournament_omitted_is_partial_and_tombstones_nothing) ... FAIL
+test_r3_every_requested_tournament_present_with_markets_keeps_proven_absences (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_every_requested_tournament_present_with_markets_keeps_proven_absences) ... ok
+test_r3_one_of_two_requested_tournaments_omitted_is_partial_and_tombstones_nothing (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_one_of_two_requested_tournaments_omitted_is_partial_and_tombstones_nothing) ... FAIL
+test_r3_restart_resume_rebuild_and_reverification_after_a_partial_response_never_tombstone (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_restart_resume_rebuild_and_reverification_after_a_partial_response_never_tombstone) ... FAIL
+test_r3_the_requested_set_comes_from_the_request_not_from_earlier_captures (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_the_requested_set_comes_from_the_request_not_from_earlier_captures) ... ok
+test_a_private_single_line_file_outside_repo_and_root_loads_with_its_pinned_fingerprint (adapter_tests.test_v05_credential.CredentialTests.test_a_private_single_line_file_outside_repo_and_root_loads_with_its_pinned_fingerprint) ... ok
+test_f04_a_file_inside_the_repository_or_the_runtime_root_is_refused (adapter_tests.test_v05_credential.CredentialTests.test_f04_a_file_inside_the_repository_or_the_runtime_root_is_refused) ... ok
+test_f04_a_file_readable_by_others_is_refused (adapter_tests.test_v05_credential.CredentialTests.test_f04_a_file_readable_by_others_is_refused) ... ok
+test_f04_a_file_swapped_between_the_checks_and_the_read_is_refused (adapter_tests.test_v05_credential.CredentialTests.test_f04_a_file_swapped_between_the_checks_and_the_read_is_refused) ... ok
+test_f04_a_file_with_a_second_hard_link_name_is_refused (adapter_tests.test_v05_credential.CredentialTests.test_f04_a_file_with_a_second_hard_link_name_is_refused) ... ok
+test_f04_a_fingerprint_that_differs_from_g1_is_refused (adapter_tests.test_v05_credential.CredentialTests.test_f04_a_fingerprint_that_differs_from_g1_is_refused) ... ok
+test_f04_a_link_is_refused (adapter_tests.test_v05_credential.CredentialTests.test_f04_a_link_is_refused) ... skipped 'symbolic links need a privilege this account does not hold'
+test_f04_a_link_reported_by_lstat_is_refused_on_every_platform (adapter_tests.test_v05_credential.CredentialTests.test_f04_a_link_reported_by_lstat_is_refused_on_every_platform) ... ok
+test_f04_a_missing_variable_or_file_is_credential_missing (adapter_tests.test_v05_credential.CredentialTests.test_f04_a_missing_variable_or_file_is_credential_missing) ... ok
+test_f04_anything_but_exactly_one_line_holding_the_key_is_refused (adapter_tests.test_v05_credential.CredentialTests.test_f04_anything_but_exactly_one_line_holding_the_key_is_refused) ... ok
+test_the_key_itself_may_never_live_in_the_environment (adapter_tests.test_v05_credential.CredentialTests.test_the_key_itself_may_never_live_in_the_environment) ... ok
+test_r4_a_hard_link_whose_second_name_is_inside_the_repository_is_refused (adapter_tests.test_v05_credential.UnprivilegedLinkAttackTests.test_r4_a_hard_link_whose_second_name_is_inside_the_repository_is_refused) ... ok
+test_r4_a_junction_resolving_inside_the_repository_is_refused (adapter_tests.test_v05_credential.UnprivilegedLinkAttackTests.test_r4_a_junction_resolving_inside_the_repository_is_refused) ... ok
+test_r4_a_junction_resolving_into_the_runtime_root_is_refused (adapter_tests.test_v05_credential.UnprivilegedLinkAttackTests.test_r4_a_junction_resolving_into_the_runtime_root_is_refused) ... ok
+test_r4_controls_a_plain_file_and_a_junction_to_an_allowed_folder_both_load (adapter_tests.test_v05_credential.UnprivilegedLinkAttackTests.test_r4_controls_a_plain_file_and_a_junction_to_an_allowed_folder_both_load) ... ok
+test_f38_a_drift_blocked_book_has_a_document_without_selections (adapter_tests.test_v05_parser_schema.DocumentLevelDriftTests.test_f38_a_drift_blocked_book_has_a_document_without_selections) ... ok
+test_the_closed_validator_reports_stable_trails_for_every_finding (adapter_tests.test_v05_parser_schema.DocumentLevelDriftTests.test_the_closed_validator_reports_stable_trails_for_every_finding) ... ok
+test_sch01_a_key_added_to_a_bookmaker_block_blocks_its_books_in_that_event (adapter_tests.test_v05_parser_schema.DriftScopeTests.test_sch01_a_key_added_to_a_bookmaker_block_blocks_its_books_in_that_event) ... ok
+test_sch01_a_key_added_to_a_price_or_a_market_blocks_that_book_only (adapter_tests.test_v05_parser_schema.DriftScopeTests.test_sch01_a_key_added_to_a_price_or_a_market_blocks_that_book_only) ... ok
+test_sch01_a_key_added_to_an_outcome_blocks_that_book_only (adapter_tests.test_v05_parser_schema.DriftScopeTests.test_sch01_a_key_added_to_an_outcome_blocks_that_book_only) ... ok
+test_sch01_a_key_added_to_the_fixture_blocks_every_book_of_that_event (adapter_tests.test_v05_parser_schema.DriftScopeTests.test_sch01_a_key_added_to_the_fixture_blocks_every_book_of_that_event) ... ok
+test_sch01_a_line_of_the_wrong_type_blocks_the_book_that_would_carry_it (adapter_tests.test_v05_parser_schema.DriftScopeTests.test_sch01_a_line_of_the_wrong_type_blocks_the_book_that_would_carry_it) ... ok
+test_sch01_status_and_participant_fields_of_the_wrong_type_stay_at_event_scope (adapter_tests.test_v05_parser_schema.DriftScopeTests.test_sch01_status_and_participant_fields_of_the_wrong_type_stay_at_event_scope) ... ok
+test_sch01_the_same_key_declared_inert_is_accepted_and_never_read (adapter_tests.test_v05_parser_schema.DriftScopeTests.test_sch01_the_same_key_declared_inert_is_accepted_and_never_read) ... ok
+test_sch02_a_missing_required_key_is_drift_and_makes_the_response_partial (adapter_tests.test_v05_parser_schema.DriftScopeTests.test_sch02_a_missing_required_key_is_drift_and_makes_the_response_partial) ... ok
+test_sch02_a_wrong_json_type_for_a_known_key_is_drift_at_its_scope (adapter_tests.test_v05_parser_schema.DriftScopeTests.test_sch02_a_wrong_json_type_for_a_known_key_is_drift_at_its_scope) ... ok
+test_an_empty_response_to_a_request_that_named_tournaments_is_partial_and_tombstones_nothing (adapter_tests.test_v05_parser_schema.EnvelopeTests.test_an_empty_response_to_a_request_that_named_tournaments_is_partial_and_tombstones_nothing) ... ERROR
+test_f38_response_level_drift_maps_to_the_frozen_schema_rejected_reason (adapter_tests.test_v05_parser_schema.EnvelopeTests.test_f38_response_level_drift_maps_to_the_frozen_schema_rejected_reason) ... ok
+test_sch03_envelope_level_drift_rejects_the_response_with_no_observation_and_no_tombstone (adapter_tests.test_v05_parser_schema.EnvelopeTests.test_sch03_envelope_level_drift_rejects_the_response_with_no_observation_and_no_tombstone) ... ok
+test_the_body_must_be_strict_json_before_anything_else (adapter_tests.test_v05_parser_schema.EnvelopeTests.test_the_body_must_be_strict_json_before_anything_else) ... ok
+
+======================================================================
+ERROR: test_r1_the_record_passes_through_the_scanner_before_it_is_appended (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_the_record_passes_through_the_scanner_before_it_is_appended)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 118, in test_r1_the_record_passes_through_the_scanner_before_it_is_appended
+    real_hit = raw_capture.RawCapture.hits_secret
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'RawCapture' has no attribute 'hits_secret'
+
+======================================================================
+ERROR: test_r2_the_pinned_digest_is_the_digest_of_the_shipped_file (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_the_pinned_digest_is_the_digest_of_the_shipped_file)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_authority.py", line 91, in test_r2_the_pinned_digest_is_the_digest_of_the_shipped_file
+    self.assertEqual(hashlib.sha256(self.SHIPPED.read_bytes()).hexdigest(), auth.GATE_LIMITS_SHA256)
+                                                                            ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'genesis_adapters.oddspapi.authority' has no attribute 'GATE_LIMITS_SHA256'. Did you mean: 'GATE_LIMITS_FILE'?
+
+======================================================================
+ERROR: test_r3_parser_a_request_for_the_present_tournament_only_is_complete (adapter_tests.test_v05_r1_requested_tournaments.ParserRequestedSetTests.test_r3_parser_a_request_for_the_present_tournament_only_is_complete)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 232, in setUp
+    self.full = ps.parse(ps.odds_payload(), requested_competitions=BOTH)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\parser_support.py", line 89, in parse
+    return parser.parse_odds_response(raw, make_ctx(**overrides))
+                                           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\parser_support.py", line 84, in make_ctx
+    return parser.ParseContext(**args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ParseContext.__init__() got an unexpected keyword argument 'requested_competitions'
+
+======================================================================
+ERROR: test_r3_parser_an_empty_response_to_a_request_is_partial (adapter_tests.test_v05_r1_requested_tournaments.ParserRequestedSetTests.test_r3_parser_an_empty_response_to_a_request_is_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 232, in setUp
+    self.full = ps.parse(ps.odds_payload(), requested_competitions=BOTH)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\parser_support.py", line 89, in parse
+    return parser.parse_odds_response(raw, make_ctx(**overrides))
+                                           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\parser_support.py", line 84, in make_ctx
+    return parser.ParseContext(**args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ParseContext.__init__() got an unexpected keyword argument 'requested_competitions'
+
+======================================================================
+ERROR: test_r3_parser_an_omitted_requested_tournament_makes_the_response_partial (adapter_tests.test_v05_r1_requested_tournaments.ParserRequestedSetTests.test_r3_parser_an_omitted_requested_tournament_makes_the_response_partial)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 232, in setUp
+    self.full = ps.parse(ps.odds_payload(), requested_competitions=BOTH)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\parser_support.py", line 89, in parse
+    return parser.parse_odds_response(raw, make_ctx(**overrides))
+                                           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\parser_support.py", line 84, in make_ctx
+    return parser.ParseContext(**args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ParseContext.__init__() got an unexpected keyword argument 'requested_competitions'
+
+======================================================================
+ERROR: test_r3_parser_only_an_exactly_typed_in_scope_tournament_is_present (adapter_tests.test_v05_r1_requested_tournaments.ParserRequestedSetTests.test_r3_parser_only_an_exactly_typed_in_scope_tournament_is_present)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 232, in setUp
+    self.full = ps.parse(ps.odds_payload(), requested_competitions=BOTH)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\parser_support.py", line 89, in parse
+    return parser.parse_odds_response(raw, make_ctx(**overrides))
+                                           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\parser_support.py", line 84, in make_ctx
+    return parser.ParseContext(**args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ParseContext.__init__() got an unexpected keyword argument 'requested_competitions'
+
+======================================================================
+ERROR: test_an_empty_response_to_a_request_that_named_tournaments_is_partial_and_tombstones_nothing (adapter_tests.test_v05_parser_schema.EnvelopeTests.test_an_empty_response_to_a_request_that_named_tournaments_is_partial_and_tombstones_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_parser_schema.py", line 162, in test_an_empty_response_to_a_request_that_named_tournaments_is_partial_and_tombstones_nothing
+    scope = ps.scope_of(parse(odds_payload(), requested_competitions=ps.REQUESTED_COMPETITIONS))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\parser_support.py", line 89, in parse
+    return parser.parse_odds_response(raw, make_ctx(**overrides))
+                                           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\parser_support.py", line 84, in make_ctx
+    return parser.ParseContext(**args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: ParseContext.__init__() got an unexpected keyword argument 'requested_competitions'
+
+======================================================================
+FAIL: test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) [identifier]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 81, in test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': '<SENTINEL-FORM>', 'errno': None} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': '<SENTINEL-FORM>', 'errno': None}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+
+======================================================================
+FAIL: test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) [verbatim]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 81, in test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': '<SENTINEL-FORM><SENTINEL-FORM>', 'errno': None} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': '<SENTINEL-FORM><SENTINEL-FORM>', 'errno': None}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+
+======================================================================
+FAIL: test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) [lower case]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 81, in test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': 'Err_<SENTINEL-FORM><SENTINEL-FORM>', 'errno': None} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': 'Err_<SENTINEL-FORM><SENTINEL-FORM>', 'errno': None}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+
+======================================================================
+FAIL: test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) [hex]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 81, in test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': 'Err_<SENTINEL-FORM>[49 chars]None} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': 'Err_<SENTINEL-FORM>',
+-  'errno': None}
+
+======================================================================
+FAIL: test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) [fragment]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 81, in test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': 'Err<SENTINEL-FORM>', 'errno': None} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': 'Err<SENTINEL-FORM>', 'errno': None}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+
+======================================================================
+FAIL: test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) [percent-encoded]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 81, in test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': 'Err_<SENTINEL-FORM>[86 chars]None} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': 'Err_<SENTINEL-FORM>',
+-  'errno': None}
+
+======================================================================
+FAIL: test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [identifier]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 87, in test_r1_a_transport_reported_sanitized_error_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))    # errno dropped with the class
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': '<SENTINEL-FORM>', 'errno': 104} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': '<SENTINEL-FORM>', 'errno': 104}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+
+======================================================================
+FAIL: test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [verbatim]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 87, in test_r1_a_transport_reported_sanitized_error_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))    # errno dropped with the class
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': '<SENTINEL-FORM><SENTINEL-FORM>', 'errno': 104} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': '<SENTINEL-FORM><SENTINEL-FORM>', 'errno': 104}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+
+======================================================================
+FAIL: test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [lower case]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 87, in test_r1_a_transport_reported_sanitized_error_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))    # errno dropped with the class
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': 'Err_<SENTINEL-FORM><SENTINEL-FORM>', 'errno': 104} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': 'Err_<SENTINEL-FORM><SENTINEL-FORM>', 'errno': 104}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+
+======================================================================
+FAIL: test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [hex]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 87, in test_r1_a_transport_reported_sanitized_error_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))    # errno dropped with the class
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': 'Err_<SENTINEL-FORM>[48 chars] 104} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': 'Err_<SENTINEL-FORM>',
+-  'errno': 104}
+
+======================================================================
+FAIL: test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [fragment]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 87, in test_r1_a_transport_reported_sanitized_error_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))    # errno dropped with the class
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': 'Err<SENTINEL-FORM>', 'errno': 104} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': 'Err<SENTINEL-FORM>', 'errno': 104}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+
+======================================================================
+FAIL: test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [percent-encoded]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 87, in test_r1_a_transport_reported_sanitized_error_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))    # errno dropped with the class
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': 'Err_<SENTINEL-FORM>[85 chars] 104} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': 'Err_<SENTINEL-FORM>',
+-  'errno': 104}
+
+======================================================================
+FAIL: test_r1_the_real_https_transport_boundary_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_the_real_https_transport_boundary_is_scanned_too) [<SENTINEL-FORM>]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 96, in test_r1_the_real_https_transport_boundary_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': '<SENTINEL-FORM>', 'errno': None} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': '<SENTINEL-FORM>', 'errno': None}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+
+======================================================================
+FAIL: test_r1_the_real_https_transport_boundary_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_the_real_https_transport_boundary_is_scanned_too) [<SENTINEL-FORM><SENTINEL-FORM>]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 96, in test_r1_the_real_https_transport_boundary_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()))
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 72, in assert_redacted
+    self.assertEqual(rows[0]["sanitized_error"], PLACEHOLDER)
+AssertionError: {'class': '<SENTINEL-FORM><SENTINEL-FORM>', 'errno': None} != {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+- {'class': '<SENTINEL-FORM><SENTINEL-FORM>', 'errno': None}
++ {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}
+
+======================================================================
+FAIL: test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted) [connect]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_tx01.py", line 248, in test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted
+    proc, outcome, completed = self.run_case(stage, "NAMED")
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_tx01.py", line 219, in run_case
+    self.assertEqual(verify.scan_runtime_for_secret(root, Secret(<SENTINEL-FORM>)), ())
+AssertionError: Tuples differ: (WindowsPath('C:/Users/abbot/AppData/Local[85 chars]l'),) != ()
+
+First tuple contains 1 additional elements.
+First extra element 0:
+WindowsPath('C:/Users/abbot/AppData/Local/Temp/genesis-adapter-tests/2886272f70724acfb737dd02b4877576/runtime/acquisition.jsonl')
+
+- (WindowsPath('C:/Users/abbot/AppData/Local/Temp/genesis-adapter-tests/2886272f70724acfb737dd02b4877576/runtime/acquisition.jsonl'),)
++ ()
+
+======================================================================
+FAIL: test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted) [write]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_tx01.py", line 248, in test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted
+    proc, outcome, completed = self.run_case(stage, "NAMED")
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_tx01.py", line 219, in run_case
+    self.assertEqual(verify.scan_runtime_for_secret(root, Secret(<SENTINEL-FORM>)), ())
+AssertionError: Tuples differ: (WindowsPath('C:/Users/abbot/AppData/Local[85 chars]l'),) != ()
+
+First tuple contains 1 additional elements.
+First extra element 0:
+WindowsPath('C:/Users/abbot/AppData/Local/Temp/genesis-adapter-tests/7b29647fbd0a429bb7db96a61317537f/runtime/acquisition.jsonl')
+
+- (WindowsPath('C:/Users/abbot/AppData/Local/Temp/genesis-adapter-tests/7b29647fbd0a429bb7db96a61317537f/runtime/acquisition.jsonl'),)
++ ()
+
+======================================================================
+FAIL: test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted) [read_headers]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_tx01.py", line 248, in test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted
+    proc, outcome, completed = self.run_case(stage, "NAMED")
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_tx01.py", line 219, in run_case
+    self.assertEqual(verify.scan_runtime_for_secret(root, Secret(<SENTINEL-FORM>)), ())
+AssertionError: Tuples differ: (WindowsPath('C:/Users/abbot/AppData/Local[85 chars]l'),) != ()
+
+First tuple contains 1 additional elements.
+First extra element 0:
+WindowsPath('C:/Users/abbot/AppData/Local/Temp/genesis-adapter-tests/3fc68d25abaa43ddbf5242230f81d0e8/runtime/acquisition.jsonl')
+
+- (WindowsPath('C:/Users/abbot/AppData/Local/Temp/genesis-adapter-tests/3fc68d25abaa43ddbf5242230f81d0e8/runtime/acquisition.jsonl'),)
++ ()
+
+======================================================================
+FAIL: test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted) [decode]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_tx01.py", line 248, in test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted
+    proc, outcome, completed = self.run_case(stage, "NAMED")
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_tx01.py", line 219, in run_case
+    self.assertEqual(verify.scan_runtime_for_secret(root, Secret(<SENTINEL-FORM>)), ())
+AssertionError: Tuples differ: (WindowsPath('C:/Users/abbot/AppData/Local[85 chars]l'),) != ()
+
+First tuple contains 1 additional elements.
+First extra element 0:
+WindowsPath('C:/Users/abbot/AppData/Local/Temp/genesis-adapter-tests/e33dc9cc38034578a0ac45524cf2ec6f/runtime/acquisition.jsonl')
+
+- (WindowsPath('C:/Users/abbot/AppData/Local/Temp/genesis-adapter-tests/e33dc9cc38034578a0ac45524cf2ec6f/runtime/acquisition.jsonl'),)
++ ()
+
+======================================================================
+FAIL: test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [one more request]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_authority.py", line 109, in test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load
+    with self.assertRaises(auth.AuthorityRecordInvalid):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AuthorityRecordInvalid not raised
+
+======================================================================
+FAIL: test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [far more requests]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_authority.py", line 109, in test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load
+    with self.assertRaises(auth.AuthorityRecordInvalid):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AuthorityRecordInvalid not raised
+
+======================================================================
+FAIL: test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [longer G2 window]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_authority.py", line 109, in test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load
+    with self.assertRaises(auth.AuthorityRecordInvalid):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AuthorityRecordInvalid not raised
+
+======================================================================
+FAIL: test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [far longer G2 window]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_authority.py", line 109, in test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load
+    with self.assertRaises(auth.AuthorityRecordInvalid):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AuthorityRecordInvalid not raised
+
+======================================================================
+FAIL: test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [longer G2R window]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_authority.py", line 109, in test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load
+    with self.assertRaises(auth.AuthorityRecordInvalid):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AuthorityRecordInvalid not raised
+
+======================================================================
+FAIL: test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [far longer G2R window]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_authority.py", line 109, in test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load
+    with self.assertRaises(auth.AuthorityRecordInvalid):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AuthorityRecordInvalid not raised
+
+======================================================================
+FAIL: test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [tighter (still not the pinned file)]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_authority.py", line 109, in test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load
+    with self.assertRaises(auth.AuthorityRecordInvalid):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AuthorityRecordInvalid not raised
+
+======================================================================
+FAIL: test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [the same values, reformatted]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_authority.py", line 109, in test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load
+    with self.assertRaises(auth.AuthorityRecordInvalid):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AuthorityRecordInvalid not raised
+
+======================================================================
+FAIL: test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) [the same values, trailing space]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_authority.py", line 109, in test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load
+    with self.assertRaises(auth.AuthorityRecordInvalid):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AuthorityRecordInvalid not raised
+
+======================================================================
+FAIL: test_r2_the_operator_cli_cannot_be_pointed_at_relaxed_limits (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_the_operator_cli_cannot_be_pointed_at_relaxed_limits)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_authority.py", line 123, in test_r2_the_operator_cli_cannot_be_pointed_at_relaxed_limits
+    with self.assertRaises(auth.AuthorityRecordInvalid):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AuthorityRecordInvalid not raised
+
+======================================================================
+FAIL: test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted) [tournamentId as text]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 158, in test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted
+    self.assertIn(("rejected", ("missing_evidence",)), notes(rt, "PARTIAL_RESPONSE"))
+AssertionError: ('rejected', ('missing_evidence',)) not found in set()
+
+======================================================================
+FAIL: test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted) [tournamentId as a float]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 158, in test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted
+    self.assertIn(("rejected", ("missing_evidence",)), notes(rt, "PARTIAL_RESPONSE"))
+AssertionError: ('rejected', ('missing_evidence',)) not found in set()
+
+======================================================================
+FAIL: test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted) [tournamentId as a boolean]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 158, in test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted
+    self.assertIn(("rejected", ("missing_evidence",)), notes(rt, "PARTIAL_RESPONSE"))
+AssertionError: ('rejected', ('missing_evidence',)) not found in set()
+
+======================================================================
+FAIL: test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted) [another sport]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 158, in test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted
+    self.assertIn(("rejected", ("missing_evidence",)), notes(rt, "PARTIAL_RESPONSE"))
+AssertionError: ('rejected', ('missing_evidence',)) not found in set()
+
+======================================================================
+FAIL: test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted) [an unrequested tournament]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 158, in test_r3_a_tournament_present_only_in_a_malformed_or_foreign_block_counts_as_omitted
+    self.assertIn(("rejected", ("missing_evidence",)), notes(rt, "PARTIAL_RESPONSE"))
+AssertionError: ('rejected', ('missing_evidence',)) not found in set()
+
+======================================================================
+FAIL: test_r3_duplicate_blocks_of_one_tournament_never_stand_in_for_an_omitted_one (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_duplicate_blocks_of_one_tournament_never_stand_in_for_an_omitted_one) [identical duplicate]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 142, in test_r3_duplicate_blocks_of_one_tournament_never_stand_in_for_an_omitted_one
+    self.assert_partial_without_tombstones(rt)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 73, in assert_partial_without_tombstones
+    self.assertEqual(notes(rt, "PARTIAL_RESPONSE"), PARTIAL)
+AssertionError: Items in the second set but not the first:
+('rejected', ('missing_evidence',))
+
+======================================================================
+FAIL: test_r3_duplicate_blocks_of_one_tournament_never_stand_in_for_an_omitted_one (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_duplicate_blocks_of_one_tournament_never_stand_in_for_an_omitted_one) [contradictory duplicate]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 142, in test_r3_duplicate_blocks_of_one_tournament_never_stand_in_for_an_omitted_one
+    self.assert_partial_without_tombstones(rt)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 73, in assert_partial_without_tombstones
+    self.assertEqual(notes(rt, "PARTIAL_RESPONSE"), PARTIAL)
+AssertionError: Items in the second set but not the first:
+('rejected', ('missing_evidence',))
+
+======================================================================
+FAIL: test_r3_every_requested_tournament_omitted_is_partial_and_tombstones_nothing (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_every_requested_tournament_omitted_is_partial_and_tombstones_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 130, in test_r3_every_requested_tournament_omitted_is_partial_and_tombstones_nothing
+    self.assert_partial_without_tombstones(rt)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 73, in assert_partial_without_tombstones
+    self.assertEqual(notes(rt, "PARTIAL_RESPONSE"), PARTIAL)
+AssertionError: Items in the second set but not the first:
+('rejected', ('missing_evidence',))
+
+======================================================================
+FAIL: test_r3_one_of_two_requested_tournaments_omitted_is_partial_and_tombstones_nothing (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_one_of_two_requested_tournaments_omitted_is_partial_and_tombstones_nothing)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 120, in test_r3_one_of_two_requested_tournaments_omitted_is_partial_and_tombstones_nothing
+    self.assert_partial_without_tombstones(rt)
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 73, in assert_partial_without_tombstones
+    self.assertEqual(notes(rt, "PARTIAL_RESPONSE"), PARTIAL)
+AssertionError: Items in the second set but not the first:
+('rejected', ('missing_evidence',))
+
+======================================================================
+FAIL: test_r3_restart_resume_rebuild_and_reverification_after_a_partial_response_never_tombstone (adapter_tests.test_v05_r1_requested_tournaments.RequestedTournamentTests.test_r3_restart_resume_rebuild_and_reverification_after_a_partial_response_never_tombstone)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r1_requested_tournaments.py", line 195, in test_r3_restart_resume_rebuild_and_reverification_after_a_partial_response_never_tombstone
+    self.assertEqual(absent_documents(clean), [])
+AssertionError: Lists differ: [{'acquisition_id': '33cdf1dd94b7d401c7693[11569 chars]one}] != []
+
+First list contains 6 additional elements.
+First extra element 0:
+{'acquisition_id': '33cdf1dd94b7d401c76930eb71eca2afb2678641eaa1b9c7143dd7f1d1b5e595', 'api_version': 'v4', 'away_participant_id': 'part:699405fa4484481a9d33d8adf3db7091e5c5d25bd99cdf8651fa124c668cef91', 'bookmaker_id': 'bk.fixture-book-a', 'competition_id': 'soccer.esp.laliga', 'derivation_kind': 'RESPONSE', 'derivation_version': 'mb1-f52de42576bd014c', 'entity_id': 'book:2563c1f1e50b4e5210cca39bea1fcf7b29bd345531f9a0a32bfe16eac3f775e4', 'event_id': 'evt:64d007d606f6aad3de292a7edef1ea8ac0404284c2a2fbd6daac0222383e3a41', 'expected_scope_hash': '27483ad5ffb1be9f294c5f62e1edbc70c23fbc59d77ff8e939a8c9cae963d199', 'fixture_join_observation_id': None, 'home_participant_id': 'part:9b65d40e89eb9877f66b7bcc4145b81319e0f8d76dc12f7bdeafb6ebfcee96bc', 'identity_registry_head': {'record_hash': 'eb1db6f1d751c4a652da5ca4af316e9e3a07c84cc8cd2427e03c3a1ff6b4179e', 'sequence': 6}, 'line': '2.5', 'market_family': 'SOCCER_TOTAL_GOALS_OU_FT', 'market_id': 'mkt:399ad7b2ea58df2019143674c2ba2035c2c6e438850253e8758408fa1a863cbb', 'market_state': 'ABSENT', 'period': 'FT_REGULAR', 'provider': 'oddspapi', 'provider_bookmaker_key': 'fixture-book-a', 'provider_fixture_id': {'native_type': 'str', 'value': 'id1000001761301999'}, 'provider_request_hash': '56ad96a7e667e06090f9e7c7079b7c31d4b31df604a32192b49b13462c905c85', 'provider_status': {'event': {}, 'market': {}, 'outcomes': {}}, 'provider_timestamps': {}, 'raw_artifact_hash': 'e8076889f15f8aeb1a52566535363f235808ac63eefa07a5f503ba0a15112a9c', 'raw_observation_id': '941f74433590dcdb8800627d7c80842e5c044bc479dd607b41ab6c0ae06fba6f', 'scheduled_start_as_known': '2026-10-04T19:00:00.000000Z', 'schema': 'genesis.adapters.oddspapi.market-book.v1', 'side': 'BACK', 'sport': 'soccer', 'state_reasons': ['BOOK_ABSENT'], 'times': {'request_started_at': '2026-10-01T12:10:00.062000Z', 'response_received_at': '2026-10-01T12:10:00.114000Z'}, 'valid_from': '2026-10-01T12:10:00.114000Z', 'valid_to': None}
+
+Diff is 12701 characters long. Set self.maxDiff to None to see it.
+
+----------------------------------------------------------------------
+Ran 69 tests in 77.479s
+
+FAILED (failures=38, errors=7, skipped=1)
+approved
+# exit: 1
+# end: 2026-09-30T09:25:09Z

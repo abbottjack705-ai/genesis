@@ -1,0 +1,15 @@
+# R1 frozen tree SHAs
+# command: for t in src tests config tools DECISIONS v04_pack; do git rev-parse HEAD:$t; done
+# start: 2026-09-30T14:59:18Z
+# python: Python 3.12.10
+# HEAD (base): cfcff3dbb285eaa48a6cfc1eceedb91e27662c81
+----
+src 51cb635bc42b993815b6c02a23c4c3ceb7d98476
+tests e90b298180068fec03ba7e2fa81957082e7fb3ce
+config abd22db01ff482a8da84634ee740ba382b68c804
+tools a0e3411edb4e068fd4708050516cb6870834e7ac
+DECISIONS cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64
+v04_pack 3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12
+-- git diff --name-status v0.4-foundation-freeze HEAD -- <six trees> (must be empty):
+-- git status --porcelain -- <six trees> (must be empty):
+# end

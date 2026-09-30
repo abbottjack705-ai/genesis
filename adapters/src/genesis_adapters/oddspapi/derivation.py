@@ -134,13 +134,18 @@ class DerivationInputs:
 
 def odds_inputs(stores, config, maps: AdapterMaps, acquisition_id: str, *, identity_prefix,
                 expected_scope, expected_scope_hash: str | None,
-                fixture_join: parser.FixtureSnapshot | None) -> DerivationInputs:
-    """The raw bytes and parse context of one successful ODDS acquisition."""
+                fixture_join: parser.FixtureSnapshot | None, request_root: Path) -> DerivationInputs:
+    """The raw bytes and parse context of one successful ODDS acquisition.
+
+    ``request_root`` holds ``requests/<hash>.json``: the requested competitions come from the stored canonical
+    request whose SHA-256 is the acquisition's request hash, so normalization, ``verify_derivation`` and a
+    rebuild all read the same requested set (design 12.4, F-15; hostile audit F-03)."""
 
     rows = acquisition_rows(stores.acquisition, acquisition_id)
     planned, sent, completed = rows.get("acq_planned"), rows.get("acq_sent"), rows.get("acq_completed")
     if planned is None or planned["role"] != ROLE_ODDS or sent is None or not successful_capture(rows):
         _fail("not a successful ODDS acquisition")
+    requested, _ = request_scope_filters(load_request(request_root, planned["provider_request_hash"]), maps)
     raw_observation = stores.evidence.get_observation(completed["raw_observation_id"])
     if raw_observation.source_uri != "oddspapi-request:sha256:" + planned["provider_request_hash"]:
         _fail("the raw observation is not of this acquisition's request")
@@ -152,9 +157,9 @@ def odds_inputs(stores, config, maps: AdapterMaps, acquisition_id: str, *, ident
         raw_artifact_hash=raw_observation.artifact_hash, raw_observation_id=raw_observation.observation_id,
         request_started_at=sent["T0"], response_received_at=completed["T1"], maps=maps, policy=config.policy,
         response_schema=config.schemas[config.endpoints[ROLE_ODDS].response_schema_id],
-        derivation_version=config.derivation_version, identity_prefix=tuple(identity_prefix),
-        expected_scope=expected_scope, expected_scope_hash=expected_scope_hash, fixture_join=fixture_join,
-        complete_hint=True)
+        derivation_version=config.derivation_version, requested_competitions=requested,
+        identity_prefix=tuple(identity_prefix), expected_scope=expected_scope,
+        expected_scope_hash=expected_scope_hash, fixture_join=fixture_join, complete_hint=True)
     return DerivationInputs(raw, ctx)
 
 
@@ -201,7 +206,8 @@ def verify_response_derivation(observation_id: str, *, stores, config, maps: Ada
             document["times"]["response_received_at"])):
         _fail("the pinned fixture join is unusable or later than the response")
     inputs = odds_inputs(stores, config, maps, document["acquisition_id"], identity_prefix=prefix,
-                         expected_scope=expected, expected_scope_hash=scope_hash, fixture_join=join)
+                         expected_scope=expected, expected_scope_hash=scope_hash, fixture_join=join,
+                         request_root=stores.root)
     if inputs.ctx.raw_artifact_hash != document["raw_artifact_hash"]:
         _fail("the raw artifact is not the pinned one")
     parsed = parser.parse_odds_response(inputs.raw, inputs.ctx)

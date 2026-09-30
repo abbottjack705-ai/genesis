@@ -1,0 +1,49 @@
+# R1 PROBES: the auditor's probes and oracle tools, re-run against the remediation tree
+# tree: a fresh --no-hardlinks LF clone of cfcff3d (core.autocrlf=false) with every R1 file overlaid byte-for-byte from the worktree
+#       (diff -r adapters/ == worktree); probes copied from the audit package (ARTIFACT_MANIFEST verified) and run unmodified
+# start: 2026-09-30T10:01:53Z | python: Python 3.12.10
+----
+## 1. probe_credential_links.py (CR-12: junctions / hard link / CRLF / key in env; control must load)
+control: plain file outside repo, owner-only ACL  LOADED                                          AS EXPECTED
+junction path resolving INSIDE the repo           REFUSED(CREDENTIAL_PERMISSIONS)                 AS EXPECTED
+junction path resolving INTO the runtime root     REFUSED(CREDENTIAL_PERMISSIONS)                 AS EXPECTED
+hard link (second name inside the repo)           REFUSED(CREDENTIAL_PERMISSIONS)                 AS EXPECTED
+CRLF-terminated credential file                   REFUSED(CREDENTIAL_MISSING)                     AS EXPECTED
+key also present in another env var               REFUSED(CREDENTIAL_PERMISSIONS)                 AS EXPECTED
+
+UNEXPECTED=0
+# exit: 0
+## 2. probe_detector_differential.py (CR-06: oracle secret forms vs the implementation's detector)
+oracle forms requiring detection : 161
+missed by the implementation     : 0 
+fragment m=13 detected          : True (must be True)
+fragment m-1=12 detected    : False (must be False)
+8 MiB clean random flagged       : False (must be False)
+
+DETECTOR_DIFFERENTIAL=PASS
+# exit: 0
+## 3. oracle_boundary_guard.py --probe shim:permits (QT-03 differential of the UTC boundary guard)
+  B + skew         Tq=2028-01-01T00:02:00.000000Z  expected=SEND  W1=T W2=T W3=T W4=T  impl=SEND OK
+
+MISMATCHES=0
+# exit: 0
+## 4. oracle_secret_sweep.py --allow adapter_tests/ over a copy of the whole adapters/ tree (200 files, evidence/R1 included)
+adapters\adapter_tests\support.py: ['FRAG_RAW', 'RAW']
+adapters\adapter_tests\test_v05_secrets.py: ['FRAG_RAW']
+adapters\adapter_tests\test_v05_secret_capture.py: ['FRAG_RAW']
+adapters\src\genesis_adapters\oddspapi\authority.py: ['FRAG_RAW']
+
+SUMMARY unexpected=1 expected=3 forms=166
+# exit: 1
+# adjudication of 4: identical to the audit of cfcff3d (TEST_RESULTS.md section 4: unexpected=1 expected=3). The three expected hits are the test modules that use the sentinel constant; the one 'unexpected' is the known tool false positive in oddspapi/authority.py: its only fragment match (line 98) is the sixteen-character lowercase hexadecimal digit alphabet used to validate a SHA-256 digest, which equals the sentinel's suffix. The new GATE_LIMITS_SHA256 digest carries no fragment, and adapters/evidence/R1 carries no form at all.
+## 5. oracle_no_network_run.py -s adapters/adapter_tests -t adapters (the COMPLETE adapter suite under the oracle's in-process network hook, in the clone)
+# start: 2026-09-30T10:02:29Z
+ERROR: test_the_suite_refuses_any_non_loopback_contact (adapter_tests.test_v05_transport_http.ConnectionFailureTests.test_the_suite_refuses_any_non_loopback_contact)
+Ran 601 tests in 418.125s
+FAILED (errors=1, skipped=1)
+ORACLE NETWORK VIOLATIONS=1
+  socket.getaddrinfo '192.0.2.1'
+# exit: 1
+# end: 2026-09-30T10:09:29Z
+# adjudication of 5: identical to the audit of cfcff3d (TEST_RESULTS.md section 4, oracle_no_network_run: VIOLATIONS=1 socket.getaddrinfo '192.0.2.1'). The one event and the one error are the suite's own deliberate self-test test_the_suite_refuses_any_non_loopback_contact, which asks for 192.0.2.1 (RFC 5737 TEST-NET-1) to prove its hook refuses it; the oracle hook, installed first, raises PermissionError before the suite's RuntimeError, so the test's assertRaises(RuntimeError) errors. getaddrinfo on a numeric literal sends no DNS query and no connect follows. Every other test of the complete suite passed under the oracle hook (600 run, 1 skipped: the real-symlink test); subprocesses (TX-01, the loopback CLI run) keep their own loopback-only hook.
+# end: 2026-09-30T10:01:56Z

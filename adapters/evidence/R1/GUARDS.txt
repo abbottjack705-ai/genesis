@@ -1,0 +1,29 @@
+# R1 guards
+# command: freeze guard + module-provenance guard verdict
+# start: 2026-09-30T14:59:18Z
+# python: Python 3.12.10
+# HEAD (base): cfcff3dbb285eaa48a6cfc1eceedb91e27662c81
+----
+freeze guard (six tree SHAs @ HEAD): PASS
+frozen worktree clean: PASS
+module-provenance guard: PASS
+manifest sha256: 9a50e370cb27919ee6b13e85a2b325cdaf6691c3b1168a2bc1294f1604e22fdf
+genesis origin: c:\users\abbot\fz\g\src\genesis\__init__.py
+flags: {"dont_write_bytecode": true, "isolated": false, "pycache_prefix": "C:/Users/abbot/AppData/Local/Temp/tmp.JyX3ZFvnjn", "safe_path": false}
+genesis modules verified: 15 ; adapter modules loaded: 4
+   genesis genesis/__init__.py eaa72c0118d6f03003bc159ffdd66578ca12e33d 5e30e1d9b5d0b6ac989c626097d51d4b902e985bd422b69eb5c29f6e931ddf98
+   genesis.canonical genesis/canonical.py 5d4557061b8f794e51a467d846808ae4e97cde8c 33d041f3726e65e62f75314dc8d8184c20cdaf1916d83ba6e194ba4834d16d4e
+   genesis.capabilities genesis/capabilities.py f8f0e9050d26cf5198dfde616c85a8a21861a7bd a5600541fcc3832092f4b881f4b1d1758056ff84e844386ea0263a8ec27424cb
+   genesis.coverage genesis/coverage.py 6f909ba0e9629832ee8b79c7992a7ed56fde1edd 7df451804e4eda8f63ee8cb83645f344fbd6dcf58257816e5521e16589f11d63
+   genesis.evidence genesis/evidence.py ea7d9c6c7984b24eeff2f98ae194b635e6f5b49d 8fdbcacdc57c486c769943b3231ebcd700ae2e74d85035d67416307af25d457d
+   genesis.evidence_pack genesis/evidence_pack.py 2dc24ba5675dd735be0bd5d2663ee115b9e90dac b48f0556804e672c498ca1443ade3494bf618bcff0ac34bf66a9cac87452c6e3
+   genesis.feature_manifest genesis/feature_manifest.py 61d08a3a93bffc9f6efdc23f3676a13a919ad63b ba1115b911552d963c5b3881c5e09ebdf0eda1f5c178866e9208edb18717d931
+   genesis.logging genesis/logging.py 2da9aa609a712441466e5ff79933856fe200bf41 568370f012587873482455a8b1c0c3f02a79971403fb8077fe35b5277083cabe
+   genesis.pit genesis/pit.py 050c071d3a37682ab5fbe925135e1baa88d6559b 314bcda758b5d1e3c910cfa6c178cd0ba3e1606fb1bf39ffd4ade001f4e744f9
+   genesis.provenance genesis/provenance.py 0482e6eaf6df9fcaed0498e0a654bb878ef2e44a 588a91c8b7077dd8c5b05c48353d0d662b15249bd9c548746c2d10d1692e69f3
+   genesis.quota genesis/quota.py 124003dd9f5b46733dd0e284b385e46858b32db8 beacd4442de8ca114b31694de080fe46eda4916497a5461065e914e7cb9f1f14
+   genesis.reasons genesis/reasons.py 264f330cde0cfded04593b6913b77c050ccc3f91 2575630418c0967e835d6ab871830c4dfc8eaeb1bf303fff261db5b890bf184e
+   genesis.registry genesis/registry.py 9fa47b73e16d7c89d5ea2bd0376a0d35e34a32c9 26ca7ee0735687f356c3747424f36db032ba0f18256b80a6e1da4c1be736ecbc
+   genesis.repro genesis/repro.py fdaacaa145d344fe0f4080ecb88a32761a5cd18a ec6cf36dbddafceaac285059ce8683d247a962142fdb50442ef5767c7b67053d
+   genesis.time genesis/time.py d66ab5e417992e8f49ccfe97a1a8f1da97c2d78e 65d2368aafee9b6d6b7aea1acdc5220269dd64f35055790e36ea7817576cbdc9
+# exit: 0

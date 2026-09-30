@@ -158,5 +158,79 @@ class CredentialTests(unittest.TestCase):
                          "CREDENTIAL_PERMISSIONS")
 
 
+def junction(link: Path, target: Path) -> None:
+    """A directory link that needs NO privilege: an NTFS junction on Windows (``mklink /J``), a directory symbolic
+    link elsewhere. Failing to create one fails the test; it is never a skip."""
+
+    if sys.platform == "win32":
+        made = subprocess.run(["cmd", "/c", "mklink", "/J", str(link), str(target)], capture_output=True, text=True)
+        if made.returncode != 0:
+            raise AssertionError(f"mklink /J failed: {made.stdout.strip()} {made.stderr.strip()}")
+    else:
+        os.symlink(target, link, target_is_directory=True)
+
+
+class UnprivilegedLinkAttackTests(unittest.TestCase):
+    """R-4 (hostile audit F-04, oracle CR-12): the real-OS link attacks that need no privilege, ported from the
+    auditor's ``probe_credential_links.py``. A stand-in repository and runtime root live in the scratch directory,
+    so nothing is ever written into the real worktree. Each refusal has a control that LOADS from the same layout,
+    so a blanket refusal cannot pass. The genuine symbolic-link case still needs a privilege this account lacks:
+    ``test_f04_a_link_is_refused`` stays and skips here (see adapters/evidence/R1/F04_REAL_SYMLINK_RECIPE.md)."""
+
+    def layout(self, base: Path) -> tuple[Path, Path, Path]:
+        repo, runtime, outside = base / "repo", base / "runtime", base / "outside"
+        for folder in (repo / "inside", runtime, outside):
+            folder.mkdir(parents=True)
+        return repo, runtime, outside
+
+    def planted(self, path: Path) -> Path:
+        path.write_bytes(SENTINEL_KEY.encode("ascii") + b"\n")
+        restrict(path)                                    # owner-only, so only the location can refuse it
+        return path
+
+    def loader(self, repo: Path, runtime: Path, path: Path) -> CredentialSource:
+        return CredentialSource(repo=repo, runtime_root=runtime, expected_fingerprint=FINGERPRINT,
+                                environ={ENV_VAR: str(path)})
+
+    def refused(self, source, code: str):
+        with self.assertRaises(err.CredentialProblem) as caught:
+            source.load()
+        self.assertEqual(caught.exception.code, code)
+        self.assertNotIn(SENTINEL_KEY, str(caught.exception))
+
+    def test_r4_controls_a_plain_file_and_a_junction_to_an_allowed_folder_both_load(self):
+        with scratch_root() as base:
+            repo, runtime, outside = self.layout(base)
+            plain = self.planted(outside / "key.txt")
+            self.assertEqual(self.loader(repo, runtime, plain).load().fingerprint, FINGERPRINT)
+            junction(base / "j-allowed", outside)
+            through = base / "j-allowed" / "key.txt"
+            self.assertEqual(self.loader(repo, runtime, through).load().fingerprint, FINGERPRINT)
+
+    def test_r4_a_junction_resolving_inside_the_repository_is_refused(self):
+        with scratch_root() as base:
+            repo, runtime, _ = self.layout(base)
+            self.planted(repo / "inside" / "key.txt")
+            junction(base / "j-repo", repo / "inside")
+            self.refused(self.loader(repo, runtime, base / "j-repo" / "key.txt"), "CREDENTIAL_PERMISSIONS")
+
+    def test_r4_a_junction_resolving_into_the_runtime_root_is_refused(self):
+        with scratch_root() as base:
+            repo, runtime, _ = self.layout(base)
+            self.planted(runtime / "key.txt")
+            junction(base / "j-runtime", runtime)
+            self.refused(self.loader(repo, runtime, base / "j-runtime" / "key.txt"), "CREDENTIAL_PERMISSIONS")
+
+    def test_r4_a_hard_link_whose_second_name_is_inside_the_repository_is_refused(self):
+        with scratch_root() as base:
+            repo, runtime, outside = self.layout(base)
+            inside = self.planted(repo / "inside" / "key.txt")
+            os.link(inside, outside / "key.txt")          # the path given to the loader lies outside
+            restrict(outside / "key.txt")
+            self.refused(self.loader(repo, runtime, outside / "key.txt"), "CREDENTIAL_PERMISSIONS")
+            os.remove(inside)                            # the second name gone: the same file now loads
+            self.assertEqual(self.loader(repo, runtime, outside / "key.txt").load().fingerprint, FINGERPRINT)
+
+
 if __name__ == "__main__":
     unittest.main()

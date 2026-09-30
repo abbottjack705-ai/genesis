@@ -1,0 +1,16 @@
+# R1 REPRO_AFTER: the reproduction script (repro_findings.py, this directory) on the REMEDIATED tree
+# command: PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B adapters/evidence/R1/repro_findings.py
+# start: 2026-09-30T14:59:38Z
+# HEAD: cfcff3dbb285eaa48a6cfc1eceedb91e27662c81 + the R1 working tree (production:  8 files changed, 85 insertions(+), 14 deletions(-))
+----
+# reproduction of F-01, F-02, F-03
+# python: 3.12.10
+F-01 [runner path: transport raised a sentinel-named class] stored sanitized_error={'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None} -> section-7.6 scanner hit=False classes=[]
+F-01 [transport-reported sanitized error] stored sanitized_error={'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None} -> section-7.6 scanner hit=False classes=[]
+F-01 [real HttpsTransport, connection raised] stored sanitized_error={'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None} -> section-7.6 scanner hit=False classes=[]
+F-02 shipped limits: {'g2_requests_cap': 5, 'g2_window_hours': 72, 'g2r_window_days': 35}
+F-02 relaxed file REFUSED: AuthorityRecordInvalid: the gate limits file is not the pinned design 16.3/16.4 file
+F-03 [tournament 8 omitted] requested tournamentIds=8,17: ABSENT tombstones=0 for fixtures []; PARTIAL_RESPONSE coverage entries=['PARTIAL_RESPONSE:1']
+F-03 [every requested tournament omitted] requested tournamentIds=8,17: ABSENT tombstones=0 for fixtures []; PARTIAL_RESPONSE coverage entries=['PARTIAL_RESPONSE:1']
+# end
+# exit: 0

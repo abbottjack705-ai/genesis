@@ -27,7 +27,9 @@ from genesis_adapters.ids import gid
 from genesis_adapters.oddspapi.endpoints import RAW_CONTRACT_ID, CanonicalRequest
 from genesis_adapters.oddspapi.quota_gate import QuotaCharge
 from genesis_adapters.oddspapi.raw_capture import CaptureConflict, Captured
-from genesis_adapters.oddspapi.transport import Transport, TransportResult, sanitize_exception
+from genesis_adapters.oddspapi.transport import (
+    REDACTED_EXCEPTION_CLASS, Transport, TransportResult, sanitize_exception,
+)
 
 SCHEMA_VERSION = "acquisition-ledger-v1"
 ATTEMPT_DOMAIN = "genesis.adapters.oddspapi.attempt.v1"
@@ -639,7 +641,23 @@ class AcquisitionRunner:
         except ClockFault:
             return floor
 
+    def _scanned_error(self, error: dict) -> dict:
+        """Design 7.6 item 3 (hostile audit F-01): the sanitized record is itself scanned before it is persisted.
+
+        Every non-empty ``sanitized_error`` - from ``sanitize_exception`` or reported by a transport - reaches the
+        ledger only through ``_finish_no_response``, which calls this first. A record that carries any section-7.6
+        form of the key (an exception class named after it, say) keeps its row, because the attempt happened,
+        but not its content: a fixed placeholder class and no errno. With no key configured (fixture mode) there
+        is no form to find, so the record is kept as sanitized."""
+
+        if self.capture is None or not self.capture.scans_for_secret:
+            return error
+        if self.capture.hits_secret(canonical_json(error)):
+            return {"class": REDACTED_EXCEPTION_CLASS, "errno": None}
+        return error
+
     def _finish_no_response(self, aid, request_id, request, charge, at, error, *, sent: bool) -> AcquisitionOutcome:
+        error = self._scanned_error(error)
         self._record("acq_completed", at, acquisition_id=aid, T1=None, outcome="NO_RESPONSE", http_status=None,
                      headers=[], content_encoding=None, byte_length=None, raw_observation_id=None,
                      sanitized_error=error, provider_reported_usage=None,

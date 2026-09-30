@@ -66,6 +66,8 @@ HARNESS = textwrap.dedent('''
     from genesis_adapters.secrets import Secret, SecretScanner
 
     def boom():
+        if KIND == "NAMED":                      # R-1 / CR-08: the class NAME itself carries the key
+            raise type("Err_" + SENTINEL.replace("-", "_"), (OSError,), {})()
         if KIND == "EXC":
             warnings.warn(KEYED)
             exc = OSError(104, KEYED, KEYED)
@@ -237,6 +239,20 @@ class Tx01Tests(unittest.TestCase):
                     self.assertEqual(set(error), {"class", "errno"})
                     self.assertIn(error["class"], {"OSError", "ConnectionResetError"})
                     self.assertIn(error["errno"], (104, None))
+
+    def test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted(self):
+        # design 7.6 item 3: the sanitized record is itself scanned; run_case also sweeps stdout, stderr, the
+        # harness result and every runtime file for every section-7.6 form of the key
+        for stage in ("connect", "write", "read_headers", "decode"):
+            with self.subTest(stage):
+                proc, outcome, completed = self.run_case(stage, "NAMED")
+                self.assertEqual(proc.returncode, 0, proc.stderr[-500:])
+                self.assertIsNone(outcome["class"])                           # nothing reached the top level
+                self.assertEqual(len(completed), 1)                           # the attempt is still recorded
+                self.assertEqual(completed[0]["outcome"], "NO_RESPONSE")
+                stored = completed[0]["sanitized_error"]                      # never printed: it may carry the key
+                self.assertTrue(stored == {"class": "REDACTED_EXCEPTION_CLASS", "errno": None},
+                                "the stored sanitized record is not the redaction placeholder")
 
     def test_tx01_keyboard_interrupt_keeps_its_meaning_and_arrives_fresh(self):
         wanted = STATUS_CONTROL_C_EXIT if sys.platform == "win32" else -2

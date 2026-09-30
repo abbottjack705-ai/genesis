@@ -128,6 +128,11 @@ class RawCapture:
     def _hit(self, data: bytes) -> bool:
         return self.scanner is not None and self.scanner.scan(data).hit
 
+    def hits_secret(self, data: bytes) -> bool:
+        """True when ``data`` carries the configured key in any section-7.6 form (never True without a key)."""
+
+        return self._hit(data)
+
     @staticmethod
     def _encoding(headers) -> str:
         tokens = []

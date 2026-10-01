@@ -64,10 +64,11 @@ def later_than(rt: pipeline.AdapterRuntime, seconds: int = 60) -> str:
     return ps.iso_add(last, seconds=seconds)
 
 
-def odds_item(window: str = "w1", attempt: int = 1, bookmakers=None, tournaments=(17, 8)) -> PlanItem:
+def odds_item(window: str = "w1", attempt: int = 1, bookmakers=None, tournaments=(17, 8), *,
+              purpose: str = "SCHEDULED", not_after: str | None = None) -> PlanItem:
     request = ep.build_request(SPECS["ODDS"], bookmaker=list(bookmakers or DECLARED),
                                tournamentIds=list(tournaments), oddsFormat="decimal")
-    return PlanItem(window_id=window, purpose="SCHEDULED", request=request, attempt=attempt)
+    return PlanItem(window_id=window, purpose=purpose, request=request, attempt=attempt, not_after=not_after)
 
 
 def fixtures_item(window: str = "wf") -> PlanItem:

@@ -1,0 +1,546 @@
+# R3 RED: the R3 tests (HA-04/09/10/11) against the UNMODIFIED production code of R2 72cca77, before any R3 production change
+# tests: the new test_v05_r3_runner_state, the updated BND-07 (HA-09 explicit probe), the updated Q04 and A2 retry tests (HA-10)
+# note: re-captured after two test-only corrections (the HA-10 helper now checks the durable snapshot before the exception
+#       type, and the CLI case pins two requests because a G2 record's max_calls must equal its pinned requests); no
+#       production code differs
+# production tree: git diff --stat HEAD -- adapters/src = 0 lines (none)
+# command: PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B -m unittest -v <the modules/tests above>
+# start: 2026-10-01T00:20:33Z | HEAD: 72cca77c1c9ce927bf1248140f638a83c95fd77d
+----
+test_ha09_a_clean_date_check_by_an_explicit_probe_rearms_then_ordinary_sends_resume (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_a_clean_date_check_by_an_explicit_probe_rearms_then_ordinary_sends_resume) ... ERROR
+test_ha09_a_probe_before_the_next_utc_day_is_refused_and_not_sent (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_a_probe_before_the_next_utc_day_is_refused_and_not_sent) ... ERROR
+test_ha09_a_probe_whose_date_is_missing_or_skewed_does_not_rearm (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_a_probe_whose_date_is_missing_or_skewed_does_not_rearm) ... 
+  test_ha09_a_probe_whose_date_is_missing_or_skewed_does_not_rearm (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_a_probe_whose_date_is_missing_or_skewed_does_not_rearm) [skewed] ... ERROR
+  test_ha09_a_probe_whose_date_is_missing_or_skewed_does_not_rearm (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_a_probe_whose_date_is_missing_or_skewed_does_not_rearm) [missing] ... ERROR
+test_ha09_a_rearm_survives_a_restart (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_a_rearm_survives_a_restart) ... ERROR
+test_ha09_an_operator_reset_does_not_clear_a_skew_suspension (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_an_operator_reset_does_not_clear_a_skew_suspension) ... FAIL
+test_ha09_the_next_utc_day_alone_does_not_rearm_ordinary_sends (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_the_next_utc_day_alone_does_not_rearm_ordinary_sends) ... FAIL
+test_ha09_the_probe_still_passes_every_other_gate (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_the_probe_still_passes_every_other_gate) ... ERROR
+test_ha09_without_a_date_header_no_probe_rearms_even_in_fixture_mode (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_without_a_date_header_no_probe_rearms_even_in_fixture_mode) ... ERROR
+test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run) ... 
+  test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run) [wrong content type] (crash_after_write=0) ... FAIL
+  test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run) [wrong content type] (crash_after_write=1) ... FAIL
+test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run) ... ERROR
+test_ha04_a_metadata_capture_whose_cache_entry_was_lost_in_a_crash_is_cached_on_restart (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_metadata_capture_whose_cache_entry_was_lost_in_a_crash_is_cached_on_restart) ... FAIL
+test_ha04_a_rejected_fixtures_capture_is_never_used_for_the_fixture_join (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_rejected_fixtures_capture_is_never_used_for_the_fixture_join) ... FAIL
+test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart) ... 
+  test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart) [wrong content type] ... FAIL
+  test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart) [not JSON] ... ERROR
+  test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart) [envelope mismatch] ... ERROR
+test_ha04_after_a_crash_following_a_clock_skew_sends_stay_suspended (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_after_a_crash_following_a_clock_skew_sends_stay_suspended) ... FAIL
+test_ha04_after_a_crash_following_a_secret_echo_nothing_more_is_sent (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_after_a_crash_following_a_secret_echo_nothing_more_is_sent) ... FAIL
+test_ha04_the_verdict_is_durable_in_the_completed_row_itself (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_the_verdict_is_durable_in_the_completed_row_itself) ... 
+  test_ha04_the_verdict_is_durable_in_the_completed_row_itself (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_the_verdict_is_durable_in_the_completed_row_itself) [wrong content type] ... FAIL
+  test_ha04_the_verdict_is_durable_in_the_completed_row_itself (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_the_verdict_is_durable_in_the_completed_row_itself) [not JSON] ... FAIL
+  test_ha04_the_verdict_is_durable_in_the_completed_row_itself (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_the_verdict_is_durable_in_the_completed_row_itself) [envelope mismatch] ... FAIL
+  test_ha04_the_verdict_is_durable_in_the_completed_row_itself (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_the_verdict_is_durable_in_the_completed_row_itself) [clock skew] ... FAIL
+  test_ha04_the_verdict_is_durable_in_the_completed_row_itself (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_the_verdict_is_durable_in_the_completed_row_itself) [missing Date (live rule)] ... FAIL
+test_ha11_a_capture_without_a_pinned_scope_is_never_normalized (adapter_tests.test_v05_r3_runner_state.PinnedScopeTests.test_ha11_a_capture_without_a_pinned_scope_is_never_normalized) ... FAIL
+test_ha11_metadata_requests_pin_no_scope (adapter_tests.test_v05_r3_runner_state.PinnedScopeTests.test_ha11_metadata_requests_pin_no_scope) ... ERROR
+test_ha11_resume_uses_the_pinned_scope_even_after_the_pit_log_changed (adapter_tests.test_v05_r3_runner_state.PinnedScopeTests.test_ha11_resume_uses_the_pinned_scope_even_after_the_pit_log_changed) ... FAIL
+test_ha11_the_scope_is_published_and_pinned_before_the_send (adapter_tests.test_v05_r3_runner_state.PinnedScopeTests.test_ha11_the_scope_is_published_and_pinned_before_the_send) ... FAIL
+test_ha10_a_later_attempt_must_be_a_retry_and_a_first_attempt_cannot_be (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_a_later_attempt_must_be_a_retry_and_a_first_attempt_cannot_be) ... FAIL
+test_ha10_a_premature_retry_is_refused_until_the_backoff_has_passed (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_a_premature_retry_is_refused_until_the_backoff_has_passed) ... FAIL
+test_ha10_a_prior_attempt_still_open_after_a_crash_must_be_reconciled_first (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_a_prior_attempt_still_open_after_a_crash_must_be_reconciled_first) ... FAIL
+test_ha10_a_retry_needs_its_immediate_predecessor_and_a_window (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_a_retry_needs_its_immediate_predecessor_and_a_window) ... FAIL
+test_ha10_no_retry_after_a_non_retryable_outcome (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_no_retry_after_a_non_retryable_outcome) ... 
+  test_ha10_no_retry_after_a_non_retryable_outcome (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_no_retry_after_a_non_retryable_outcome) [404] ... FAIL
+  test_ha10_no_retry_after_a_non_retryable_outcome (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_no_retry_after_a_non_retryable_outcome) [429] ... FAIL
+  test_ha10_no_retry_after_a_non_retryable_outcome (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_no_retry_after_a_non_retryable_outcome) [401] ... FAIL
+  test_ha10_no_retry_after_a_non_retryable_outcome (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_no_retry_after_a_non_retryable_outcome) [schema] ... FAIL
+test_ha10_no_retry_once_the_window_has_closed (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_no_retry_once_the_window_has_closed) ... FAIL
+test_ha10_retries_stop_at_the_per_window_limit (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_retries_stop_at_the_per_window_limit) ... FAIL
+test_ha10_the_cli_run_enforces_the_retry_state_machine (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_the_cli_run_enforces_the_retry_state_machine) ... FAIL
+test_bnd07_sends_stay_suspended_until_the_next_utc_day_and_a_clean_date_check (adapter_tests.test_v05_bnd07.Bnd07Tests.test_bnd07_sends_stay_suspended_until_the_next_utc_day_and_a_clean_date_check) ... ERROR
+test_q04_failures_keep_their_debit_and_a_retry_is_debited_again (adapter_tests.test_v05_acquisition.QuotaBehaviourTests.test_q04_failures_keep_their_debit_and_a_retry_is_debited_again) ... 
+  test_q04_failures_keep_their_debit_and_a_retry_is_debited_again (adapter_tests.test_v05_acquisition.QuotaBehaviourTests.test_q04_failures_keep_their_debit_and_a_retry_is_debited_again) [429] ... ERROR
+  test_q04_failures_keep_their_debit_and_a_retry_is_debited_again (adapter_tests.test_v05_acquisition.QuotaBehaviourTests.test_q04_failures_keep_their_debit_and_a_retry_is_debited_again) [401] ... ERROR
+test_a2_a_reconciled_orphan_is_retried_only_under_a_fresh_identity_and_debit (adapter_tests.test_v05_acquisition.CrashAndRestartTests.test_a2_a_reconciled_orphan_is_retried_only_under_a_fresh_identity_and_debit) ... ok
+
+======================================================================
+ERROR: test_ha09_a_clean_date_check_by_an_explicit_probe_rearms_then_ordinary_sends_resume (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_a_clean_date_check_by_an_explicit_probe_rearms_then_ordinary_sends_resume)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 313, in test_ha09_a_clean_date_check_by_an_explicit_probe_rearms_then_ordinary_sends_resume
+    probe = rig.runner.acquire(rig_item(window="d2-probe"), clock_check=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: AcquisitionRunner.acquire() got an unexpected keyword argument 'clock_check'
+
+======================================================================
+ERROR: test_ha09_a_probe_before_the_next_utc_day_is_refused_and_not_sent (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_a_probe_before_the_next_utc_day_is_refused_and_not_sent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 328, in test_ha09_a_probe_before_the_next_utc_day_is_refused_and_not_sent
+    refused = rig.runner.acquire(rig_item(window="d1-probe"), clock_check=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: AcquisitionRunner.acquire() got an unexpected keyword argument 'clock_check'
+
+======================================================================
+ERROR: test_ha09_a_probe_whose_date_is_missing_or_skewed_does_not_rearm (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_a_probe_whose_date_is_missing_or_skewed_does_not_rearm) [skewed]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 339, in test_ha09_a_probe_whose_date_is_missing_or_skewed_does_not_rearm
+    probe = rig.runner.acquire(rig_item(window="d2-probe"), clock_check=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: AcquisitionRunner.acquire() got an unexpected keyword argument 'clock_check'
+
+======================================================================
+ERROR: test_ha09_a_probe_whose_date_is_missing_or_skewed_does_not_rearm (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_a_probe_whose_date_is_missing_or_skewed_does_not_rearm) [missing]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 339, in test_ha09_a_probe_whose_date_is_missing_or_skewed_does_not_rearm
+    probe = rig.runner.acquire(rig_item(window="d2-probe"), clock_check=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: AcquisitionRunner.acquire() got an unexpected keyword argument 'clock_check'
+
+======================================================================
+ERROR: test_ha09_a_rearm_survives_a_restart (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_a_rearm_survives_a_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 385, in test_ha09_a_rearm_survives_a_restart
+    rig.runner.acquire(rig_item(window="d2-probe"), clock_check=True)
+TypeError: AcquisitionRunner.acquire() got an unexpected keyword argument 'clock_check'
+
+======================================================================
+ERROR: test_ha09_the_probe_still_passes_every_other_gate (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_the_probe_still_passes_every_other_gate)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 377, in test_ha09_the_probe_still_passes_every_other_gate
+    refused = rig.runner.acquire(rig_item(window="guard-probe"), clock_check=True)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: AcquisitionRunner.acquire() got an unexpected keyword argument 'clock_check'
+
+======================================================================
+ERROR: test_ha09_without_a_date_header_no_probe_rearms_even_in_fixture_mode (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_without_a_date_header_no_probe_rearms_even_in_fixture_mode)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 355, in test_ha09_without_a_date_header_no_probe_rearms_even_in_fixture_mode
+    probe = fixture_mode.runner.acquire(rig_item(window="d2-probe"), clock_check=True)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: AcquisitionRunner.acquire() got an unexpected keyword argument 'clock_check'
+
+======================================================================
+ERROR: test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 219, in test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run
+    counter, expected, expected_next = self.run_case(root, step, options, None)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 207, in run_case
+    restarted.resume()
+  File "C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\pipeline.py", line 174, in resume
+    results.append(self.normalize(aid))
+                   ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\pipeline.py", line 134, in normalize
+    self._halt(parsed.failure, inputs.ctx.provider_request_hash)
+  File "C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\pipeline.py", line 153, in _halt
+    raise PipelineHalt(failure)
+genesis_adapters.oddspapi.pipeline.PipelineHalt: NOT_JSON
+
+======================================================================
+ERROR: test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart) [not JSON]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 193, in test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart
+    restarted.resume()                                            # neither halts nor normalizes
+    ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\pipeline.py", line 174, in resume
+    results.append(self.normalize(aid))
+                   ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\pipeline.py", line 134, in normalize
+    self._halt(parsed.failure, inputs.ctx.provider_request_hash)
+  File "C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\pipeline.py", line 153, in _halt
+    raise PipelineHalt(failure)
+genesis_adapters.oddspapi.pipeline.PipelineHalt: NOT_JSON
+
+======================================================================
+ERROR: test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart) [envelope mismatch]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 193, in test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart
+    restarted.resume()                                            # neither halts nor normalizes
+    ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\pipeline.py", line 174, in resume
+    results.append(self.normalize(aid))
+                   ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\pipeline.py", line 134, in normalize
+    self._halt(parsed.failure, inputs.ctx.provider_request_hash)
+  File "C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\pipeline.py", line 153, in _halt
+    raise PipelineHalt(failure)
+genesis_adapters.oddspapi.pipeline.PipelineHalt: ENVELOPE_SCHEMA_MISMATCH
+
+======================================================================
+ERROR: test_ha11_metadata_requests_pin_no_scope (adapter_tests.test_v05_r3_runner_state.PinnedScopeTests.test_ha11_metadata_requests_pin_no_scope)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 608, in test_ha11_metadata_requests_pin_no_scope
+    self.assertIsNone(rows_of(root, "acq_sent")[-1]["expected_scope_hash"])
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'expected_scope_hash'
+
+======================================================================
+ERROR: test_bnd07_sends_stay_suspended_until_the_next_utc_day_and_a_clean_date_check (adapter_tests.test_v05_bnd07.Bnd07Tests.test_bnd07_sends_stay_suspended_until_the_next_utc_day_and_a_clean_date_check)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_bnd07.py", line 40, in test_bnd07_sends_stay_suspended_until_the_next_utc_day_and_a_clean_date_check
+    (err.AdapterFailure.CIRCUIT_OPEN, acq.CLOCK_CHECK_PENDING))
+                                      ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'genesis_adapters.oddspapi.acquisition' has no attribute 'CLOCK_CHECK_PENDING'
+
+======================================================================
+ERROR: test_q04_failures_keep_their_debit_and_a_retry_is_debited_again (adapter_tests.test_v05_acquisition.QuotaBehaviourTests.test_q04_failures_keep_their_debit_and_a_retry_is_debited_again) [429]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_acquisition.py", line 195, in test_q04_failures_keep_their_debit_and_a_retry_is_debited_again
+    with self.assertRaises(err.PlanRefused) as refused:
+                           ^^^^^^^^^^^^^^^
+AttributeError: module 'genesis_adapters.errors' has no attribute 'PlanRefused'
+
+======================================================================
+ERROR: test_q04_failures_keep_their_debit_and_a_retry_is_debited_again (adapter_tests.test_v05_acquisition.QuotaBehaviourTests.test_q04_failures_keep_their_debit_and_a_retry_is_debited_again) [401]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_acquisition.py", line 195, in test_q04_failures_keep_their_debit_and_a_retry_is_debited_again
+    with self.assertRaises(err.PlanRefused) as refused:
+                           ^^^^^^^^^^^^^^^
+AttributeError: module 'genesis_adapters.errors' has no attribute 'PlanRefused'
+
+======================================================================
+FAIL: test_ha09_an_operator_reset_does_not_clear_a_skew_suspension (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_an_operator_reset_does_not_clear_a_skew_suspension)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 370, in test_ha09_an_operator_reset_does_not_clear_a_skew_suspension
+    self.assertEqual(refused.failure, F.CIRCUIT_OPEN, moment)
+AssertionError: None != <AdapterFailure.CIRCUIT_OPEN: 'CIRCUIT_OPEN'> : 2026-10-01T14:00:00.000000Z
+
+======================================================================
+FAIL: test_ha09_the_next_utc_day_alone_does_not_rearm_ordinary_sends (adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests.test_ha09_the_next_utc_day_alone_does_not_rearm_ordinary_sends)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 305, in test_ha09_the_next_utc_day_alone_does_not_rearm_ordinary_sends
+    self.assertEqual(refused.failure, F.CIRCUIT_OPEN)
+AssertionError: None != <AdapterFailure.CIRCUIT_OPEN: 'CIRCUIT_OPEN'>
+
+======================================================================
+FAIL: test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run) [wrong content type] (crash_after_write=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 227, in test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run
+    self.assertEqual(history["pit"], 0)                       # never revived
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 12 != 0
+
+======================================================================
+FAIL: test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run) [wrong content type] (crash_after_write=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 227, in test_ha04_a_crash_after_any_write_following_the_completed_row_converges_to_an_uninterrupted_run
+    self.assertEqual(history["pit"], 0)                       # never revived
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 12 != 0
+
+======================================================================
+FAIL: test_ha04_a_metadata_capture_whose_cache_entry_was_lost_in_a_crash_is_cached_on_restart (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_metadata_capture_whose_cache_entry_was_lost_in_a_crash_is_cached_on_restart)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 273, in test_ha04_a_metadata_capture_whose_cache_entry_was_lost_in_a_crash_is_cached_on_restart
+    self.assertEqual([strip(row) for row in restarted.gate.cache.log.records()], expected)
+AssertionError: Lists differ: [] != [{'artifact_hash': 'af3cbf298523131890e237[644 chars]v1'}]
+
+Second list contains 1 additional elements.
+First extra element 0:
+{'artifact_hash': 'af3cbf298523131890e2373aba6c462c26a4b52639ef9ed43fb21b7b99a44721', 'byte_length': 980, 'cache_entry_id': '0895ab7f3e71558edde289b38a0d1ee60e41b8f8c97954a7bc6400116835d101', 'cache_key': 'oddspapi:v4:FIXTURES:125e96e9abc4e33338820aa9e2baf2a7fcd2470ffe0005aa2b78f931ab4528e3', 'captured_at': '2026-10-01T12:00:00.055000Z', 'expires_at': '2026-10-02T12:00:00.055000Z', 'provider_id': 'oddspapi', 'provider_request_hash': '125e96e9abc4e33338820aa9e2baf2a7fcd2470ffe0005aa2b78f931ab4528e3', 'quota_policy_digest': 'f413dd8bc5dc658251f5a8c4bb30fced7b756fffb9ad2e03d5e7e7152ee19e2a', 'record_type': 'verified_cache_entry_published', 'schema_version': 'verified-cache-entry-v1'}
+
+Diff is 739 characters long. Set self.maxDiff to None to see it.
+
+======================================================================
+FAIL: test_ha04_a_rejected_fixtures_capture_is_never_used_for_the_fixture_join (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_rejected_fixtures_capture_is_never_used_for_the_fixture_join)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 256, in test_ha04_a_rejected_fixtures_capture_is_never_used_for_the_fixture_join
+    self.assertIsNone(derivation.fixture_snapshot_for(rt.stores, rt.config, rt.maps,
+AssertionError: FixtureSnapshot(observation_id='3d8f561897b078d4aca53ddbbc381c5753a6392989727e7e48f3e7373175f54a', retrieved_at='2026-10-01T12:00:00.055000Z', fixtures={'id1000001761301153': FixtureInfo(fixture_id='id1000001761301153', tournament_id=17, start_time='2026-10-03T14:00:00.000000Z'), 'id1000001761301999': FixtureInfo(fixture_id='id1000001761301999', tournament_id=8, start_time='2026-10-04T19:00:00.000000Z')}) is not None
+
+======================================================================
+FAIL: test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart) [wrong content type]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 194, in test_ha04_a_rejected_response_stays_rejected_across_a_clean_restart
+    self.assertEqual(len(pit_rows(restarted)), 0)
+AssertionError: 12 != 0
+
+======================================================================
+FAIL: test_ha04_after_a_crash_following_a_clock_skew_sends_stay_suspended (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_after_a_crash_following_a_clock_skew_sends_stay_suspended)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 246, in test_ha04_after_a_crash_following_a_clock_skew_sends_stay_suspended
+    self.assertEqual(sends, 0)
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_ha04_after_a_crash_following_a_secret_echo_nothing_more_is_sent (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_after_a_crash_following_a_secret_echo_nothing_more_is_sent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 237, in test_ha04_after_a_crash_following_a_secret_echo_nothing_more_is_sent
+    self.assertEqual(sends, 0)                                            # the key is never used again
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 1 != 0
+
+======================================================================
+FAIL: test_ha04_the_verdict_is_durable_in_the_completed_row_itself (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_the_verdict_is_durable_in_the_completed_row_itself) [wrong content type]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 183, in test_ha04_the_verdict_is_durable_in_the_completed_row_itself
+    self.assertEqual(completed[0]["failure"], failure.value)
+AssertionError: None != 'WRONG_CONTENT_TYPE'
+
+======================================================================
+FAIL: test_ha04_the_verdict_is_durable_in_the_completed_row_itself (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_the_verdict_is_durable_in_the_completed_row_itself) [not JSON]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 183, in test_ha04_the_verdict_is_durable_in_the_completed_row_itself
+    self.assertEqual(completed[0]["failure"], failure.value)
+AssertionError: None != 'NOT_JSON'
+
+======================================================================
+FAIL: test_ha04_the_verdict_is_durable_in_the_completed_row_itself (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_the_verdict_is_durable_in_the_completed_row_itself) [envelope mismatch]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 183, in test_ha04_the_verdict_is_durable_in_the_completed_row_itself
+    self.assertEqual(completed[0]["failure"], failure.value)
+AssertionError: None != 'ENVELOPE_SCHEMA_MISMATCH'
+
+======================================================================
+FAIL: test_ha04_the_verdict_is_durable_in_the_completed_row_itself (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_the_verdict_is_durable_in_the_completed_row_itself) [clock skew]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 183, in test_ha04_the_verdict_is_durable_in_the_completed_row_itself
+    self.assertEqual(completed[0]["failure"], failure.value)
+AssertionError: None != 'CLOCK_SKEW'
+
+======================================================================
+FAIL: test_ha04_the_verdict_is_durable_in_the_completed_row_itself (adapter_tests.test_v05_r3_runner_state.DurableVerdictTests.test_ha04_the_verdict_is_durable_in_the_completed_row_itself) [missing Date (live rule)]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 183, in test_ha04_the_verdict_is_durable_in_the_completed_row_itself
+    self.assertEqual(completed[0]["failure"], failure.value)
+AssertionError: None != 'CLOCK_SKEW'
+
+======================================================================
+FAIL: test_ha11_a_capture_without_a_pinned_scope_is_never_normalized (adapter_tests.test_v05_r3_runner_state.PinnedScopeTests.test_ha11_a_capture_without_a_pinned_scope_is_never_normalized)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 598, in test_ha11_a_capture_without_a_pinned_scope_is_never_normalized
+    with self.assertRaises(derivation.DerivationError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: DerivationError not raised
+
+======================================================================
+FAIL: test_ha11_resume_uses_the_pinned_scope_even_after_the_pit_log_changed (adapter_tests.test_v05_r3_runner_state.PinnedScopeTests.test_ha11_resume_uses_the_pinned_scope_even_after_the_pit_log_changed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 579, in test_ha11_resume_uses_the_pinned_scope_even_after_the_pit_log_changed
+    self.assertIsNotNone(pinned, "no scope was pinned before the send")
+AssertionError: unexpectedly None : no scope was pinned before the send
+
+======================================================================
+FAIL: test_ha11_the_scope_is_published_and_pinned_before_the_send (adapter_tests.test_v05_r3_runner_state.PinnedScopeTests.test_ha11_the_scope_is_published_and_pinned_before_the_send)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 563, in test_ha11_the_scope_is_published_and_pinned_before_the_send
+    self.assertIn("expected_scope_hash", sent)
+AssertionError: 'expected_scope_hash' not found in {'T0': '2026-10-01T12:01:00.062000Z', 'acquisition_id': 'f1aead50886b69560c0f226a311d4d6d60504957ef99e0aab2139293b825fcc6', 'previous_hash': 'a545d934b5058476a212466d1c31f492438643d400963b556b9c4afc9d0e2472', 'record_hash': '7d50a5ff04428caab532fc5738458bd0913a196f530b02dd18e9d209f248aa3f', 'record_type': 'acq_sent', 'recorded_at': '2026-10-01T12:01:00.062000Z', 'schema_version': 'acquisition-ledger-v1', 'sequence': 8}
+
+======================================================================
+FAIL: test_ha10_a_later_attempt_must_be_a_retry_and_a_first_attempt_cannot_be (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_a_later_attempt_must_be_a_retry_and_a_first_attempt_cannot_be)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 435, in test_ha10_a_later_attempt_must_be_a_retry_and_a_first_attempt_cannot_be
+    self.refused(root, rig, self.retry(attempt=1), "RETRY_WITHOUT_PRIOR_ATTEMPT")
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 413, in refused
+    self.assertEqual(self.snapshot(root, rig), before,                    # nothing durable, nothing sent
+AssertionError: Tuples differ: (4, 1, 1) != (0, 0, 0)
+
+First differing element 0:
+4
+0
+
+- (4, 1, 1)
++ (0, 0, 0) : the plan item left an acquisition row, a debit or a send
+
+======================================================================
+FAIL: test_ha10_a_premature_retry_is_refused_until_the_backoff_has_passed (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_a_premature_retry_is_refused_until_the_backoff_has_passed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 452, in test_ha10_a_premature_retry_is_refused_until_the_backoff_has_passed
+    refusal = self.refused(root, rig, self.retry(), "BACKOFF")
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 413, in refused
+    self.assertEqual(self.snapshot(root, rig), before,                    # nothing durable, nothing sent
+AssertionError: Tuples differ: (8, 2, 2) != (4, 1, 1)
+
+First differing element 0:
+8
+4
+
+- (8, 2, 2)
++ (4, 1, 1) : the plan item left an acquisition row, a debit or a send
+
+======================================================================
+FAIL: test_ha10_a_prior_attempt_still_open_after_a_crash_must_be_reconciled_first (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_a_prior_attempt_still_open_after_a_crash_must_be_reconciled_first)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 490, in test_ha10_a_prior_attempt_still_open_after_a_crash_must_be_reconciled_first
+    self.refused(root, fresh, self.retry(), "PRIOR_ATTEMPT_OPEN")
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 413, in refused
+    self.assertEqual(self.snapshot(root, rig), before,                    # nothing durable, nothing sent
+AssertionError: Tuples differ: (7, 2, 1) != (3, 1, 0)
+
+First differing element 0:
+7
+3
+
+- (7, 2, 1)
++ (3, 1, 0) : the plan item left an acquisition row, a debit or a send
+
+======================================================================
+FAIL: test_ha10_a_retry_needs_its_immediate_predecessor_and_a_window (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_a_retry_needs_its_immediate_predecessor_and_a_window)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 445, in test_ha10_a_retry_needs_its_immediate_predecessor_and_a_window
+    self.refused(root, rig, self.retry(attempt=3), "NO_PRIOR_ATTEMPT")
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 413, in refused
+    self.assertEqual(self.snapshot(root, rig), before,                    # nothing durable, nothing sent
+AssertionError: Tuples differ: (8, 2, 2) != (4, 1, 1)
+
+First differing element 0:
+8
+4
+
+- (8, 2, 2)
++ (4, 1, 1) : the plan item left an acquisition row, a debit or a send
+
+======================================================================
+FAIL: test_ha10_no_retry_after_a_non_retryable_outcome (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_no_retry_after_a_non_retryable_outcome) [404]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 429, in test_ha10_no_retry_after_a_non_retryable_outcome
+    self.refused(root, rig, self.retry(), "NOT_RETRYABLE")
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 413, in refused
+    self.assertEqual(self.snapshot(root, rig), before,                    # nothing durable, nothing sent
+AssertionError: Tuples differ: (8, 2, 2) != (4, 1, 1)
+
+First differing element 0:
+8
+4
+
+- (8, 2, 2)
++ (4, 1, 1) : the plan item left an acquisition row, a debit or a send
+
+======================================================================
+FAIL: test_ha10_no_retry_after_a_non_retryable_outcome (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_no_retry_after_a_non_retryable_outcome) [429]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 429, in test_ha10_no_retry_after_a_non_retryable_outcome
+    self.refused(root, rig, self.retry(), "NOT_RETRYABLE")
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 413, in refused
+    self.assertEqual(self.snapshot(root, rig), before,                    # nothing durable, nothing sent
+AssertionError: Tuples differ: (7, 1, 1) != (5, 1, 1)
+
+First differing element 0:
+7
+5
+
+- (7, 1, 1)
+?  ^
+
++ (5, 1, 1)
+?  ^
+ : the plan item left an acquisition row, a debit or a send
+
+======================================================================
+FAIL: test_ha10_no_retry_after_a_non_retryable_outcome (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_no_retry_after_a_non_retryable_outcome) [401]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 429, in test_ha10_no_retry_after_a_non_retryable_outcome
+    self.refused(root, rig, self.retry(), "NOT_RETRYABLE")
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 413, in refused
+    self.assertEqual(self.snapshot(root, rig), before,                    # nothing durable, nothing sent
+AssertionError: Tuples differ: (7, 1, 1) != (5, 1, 1)
+
+First differing element 0:
+7
+5
+
+- (7, 1, 1)
+?  ^
+
++ (5, 1, 1)
+?  ^
+ : the plan item left an acquisition row, a debit or a send
+
+======================================================================
+FAIL: test_ha10_no_retry_after_a_non_retryable_outcome (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_no_retry_after_a_non_retryable_outcome) [schema]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 429, in test_ha10_no_retry_after_a_non_retryable_outcome
+    self.refused(root, rig, self.retry(), "NOT_RETRYABLE")
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 413, in refused
+    self.assertEqual(self.snapshot(root, rig), before,                    # nothing durable, nothing sent
+AssertionError: Tuples differ: (8, 2, 2) != (4, 1, 1)
+
+First differing element 0:
+8
+4
+
+- (8, 2, 2)
++ (4, 1, 1) : the plan item left an acquisition row, a debit or a send
+
+======================================================================
+FAIL: test_ha10_no_retry_once_the_window_has_closed (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_no_retry_once_the_window_has_closed)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 478, in test_ha10_no_retry_once_the_window_has_closed
+    self.refused(root, rig, self.retry(), "WINDOW_CLOSED")
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 413, in refused
+    self.assertEqual(self.snapshot(root, rig), before,                    # nothing durable, nothing sent
+AssertionError: Tuples differ: (8, 2, 2) != (4, 1, 1)
+
+First differing element 0:
+8
+4
+
+- (8, 2, 2)
++ (4, 1, 1) : the plan item left an acquisition row, a debit or a send
+
+======================================================================
+FAIL: test_ha10_retries_stop_at_the_per_window_limit (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_retries_stop_at_the_per_window_limit)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 471, in test_ha10_retries_stop_at_the_per_window_limit
+    self.refused(root, rig, self.retry(attempt=limit + 2), "RETRY_LIMIT_REACHED")
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 413, in refused
+    self.assertEqual(self.snapshot(root, rig), before,                    # nothing durable, nothing sent
+AssertionError: Tuples differ: (12, 3, 3) != (8, 2, 2)
+
+First differing element 0:
+12
+8
+
+- (12, 3, 3)
++ (8, 2, 2) : the plan item left an acquisition row, a debit or a send
+
+======================================================================
+FAIL: test_ha10_the_cli_run_enforces_the_retry_state_machine (adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests.test_ha10_the_cli_run_enforces_the_retry_state_machine)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r3_runner_state.py", line 537, in test_ha10_the_cli_run_enforces_the_retry_state_machine
+    self.assertEqual(code, cli.EXIT_REFUSED)
+AssertionError: 0 != 2
+
+----------------------------------------------------------------------
+Ran 30 tests in 86.731s
+
+FAILED (failures=28, errors=14)
+# exit: 1
+# end: 2026-10-01T00:22:01Z

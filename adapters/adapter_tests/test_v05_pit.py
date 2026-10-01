@@ -159,7 +159,7 @@ def seed_pair(stores, ctx_a, ctx_b):
                       cache_entry_id=None, cache_miss_reason=None)
     for ctx in (ctx_a, ctx_b):
         ledger.append("acq_sent", recorded_at=ctx.request_started_at, acquisition_id=ctx.acquisition_id,
-                      T0=ctx.request_started_at)
+                      T0=ctx.request_started_at, expected_scope_hash=ctx.expected_scope_hash)
     for ctx in (ctx_a, ctx_b):
         ledger.append("acq_completed", recorded_at=ctx.response_received_at, acquisition_id=ctx.acquisition_id,
                       T1=ctx.response_received_at, outcome="RESPONSE", http_status=200, headers=[],

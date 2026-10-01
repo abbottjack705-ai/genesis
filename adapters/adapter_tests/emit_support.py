@@ -88,7 +88,8 @@ def seed_acquisition(stores: emit.AdapterStores, ctx: parser.ParseContext, *, re
     ledger.append("acq_quota_decided", recorded_at=iso(t0, micros=-500), acquisition_id=aid, Tq=tq,
                   frozen_ledger_reason="billable_call_reserved", allowed=True, genesis_units_debited=1,
                   cache_entry_id=None, cache_miss_reason=None)
-    ledger.append("acq_sent", recorded_at=t0, acquisition_id=aid, T0=t0)
+    ledger.append("acq_sent", recorded_at=t0, acquisition_id=aid, T0=t0,
+                  expected_scope_hash=ctx.expected_scope_hash)            # pinned before the send (12.4)
     ledger.append("acq_completed", recorded_at=t1, acquisition_id=aid, T1=t1, outcome="RESPONSE", http_status=200,
                   headers=[], content_encoding=None, byte_length=1, raw_observation_id=ctx.raw_observation_id,
                   sanitized_error=None, provider_reported_usage=None, failure=None)

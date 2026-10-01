@@ -12,6 +12,7 @@ mode; the dormant live transport only after G1/G2, design 16).
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Mapping
@@ -93,9 +94,9 @@ class AdapterRuntime:
         raise PipelineHalt(AdapterFailure.CONFIG_DIGEST_MISMATCH)
 
     # -- acquisition and normalization -------------------------------------------------------
-    def acquire(self, item: PlanItem) -> PipelineResult:
+    def acquire(self, item: PlanItem, *, clock_check: bool = False) -> PipelineResult:
         self.check_configuration()
-        outcome = self.runner.acquire(item)
+        outcome = self.runner.acquire(item, clock_check=clock_check)
         emitted = None
         captured = getattr(outcome, "captured", None)
         if item.request.role == derivation.ROLE_ODDS and outcome.outcome == AttemptOutcome.RESPONSE \
@@ -114,13 +115,14 @@ class AdapterRuntime:
             if identity_mod.head_of(prefix) != head:
                 raise derivation.DerivationError("the pinned identity-registry head is not a prefix")
             scope_hash = normalized["expected_scope_hash"]
-            expected = scope_mod.load_scope(self.root, scope_hash) if scope_hash is not None else None
         else:                                       # a first derivation (or a resume before the row existed)
             prefix = self.stores.identity.rows()
-            request = derivation.load_request(self.root, planned["provider_request_hash"])
-            tq = rows["acq_quota_decided"]["Tq"]
-            expected = derivation.expected_scope_at(self.stores, self.maps, request, tq=tq)
-            scope_hash = scope_mod.publish_scope(self.root, expected.values(), as_of=tq)
+            scope_hash = rows["acq_sent"]["expected_scope_hash"]
+        # design 12.4 (hostile audit HA-11): exactly the scope pinned on the sent row BEFORE the send, never one
+        # recomputed later from a PIT log that may have changed since
+        if scope_hash is None or scope_hash != rows["acq_sent"]["expected_scope_hash"]:
+            raise derivation.DerivationError("no expected scope was pinned before this ODDS request was sent")
+        expected = scope_mod.load_scope(self.root, scope_hash)
         return derivation.odds_inputs(self.stores, self.config, self.maps, acquisition_id, identity_prefix=prefix,
                                       expected_scope=expected, expected_scope_hash=scope_hash, fixture_join=join,
                                       request_root=self.root)
@@ -243,12 +245,22 @@ def open_runtime(root: Path, *, config_dir: Path, clock, transport, quota_ledger
 
     def block_capabilities(reason: str) -> None:
         blocked.append(reason)
+        # idempotent: a restart that settles the same verdict again leaves an already BLOCKED source as it is
         capability.block_market_book_sources(stores.capabilities, at=clock.now(), reason=reason,
-                                             also=(stores.source_id,))
+                                             also=(stores.source_id,), skip_blocked=True)
+
+    def pin_scope(request, tq: str) -> str | None:
+        """Design 12.4: the expected scope of an ODDS request as of ``Tq``, written immutably before the send."""
+
+        if request.role != derivation.ROLE_ODDS:
+            return None
+        expected = derivation.expected_scope_at(stores, maps, json.loads(request.canonical_bytes()), tq=tq)
+        return scope_mod.publish_scope(root, expected.values(), as_of=tq)
 
     runner = AcquisitionRunner(root=root, clock=clock, transport=transport, quota=gate, authority=authority,
                                config=config, live=live, credential_check=credential_check,
-                               checkpoint=runner_checkpoint, capability_blocker=block_capabilities, capture=raw)
+                               checkpoint=runner_checkpoint, capability_blocker=block_capabilities, capture=raw,
+                               scope_pinner=pin_scope)
     digests = dict(adapter_config.load_config_digests(config_dir))
     digests["policy"] = config.policy.digest
     runs = AppendOnlyJsonl(root / "runs.jsonl")
@@ -304,11 +316,11 @@ def rebuild_into(source: AdapterRuntime, target: emit.AdapterStores, *, clock) -
         if identity_mod.head_of(prefix) != head:
             raise derivation.DerivationError("the rebuilt identity registry diverged from the pinned head")
         scope_hash = normalized["expected_scope_hash"]
-        expected = None
-        if scope_hash is not None:
-            expected = scope_mod.load_scope(source.root, scope_hash)
-            immutable_write(Path(target.root) / "scopes" / f"{scope_hash}.json",
-                            (Path(source.root) / "scopes" / f"{scope_hash}.json").read_bytes())
+        if scope_hash is None or scope_hash != rows["acq_sent"]["expected_scope_hash"]:
+            raise derivation.DerivationError("the normalized scope is not the one pinned before the send")
+        expected = scope_mod.load_scope(source.root, scope_hash)
+        immutable_write(Path(target.root) / "scopes" / f"{scope_hash}.json",
+                        (Path(source.root) / "scopes" / f"{scope_hash}.json").read_bytes())
         join = derivation.fixture_snapshot_for(_Reading(source.stores.acquisition, target.evidence), source.config,
                                                source.maps, at=rows["acq_completed"]["T1"])
         inputs = derivation.odds_inputs(_Reading(source.stores.acquisition, target.evidence), source.config,

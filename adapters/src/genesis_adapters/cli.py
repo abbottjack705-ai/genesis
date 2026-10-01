@@ -224,7 +224,7 @@ def cmd_run(args) -> int:
     from genesis_adapters.clock import SystemUtcClock
     from genesis_adapters.config import load_adapter_config
     from genesis_adapters.credential import CredentialSource
-    from genesis_adapters.errors import CredentialProblem
+    from genesis_adapters.errors import CredentialProblem, PlanRefused
     from genesis_adapters.oddspapi import endpoints, normalize, pipeline
     from genesis_adapters.oddspapi.acquisition import AcquisitionLedger, PlanItem
     from genesis_adapters.oddspapi.authority import (
@@ -261,14 +261,23 @@ def cmd_run(args) -> int:
                                licensing_note=grants[-1]["licensing_note"],
                                allow_fixture_only=args.mode == MODE_VERIFICATION,
                                provenance_check=lambda: startup_guard(config_dir))
-    for entry in json.loads(Path(args.plan).read_text(encoding="utf-8")):
+    entries = json.loads(Path(args.plan).read_text(encoding="utf-8"))
+    clock_check = bool(getattr(args, "clock_check", False))
+    if clock_check and len(entries) != 1:
+        sys.stderr.write("refused: a clock-check run sends exactly one probe (design 14.6 rule 5)\n")
+        return EXIT_REFUSED
+    for entry in entries:
         item = PlanItem(window_id=entry["window"], purpose=entry.get("purpose", "G2_VERIFICATION"),
                         request=endpoints.build_request(specs[entry["role"]], **entry["params"]),
-                        attempt=entry.get("attempt", 1))
-        if args.mode == MODE_VERIFICATION:                      # G2: raw only, nothing normalized
-            outcome = rt.runner.acquire(item)
-        else:
-            outcome = rt.acquire(item).outcome
+                        attempt=entry.get("attempt", 1), not_after=entry.get("not_after"))
+        try:
+            if args.mode == MODE_VERIFICATION:                  # G2: raw only, nothing normalized
+                outcome = rt.runner.acquire(item, clock_check=clock_check)
+            else:
+                outcome = rt.acquire(item, clock_check=clock_check).outcome
+        except PlanRefused as refused:                          # design 14.3: nothing was recorded, debited or sent
+            sys.stderr.write(f"refused: {item.window_id}: retry not permitted ({refused.reason})\n")
+            return EXIT_REFUSED
         sys.stdout.write(f"{item.window_id}: {outcome.outcome} {outcome.failure or ''}\n")
     return EXIT_OK
 
@@ -321,6 +330,7 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--root", required=True)
     run.add_argument("--plan", required=True)
     run.add_argument("--mode", choices=("G2", "G2R"), required=True)
+    run.add_argument("--clock-check", action="store_true")     # the one probe that may re-arm sends (14.6 rule 5)
     ready = commands.add_parser("approve-ready")
     for name in ("--root", "--at", "--derivation-version", "--source-id", "--contract-id", "--cost-tier"):
         ready.add_argument(name, required=True)

@@ -62,11 +62,15 @@ def market_book_sources(capabilities: SourceCapabilityRegistry) -> tuple[str, ..
 
 
 def block_market_book_sources(capabilities: SourceCapabilityRegistry, *, at: str, reason: str,
-                              also: tuple[str, ...] = ()) -> tuple[str, ...]:
-    """BLOCK every known market-book source (and ``also``) at ``at`` - the 401/403 and secret-echo response."""
+                              also: tuple[str, ...] = (), skip_blocked: bool = False) -> tuple[str, ...]:
+    """BLOCK every known market-book source (and ``also``) at ``at`` - the 401/403 and secret-echo response.
+    ``skip_blocked`` leaves a source whose newest row is already BLOCKED as it is (an idempotent re-application)."""
 
     blocked = []
     for source_id in sorted(set(market_book_sources(capabilities)) | set(also)):
+        history = capabilities.history(source_id)
+        if skip_blocked and history and history[-1].operational_status == OperationalStatus.BLOCKED:
+            continue
         register_downgrade(capabilities, source_id, status=OperationalStatus.BLOCKED, at=at, reason=reason)
         blocked.append(source_id)
     return tuple(blocked)

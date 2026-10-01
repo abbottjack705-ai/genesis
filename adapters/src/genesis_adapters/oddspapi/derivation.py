@@ -199,7 +199,9 @@ def verify_response_derivation(observation_id: str, *, stores, config, maps: Ada
         _fail("the document does not belong to its acquisition record")
     prefix = _pinned_prefix(stores, document.get("identity_registry_head"))
     scope_hash = document.get("expected_scope_hash")
-    expected = scope_mod.load_scope(stores.root, scope_hash) if scope_hash is not None else None
+    if scope_hash is None or rows.get("acq_sent", {}).get("expected_scope_hash") != scope_hash:
+        _fail("the document's expected scope is not the one pinned before the send (design 12.4)")
+    expected = scope_mod.load_scope(stores.root, scope_hash)
     join_id = document.get("fixture_join_observation_id")
     join = snapshot_from_observation(stores, config, maps, join_id) if join_id is not None else None
     if join_id is not None and (join is None or parse_utc(join.retrieved_at) > parse_utc(

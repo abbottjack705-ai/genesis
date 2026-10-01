@@ -187,15 +187,18 @@ class QuotaBehaviourTests(unittest.TestCase):
                 self.assertEqual(len(debit), 1, label)
                 self.assertEqual(debit[0]["billable_units"], 1)
                 rig.clock.advance(seconds=rig.policy.retry_min_backoff_seconds)
-                # a retry is a NEW attempt: new request_id, debited again (401/429 are then refused
-                # by the circuit before any debit, so they use a different role for the follow-up)
-                retry_item = odds_item(window="w1", attempt=2)
-                second = rig.runner.acquire(retry_item)
+                # a retry is a NEW attempt: new request_id, debited again. 401/429 are never retried
+                # (design 14.3): the runner's retry state machine refuses before anything durable (HA-10)
+                retry_item = odds_item(window="w1", attempt=2, purpose="RETRY",
+                                       not_after="2026-10-01T18:00:00.000000Z")
                 if label in {"401", "429"}:
-                    self.assertEqual(second.failure, err.AdapterFailure.CIRCUIT_OPEN, label)
+                    with self.assertRaises(err.PlanRefused) as refused:
+                        rig.runner.acquire(retry_item)
+                    self.assertEqual(refused.exception.reason, "NOT_RETRYABLE", label)
                     self.assertEqual(len([r for r in quota_rows(rig)
                                           if r["record_type"] == "quota_billable_call"]), 1)
                 else:
+                    second = rig.runner.acquire(retry_item)
                     self.assertIsNone(second.failure, label)
                     rows = [r for r in quota_rows(rig) if r["record_type"] == "quota_billable_call"]
                     self.assertEqual(len(rows), 2, label)
@@ -466,7 +469,8 @@ class CrashAndRestartTests(unittest.TestCase):
                 self.assertTrue(decision.retry, decision)
                 self.assertEqual(decision.earliest, earliest)
                 fresh.clock.set(decision.earliest)
-                retry = odds_item(window="w1", attempt=2, purpose="RETRY")
+                retry = odds_item(window="w1", attempt=2, purpose="RETRY",
+                                  not_after="2026-10-01T18:00:00.000000Z")
                 second = fresh.runner.acquire(retry)
                 self.assertIsNone(second.failure)
                 self.assertNotEqual(second.acquisition_id, again.acquisition_id)
@@ -549,9 +553,9 @@ class ClockTests(unittest.TestCase):
                           genesis_units_debited=1, cache_entry_id=None, cache_miss_reason=None,
                           recorded_at=BASE)
             with self.assertRaises(RegistryConflict):                      # T0 < Tq
-                ledger.append("acq_sent", acquisition_id=aid, T0="2026-10-01T11:59:59.999999Z",
+                ledger.append("acq_sent", acquisition_id=aid, expected_scope_hash=None, T0="2026-10-01T11:59:59.999999Z",
                               recorded_at="2026-10-01T12:00:00.000001Z")
-            ledger.append("acq_sent", acquisition_id=aid, T0="2026-10-01T12:00:00.000001Z",
+            ledger.append("acq_sent", acquisition_id=aid, expected_scope_hash=None, T0="2026-10-01T12:00:00.000001Z",
                           recorded_at="2026-10-01T12:00:00.000001Z")
             completed = dict(acquisition_id=aid, outcome="RESPONSE", http_status=200, headers=[],
                              content_encoding=None, byte_length=2, raw_observation_id=None,
@@ -583,7 +587,7 @@ class ClockTests(unittest.TestCase):
             ledger = acq.AcquisitionLedger(root / "acquisition.jsonl")
             aid = "c" * 64
             with self.assertRaises(RegistryConflict):                      # sent without a quota decision
-                ledger.append("acq_sent", acquisition_id=aid, T0=BASE, recorded_at=BASE)
+                ledger.append("acq_sent", acquisition_id=aid, expected_scope_hash=None, T0=BASE, recorded_at=BASE)
             planned = dict(acquisition_id=aid, request_id="oddspapi-attempt:" + aid, window_id="w",
                            purpose="SCHEDULED", attempt=1, provider_request_hash="d" * 64, role="ODDS",
                            provider_metering="PER_REQUEST", provider_request_weight=1,
@@ -602,7 +606,7 @@ class ClockTests(unittest.TestCase):
                            cache_miss_reason=None, recorded_at=BASE)
             ledger.append("acq_quota_decided", **blocked)
             with self.assertRaises(RegistryConflict):                      # blocked is terminal
-                ledger.append("acq_sent", acquisition_id=aid, T0=BASE, recorded_at=BASE)
+                ledger.append("acq_sent", acquisition_id=aid, expected_scope_hash=None, T0=BASE, recorded_at=BASE)
 
 
 class RefusalTests(unittest.TestCase):

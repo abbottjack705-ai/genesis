@@ -186,7 +186,11 @@ class CrashResumeTests(unittest.TestCase):
                 row = [r for r in acquisition_rows(restarted) if r["record_type"] == "acq_reconciled"][0]
                 expected_state = "MAY_HAVE_BEEN_SENT" if name in ("after_sent", "after_raw") else "NOT_SENT"
                 self.assertEqual(row["send_state"], expected_state)
-                retry = restarted.acquire(odds_item(attempt=2))                     # a fresh identity and debit
+                # a fresh identity and debit, as a conformant retry (design 14.3, hostile audit HA-10): RETRY
+                # purpose, a stated window, and only after the backoff from the reconciliation
+                restarted.clock.advance(seconds=restarted.config.policy.retry_min_backoff_seconds)
+                retry = restarted.acquire(odds_item(attempt=2, purpose="RETRY",
+                                                    not_after=ps.iso_add(restarted.clock.peek(), seconds=3600)))
                 self.assertIsNone(retry.outcome.failure)
                 self.assertEqual(len(retry.emitted.observation_ids), 12)
 

@@ -141,6 +141,22 @@ class CanonicalRequest:
     def source_uri(self) -> str:
         return RAW_URI_PREFIX + self.provider_request_hash
 
+    @classmethod
+    def from_canonical_bytes(cls, data: bytes, request_hash: str) -> "CanonicalRequest":
+        """The request whose canonical bytes are ``data`` and whose hash is ``request_hash`` (both verified)."""
+
+        import json
+
+        if sha256_bytes(data) != request_hash:
+            raise ValueError("stored request bytes do not match their hash")
+        body = json.loads(data)
+        request = cls(role=body["role"], method=body["method"], scheme=body["scheme"], host=body["host"],
+                      path=body["path"], query=tuple((str(k), str(v)) for k, v in body["query"]),
+                      headers=tuple((str(k), str(v)) for k, v in body["headers"]), api_version=body["api_version"])
+        if request.canonical_bytes() != data:
+            raise ValueError("stored request bytes are not a canonical request")
+        return request
+
 
 def _bool(value: Any, where: str) -> bool:
     if type(value) is not bool:

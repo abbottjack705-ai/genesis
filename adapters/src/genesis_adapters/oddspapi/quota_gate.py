@@ -143,6 +143,14 @@ class QuotaGate:
         return reference
 
     # -- read-only views -----------------------------------------------------------------
+    def cache_indexed(self, request_hash: str, captured_at: str) -> bool:
+        """Whether the metadata capture of ``request_hash`` taken at ``captured_at`` is already published and indexed
+        (a restart that settles the same verdict again must not index it twice)."""
+
+        captured = iso_utc(captured_at)
+        return any(row.get("record_type") == "cache_index_entry" and row.get("request_hash") == request_hash
+                   and row.get("captured_at") == captured for row in self._index.records())
+
     def find_request(self, request_id: str) -> dict | None:
         """The frozen ledger row for ``request_id`` (public ``log.records()`` only), else None."""
 

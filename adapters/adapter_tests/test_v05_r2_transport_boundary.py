@@ -20,7 +20,6 @@ No failure message of these tests ever prints a form of the (public, test-only) 
 
 from __future__ import annotations
 
-import ast
 import gzip
 import json
 import re

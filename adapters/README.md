@@ -116,8 +116,22 @@ python -B -m genesis_adapters.cli approve --root <runtime root> --record gate.js
 python -B -m genesis_adapters.cli approve-ready --root <runtime root> --at ... --derivation-version ... \
        --source-id ... --contract-id ... --cost-tier ...                                  # after a G3 record only
 python -B -m genesis_adapters.cli reset --root <runtime root> --approval-reference adr:... --reason "..."
-python -B -m genesis_adapters.cli run --root <runtime root> --plan plan.json --mode G2|G2R
+python -B -m genesis_adapters.cli run --root <runtime root> --plan plan.json --mode G2|G2R [--clock-check]
 ```
+
+A plan is a JSON list of `{"role", "params", "window", "purpose", "attempt", "not_after"}` items. The runner
+enforces the retry state machine of design 14.3 against the durable ledger before anything is recorded,
+debited or sent (hostile audit HA-10): attempt `n > 1` must be a `RETRY` of attempt `n - 1` of the same request
+and window, whose outcome was retryable (no response, or 5xx); at most `max_retries_per_window` retries, only
+after `retry_min_backoff_seconds`, only before the item's `not_after` (required for a retry) and only with quota
+headroom. A refused item stops the run (`refused: <window>: retry not permitted (<reason>)`, nothing written).
+After a `CLOCK_SKEW` quarantine every send stays refused until the next UTC day **and** a clean `Date` check
+(design 14.6 rule 5, HA-09): `run --clock-check` with a one-item plan sends that item as the probe (every gate
+and the quota apply, and it is debited); only a present, in-bounds `Date` header on its response re-arms
+ordinary sends, and an operator `reset` never does. Every content verdict is recorded in the attempt's
+`completed` row, and its side effects (quarantine, suspension, halt, circuit, capability block, coverage,
+metadata cache) are completed again, idempotently, after a crash before anything else runs (HA-04). The
+expected scope of an ODDS request is fixed and pinned on its `sent` row before the send (design 12.4, HA-11).
 
 `run` refuses without: a G1 record whose credential fingerprint matches the loaded key; a G2 record
 pinning the planned request hashes (G2 mode: raw capture only, at most `max_calls` sends inside its window)

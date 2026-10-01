@@ -382,7 +382,8 @@ class RawPublicationFailureTests(unittest.TestCase):
             self.assertEqual(fresh.evidence.verify_manifest(), 1)             # nothing re-published
             self.assertEqual(fresh.runner.reconcile_after_restart(), ())     # idempotent
             self.assertEqual(fresh.transport.calls, [])
-            retry = odds_item(attempt=2, purpose="RETRY")                     # a fresh identity and debit
+            retry = odds_item(attempt=2, purpose="RETRY",                     # a fresh identity and debit
+                              not_after="2026-10-01T23:00:00.000000Z")         # a stated window (14.3, HA-10)
             fresh.clock.advance(seconds=fresh.policy.retry_min_backoff_seconds)
             self.assertIsNone(fresh.runner.acquire(retry).failure)
             self.assertEqual(fresh.evidence.verify_manifest(), 2)             # a separate capture, not a duplicate

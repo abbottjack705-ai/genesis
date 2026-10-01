@@ -1,0 +1,136 @@
+# R3 mutation smoke (adapters/evidence/R3/MUTATION.txt)
+# One textual mutation at a time against the R3 production code; each group runs the test classes that target it.
+# KILLED = the run failed after a passing unmutated baseline; TIMEOUT would never count as KILLED (none occurred).
+#
+# Result: 34 distinct mutants over 7 files (35 runs, one re-run): 33 KILLED, 1 SURVIVED (equivalent). In detail:
+#  - 'clock faults not halted' (acquisition.py) SURVIVED the first run: no existing test exercised a CLOCK_FAULT halt raised
+#    during the exchange (a response whose T1 does not follow T0, or a trusted-clock fault inside the transport) - the
+#    path the settle refactoring now derives from the durable verdict. test_ha04_a_clock_fault_during_the_exchange_halts_
+#    and_converges_after_a_crash was added; the mutant was re-run and is KILLED (last section).
+#  - 'verify accepts a scope not pinned before the send' (derivation.py) SURVIVES and is equivalent on every reachable
+#    state: normalization takes the document's scope from the acq_sent row itself (HA-11), so a document whose scope
+#    differs from its sent row cannot be produced by the adapter; the cross-check guards pre-R3 data and forged state.
+#    It is reported, not counted as killed.
+
+# R3 mutation smoke: one textual mutation at a time; KILLED only after a passing unmutated baseline; TIMEOUT is never KILLED
+# helper: s0/mutate2.py (restores the source in a finally; per-mutant timeout MUT_TIMEOUT=1200 s)
+# start: 2026-10-01T00:48:26Z | HEAD: 72cca77c1c9ce927bf1248140f638a83c95fd77d + R3 worktree changes | AC power: 2
+
+== adapters/src/genesis_adapters/oddspapi/acquisition.py [acq_verdict] (modules: adapter_tests.test_v05_r3_runner_state.DurableVerdictTests)
+baseline: PASS (OK)
+KILLED (188s)    content verdict not recorded in the completed row
+KILLED (105s)    skewed response not quarantined
+KILLED (89s)     verdict side effects skipped
+KILLED (102s)    a new attempt does not settle the previous verdict
+KILLED (101s)    restart reconciliation does not settle
+KILLED (51s)     every effect re-applied (no presence check)
+KILLED (76s)     coverage written again
+KILLED (84s)     capability block re-applied after its marker
+KILLED (89s)     cache entry indexed again
+-- summary
+KILLED (188s)    content verdict not recorded in the completed row
+KILLED (105s)    skewed response not quarantined
+KILLED (89s)     verdict side effects skipped
+KILLED (102s)    a new attempt does not settle the previous verdict
+KILLED (101s)    restart reconciliation does not settle
+KILLED (51s)     every effect re-applied (no presence check)
+KILLED (76s)     coverage written again
+KILLED (84s)     capability block re-applied after its marker
+KILLED (89s)     cache entry indexed again
+
+== adapters/src/genesis_adapters/oddspapi/acquisition.py [acq_legacy] (modules: adapter_tests.test_v05_acquisition,adapter_tests.test_v05_failure_matrix)
+baseline: PASS (OK)
+KILLED (61s)     quota divergence not halted
+SURVIVED (61s)   clock faults not halted
+-- summary
+KILLED (61s)     quota divergence not halted
+SURVIVED (61s)   clock faults not halted
+
+== adapters/src/genesis_adapters/oddspapi/acquisition.py [acq_skew] (modules: adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests,adapter_tests.test_v05_bnd07)
+baseline: PASS (OK)
+KILLED (5s)      the date alone re-arms sends
+KILLED (5s)      an operator reset clears a skew suspension
+KILLED (5s)      a probe re-arms without a clean Date check
+-- summary
+KILLED (5s)      the date alone re-arms sends
+KILLED (5s)      an operator reset clears a skew suspension
+KILLED (5s)      a probe re-arms without a clean Date check
+
+== adapters/src/genesis_adapters/oddspapi/acquisition.py [acq_scope] (modules: adapter_tests.test_v05_r3_runner_state.PinnedScopeTests)
+baseline: PASS (OK)
+KILLED (3s)      no scope pinned before the send
+-- summary
+KILLED (3s)      no scope pinned before the send
+
+== adapters/src/genesis_adapters/oddspapi/acquisition.py [acq_retry] (modules: adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests)
+baseline: PASS (OK)
+KILLED (4s)      a first attempt may be a RETRY
+KILLED (4s)      a later attempt need not be a RETRY
+KILLED (4s)      no retry window required
+KILLED (4s)      no immediate predecessor required
+KILLED (4s)      an open predecessor may be retried
+KILLED (5s)      the retry decision is ignored
+KILLED (4s)      retry count off by one
+KILLED (4s)      quota headroom not checked
+KILLED (5s)      retry state machine not consulted
+-- summary
+KILLED (4s)      a first attempt may be a RETRY
+KILLED (4s)      a later attempt need not be a RETRY
+KILLED (4s)      no retry window required
+KILLED (4s)      no immediate predecessor required
+KILLED (4s)      an open predecessor may be retried
+KILLED (5s)      the retry decision is ignored
+KILLED (4s)      retry count off by one
+KILLED (4s)      quota headroom not checked
+KILLED (5s)      retry state machine not consulted
+
+== adapters/src/genesis_adapters/oddspapi/raw_capture.py [raw_capture] (modules: adapter_tests.test_v05_r3_runner_state.ClockSkewRearmTests)
+baseline: PASS (OK)
+KILLED (4s)      a missing Date header counts as a clean check
+-- summary
+KILLED (4s)      a missing Date header counts as a clean check
+
+== adapters/src/genesis_adapters/oddspapi/pipeline.py [pipeline] (modules: adapter_tests.test_v05_r3_runner_state.PinnedScopeTests,adapter_tests.test_v05_r3_runner_state.DurableVerdictTests)
+baseline: PASS (OK)
+KILLED (54s)     metadata requests pin a scope
+KILLED (13s)     the pinner pins nothing
+KILLED (53s)     normalization accepts a capture without a pinned scope
+KILLED (55s)     the capability block is not idempotent
+-- summary
+KILLED (54s)     metadata requests pin a scope
+KILLED (13s)     the pinner pins nothing
+KILLED (53s)     normalization accepts a capture without a pinned scope
+KILLED (55s)     the capability block is not idempotent
+
+== adapters/src/genesis_adapters/oddspapi/derivation.py [derivation] (modules: adapter_tests.test_v05_pipeline,adapter_tests.test_v05_r3_runner_state.PinnedScopeTests)
+baseline: PASS (OK)
+SURVIVED (93s)   verify accepts a scope not pinned before the send
+-- summary
+SURVIVED (93s)   verify accepts a scope not pinned before the send
+
+== adapters/src/genesis_adapters/oddspapi/quota_gate.py [quota_gate] (modules: adapter_tests.test_v05_r3_runner_state.DurableVerdictTests)
+baseline: PASS (OK)
+KILLED (48s)     cache_indexed ignores the capture time
+-- summary
+KILLED (48s)     cache_indexed ignores the capture time
+
+== adapters/src/genesis_adapters/oddspapi/capability.py [capability] (modules: adapter_tests.test_v05_r3_runner_state.DurableVerdictTests)
+baseline: PASS (OK)
+KILLED (48s)     skip_blocked ignored
+-- summary
+KILLED (48s)     skip_blocked ignored
+
+== adapters/src/genesis_adapters/cli.py [cli] (modules: adapter_tests.test_v05_r3_runner_state.RetryStateMachineTests)
+baseline: PASS (OK)
+KILLED (4s)      the CLI does not catch a refused retry
+KILLED (4s)      the CLI drops the retry window
+-- summary
+KILLED (4s)      the CLI does not catch a refused retry
+KILLED (4s)      the CLI drops the retry window
+# end: 2026-10-01T01:20:05Z
+
+== adapters/src/genesis_adapters/oddspapi/acquisition.py [acq_clockfault] - the SURVIVED mutant above, re-run after adding test_ha04_a_clock_fault_during_the_exchange_halts_and_converges_after_a_crash (modules: DurableVerdictTests)
+baseline: PASS (OK)
+KILLED (50s)     clock faults not halted
+-- summary
+KILLED (50s)     clock faults not halted

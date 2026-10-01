@@ -275,6 +275,20 @@ class RawCapture:
         limit = timedelta(seconds=self.config.policy.clock_skew_max_seconds)
         return AdapterFailure.CLOCK_SKEW if abs(moment - parse_utc(t1)) > limit else None
 
+    def clean_date_check(self, headers, t1: str) -> bool:
+        """True only for a PRESENT, parseable ``Date`` header within ``clock_skew_max_seconds`` of ``T1``: the
+        successful Date-header check that re-arms sends after a CLOCK_SKEW suspension (design 14.6 rule 5).
+        A missing header never counts, whatever ``require_date`` says."""
+
+        values = [value for name, value in headers if name == "date"]
+        return bool(values) and parse_http_date(values[0]) is not None and self._skew_failure(headers, t1) is None
+
+    def stored_bytes(self, raw_observation_id: str) -> bytes:
+        """The exact bytes of a raw observation this capture published (hash-verified by the evidence store)."""
+
+        observation = self.evidence.get_observation(raw_observation_id)
+        return self.evidence.get_bytes(observation.artifact_hash)
+
     def validate(self, *, request: CanonicalRequest, captured: Captured, t1: str) -> ContentVerdict:
         """Clock skew, content type, strict JSON and the closed envelope, in that order."""
 

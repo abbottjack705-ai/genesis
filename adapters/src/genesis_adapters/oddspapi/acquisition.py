@@ -1,10 +1,13 @@
 """Acquisition ledger, UTC boundary guard, retry policy and the acquisition runner.
 
-Order of every attempt (design sections 11.1, 14): plan -> gates -> boundary guard -> Genesis
-quota reservation -> send -> classify -> durable record. The guard runs BEFORE the ledger call on
-the SAME ``Tq`` read, so a refused send is never debited. Nothing here parses or normalizes a
-payload; raw capture, secret scanning and normalization are later stages that plug into this
-runner's ``completed`` outcome.
+Order of every attempt (design sections 11.1, 14): retry state machine -> plan -> gates -> boundary
+guard -> Genesis quota reservation -> expected scope (ODDS) -> send -> classify, raw capture and every
+content check -> the durable verdict (``completed``) -> its side effects. The guard runs BEFORE the
+ledger call on the SAME ``Tq`` read, so a refused send is never debited. The verdict is decided before
+the attempt completes (hostile audit HA-04), and its side effects (quarantine, suspension, halt,
+circuit, capability block, coverage, metadata cache) are a pure function of the durable verdict,
+applied exactly once by ``settle`` - again after a crash, before anything else can happen. Nothing
+here normalizes a payload; normalization plugs into this runner's ``completed`` outcome.
 """
 
 from __future__ import annotations
@@ -21,7 +24,7 @@ from genesis.time import TimestampError, iso_utc, parse_utc
 
 from genesis_adapters.clock import ClockFault, TrustedClock, is_production_clock, require_not_before
 from genesis_adapters.errors import (
-    AcquisitionHalt, AdapterFailure, CredentialProblem, GateMissing, reason_code,
+    AcquisitionHalt, AdapterFailure, CredentialProblem, GateMissing, PlanRefused, reason_code,
 )
 from genesis_adapters.ids import gid
 from genesis_adapters.oddspapi.endpoints import RAW_CONTRACT_ID, CanonicalRequest
@@ -42,6 +45,8 @@ LIVE_SEND = "LIVE_SEND"             # the one gate check before any live send (a
 # Provisional (design 21 A12, verified at G2): the provider's count of requests used in its current
 # accounting window, reported in an allowlisted response header. Absent -> nothing to reconcile.
 PROVIDER_USAGE_HEADER = "x-requests-used"
+# The refusal detail from the next UTC day after a CLOCK_SKEW until a clean Date check re-arms sends (14.6 rule 5).
+CLOCK_CHECK_PENDING = "CLOCK_SKEW_DATE_CHECK_PENDING"
 
 
 class AttemptOutcome:
@@ -163,7 +168,7 @@ _ROW_KEYS: dict[str, frozenset[str]] = {
     "acq_refused": frozenset({"acquisition_id", "reason", "detail", "not_before"}),
     "acq_quota_decided": frozenset({"acquisition_id", "Tq", "frozen_ledger_reason", "allowed",
                                     "genesis_units_debited", "cache_entry_id", "cache_miss_reason"}),
-    "acq_sent": frozenset({"acquisition_id", "T0"}),
+    "acq_sent": frozenset({"acquisition_id", "T0", "expected_scope_hash"}),
     "acq_completed": frozenset({"acquisition_id", "T1", "outcome", "http_status", "headers",
                                 "content_encoding", "byte_length", "raw_observation_id",
                                 "sanitized_error", "provider_reported_usage", "failure"}),
@@ -176,6 +181,7 @@ _ROW_KEYS: dict[str, frozenset[str]] = {
     "acq_halted": frozenset({"reason"}),
     "acq_operator_reset": frozenset({"approval_reference", "reason"}),
     "acq_sends_suspended": frozenset({"until", "reason"}),
+    "acq_clock_rearmed": frozenset({"acquisition_id"}),
 }
 _RECONCILE_OUTCOMES = ("ORPHANED_RESERVATION", "NOT_RESERVED")
 # ``acq_sent`` is durable BEFORE the transport is called, so its absence proves the request was
@@ -207,13 +213,13 @@ def _canonical_time(value: Any, name: str) -> datetime:
 
 class _Attempt:
     __slots__ = ("state", "tq", "t0", "t1", "t2", "t3", "planned_at", "role", "request_id",
-                 "request_hash", "failure", "outcome", "http_status", "reconciled", "send_state")
+                 "request_hash", "failure", "outcome", "http_status", "reconciled", "send_state", "closed_at")
 
     def __init__(self):
         self.state = None
         self.tq = self.t0 = self.t1 = self.t2 = self.t3 = self.planned_at = None
         self.role = self.request_id = self.request_hash = self.failure = None
-        self.outcome = self.http_status = self.reconciled = self.send_state = None
+        self.outcome = self.http_status = self.reconciled = self.send_state = self.closed_at = None
 
 
 def _replay(rows) -> dict[str, _Attempt]:
@@ -296,6 +302,10 @@ def _apply(kind: str, row: Mapping[str, Any], item: _Attempt, recorded: datetime
         item.t0 = _canonical_time(row["T0"], "T0")
         if item.t0 < item.tq or recorded < item.t0:
             _fail("T0 ordering violated")
+        scope = row["expected_scope_hash"]
+        if scope is not None and (type(scope) is not str or len(scope) != 64
+                                  or any(char not in "0123456789abcdef" for char in scope)):
+            _fail("expected_scope_hash must be None or a 64-hex digest")
         item.state = "SENT"
     elif kind == "acq_completed":
         if state not in ("SENT", "DECIDED") or (state == "DECIDED" and row["outcome"] != "NO_RESPONSE"):
@@ -315,6 +325,7 @@ def _apply(kind: str, row: Mapping[str, Any], item: _Attempt, recorded: datetime
                 _fail("completed recorded before T1")
         item.state, item.outcome, item.http_status, item.failure = (
             "COMPLETED", row["outcome"], row["http_status"], row["failure"])
+        item.closed_at = recorded
     elif kind == "acq_normalized":
         if state != "COMPLETED" or item.t1 is None:
             _fail("normalized requires a completed response")
@@ -337,6 +348,10 @@ def _apply(kind: str, row: Mapping[str, Any], item: _Attempt, recorded: datetime
         if row["outcome"] == "NOT_RESERVED" and row["send_state"] != "NOT_SENT":
             _fail("an attempt that may have been sent cannot be unreserved")
         item.state, item.reconciled, item.send_state = "RECONCILED", row["outcome"], row["send_state"]
+        item.closed_at = recorded
+    elif kind == "acq_clock_rearmed":
+        if state != "COMPLETED":
+            _fail("a clock re-arm needs the completed probe that checked the Date header")
 
 
 class AcquisitionLedger:
@@ -360,25 +375,48 @@ class AcquisitionLedger:
         rows = self.log.records()
         return rows[-1]["recorded_at"] if rows else None
 
-    def circuit_open(self, role: str, at: str) -> str | None:
-        """Reason code of the circuit/halt/suspension that blocks ``role`` at ``at``, else None."""
+    def circuit_open(self, role: str, at: str, *, clock_check: bool = False) -> str | None:
+        """Reason code of the circuit/halt/suspension that blocks ``role`` at ``at``, else None.
+
+        A CLOCK_SKEW suspension (design 14.6 rule 5, hostile audit HA-09) ends only when BOTH the next UTC day has
+        begun AND a clean ``Date`` check was durably recorded after it (``acq_clock_rearmed``); an operator reset
+        does not end it. From the next UTC day on, only a clock-check probe (``clock_check``) may pass.
+        """
 
         moment = parse_utc(at)
         blocking = None
+        until = self.skew_suspended_until()
         for row in self.log.records():
             kind = row["record_type"]
             if kind == "acq_operator_reset":
                 blocking = None
             elif kind == "acq_halted":
                 blocking = row["reason"]
-            elif kind == "acq_sends_suspended":
-                if moment < parse_utc(row["until"]):
-                    blocking = row["reason"]
             elif kind == "acq_circuit_opened":
                 if row["scope"] == "ALL" or row["role"] == role:
                     if row["until"] is None or moment < parse_utc(row["until"]):
                         blocking = row["reason"]
+        if blocking is None and until is not None:
+            if moment < parse_utc(until):
+                blocking = AdapterFailure.CLOCK_SKEW.value
+            elif not clock_check:
+                blocking = CLOCK_CHECK_PENDING
         return blocking
+
+    def skew_suspended_until(self) -> str | None:
+        """The ``until`` of the CLOCK_SKEW suspension still in force (not re-armed by a clean Date check made at or
+        after it), else None."""
+
+        until = None
+        for row in self.log.records():
+            kind = row["record_type"]
+            if kind == "acq_sends_suspended":
+                if until is None or parse_utc(row["until"]) > parse_utc(until):
+                    until = row["until"]
+            elif kind == "acq_clock_rearmed" and until is not None \
+                    and parse_utc(row["recorded_at"]) >= parse_utc(until):
+                until = None
+        return until
 
     def rate_limited_today(self, moment: datetime) -> int:
         count = 0
@@ -454,6 +492,95 @@ _COVERAGE_STATUS = {
 }
 
 
+# --------------------------------------------------------------------------------------
+# The side effects of a durable verdict (hostile audit HA-04)
+# --------------------------------------------------------------------------------------
+# refusals that are always followed by a halt (``_halt(..., refused=True)``)
+_HALTING_REFUSALS = frozenset({AdapterFailure.CLOCK_FAULT, AdapterFailure.QUOTA_REPLAY_BROKEN,
+                               AdapterFailure.CREDENTIAL_MISSING, AdapterFailure.CREDENTIAL_PERMISSIONS,
+                               AdapterFailure.CREDENTIAL_FINGERPRINT_MISMATCH})
+# the labels the runner itself gives a NO_RESPONSE completion that ends in a CLOCK_FAULT halt
+_CLOCK_FAULT_LABELS = frozenset({"ClockFault", "ClockOrderViolation"})
+
+
+def _coverage_effect(failure: AdapterFailure, status: CoverageStatus | None = None) -> tuple:
+    status = status if status is not None else _COVERAGE_STATUS.get(failure, CoverageStatus.NOT_ATTEMPTED)
+    return ("coverage", status, failure, failure.value, failure.value)
+
+
+def verdict_effects(verdict: Mapping[str, Any], item: _Attempt, ledger: "AcquisitionLedger", config) -> list[tuple]:
+    """The side effects, in their order, that an attempt's durable verdict row (its refusal, blocked quota decision,
+    completion or reconciliation) calls for. A pure function of durable facts, so a restart re-derives exactly the
+    list an uninterrupted run applied."""
+
+    kind = verdict["record_type"]
+    if kind == "acq_refused":
+        reason = AdapterFailure(verdict["reason"])
+        if reason in _HALTING_REFUSALS:
+            return [("halted", reason), _coverage_effect(reason)]
+        return [_coverage_effect(reason, CoverageStatus.NOT_ATTEMPTED)]
+    if kind == "acq_quota_decided":                         # a blocked decision
+        return [_coverage_effect(AdapterFailure.QUOTA_BLOCKED, CoverageStatus.NOT_ATTEMPTED)]
+    if kind == "acq_reconciled":
+        orphan = verdict["outcome"] == "ORPHANED_RESERVATION"
+        return [("coverage", CoverageStatus.MISSING if orphan else CoverageStatus.NOT_ATTEMPTED,
+                 AdapterFailure.ORPHANED_RESERVATION,
+                 AdapterFailure.ORPHANED_RESERVATION.value if orphan else "NOT_RESERVED", "RECONCILED")]
+    aid = verdict["acquisition_id"]
+    failure = AdapterFailure(verdict["failure"]) if verdict["failure"] is not None else None
+    effects: list[tuple] = []
+    if failure in (AdapterFailure.SECRET_ECHO, AdapterFailure.UNINSPECTABLE_BODY, AdapterFailure.CLOCK_SKEW):
+        effects.append(("quarantined", gid("quar", acquisition_id=aid, reason=failure.value)))
+    if failure == AdapterFailure.SECRET_ECHO:
+        effects += [_coverage_effect(failure, CoverageStatus.QUARANTINED), ("capability", failure),
+                    ("halted", failure)]
+    elif failure == AdapterFailure.CLOCK_SKEW:
+        until = iso_utc(UtcBoundaries().next_day(parse_utc(verdict["T1"])))
+        effects += [("suspended", until, failure), _coverage_effect(failure)]
+    elif failure == AdapterFailure.AUTH_REJECTED:            # the circuit row follows (and marks) the block
+        effects += [_coverage_effect(failure), ("capability", failure), ("circuit", "ALL", None, failure, None)]
+    elif failure == AdapterFailure.RATE_LIMITED:
+        moment = parse_utc(verdict["T1"])
+        until = iso_utc(UtcBoundaries().next_day(moment))
+        circuit = (("circuit", "ALL", None, failure, until) if ledger.rate_limited_today(moment) >= 2
+                   else ("circuit", "ROLE", item.role, failure, until))
+        effects += [_coverage_effect(failure), circuit]
+    elif failure == AdapterFailure.EVIDENCE_CONFLICT:
+        effects += [("halted", failure), _coverage_effect(failure)]
+    elif failure is not None:
+        effects.append(_coverage_effect(failure))
+        if failure == AdapterFailure.NO_RESPONSE and (verdict["sanitized_error"] or {}).get("class") \
+                in _CLOCK_FAULT_LABELS:
+            effects += [("halted", AdapterFailure.CLOCK_FAULT), _coverage_effect(AdapterFailure.CLOCK_FAULT)]
+    elif verdict["raw_observation_id"] is not None and config.endpoints[item.role].cacheable:
+        effects.append(("cache",))                          # only a response that passed every check is cached
+    usage = verdict["provider_reported_usage"]
+    if usage is not None and usage["reported"] is not None and usage["reported"] > usage["genesis_debited"]:
+        # the provider counted more than Genesis debited: the budget can no longer be trusted (F-37)
+        effects += [("halted", AdapterFailure.QUOTA_DIVERGENCE), _coverage_effect(AdapterFailure.QUOTA_DIVERGENCE)]
+    return effects
+
+
+def _row_present(effect: tuple, aid: str, later: list[dict]) -> bool:
+    """Whether the acquisition row an effect writes is already among the rows after the verdict."""
+
+    name = effect[0]
+    for row in later:
+        kind = row["record_type"]
+        if name == "quarantined" and kind == "acq_quarantined" and row["acquisition_id"] == aid:
+            return True
+        if name == "halted" and kind == "acq_halted" and row["reason"] == effect[1].value:
+            return True
+        if name == "circuit" and kind == "acq_circuit_opened" and (
+                row["scope"], row["role"], row["reason"], row["until"]) == (effect[1], effect[2], effect[3].value,
+                                                                           effect[4]):
+            return True
+        if name == "suspended" and kind == "acq_sends_suspended" and (row["until"], row["reason"]) == (
+                effect[1], effect[2].value):
+            return True
+    return False
+
+
 class AcquisitionRunner:
     """Reserve -> send -> record, for one plan item at a time (fixture mode until G1/G2)."""
 
@@ -461,8 +588,10 @@ class AcquisitionRunner:
                  live: bool, credential_check: Callable[[], None] | None = None,
                  checkpoint: Callable[[str], None] | None = None,
                  capability_blocker: Callable[[str], None] | None = None,
-                 capture: Any = None):
+                 capture: Any = None,
+                 scope_pinner: Callable[[CanonicalRequest, str], str | None] | None = None):
         self.capture = capture
+        self.scope_pinner = scope_pinner                    # (request, Tq) -> pinned expected-scope hash (12.4)
         self.root = Path(root)
         self.clock = clock
         self.transport = transport
@@ -502,17 +631,19 @@ class AcquisitionRunner:
             if refused and aid is not None:
                 self._record("acq_refused", at, acquisition_id=aid, reason=failure.value, detail=detail,
                              not_before=None)
-            self._record("acq_halted", at, reason=failure.value)
-            if aid is not None:
-                self._coverage(aid, request, _COVERAGE_STATUS.get(failure, CoverageStatus.NOT_ATTEMPTED),
-                               failure, at)
+                self.settle(aid, request=request)           # the halt and its coverage entry
+            else:
+                self._record("acq_halted", at, reason=failure.value)
+                if aid is not None:
+                    self._coverage(aid, request, _COVERAGE_STATUS.get(failure, CoverageStatus.NOT_ATTEMPTED),
+                                   failure, at)
         raise AcquisitionHalt(failure)
 
     def _refuse(self, aid: str, request_id: str, request: CanonicalRequest, failure: AdapterFailure, at: str,
                 *, detail: str | None = None, not_before: str | None = None) -> AcquisitionOutcome:
         self._record("acq_refused", at, acquisition_id=aid, reason=failure.value, detail=detail,
                      not_before=not_before)
-        self._coverage(aid, request, CoverageStatus.NOT_ATTEMPTED, failure, at)
+        self.settle(aid, request=request)                   # its coverage entry
         return AcquisitionOutcome(aid, request_id, AttemptOutcome.REFUSED, failure, detail=detail,
                                   next_not_before=not_before)
 
@@ -537,7 +668,11 @@ class AcquisitionRunner:
         return None
 
     # -- the attempt -----------------------------------------------------------------------
-    def acquire(self, item: PlanItem) -> AcquisitionOutcome:
+    def acquire(self, item: PlanItem, *, clock_check: bool = False) -> AcquisitionOutcome:
+        """One attempt. ``clock_check`` marks the explicit, gated and debited probe that may re-arm sends after a
+        CLOCK_SKEW suspension with a clean ``Date`` check (design 14.6 rule 5); it bypasses nothing else."""
+
+        self.settle_last()                                  # a crash never skips the previous verdict's effects
         request = item.request
         aid = attempt_id(request.provider_request_hash, item.window_id, item.attempt)
         request_id = f"oddspapi-attempt:{aid}"
@@ -551,6 +686,7 @@ class AcquisitionRunner:
         except ClockFault:
             self._halt(None, request, AdapterFailure.CLOCK_FAULT, self.ledger.last_recorded_at() or "",
                        refused=False)
+        self._check_retry(item, spec, tq)                   # before anything durable: no row, no debit, no send
         head_quota, head_ledger = self._durable_heads()
         immutable_write(self.root / "requests" / f"{request.provider_request_hash}.json",
                         request.canonical_bytes())
@@ -572,7 +708,7 @@ class AcquisitionRunner:
         refusal = self._live_failure(tq, request)
         if refusal is not None:
             return self._refuse(aid, request_id, request, refusal[0], stamp, detail=refusal[1])
-        blocking = self.ledger.circuit_open(request.role, stamp)
+        blocking = self.ledger.circuit_open(request.role, stamp, clock_check=clock_check)
         if blocking is not None:                            # a durable halt/circuit is honoured first
             return self._refuse(aid, request_id, request, AdapterFailure.CIRCUIT_OPEN, stamp, detail=blocking)
         if behind:
@@ -605,35 +741,38 @@ class AcquisitionRunner:
         if charge.reason == "quota_event_time_regressed":
             self._halt(aid, request, AdapterFailure.CLOCK_FAULT, now, refused=False)
         if not charge.allowed:
-            self._coverage(aid, request, CoverageStatus.NOT_ATTEMPTED, AdapterFailure.QUOTA_BLOCKED, now)
+            self.settle(aid, request=request)             # its coverage entry
             return AcquisitionOutcome(aid, request_id, AttemptOutcome.QUOTA_BLOCKED,
                                       AdapterFailure.QUOTA_BLOCKED, charge=charge)
         if charge.cache_entry_id is not None:
             return AcquisitionOutcome(aid, request_id, AttemptOutcome.CACHE_HIT, None, charge=charge,
                                       cached_bytes=self.quota.cached_bytes(charge, request))
         self._mark("after_quota_decided")
-        return self._send(aid, request_id, request, tq, charge)
+        return self._send(aid, request_id, request, tq, charge, clock_check=clock_check)
 
     def _send(self, aid: str, request_id: str, request: CanonicalRequest, tq: str,
-              charge: QuotaCharge) -> AcquisitionOutcome:
+              charge: QuotaCharge, *, clock_check: bool = False) -> AcquisitionOutcome:
         deadline = parse_utc(tq) + timedelta(seconds=self.config.policy.request_timeout_seconds)
+        # design 12.4 (hostile audit HA-11): the expected scope of an ODDS request is computed as of Tq and written
+        # immutably BEFORE the send; its hash goes on the sent row, and normalization reads exactly that scope
+        scope_hash = self.scope_pinner(request, tq) if self.scope_pinner is not None else None
+        self._mark("after_scope")
         t0 = self._stamp()
         if parse_utc(t0) >= deadline:                       # not written: the deadline already passed
             error = {"class": "DeadlineElapsedBeforeSend", "errno": None}
             return self._finish_no_response(aid, request_id, request, charge, t0, error, sent=False)
-        self._record("acq_sent", t0, acquisition_id=aid, T0=t0)
+        self._record("acq_sent", t0, acquisition_id=aid, T0=t0, expected_scope_hash=scope_hash)
         self._mark("after_sent")
         try:
             result = self.transport.send(request, clock=self.clock, deadline_at=iso_utc(deadline))
-        except ClockFault:
-            self._finish_no_response(aid, request_id, request, charge, self._safe_stamp(t0),
-                                     {"class": "ClockFault", "errno": None}, sent=True)
-            self._halt(aid, request, AdapterFailure.CLOCK_FAULT, self._safe_stamp(t0), refused=False)
+        except ClockFault:                                  # recorded, then settled: a CLOCK_FAULT halt
+            return self._finish_no_response(aid, request_id, request, charge, self._safe_stamp(t0),
+                                            {"class": "ClockFault", "errno": None}, sent=True)
         except Exception as exc:                            # a transport that raised: sanitize it
             error = sanitize_exception(exc, max_chars=self.config.policy.header_value_max_chars)
             return self._finish_no_response(aid, request_id, request, charge, self._safe_stamp(t0), error,
                                             sent=True)
-        return self._complete(aid, request_id, request, charge, t0, deadline, result)
+        return self._complete(aid, request_id, request, charge, t0, deadline, result, clock_check=clock_check)
 
     def _safe_stamp(self, floor: str) -> str:
         try:
@@ -671,7 +810,10 @@ class AcquisitionRunner:
                      headers=[], content_encoding=None, byte_length=None, raw_observation_id=None,
                      sanitized_error=error, provider_reported_usage=None,
                      failure=AdapterFailure.NO_RESPONSE.value)
-        self._coverage(aid, request, CoverageStatus.MISSING, AdapterFailure.NO_RESPONSE, at)
+        self._mark("after_completed")
+        halt = self.settle(aid, request=request)            # coverage, and a CLOCK_FAULT halt for a clock fault
+        if halt is not None:
+            raise AcquisitionHalt(halt)
         return AcquisitionOutcome(aid, request_id, AttemptOutcome.NO_RESPONSE, AdapterFailure.NO_RESPONSE,
                                   charge=charge, detail=error["class"])
 
@@ -689,18 +831,17 @@ class AcquisitionRunner:
             return AdapterFailure.RATE_LIMITED
         return AdapterFailure.PROVIDER_ERROR
 
-    def _complete(self, aid, request_id, request, charge, t0, deadline, result: TransportResult) -> AcquisitionOutcome:
+    def _complete(self, aid, request_id, request, charge, t0, deadline, result: TransportResult, *,
+                  clock_check: bool = False) -> AcquisitionOutcome:
         t1 = result.response_received_at
         started = result.request_started_at
         if result.outcome == "NO_RESPONSE":
             error = result.sanitized_error or {"class": "NoResponse", "errno": None}
             return self._finish_no_response(aid, request_id, request, charge, self._safe_stamp(t0), error, sent=True)
         ordered = (t1 is not None and parse_utc(started) >= parse_utc(t0) and parse_utc(t1) > parse_utc(started))
-        if not ordered:
-            at = self._safe_stamp(t0)
-            self._finish_no_response(aid, request_id, request, charge, at,
-                                     {"class": "ClockOrderViolation", "errno": None}, sent=True)
-            self._halt(aid, request, AdapterFailure.CLOCK_FAULT, at, refused=False)
+        if not ordered:                                     # recorded, then settled: a CLOCK_FAULT halt
+            return self._finish_no_response(aid, request_id, request, charge, self._safe_stamp(t0),
+                                            {"class": "ClockOrderViolation", "errno": None}, sent=True)
         if parse_utc(t1) >= deadline:                       # past the hard deadline: the body is discarded
             return self._finish_no_response(aid, request_id, request, charge, self._safe_stamp(t1),
                                             {"class": "DeadlineExceeded", "errno": None}, sent=True)
@@ -715,12 +856,21 @@ class AcquisitionRunner:
                              http_status=result.http_status, headers=[], content_encoding=None,
                              byte_length=None, raw_observation_id=None, sanitized_error=None,
                              provider_reported_usage=None, failure=AdapterFailure.EVIDENCE_CONFLICT.value)
-                self._halt(aid, request, AdapterFailure.EVIDENCE_CONFLICT, at, refused=False)
+                self._mark("after_completed")
+                raise AcquisitionHalt(self.settle(aid, request=request) or AdapterFailure.EVIDENCE_CONFLICT)
             self._mark("after_raw")
         if captured is not None and captured.kind == "SECRET":
             failure = captured.failure
         elif captured is not None and captured.failure is not None and failure is None:
             failure = captured.failure
+        verdict = None
+        if failure is None and captured is not None and captured.kind == "STORED":
+            # every content check is decided BEFORE the attempt completes, so the completed row itself carries the
+            # verdict and no resume path can ever mistake a rejected response for a successful capture (HA-04)
+            verdict = self.capture.validate(request=request, captured=captured, t1=t1)
+            failure = verdict.failure
+            if failure == AdapterFailure.CLOCK_SKEW:       # its quarantine needs the transport headers: now
+                self.capture.write_quarantine(aid, request, result, t1, failure.value, set(), captured.byte_length)
         length = captured.byte_length if captured is not None else (
             len(result.body) if result.body is not None else None)
         at = self._safe_stamp(t1)
@@ -733,24 +883,16 @@ class AcquisitionRunner:
                      raw_observation_id=captured.raw_observation_id if captured is not None else None,
                      sanitized_error=None, provider_reported_usage=usage,
                      failure=failure.value if failure else None)
-        if usage is not None and usage["reported"] is not None and usage["reported"] > usage["genesis_debited"]:
-            # the provider counted more than Genesis debited: the budget can no longer be trusted (F-37)
-            self._halt(aid, request, AdapterFailure.QUOTA_DIVERGENCE, at, refused=False)
-        parsed = None
-        moment = parse_utc(t1)
-        if captured is not None and captured.kind in ("SECRET", "UNINSPECTABLE"):
-            self._record("acq_quarantined", at, acquisition_id=aid, quarantine_id=captured.quarantine_id)
-            if captured.kind == "SECRET":
-                self._coverage(aid, request, CoverageStatus.QUARANTINED, AdapterFailure.SECRET_ECHO, at)
-                if self.capability_blocker is not None:
-                    self.capability_blocker(AdapterFailure.SECRET_ECHO.value)
-                self._record("acq_halted", at, reason=AdapterFailure.SECRET_ECHO.value)
-                raise AcquisitionHalt(AdapterFailure.SECRET_ECHO)
-            self._after_failure(aid, request, failure, at, moment)
-        elif failure is not None:
-            self._after_failure(aid, request, failure, at, moment)
-        elif captured is not None:
-            failure, parsed = self._after_success(aid, request, result, captured, t1, at)
+        self._mark("after_completed")
+        halt = self.settle(aid, request=request, decoded=captured.decoded if captured is not None else None)
+        if halt is not None:
+            raise AcquisitionHalt(halt)
+        if clock_check and failure != AdapterFailure.CLOCK_SKEW and captured is not None and captured.kind == "STORED" \
+                and self.ledger.skew_suspended_until() is not None \
+                and self.capture.clean_date_check(captured.headers, t1):
+            # the probe's clean Date check re-arms sends after a CLOCK_SKEW suspension (design 14.6 rule 5)
+            self._record("acq_clock_rearmed", self._safe_stamp(at), acquisition_id=aid)
+        parsed = verdict.parsed if verdict is not None and verdict.failure is None else None
         return AcquisitionOutcome(aid, request_id, AttemptOutcome.RESPONSE if result.outcome == "RESPONSE"
                                   else AttemptOutcome.TRUNCATED, failure, charge=charge, result=result,
                                   parsed=parsed, captured=captured)
@@ -768,42 +910,134 @@ class AcquisitionRunner:
         return {"header": PROVIDER_USAGE_HEADER, "reported": reported,
                 "genesis_debited": self.quota.ledger.usage(t1)[1], "window": "utc_month"}
 
-    def _after_success(self, aid: str, request: CanonicalRequest, result: TransportResult, captured: Captured,
-                       t1: str, at: str) -> tuple[AdapterFailure | None, Any]:
-        """HTTP 200 with stored raw bytes: metadata cache publish, then skew/type/JSON/envelope."""
+    # -- the side effects of a durable verdict (design 11.1, 14.3, 14.4, 14.6, 15; hostile audit HA-04) ------------
+    def settle_last(self) -> None:
+        """Complete the side effects of the newest attempt's verdict, if a crash cut them short (idempotent)."""
 
-        spec = self.config.endpoints[request.role]
-        verdict = self.capture.validate(request=request, captured=captured, t1=t1)
-        if verdict.failure is None:
-            if spec.cacheable:                # only a response that passed every content check is cached
-                self.quota.publish_cache(request, captured.decoded, captured_at=t1,
-                                         ttl_seconds=spec.cache_ttl_seconds)
-            return None, verdict.parsed
-        failure = verdict.failure
-        if failure == AdapterFailure.CLOCK_SKEW:
-            quarantine_id = self.capture.write_quarantine(aid, request, result, t1, failure.value, set(),
-                                                          captured.byte_length)
-            self._record("acq_quarantined", at, acquisition_id=aid, quarantine_id=quarantine_id)
-            self._record("acq_sends_suspended", at, reason=failure.value,
-                         until=iso_utc(UtcBoundaries().next_day(parse_utc(t1))))
-        self._coverage(aid, request, _COVERAGE_STATUS.get(failure, CoverageStatus.REJECTED), failure, at)
-        return failure, None
+        last = None
+        for row in self.ledger.rows():
+            if row["record_type"] == "acq_planned":
+                last = row["acquisition_id"]
+        if last is not None:
+            self.settle(last)
 
-    def _after_failure(self, aid: str, request: CanonicalRequest, failure: AdapterFailure, at: str,
-                       t1: datetime) -> None:
-        status = _COVERAGE_STATUS.get(failure, CoverageStatus.NOT_ATTEMPTED)
-        self._coverage(aid, request, status, failure, at)
-        if failure == AdapterFailure.AUTH_REJECTED:
-            self._record("acq_circuit_opened", at, scope="ALL", role=None, reason=failure.value, until=None)
-            if self.capability_blocker is not None:
-                self.capability_blocker(failure.value)
-        elif failure == AdapterFailure.RATE_LIMITED:
-            until = iso_utc(UtcBoundaries().next_day(t1))
-            if self.ledger.rate_limited_today(t1) >= 2:
-                self._record("acq_circuit_opened", at, scope="ALL", role=None, reason=failure.value, until=until)
-            else:
-                self._record("acq_circuit_opened", at, scope="ROLE", role=request.role,
-                             reason=failure.value, until=until)
+    def settle(self, aid: str, *, request: CanonicalRequest | None = None,
+               decoded: bytes | None = None) -> AdapterFailure | None:
+        """Apply, in their fixed order and each exactly once, the side effects the durable verdict of ``aid`` calls
+        for (quarantine, suspension, halt, circuit, capability block, coverage, metadata cache). The live path calls
+        this right after the verdict row; after a crash, ``settle_last`` calls it again before anything else can
+        happen, so a restart converges to the durable history of an uninterrupted run. Returns the halt the verdict
+        calls for, if any (the caller raises it)."""
+
+        rows = self.ledger.rows()
+        position = None
+        for index, row in enumerate(rows):
+            if row.get("acquisition_id") == aid and (
+                    row["record_type"] in ("acq_refused", "acq_completed", "acq_reconciled")
+                    or (row["record_type"] == "acq_quota_decided" and not row["allowed"])):
+                position = index
+        if position is None:
+            return None
+        item = _replay(rows)[aid]
+        verdict, later = rows[position], rows[position + 1:]
+        effects = verdict_effects(verdict, item, self.ledger, self.config)
+        at = max(verdict["recorded_at"], self.ledger.last_recorded_at() or verdict["recorded_at"])
+        entries = None
+        halt = None
+        for index, effect in enumerate(effects):
+            name = effect[0]
+            if name == "halted" and halt is None:
+                halt = effect[1]
+            if name == "coverage":
+                if entries is None:
+                    entries = {row.get("entry_id") for row in self.coverage.log.records()}
+                if gid("cov", acquisition_id=aid, note=effect[4]) in entries:
+                    continue
+            elif name == "capability":                      # applied iff the ledger row that follows it is there
+                if _row_present(effects[index + 1], aid, later) or self.capability_blocker is None:
+                    continue
+            elif name == "cache":
+                if self.quota.cache_indexed(item.request_hash, verdict["T1"]):
+                    continue
+            elif _row_present(effect, aid, later):
+                continue
+            self._apply_effect(effect, aid, item, verdict, at, request=request, decoded=decoded)
+        return halt
+
+    def _apply_effect(self, effect: tuple, aid: str, item: _Attempt, verdict: Mapping[str, Any], at: str, *,
+                      request: CanonicalRequest | None, decoded: bytes | None) -> None:
+        name = effect[0]
+        if name == "quarantined":
+            self._record("acq_quarantined", at, acquisition_id=aid, quarantine_id=effect[1])
+        elif name == "coverage":
+            _, status, failure, note, id_note = effect
+            reasons = (reason_code(failure),) if status != CoverageStatus.AVAILABLE else ()
+            self.coverage.append(CoverageEntry(
+                entry_id=gid("cov", acquisition_id=aid, note=id_note),
+                entity_id=f"oddspapi-request:{item.request_hash}", source_contract_id=RAW_CONTRACT_ID, status=status,
+                recorded_at=at, reason_codes=reasons, note=note))
+        elif name == "capability":
+            self.capability_blocker(effect[1].value)
+        elif name == "halted":
+            self._record("acq_halted", at, reason=effect[1].value)
+        elif name == "circuit":
+            _, scope, role, reason, until = effect
+            self._record("acq_circuit_opened", at, scope=scope, role=role, reason=reason.value, until=until)
+        elif name == "suspended":
+            self._record("acq_sends_suspended", at, reason=effect[2].value, until=effect[1])
+        elif name == "cache":
+            spec = self.config.endpoints[item.role]
+            if request is None:
+                request = CanonicalRequest.from_canonical_bytes(
+                    (self.root / "requests" / f"{item.request_hash}.json").read_bytes(), item.request_hash)
+            payload = decoded if decoded is not None else self.capture.stored_bytes(verdict["raw_observation_id"])
+            self.quota.publish_cache(request, payload, captured_at=verdict["T1"], ttl_seconds=spec.cache_ttl_seconds)
+
+    # -- the retry state machine (design 14.3; hostile audit HA-10) ------------------------------
+    def _check_retry(self, item: PlanItem, spec, now: str) -> None:
+        """Refuse, BEFORE anything durable, a plan item the retry state machine does not permit: attempt ``n > 1`` must
+        be a RETRY of attempt ``n - 1`` of the same request and window, which must be closed with a retryable
+        outcome; at most ``max_retries_per_window`` retries, after the backoff, before the window closes and only
+        with quota headroom. A first attempt is never a RETRY."""
+
+        if item.purpose not in PURPOSES:
+            raise PlanRefused("UNKNOWN_PURPOSE")
+        if type(item.attempt) is not int or item.attempt < 1:
+            raise PlanRefused("ATTEMPT_INVALID")
+        if item.attempt == 1:
+            if item.purpose == "RETRY":
+                raise PlanRefused("RETRY_WITHOUT_PRIOR_ATTEMPT")
+            return
+        if item.purpose != "RETRY":
+            raise PlanRefused("RETRY_PURPOSE_REQUIRED")
+        if item.not_after is None:                          # the window (S - prematch guard) must be stated
+            raise PlanRefused("RETRY_WINDOW_REQUIRED")
+        try:
+            not_after = iso_utc(item.not_after)
+        except (TimestampError, TypeError):
+            raise PlanRefused("RETRY_WINDOW_INVALID") from None
+        prior = self.ledger.attempts().get(
+            attempt_id(item.request.provider_request_hash, item.window_id, item.attempt - 1))
+        if prior is None:
+            raise PlanRefused("NO_PRIOR_ATTEMPT")
+        if prior.state in _OPEN_STATES:
+            raise PlanRefused("PRIOR_ATTEMPT_OPEN")
+        if prior.state == "RECONCILED":                     # a crash: no response was received (an unreserved
+            outcome, status = AttemptOutcome.ORPHANED, None  # attempt consumed even less than an orphan)
+            failure = AdapterFailure.ORPHANED_RESERVATION
+        elif prior.state in ("COMPLETED", "QUARANTINED", "NORMALIZED"):
+            outcome, status = prior.outcome, prior.http_status
+            failure = AdapterFailure(prior.failure) if prior.failure else None
+        else:                                               # refused, quota-blocked or served from the cache
+            raise PlanRefused("NOT_RETRYABLE")
+        failed_at = prior.t1 if prior.t1 is not None else prior.closed_at
+        decision = retry_decision(outcome=outcome, http_status=status, failure=failure, attempt=item.attempt - 1,
+                                  policy=self.config.policy, failed_at=iso_utc(failed_at), now=now,
+                                  not_after=not_after,
+                                  quota_headroom=self.quota.headroom(now, spec.genesis_debit_units),
+                                  circuit_open=False)       # an open circuit is refused, and recorded, just after
+        if not decision.retry:
+            raise PlanRefused(decision.reason, decision.earliest if decision.reason == "BACKOFF" else None)
 
     # -- duplicates, restart and retry -------------------------------------------------------
     def _duplicate(self, aid: str, request_id: str, item: _Attempt) -> AcquisitionOutcome:
@@ -814,10 +1048,12 @@ class AcquisitionRunner:
         return AcquisitionOutcome(aid, request_id, AttemptOutcome.DUPLICATE, failure)
 
     def reconcile_after_restart(self) -> tuple[str, ...]:
-        """Close every attempt left open by a crash. Debits stand; nothing is re-sent."""
+        """Complete the newest verdict's side effects, then close every attempt left open by a crash. Debits
+        stand; nothing is re-sent."""
 
         now = self._stamp()
         require_not_before(now, *self._durable_heads())
+        self.settle_last()
         reconciled: list[str] = []
         for aid, item in self.ledger.attempts().items():
             if item.state not in _OPEN_STATES:
@@ -830,11 +1066,6 @@ class AcquisitionRunner:
                          outcome="ORPHANED_RESERVATION" if orphan else "NOT_RESERVED",
                          quota_row_found=row is not None,
                          send_state="MAY_HAVE_BEEN_SENT" if item.state == "SENT" else "NOT_SENT")
-            self.coverage.append(CoverageEntry(
-                entry_id=gid("cov", acquisition_id=aid, note="RECONCILED"),
-                entity_id=f"oddspapi-request:{item.request_hash}", source_contract_id=RAW_CONTRACT_ID,
-                status=CoverageStatus.MISSING if orphan else CoverageStatus.NOT_ATTEMPTED, recorded_at=at,
-                reason_codes=(reason_code(AdapterFailure.ORPHANED_RESERVATION),),
-                note=AdapterFailure.ORPHANED_RESERVATION.value if orphan else "NOT_RESERVED"))
+            self.settle(aid)                                # its coverage entry
             reconciled.append(aid)
         return tuple(reconciled)

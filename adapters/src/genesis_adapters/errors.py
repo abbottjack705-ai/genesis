@@ -126,6 +126,20 @@ class AcquisitionHalt(RuntimeError):
         self.code = code
 
 
+class PlanRefused(ValueError):
+    """A plan item the retry state machine does not permit (design 14.3), refused BEFORE anything durable happens:
+    no acquisition row, no debit, no send.
+
+    ``reason`` is the refusal (the ``retry_decision`` reason, or a sequencing reason such as
+    ``RETRY_PURPOSE_REQUIRED``); ``not_before`` is the earliest time a BACKOFF-refused retry may be planned.
+    """
+
+    def __init__(self, reason: str, not_before: str | None = None):
+        super().__init__(reason)
+        self.reason = reason
+        self.not_before = not_before
+
+
 R = ReasonCode
 REASON_CODE_MAP: dict[AdapterFailure, ReasonCode] = {
     AdapterFailure.GATE_MISSING: R.CONFIGURATION_MISMATCH,

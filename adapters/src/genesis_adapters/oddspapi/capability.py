@@ -55,6 +55,17 @@ def register_downgrade(capabilities: SourceCapabilityRegistry, source_id: str, *
     return capabilities.register(capability)
 
 
+def anchor_unknown(capabilities: SourceCapabilityRegistry, source_id: str, *, at: str, reason: str) -> bool:
+    """Register ``source_id`` UNKNOWN at ``at`` unless it already has a capability row (design 16.4: during G2R the
+    market-book sources are UNKNOWN). The frozen registry's monotonic ``recorded_at`` then refuses any READY row
+    recorded earlier, so a later approval can never be dated before the recurring capture began (P:HA-013)."""
+
+    if capabilities.history(source_id):
+        return False
+    register_downgrade(capabilities, source_id, status=OperationalStatus.UNKNOWN, at=at, reason=reason)
+    return True
+
+
 def market_book_sources(capabilities: SourceCapabilityRegistry) -> tuple[str, ...]:
     return tuple(sorted({row["source_id"] for row in capabilities.log.records()
                          if row.get("record_type") == "source_capability_registered"

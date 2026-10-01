@@ -146,8 +146,16 @@ def cmd_verify(args) -> int:
 
 
 def cmd_approve(args, *, prompt=None) -> int:
-    """Append one gate record (operator only)."""
+    """Append one gate record (operator only). Its ``granted_at`` is the trusted clock's reading at approval (design
+    16.2), never a time chosen in the record file: a file naming a time further than ``clock_skew_max_seconds`` from
+    that reading is refused (hostile audit P:HA-013), so no gate can be made retroactively valid."""
 
+    from datetime import timedelta
+
+    from genesis.time import TimestampError, parse_utc
+
+    from genesis_adapters.clock import ClockFault, SystemUtcClock
+    from genesis_adapters.config import load_policy
     from genesis_adapters.oddspapi.authority import AdapterAuthorityLedger, load_gate_limits
 
     record = json.loads(Path(args.record).read_text(encoding="utf-8"))
@@ -158,26 +166,61 @@ def cmd_approve(args, *, prompt=None) -> int:
     if not _interactive_confirmation(prompt):
         sys.stderr.write("refused: approval needs an interactive terminal and the typed confirmation phrase\n")
         return EXIT_REFUSED
-    ledger = AdapterAuthorityLedger(Path(args.root) / "authority.jsonl", limits=load_gate_limits(_config_dir(args.config)))
-    ledger.append(record)
+    config_dir = _config_dir(args.config)
+    policy = load_policy(config_dir / "oddspapi_slice1_policy.json")
+    ledger = AdapterAuthorityLedger(Path(args.root) / "authority.jsonl", limits=load_gate_limits(config_dir))
+    granted = [row["granted_at"] for row in ledger.records()]
+    try:
+        now = SystemUtcClock(drift_max_ms=policy.wall_monotonic_drift_max_ms,
+                             floor=max(granted, key=parse_utc) if granted else None).now()
+    except ClockFault:
+        sys.stderr.write("refused: the trusted clock is behind the authority ledger\n")
+        return EXIT_REFUSED
+    stated = record.get("granted_at")
+    if stated is not None:
+        try:
+            off = abs(parse_utc(stated) - parse_utc(now))
+        except (TimestampError, TypeError, ValueError):
+            off = None
+        if off is None or off > timedelta(seconds=policy.clock_skew_max_seconds):
+            sys.stderr.write("refused: granted_at is stamped by the trusted clock at approval, not chosen in the "
+                             "record\n")
+            return EXIT_REFUSED
+    ledger.append({**record, "granted_at": now})
     sys.stdout.write("approved\n")
     return EXIT_OK
 
 
 def cmd_approve_ready(args, *, prompt=None) -> int:
-    """Mark a market-book source READY after a G3 record (design 16.5; G-03). Operator only."""
+    """Mark a market-book source READY after a G3 record (design 16.5; G-03). Operator only.
+
+    The READY row is recorded at the trusted clock's reading (design 16.5, ``recorded_at=now``), never at a time the
+    operator chooses, and never earlier than the source's latest capability row (the clock's floor), so READY can
+    never be made retroactively usable at an earlier cutoff (hostile audit P:HA-013)."""
 
     from genesis.feature_manifest import SourceInputBindingStore
     from genesis.pit import OperationalStatus, SourceCapability, SourceCapabilityRegistry
     from genesis.time import iso_utc
 
+    from genesis_adapters.clock import ClockFault, SystemUtcClock
+    from genesis_adapters.config import load_policy
     from genesis_adapters.errors import GateMissing
     from genesis_adapters.oddspapi.authority import AdapterAuthorityLedger, load_gate_limits
 
     root = Path(args.root)
-    ledger = AdapterAuthorityLedger(root / "authority.jsonl", limits=load_gate_limits(_config_dir(args.config)))
+    config_dir = _config_dir(args.config)
+    policy = load_policy(config_dir / "oddspapi_slice1_policy.json")
+    ledger = AdapterAuthorityLedger(root / "authority.jsonl", limits=load_gate_limits(config_dir))
+    capabilities = SourceCapabilityRegistry(root / "capabilities.jsonl")
+    history = capabilities.history(args.source_id)
     try:
-        record = ledger.require_gate("G3", at=args.at, derivation_version=args.derivation_version,
+        now = SystemUtcClock(drift_max_ms=policy.wall_monotonic_drift_max_ms,
+                             floor=iso_utc(history[-1].recorded_at) if history else None).now()
+    except ClockFault:
+        sys.stderr.write("refused: the trusted clock is behind the source's latest capability row\n")
+        return EXIT_REFUSED
+    try:
+        record = ledger.require_gate("G3", at=now, derivation_version=args.derivation_version,
                                      source_id=args.source_id, contract_id=args.contract_id)
     except GateMissing:
         sys.stderr.write("refused: no G3 record for this source\n")
@@ -185,13 +228,12 @@ def cmd_approve_ready(args, *, prompt=None) -> int:
     if not _interactive_confirmation(prompt):
         sys.stderr.write("refused: approval needs an interactive terminal and the typed confirmation phrase\n")
         return EXIT_REFUSED
-    capabilities = SourceCapabilityRegistry(root / "capabilities.jsonl")
     capabilities.register(SourceCapability(
         source_id=args.source_id, provider="oddspapi", access_method="rest_pregame_v4", cost_tier=args.cost_tier,
         entitlement_class="read_only_personal_research", historical_availability_class="none",
         point_in_time_reliability="prospective_verified", revision_behaviour="append_only_supersede",
         coverage="soccer.eng.premier-league,soccer.esp.laliga", rate_quota_limits="frozen quota policy",
-        schema_version="v1", operational_status=OperationalStatus.READY, recorded_at=iso_utc(args.at),
+        schema_version="v1", operational_status=OperationalStatus.READY, recorded_at=now,
         version=args.derivation_version + "-ready-1"))
     SourceInputBindingStore(root / "bindings.jsonl").register(
         source_id=args.source_id, source_contract_id=args.contract_id, provider="oddspapi",
@@ -237,7 +279,7 @@ def _run(args) -> int:
     from genesis_adapters.config import load_adapter_config
     from genesis_adapters.credential import CredentialSource
     from genesis_adapters.errors import CredentialProblem, PlanRefused
-    from genesis_adapters.oddspapi import emit, endpoints, normalize, pipeline
+    from genesis_adapters.oddspapi import capability, emit, endpoints, normalize, pipeline
     from genesis_adapters.oddspapi.acquisition import AcquisitionLedger, PlanItem
     from genesis_adapters.oddspapi.authority import (
         MODE_VERIFICATION, AdapterAuthorityLedger, LiveGate, load_gate_limits, sent_counter,
@@ -277,7 +319,8 @@ def _run(args) -> int:
     if args.mode == MODE_VERIFICATION:                          # G2: raw only, nothing normalized
         rt.runner.reconcile_after_restart()
         emit.complete_pending_invalidations(rt.stores, clock=clock)
-    else:
+    else:                                                       # G2R: the source's timeline starts UNKNOWN (16.4)
+        capability.anchor_unknown(rt.stores.capabilities, rt.stores.source_id, at=clock.now(), reason="G2R_START")
         rt.resume()
     entries = json.loads(Path(args.plan).read_text(encoding="utf-8"))
     clock_check = bool(getattr(args, "clock_check", False))
@@ -301,12 +344,19 @@ def _run(args) -> int:
 
 
 def cmd_reset(args, *, prompt=None) -> int:
-    """Clear a durable halt or open circuit (operator only, after the cause was fixed - e.g. a rotated key and a
-    new G1 record after SECRET_ECHO or AUTH_REJECTED). Writes one ``acq_operator_reset`` row."""
+    """Clear a durable halt or open circuit (operator only, after the cause was fixed). Writes one
+    ``acq_operator_reset`` row.
+
+    A security halt is cleared only by what the design prescribes (hostile audit P:HA-014): a SECRET_ECHO halt only
+    after a G1 record granted after it for a rotated key - a fingerprint other than the one in force at the halt
+    (design 7.6: "a human must rotate the key (re-G1)") - and an AUTH_REJECTED circuit only after a G1 record granted
+    after it (design 14.3: "a human must re-approve (G1 re-check)"). A CLOCK_SKEW suspension is never cleared by a
+    reset (design 14.6 rule 5: only the next UTC day and a clean Date check)."""
 
     from genesis_adapters.clock import SystemUtcClock
     from genesis_adapters.config import load_policy
     from genesis_adapters.oddspapi.acquisition import AcquisitionLedger
+    from genesis_adapters.oddspapi.authority import AdapterAuthorityLedger, load_gate_limits
 
     if not str(args.approval_reference).startswith(_REFERENCE_PREFIXES):
         sys.stderr.write("refused: approval_reference must name an out-of-band human artifact\n")
@@ -314,13 +364,45 @@ def cmd_reset(args, *, prompt=None) -> int:
     if not _interactive_confirmation(prompt):
         sys.stderr.write("refused: a reset needs an interactive terminal and the typed confirmation phrase\n")
         return EXIT_REFUSED
-    policy = load_policy(_config_dir(args.config) / "oddspapi_slice1_policy.json")
+    config_dir = _config_dir(args.config)
+    policy = load_policy(config_dir / "oddspapi_slice1_policy.json")
     ledger = AcquisitionLedger(Path(args.root) / "acquisition.jsonl")
+    grants = AdapterAuthorityLedger(Path(args.root) / "authority.jsonl", limits=load_gate_limits(config_dir))
+    refusal = _security_halt_unresolved(ledger.rows(), grants.records("G1"))
+    if refusal is not None:
+        sys.stderr.write(f"refused: {refusal}\n")
+        return EXIT_REFUSED
     ledger.append("acq_operator_reset", recorded_at=SystemUtcClock(drift_max_ms=policy.wall_monotonic_drift_max_ms,
                                                                     floor=ledger.last_recorded_at()).now(),
                   approval_reference=args.approval_reference, reason=args.reason)
     sys.stdout.write("reset\n")
     return EXIT_OK
+
+
+def _security_halt_unresolved(rows, grants) -> str | None:
+    """Why a reset may not clear the security halts in the acquisition ledger, or None if it may. Every such halt
+    is checked, not only those since the last reset: one resolved stays resolved, as gate records are only added."""
+
+    from genesis.time import parse_utc
+
+    from genesis_adapters.errors import AdapterFailure
+
+    for row in rows:
+        secret = row["record_type"] == "acq_halted" and row["reason"] == AdapterFailure.SECRET_ECHO.value
+        rejected = row["record_type"] == "acq_circuit_opened" and row["reason"] == AdapterFailure.AUTH_REJECTED.value
+        if not (secret or rejected):
+            continue
+        at = parse_utc(row["recorded_at"])
+        after = [grant for grant in grants if parse_utc(grant["granted_at"]) > at]
+        if secret:
+            # the echoed key was authorized by some G1 granted at or before the halt (a gate is valid only from its
+            # granted_at); no send records which, so a rotated key is one that no such G1 ever named (fail closed)
+            approved = {grant["credential_fingerprint"] for grant in grants if parse_utc(grant["granted_at"]) <= at}
+            if not any(grant["credential_fingerprint"] not in approved for grant in after):
+                return "a SECRET_ECHO halt is cleared only after a new G1 record for a rotated key (design 7.6)"
+        elif not after:
+            return "an AUTH_REJECTED circuit is cleared only after a new G1 record (design 14.3)"
+    return None
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -350,7 +432,7 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--mode", choices=("G2", "G2R"), required=True)
     run.add_argument("--clock-check", action="store_true")     # the one probe that may re-arm sends (14.6 rule 5)
     ready = commands.add_parser("approve-ready")
-    for name in ("--root", "--at", "--derivation-version", "--source-id", "--contract-id", "--cost-tier"):
+    for name in ("--root", "--derivation-version", "--source-id", "--contract-id", "--cost-tier"):
         ready.add_argument(name, required=True)
     return parser
 

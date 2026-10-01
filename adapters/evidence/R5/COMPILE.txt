@@ -1,0 +1,7 @@
+# R5 compileall
+# command: python -m compileall -q src tests adapters/src adapters/adapter_tests
+# start: 2026-10-01T10:07:31Z
+# python: Python 3.12.10
+# HEAD (base): 2e1fb27cfe9f8eb41000b24e8d5108822757c8cd
+----
+# exit: 0

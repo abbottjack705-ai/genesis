@@ -1,0 +1,125 @@
+# R5 RED: the R5 tests against the unmodified R4 production code (2e1fb27cfe9f8eb41000b24e8d5108822757c8cd)
+# command: PYTHONPYCACHEPREFIX=<fresh> python -B -m unittest adapter_tests.test_v05_r5_operator adapter_tests.test_v05_authority -v
+# start: 2026-10-01T02:42:31Z
+# python: Python 3.12.10
+----
+test_p013_a_capture_made_before_the_approval_is_not_usable_at_any_cutoff_before_it (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_a_capture_made_before_the_approval_is_not_usable_at_any_cutoff_before_it) ... FAIL
+test_p013_a_g2r_cli_start_anchors_the_running_source_unknown_once (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_a_g2r_cli_start_anchors_the_running_source_unknown_once) ... FAIL
+test_p013_a_recurring_run_anchors_the_capability_timeline_unknown (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_a_recurring_run_anchors_the_capability_timeline_unknown) ... ERROR
+test_p013_approve_ready_takes_no_operator_time (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_approve_ready_takes_no_operator_time) ... FAIL
+test_p013_approve_stamps_granted_at_with_the_trusted_clock_and_refuses_a_chosen_one (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_approve_stamps_granted_at_with_the_trusted_clock_and_refuses_a_chosen_one) ... FAIL
+test_p013_ready_is_never_recorded_before_the_sources_latest_capability_row (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_ready_is_never_recorded_before_the_sources_latest_capability_row) ... ERROR
+test_p014_a_secret_echo_halt_is_cleared_only_after_a_g1_for_a_rotated_key (adapter_tests.test_v05_r5_operator.SecurityResetTests.test_p014_a_secret_echo_halt_is_cleared_only_after_a_g1_for_a_rotated_key) ... FAIL
+test_p014_an_auth_rejection_is_cleared_only_after_a_new_g1 (adapter_tests.test_v05_r5_operator.SecurityResetTests.test_p014_an_auth_rejection_is_cleared_only_after_a_new_g1) ... FAIL
+test_p014_no_key_approved_before_the_halt_counts_as_rotated (adapter_tests.test_v05_r5_operator.SecurityResetTests.test_p014_no_key_approved_before_the_halt_counts_as_rotated) ... FAIL
+test_p014_other_halts_reset_as_before (adapter_tests.test_v05_r5_operator.SecurityResetTests.test_p014_other_halts_reset_as_before) ... ok
+test_approve_refuses_without_a_terminal_a_phrase_or_an_out_of_band_reference (adapter_tests.test_v05_authority.CapabilityGateTests.test_approve_refuses_without_a_terminal_a_phrase_or_an_out_of_band_reference) ... ok
+test_g03_ready_only_through_the_operator_cli_after_a_g3_record (adapter_tests.test_v05_authority.CapabilityGateTests.test_g03_ready_only_through_the_operator_cli_after_a_g3_record) ... ERROR
+test_g04_auth_rejection_blocks_every_market_book_source (adapter_tests.test_v05_authority.CapabilityGateTests.test_g04_auth_rejection_blocks_every_market_book_source) ... ok
+test_only_an_interactive_operator_reset_clears_a_durable_circuit (adapter_tests.test_v05_authority.CapabilityGateTests.test_only_an_interactive_operator_reset_clears_a_durable_circuit) ... ok
+test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) ... ok
+test_r2_the_operator_cli_cannot_be_pointed_at_relaxed_limits (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_the_operator_cli_cannot_be_pointed_at_relaxed_limits) ... ok
+test_r2_the_pinned_digest_is_the_digest_of_the_shipped_file (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_the_pinned_digest_is_the_digest_of_the_shipped_file) ... ok
+test_r2_the_shipped_file_holds_exactly_the_design_16_3_and_16_4_bounds (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_the_shipped_file_holds_exactly_the_design_16_3_and_16_4_bounds) ... ok
+test_clk02_a_live_runner_refuses_a_test_clock_and_a_test_quota_policy (adapter_tests.test_v05_authority.LiveGateTests.test_clk02_a_live_runner_refuses_a_test_clock_and_a_test_quota_policy) ... ok
+test_g01_without_every_gate_element_nothing_is_sent (adapter_tests.test_v05_authority.LiveGateTests.test_g01_without_every_gate_element_nothing_is_sent) ... ok
+test_g02_only_pinned_requests_at_most_max_calls_inside_the_window (adapter_tests.test_v05_authority.LiveGateTests.test_g02_only_pinned_requests_at_most_max_calls_inside_the_window) ... ok
+test_g2r_must_pin_the_running_derivation_and_policy (adapter_tests.test_v05_authority.LiveGateTests.test_g2r_must_pin_the_running_derivation_and_policy) ... ok
+test_sent_counter_counts_only_sends_of_the_given_requests_since_the_window_opened (adapter_tests.test_v05_authority.LiveGateTests.test_sent_counter_counts_only_sends_of_the_given_requests_since_the_window_opened) ... ok
+test_only_the_operator_cli_can_reach_the_gate_ledger_or_write_ready (adapter_tests.test_v05_authority.RecordTests.test_only_the_operator_cli_can_reach_the_gate_ledger_or_write_ready) ... ok
+test_records_are_closed_and_bounded (adapter_tests.test_v05_authority.RecordTests.test_records_are_closed_and_bounded) ... ok
+
+======================================================================
+ERROR: test_p013_a_recurring_run_anchors_the_capability_timeline_unknown (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_a_recurring_run_anchors_the_capability_timeline_unknown)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r5_operator.py", line 184, in test_p013_a_recurring_run_anchors_the_capability_timeline_unknown
+    self.assertTrue(capability.anchor_unknown(stores.capabilities, stores.source_id, at=CAPTURE,
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'genesis_adapters.oddspapi.capability' has no attribute 'anchor_unknown'
+
+======================================================================
+ERROR: test_p013_ready_is_never_recorded_before_the_sources_latest_capability_row (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_ready_is_never_recorded_before_the_sources_latest_capability_row)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r5_operator.py", line 137, in test_p013_ready_is_never_recorded_before_the_sources_latest_capability_row
+    capability.anchor_unknown(rt.stores.capabilities, rt.stores.source_id, at=APPROVAL, reason="G2R_START")
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'genesis_adapters.oddspapi.capability' has no attribute 'anchor_unknown'
+
+======================================================================
+ERROR: test_g03_ready_only_through_the_operator_cli_after_a_g3_record (adapter_tests.test_v05_authority.CapabilityGateTests.test_g03_ready_only_through_the_operator_cli_after_a_g3_record)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_authority.py", line 316, in test_g03_ready_only_through_the_operator_cli_after_a_g3_record
+    self.assertEqual(cli.cmd_approve_ready(args, prompt=lambda _: cli.CONFIRMATION_PHRASE), cli.EXIT_REFUSED)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\g\adapters\src\genesis_adapters\cli.py", line 180, in cmd_approve_ready
+    record = ledger.require_gate("G3", at=args.at, derivation_version=args.derivation_version,
+                                          ^^^^^^^
+AttributeError: 'types.SimpleNamespace' object has no attribute 'at'
+
+======================================================================
+FAIL: test_p013_a_capture_made_before_the_approval_is_not_usable_at_any_cutoff_before_it (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_a_capture_made_before_the_approval_is_not_usable_at_any_cutoff_before_it)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r5_operator.py", line 117, in test_p013_a_capture_made_before_the_approval_is_not_usable_at_any_cutoff_before_it
+    self.assertEqual(self.ready(root, rt, APPROVAL), cli.EXIT_OK)
+AssertionError: 2 != 0
+
+======================================================================
+FAIL: test_p013_a_g2r_cli_start_anchors_the_running_source_unknown_once (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_a_g2r_cli_start_anchors_the_running_source_unknown_once)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r5_operator.py", line 176, in test_p013_a_g2r_cli_start_anchors_the_running_source_unknown_once
+    self.assertEqual(len(statuses), 1, statuses)
+AssertionError: 0 != 1 : []
+
+======================================================================
+FAIL: test_p013_approve_ready_takes_no_operator_time (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_approve_ready_takes_no_operator_time)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r5_operator.py", line 97, in test_p013_approve_ready_takes_no_operator_time
+    with mock.patch("sys.stderr"), self.assertRaises(SystemExit):
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: SystemExit not raised
+
+======================================================================
+FAIL: test_p013_approve_stamps_granted_at_with_the_trusted_clock_and_refuses_a_chosen_one (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_approve_stamps_granted_at_with_the_trusted_clock_and_refuses_a_chosen_one)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r5_operator.py", line 81, in test_p013_approve_stamps_granted_at_with_the_trusted_clock_and_refuses_a_chosen_one
+    self.assertEqual(self.approve(root, backdated), cli.EXIT_REFUSED)
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_p014_a_secret_echo_halt_is_cleared_only_after_a_g1_for_a_rotated_key (adapter_tests.test_v05_r5_operator.SecurityResetTests.test_p014_a_secret_echo_halt_is_cleared_only_after_a_g1_for_a_rotated_key)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r5_operator.py", line 223, in test_p014_a_secret_echo_halt_is_cleared_only_after_a_g1_for_a_rotated_key
+    self.assertEqual(self.reset(root), cli.EXIT_REFUSED)                 # no new G1 at all
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_p014_an_auth_rejection_is_cleared_only_after_a_new_g1 (adapter_tests.test_v05_r5_operator.SecurityResetTests.test_p014_an_auth_rejection_is_cleared_only_after_a_new_g1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r5_operator.py", line 257, in test_p014_an_auth_rejection_is_cleared_only_after_a_new_g1
+    self.assertEqual(self.reset(root), cli.EXIT_REFUSED)
+AssertionError: 0 != 2
+
+======================================================================
+FAIL: test_p014_no_key_approved_before_the_halt_counts_as_rotated (adapter_tests.test_v05_r5_operator.SecurityResetTests.test_p014_no_key_approved_before_the_halt_counts_as_rotated)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r5_operator.py", line 246, in test_p014_no_key_approved_before_the_halt_counts_as_rotated
+    self.assertEqual(self.reset(root), cli.EXIT_REFUSED)
+AssertionError: 0 != 2
+
+----------------------------------------------------------------------
+Ran 25 tests in 9.320s
+
+FAILED (failures=7, errors=3)
+# exit: 1
+# end: 2026-10-01T02:42:42Z

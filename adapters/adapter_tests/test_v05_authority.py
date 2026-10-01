@@ -304,18 +304,18 @@ class CapabilityGateTests(unittest.TestCase):
                 self.assertFalse(rt.stores.capabilities.history(source)[-1].is_ready(), source)
             self.assertEqual(rt.acquire(odds_item("w2")).outcome.failure, err.AdapterFailure.CIRCUIT_OPEN)
 
-    def ready_args(self, root, rt, at):
-        return SimpleNamespace(config=None, root=str(root), at=at, derivation_version=rt.config.derivation_version,
+    def ready_args(self, root, rt):
+        # no time argument: READY is recorded at the trusted clock's reading (design 16.5, hostile audit P:HA-013)
+        return SimpleNamespace(config=None, root=str(root), derivation_version=rt.config.derivation_version,
                                source_id=rt.stores.source_id, contract_id=rt.stores.contract_id, cost_tier="fixture")
 
     def test_g03_ready_only_through_the_operator_cli_after_a_g3_record(self):
         with scratch_root() as root:
             rt = open_rt(root)
-            at = "2026-10-20T00:00:00.000000Z"
-            args = self.ready_args(root, rt, at)
+            args = self.ready_args(root, rt)
             self.assertEqual(cli.cmd_approve_ready(args, prompt=lambda _: cli.CONFIRMATION_PHRASE), cli.EXIT_REFUSED)
             ledger = auth.AdapterAuthorityLedger(root / "authority.jsonl", limits=LIMITS)
-            ledger.append(g3(datetime(2026, 10, 19, tzinfo=timezone.utc), derivation=rt.config.derivation_version,
+            ledger.append(g3(now_utc() - timedelta(minutes=1), derivation=rt.config.derivation_version,
                              source=rt.stores.source_id, contract=rt.stores.contract_id))
             self.assertEqual(cli.cmd_approve_ready(args, prompt=lambda _: "yes"), cli.EXIT_REFUSED)   # wrong phrase
             self.assertEqual(cli.cmd_approve_ready(args), cli.EXIT_REFUSED)                          # no terminal
@@ -339,6 +339,9 @@ class CapabilityGateTests(unittest.TestCase):
                                            prompt=lambda _: cli.CONFIRMATION_PHRASE), cli.EXIT_REFUSED)
             rt.clock.set("2026-09-01T13:00:00.000000Z")
             self.assertEqual(rt.runner.acquire(odds_item("w2")).failure, err.AdapterFailure.CIRCUIT_OPEN)
+            # an AUTH_REJECTED circuit is cleared only after a human re-approves: a G1 record granted after it
+            # (design 14.3, hostile audit P:HA-014)
+            auth.AdapterAuthorityLedger(root / "authority.jsonl", limits=LIMITS).append(g1(now_utc()))
             self.assertEqual(cli.cmd_reset(args, prompt=lambda _: cli.CONFIRMATION_PHRASE), cli.EXIT_OK)
             rt.clock.set(iso_utc(now_utc() + timedelta(hours=1)))
             self.assertNotEqual(rt.runner.acquire(odds_item("w3")).failure, err.AdapterFailure.CIRCUIT_OPEN)

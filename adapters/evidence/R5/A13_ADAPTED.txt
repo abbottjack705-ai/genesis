@@ -1,0 +1,81 @@
+# R5: parallel audit attack attacks/a13_ready_backdate.py (37b86fb, read-only) run against the R5 worktree
+# run: 2026-10-01T09:30:46Z | base HEAD 2e1fb27cfe9f8eb41000b24e8d5108822757c8cd + R5 worktree changes
+# command: HA_SCRATCH=<scratchpad> python -B <scratch copy>/a13_ready_backdate.py --repo C:\Users\abbot\fz\g --out <scratch>/a13_r5_result.json
+# source sha256 (audit copy): 65bdd595a48634bf04371c8b607637ba41a590b5af2d8d88b4a4488b2a0e8098  _common.py: c37a1bf278142c8f01475758eed58f12557004a94e5b8479c3af770d6207246b
+# the run used a scratch copy; _common.py identical; one remediation-side adaptation, shown below (R4/HA-12 made the
+# derivation verifier a required argument of admissible_head; the check under test is the capability timeline):
+----
+77c77,80
+<     head = reader.admissible_head(open_row["entity_id"], decision, stores=rt.stores)
+---
+>     # REMEDIATION-SIDE ADAPTATION (disclosed): R4 (HA-12) made the derivation verifier a required argument; the
+>     # check under test is the capability timeline, so an explicit accept-all verifier is passed
+>     head = reader.admissible_head(open_row["entity_id"], decision, stores=rt.stores,
+>                                   derivation_check=lambda _observation_id: None)
+----
+# stdout+stderr:
+refused: granted_at is stamped by the trusted clock at approval, not chosen in the record
+refused: no G3 record for this source
+refused: a SECRET_ECHO halt is cleared only after a new G1 record for a rotated key (design 7.6)
+[FAIL] A13 16.4: a G2R-style capture leaves an UNKNOWN capability row for its market-book source {"capability_rows": 0}
+[PASS] A13 16.2/16.6: a gate record's granted_at is stamped by the trusted clock, not taken from the file {"exit": 2, "stored_granted_at": null}
+[PASS] A13 16.5: the READY row is recorded at the trusted-clock 'now' of the approval, never at an operator-chosen earlier time {"exit": 2, "ready_recorded_at": null}
+[PASS] A13 consequence: a cutoff taken between capture and the approval moment must not replay as usable {"decision_at": "2026-10-01T12:00:01.008000Z", "approval_moment": "2026-10-01T12:30:00.010000Z", "reader": "Unusable", "note": "usable here means the capability timeline was rewritten after the fact"}
+[PASS] A13 7.6/F-11: after SECRET_ECHO, sends stay halted until a re-G1 with a new credential exists {"halted_before": "SECRET_ECHO", "reset_exit": 2, "blocking_after": "SECRET_ECHO", "g1_records": 0}
+== 5 checks, 1 failed
+exit 1
+----
+# --out JSON:
+{
+ "checks": 5,
+ "failed": 1,
+ "results": [
+  {
+   "area": "A13",
+   "check": "16.4: a G2R-style capture leaves an UNKNOWN capability row for its market-book source",
+   "pass": false,
+   "capability_rows": 0
+  },
+  {
+   "area": "A13",
+   "check": "16.2/16.6: a gate record's granted_at is stamped by the trusted clock, not taken from the file",
+   "pass": true,
+   "exit": 2,
+   "stored_granted_at": null
+  },
+  {
+   "area": "A13",
+   "check": "16.5: the READY row is recorded at the trusted-clock 'now' of the approval, never at an operator-chosen earlier time",
+   "pass": true,
+   "exit": 2,
+   "ready_recorded_at": null
+  },
+  {
+   "area": "A13",
+   "check": "consequence: a cutoff taken between capture and the approval moment must not replay as usable",
+   "pass": true,
+   "decision_at": "2026-10-01T12:00:01.008000Z",
+   "approval_moment": "2026-10-01T12:30:00.010000Z",
+   "reader": "Unusable",
+   "note": "usable here means the capability timeline was rewritten after the fact"
+  },
+  {
+   "area": "A13",
+   "check": "7.6/F-11: after SECRET_ECHO, sends stay halted until a re-G1 with a new credential exists",
+   "pass": true,
+   "halted_before": "SECRET_ECHO",
+   "reset_exit": 2,
+   "blocking_after": "SECRET_ECHO",
+   "g1_records": 0
+  }
+ ]
+}
+----
+# reading (remediation side, not an audit verdict):
+# - check 4 '7.6/F-11 ... re-G1 with a new credential' is the handoff's HA-014 acceptance criterion ('last check must PASS'): PASS.
+# - checks 2, 3 and 'consequence' (P:HA-013 gate/READY times): PASS - the back-dated record is refused, so READY cannot be
+#   recorded at the operator's time and the capture is not usable at a cutoff before the approval moment.
+# - check 1 '16.4 ... G2R-style capture leaves an UNKNOWN row' FAILS by construction: the attack captures through the offline
+#   fixture pipeline (pipeline.open_runtime + rt.acquire), which is not a G2R run and registers no capability rows. R5 registers
+#   UNKNOWN where design 16.4 and the handoff place it - at the start of 'cli.py run --mode G2R', the only G2R entry point -
+#   covered by test_p013_a_g2r_cli_start_anchors_the_running_source_unknown_once (mutant 'a G2R start does not anchor UNKNOWN' KILLED).

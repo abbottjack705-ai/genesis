@@ -114,7 +114,7 @@ python -B -m genesis_adapters.cli plan   --fixtures F.json --month 2026-10 --as-
 python -B -m genesis_adapters.cli report --root <runtime root>     # Genesis debit vs provider-reported usage
 python -B -m genesis_adapters.cli verify --root <runtime root>     # verify_derivation for 100% of documents
 python -B -m genesis_adapters.cli approve --root <runtime root> --record gate.json        # interactive, operator only
-python -B -m genesis_adapters.cli approve-ready --root <runtime root> --at ... --derivation-version ... \
+python -B -m genesis_adapters.cli approve-ready --root <runtime root> --derivation-version ... \
        --source-id ... --contract-id ... --cost-tier ...                                  # after a G3 record only
 python -B -m genesis_adapters.cli reset --root <runtime root> --approval-reference adr:... --reason "..."
 python -B -m genesis_adapters.cli run --root <runtime root> --plan plan.json --mode G2|G2R [--clock-check]
@@ -151,6 +151,17 @@ store and connects to the pinned host: there is no option to add a CA or redirec
 audit P:HA-006). `approve`, `approve-ready` and `reset` refuse without an interactive terminal,
 the typed confirmation phrase and an `approval_reference` naming an out-of-band artifact (`adr:`,
 `signed-tag:`, `pr-approval:` or an `https://` link). Gate bounds live in `config/oddspapi_gate_limits.json`.
+
+Operator times are never chosen by the operator (design 16.2, 16.5; parallel audit P:HA-013): `approve` stamps a
+gate record's `granted_at` with the trusted clock at approval (a record file naming a time more than
+`clock_skew_max_seconds` away, or not a time at all, is refused), and `approve-ready` has no time option: it
+checks the G3 record and records READY at the trusted clock's reading, never earlier than the source's latest
+capability row. A capture made before that approval is therefore not usable at any cutoff before it. The first
+`run --mode G2R` registers the running source `UNKNOWN` (design 16.4), anchoring its capability timeline.
+`reset` clears a security halt only as the design prescribes (P:HA-014): a `SECRET_ECHO` halt only after a G1
+record, granted after the halt, for a key no G1 named before it (a rotated key, design 7.6), and an
+`AUTH_REJECTED` circuit only after a G1 record granted after it (design 14.3). Other halts reset as before; a
+`CLOCK_SKEW` suspension never resets (see above).
 
 ## Credential storage, rotation and revocation (G1 prerequisite, design 7.5)
 

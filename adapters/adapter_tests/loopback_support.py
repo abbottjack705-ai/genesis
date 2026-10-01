@@ -101,6 +101,13 @@ class LoopbackHttps:
         self.thread.join(timeout=5)
 
 
+def test_ca_context() -> ssl.SSLContext:
+    """A verifying client context that trusts ONLY the throwaway test CA (tests only; production uses the system
+    trust store and has no way to take this CA)."""
+
+    return ssl.create_default_context(cafile=str(TEST_CA))
+
+
 def unused_loopback_port() -> int:
     probe = socket.create_server(("127.0.0.1", 0))
     port = probe.getsockname()[1]

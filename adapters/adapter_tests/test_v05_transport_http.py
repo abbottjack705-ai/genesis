@@ -15,7 +15,7 @@ from genesis_adapters.oddspapi import transport_http as th
 from genesis_adapters.secrets import Secret
 
 from . import parser_support as ps
-from .loopback_support import TEST_CA, LoopbackHttps, Reply, unused_loopback_port
+from .loopback_support import LoopbackHttps, Reply, test_ca_context, unused_loopback_port
 from .pipeline_support import SPECS
 from .support import SENTINEL_KEY, FixedClock, SequenceClock
 
@@ -28,7 +28,7 @@ def odds_request():
 
 def transport(server=None, *, policy=None, context=None, address=None):
     return th.HttpsTransport(Secret(SENTINEL_KEY), credential_param="apiKey", policy=policy or ps.POLICY,
-                             ssl_context=context or th.tls_context(str(TEST_CA)),
+                             ssl_context=context or test_ca_context(),
                              connect_address=address or (server.address if server else None))
 
 

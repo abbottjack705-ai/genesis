@@ -1,0 +1,929 @@
+# R2 RED: the R2 tests (HA-01/02/03/07/08, HA-13 + P:HA-006, with their neighbouring cases) against the UNMODIFIED production code of R1 875656e
+# tree: a git worktree at 875656e with the current adapter_tests copied in; its production code is 875656e exactly
+# worktree HEAD: 875656e9328d1af2a95429457a0ac04eb9ccf6dc; git diff --stat HEAD -- adapters/src: 0 lines (none)
+# note: re-captured after the R2 tests were made to print no form of a test key in any failure message (an earlier capture printed some); no production code differs
+# command: PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B -m unittest -v adapter_tests.test_v05_r2_transport_boundary adapter_tests.test_v05_tx01 adapter_tests.test_v05_cli adapter_tests.test_v05_transport_http adapter_tests.test_v05_r1_sanitized_error
+# start: 2026-09-30T16:05:04Z
+----
+test_ha02_an_ordinary_error_in_close_changes_nothing_that_was_received (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_an_ordinary_error_in_close_changes_nothing_that_was_received) ... ok
+test_ha02_keyboard_interrupt_from_close_leaves_fresh (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_keyboard_interrupt_from_close_leaves_fresh) ... FAIL
+test_ha02_process_control_during_the_send_and_again_in_close_leaves_one_fresh_exception (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_process_control_during_the_send_and_again_in_close_leaves_one_fresh_exception) ... FAIL
+test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text) ... 
+  test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text) (code='int') ... FAIL
+  test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text) (code='str') ... FAIL
+  test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text) (code='NoneType') ... FAIL
+test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) ... 
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='identifier', stage='open') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='identifier', stage='write') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='identifier', stage='read_head') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='identifier', stage='read_chunk') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='verbatim', stage='open') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='verbatim', stage='write') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='verbatim', stage='read_head') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='verbatim', stage='read_chunk') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='lower case', stage='open') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='lower case', stage='write') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='lower case', stage='read_head') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='lower case', stage='read_chunk') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='fragment', stage='open') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='fragment', stage='write') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='fragment', stage='read_head') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='fragment', stage='read_chunk') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='hex', stage='open') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='hex', stage='write') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='hex', stage='read_head') ... FAIL
+  test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='hex', stage='read_chunk') ... FAIL
+test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) ... 
+  test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) [newline] ... FAIL
+  test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) [space] ... FAIL
+  test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) [control] ... FAIL
+  test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) [too long] ... FAIL
+  test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) [empty] ... FAIL
+  test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) [trailing newline] ... FAIL
+test_ha01_an_errno_carrying_key_digits_is_dropped_and_the_label_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_an_errno_carrying_key_digits_is_dropped_and_the_label_kept) ... FAIL
+test_ha01_an_errno_too_large_to_serialize_is_dropped (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_an_errno_too_large_to_serialize_is_dropped) ... FAIL
+test_ha01_errno_keeps_its_meaning_when_only_the_label_is_tainted (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_errno_keeps_its_meaning_when_only_the_label_is_tainted) ... FAIL
+test_ha01_sanitize_exception_applies_the_structural_rules_at_the_source (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_sanitize_exception_applies_the_structural_rules_at_the_source) ... ERROR
+test_ha01_through_the_acquisition_path_no_durable_file_carries_the_key (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_through_the_acquisition_path_no_durable_file_carries_the_key) ... ok
+test_ha08_a_clean_oversize_identity_body_is_still_stored_truncated (adapter_tests.test_v05_r2_transport_boundary.FullWireScreeningTests.test_ha08_a_clean_oversize_identity_body_is_still_stored_truncated) ... ok
+test_ha08_a_content_encoded_oversize_body_is_screened_on_its_wire_bytes (adapter_tests.test_v05_r2_transport_boundary.FullWireScreeningTests.test_ha08_a_content_encoded_oversize_body_is_screened_on_its_wire_bytes) ... FAIL
+test_ha08_a_fragment_at_every_position_around_the_cap_is_caught (adapter_tests.test_v05_r2_transport_boundary.FullWireScreeningTests.test_ha08_a_fragment_at_every_position_around_the_cap_is_caught) ... 
+  test_ha08_a_fragment_at_every_position_around_the_cap_is_caught (adapter_tests.test_v05_r2_transport_boundary.FullWireScreeningTests.test_ha08_a_fragment_at_every_position_around_the_cap_is_caught) (end=33) ... FAIL
+test_ha08_a_fragment_ending_at_the_cap_probe_byte_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.FullWireScreeningTests.test_ha08_a_fragment_ending_at_the_cap_probe_byte_is_a_secret_echo) ... FAIL
+test_ha07_a_content_type_echo_leaves_no_trace_in_the_quarantine_or_anywhere (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_content_type_echo_leaves_no_trace_in_the_quarantine_or_anywhere) ... FAIL
+test_ha07_a_non_ascii_key_echoed_in_a_header_name_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_a_header_name_is_a_secret_echo) ... FAIL
+test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo) ... 
+  test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo) [etag] ... FAIL
+  test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo) [last-modified] ... FAIL
+  test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo) [x-requests-used] ... FAIL
+  test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo) [date] ... FAIL
+  test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo) [content-type] ... FAIL
+test_ha07_ascii_keys_and_clean_headers_are_unaffected (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_ascii_keys_and_clean_headers_are_unaffected) ... ok
+test_ha07_the_runtime_scan_finds_a_latin1_reversible_form_in_a_durable_file (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_the_runtime_scan_finds_a_latin1_reversible_form_in_a_durable_file) ... FAIL
+test_ha07_through_the_runtime_nothing_reversible_to_the_key_is_durable (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_through_the_runtime_nothing_reversible_to_the_key_is_durable) ... FAIL
+test_ha01_an_errno_carrying_key_digits_is_dropped_before_persistence (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_an_errno_carrying_key_digits_is_dropped_before_persistence) ... FAIL
+test_ha01_an_errno_too_large_to_serialize_neither_crashes_nor_persists (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_an_errno_too_large_to_serialize_neither_crashes_nor_persists) ... 
+  test_ha01_an_errno_too_large_to_serialize_neither_crashes_nor_persists (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_an_errno_too_large_to_serialize_neither_crashes_nor_persists) (keyed=True) ... ERROR
+  test_ha01_an_errno_too_large_to_serialize_neither_crashes_nor_persists (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_an_errno_too_large_to_serialize_neither_crashes_nor_persists) (keyed=False) ... ERROR
+test_ha01_an_unsafe_label_reported_by_a_transport_is_replaced_and_its_errno_kept (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_an_unsafe_label_reported_by_a_transport_is_replaced_and_its_errno_kept) ... 
+  test_ha01_an_unsafe_label_reported_by_a_transport_is_replaced_and_its_errno_kept (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_an_unsafe_label_reported_by_a_transport_is_replaced_and_its_errno_kept) (keyed=True) ... FAIL
+  test_ha01_an_unsafe_label_reported_by_a_transport_is_replaced_and_its_errno_kept (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_an_unsafe_label_reported_by_a_transport_is_replaced_and_its_errno_kept) (keyed=False) ... FAIL
+test_ha01_the_record_is_scanned_again_exactly_as_it_will_be_persisted (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_the_record_is_scanned_again_exactly_as_it_will_be_persisted) ... ok
+test_ha13_the_test_tls_material_is_export_ignored (adapter_tests.test_v05_r2_transport_boundary.ProductionTrustBoundaryTests.test_ha13_the_test_tls_material_is_export_ignored) ... FAIL
+test_p006_no_production_module_references_the_test_tls_material (adapter_tests.test_v05_r2_transport_boundary.ProductionTrustBoundaryTests.test_p006_no_production_module_references_the_test_tls_material) ... FAIL
+test_p006_run_builds_the_transport_with_the_system_trust_store_and_the_pinned_host (adapter_tests.test_v05_r2_transport_boundary.ProductionTrustBoundaryTests.test_p006_run_builds_the_transport_with_the_system_trust_store_and_the_pinned_host) ... ERROR
+test_p006_the_production_run_command_has_no_ca_or_connect_option (adapter_tests.test_v05_r2_transport_boundary.ProductionTrustBoundaryTests.test_p006_the_production_run_command_has_no_ca_or_connect_option) ... 
+  test_p006_the_production_run_command_has_no_ca_or_connect_option (adapter_tests.test_v05_r2_transport_boundary.ProductionTrustBoundaryTests.test_p006_the_production_run_command_has_no_ca_or_connect_option) [--ca-file] ... FAIL
+  test_p006_the_production_run_command_has_no_ca_or_connect_option (adapter_tests.test_v05_r2_transport_boundary.ProductionTrustBoundaryTests.test_p006_the_production_run_command_has_no_ca_or_connect_option) [--connect] ... FAIL
+test_ha03_a_slow_connect_and_tls_setup_that_reaches_the_deadline_prevents_the_write (adapter_tests.test_v05_r2_transport_boundary.WriteBoundaryDeadlineTests.test_ha03_a_slow_connect_and_tls_setup_that_reaches_the_deadline_prevents_the_write) ... ok
+test_ha03_one_microsecond_before_the_deadline_the_request_is_written (adapter_tests.test_v05_r2_transport_boundary.WriteBoundaryDeadlineTests.test_ha03_one_microsecond_before_the_deadline_the_request_is_written) ... ok
+test_ha03_t0_is_read_immediately_before_the_first_request_byte (adapter_tests.test_v05_r2_transport_boundary.WriteBoundaryDeadlineTests.test_ha03_t0_is_read_immediately_before_the_first_request_byte) ... FAIL
+test_ha03_the_deadline_arriving_after_the_timeout_setup_prevents_the_write (adapter_tests.test_v05_r2_transport_boundary.WriteBoundaryDeadlineTests.test_ha03_the_deadline_arriving_after_the_timeout_setup_prevents_the_write) ... FAIL
+test_cli_run_sends_one_keyed_request_and_keeps_only_scanned_raw_evidence (adapter_tests.test_v05_tx01.LoopbackRunTests.test_cli_run_sends_one_keyed_request_and_keeps_only_scanned_raw_evidence) ... FAIL
+test_tx01_keyboard_interrupt_keeps_its_meaning_and_arrives_fresh (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_keyboard_interrupt_keeps_its_meaning_and_arrives_fresh) ... ok
+test_tx01_ordinary_failures_at_every_stage_become_sanitized_results (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_ordinary_failures_at_every_stage_become_sanitized_results) ... ok
+test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r1_a_key_named_exception_class_is_scanned_and_redacted_before_it_is_persisted) ... ok
+test_tx01_r2_an_ordinary_or_key_named_error_in_close_is_contained (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r2_an_ordinary_or_key_named_error_in_close_is_contained) ... ok
+test_tx01_r2_process_control_raised_by_close_arrives_fresh (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r2_process_control_raised_by_close_arrives_fresh) ... 
+  test_tx01_r2_process_control_raised_by_close_arrives_fresh (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r2_process_control_raised_by_close_arrives_fresh) [KBI] ... FAIL
+  test_tx01_r2_process_control_raised_by_close_arrives_fresh (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r2_process_control_raised_by_close_arrives_fresh) [EXITSTR] ... FAIL
+  test_tx01_r2_process_control_raised_by_close_arrives_fresh (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r2_process_control_raised_by_close_arrives_fresh) [EXITNONE] ... FAIL
+test_tx01_system_exit_keeps_its_status_and_never_prints_text (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_system_exit_keeps_its_status_and_never_prints_text) ... ok
+test_bill04_reports_label_the_genesis_debit_and_provider_reported_usage_separately (adapter_tests.test_v05_cli.CommandTests.test_bill04_reports_label_the_genesis_debit_and_provider_reported_usage_separately) ... ok
+test_run_refuses_without_gate_records_and_never_touches_a_network (adapter_tests.test_v05_cli.CommandTests.test_run_refuses_without_gate_records_and_never_touches_a_network) ... ok
+test_verify_rederives_every_document_of_a_runtime_root (adapter_tests.test_v05_cli.CommandTests.test_verify_rederives_every_document_of_a_runtime_root) ... ok
+test_frz09_the_runner_refuses_to_start_without_isolated_bytecode (adapter_tests.test_v05_cli.StartupTests.test_frz09_the_runner_refuses_to_start_without_isolated_bytecode) ... ok
+test_frz11_the_cli_has_no_process_control_handler (adapter_tests.test_v05_cli.StartupTests.test_frz11_the_cli_has_no_process_control_handler) ... ok
+test_the_hooks_print_only_a_class_name_and_never_change_the_exit_status (adapter_tests.test_v05_cli.StartupTests.test_the_hooks_print_only_a_class_name_and_never_change_the_exit_status) ... ok
+test_a_refused_connection_is_a_sanitized_no_response (adapter_tests.test_v05_transport_http.ConnectionFailureTests.test_a_refused_connection_is_a_sanitized_no_response) ... ok
+test_the_production_host_is_pinned_in_every_request (adapter_tests.test_v05_transport_http.ConnectionFailureTests.test_the_production_host_is_pinned_in_every_request) ... ok
+test_the_suite_refuses_any_non_loopback_contact (adapter_tests.test_v05_transport_http.ConnectionFailureTests.test_the_suite_refuses_any_non_loopback_contact) ... ok
+test_a_clock_that_never_moves_is_returned_as_read_within_the_drift_budget (adapter_tests.test_v05_transport_http.LoopbackTests.test_a_clock_that_never_moves_is_returned_as_read_within_the_drift_budget) ... ok
+test_a_complete_body_is_a_response_however_it_is_chunked (adapter_tests.test_v05_transport_http.LoopbackTests.test_a_complete_body_is_a_response_however_it_is_chunked) ... ok
+test_a_response_is_read_and_the_key_is_added_only_on_the_wire (adapter_tests.test_v05_transport_http.LoopbackTests.test_a_response_is_read_and_the_key_is_added_only_on_the_wire) ... ok
+test_a_short_body_is_truncated_with_its_partial_bytes (adapter_tests.test_v05_transport_http.LoopbackTests.test_a_short_body_is_truncated_with_its_partial_bytes) ... ok
+test_bnd04_nothing_is_written_at_or_after_the_deadline (adapter_tests.test_v05_transport_http.LoopbackTests.test_bnd04_nothing_is_written_at_or_after_the_deadline) ... ok
+test_bnd04_the_attempt_is_cut_at_exactly_the_deadline (adapter_tests.test_v05_transport_http.LoopbackTests.test_bnd04_the_attempt_is_cut_at_exactly_the_deadline) ... ok
+test_reading_stops_one_byte_past_the_size_cap (adapter_tests.test_v05_transport_http.LoopbackTests.test_reading_stops_one_byte_past_the_size_cap) ... ok
+test_redirects_are_never_followed (adapter_tests.test_v05_transport_http.LoopbackTests.test_redirects_are_never_followed) ... ok
+test_t1_is_a_later_clock_tick_than_t0_even_on_a_coarse_clock (adapter_tests.test_v05_transport_http.LoopbackTests.test_t1_is_a_later_clock_tick_than_t0_even_on_a_coarse_clock) ... ok
+test_tls_is_verified_against_the_trust_store_and_never_disabled (adapter_tests.test_v05_transport_http.LoopbackTests.test_tls_is_verified_against_the_trust_store_and_never_disabled) ... ok
+test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_raising_transport_with_a_key_named_class_is_redacted_before_persistence) ... ok
+test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) ... 
+  test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [identifier] ... FAIL
+  test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [verbatim] ... FAIL
+  test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [lower case] ... FAIL
+  test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [hex] ... FAIL
+  test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [fragment] ... FAIL
+  test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [percent-encoded] ... FAIL
+test_r1_clean_records_are_kept_exactly (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_clean_records_are_kept_exactly) ... ok
+test_r1_the_real_https_transport_boundary_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_the_real_https_transport_boundary_is_scanned_too) ... ok
+test_r1_the_record_passes_through_the_scanner_before_it_is_appended (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_the_record_passes_through_the_scanner_before_it_is_appended) ... ok
+test_r1_without_a_configured_key_there_is_nothing_to_scan_for (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_without_a_configured_key_there_is_nothing_to_scan_for) ... ok
+
+======================================================================
+ERROR: test_ha01_sanitize_exception_applies_the_structural_rules_at_the_source (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_sanitize_exception_applies_the_structural_rules_at_the_source)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 193, in test_ha01_sanitize_exception_applies_the_structural_rules_at_the_source
+    self.same(tr.sanitize_exception(named("Bad Name")(), max_chars=cap), {"class": PLACEHOLDER, "errno": None})
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: sanitize_exception() got an unexpected keyword argument 'max_chars'
+
+======================================================================
+ERROR: test_ha01_an_errno_too_large_to_serialize_neither_crashes_nor_persists (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_an_errno_too_large_to_serialize_neither_crashes_nor_persists) (keyed=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 248, in test_ha01_an_errno_too_large_to_serialize_neither_crashes_nor_persists
+    stored, _ = self.stored(root, "OSError", HUGE_ERRNO, secret=keyed)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 227, in stored
+    outcome = rt.runner.acquire(odds_item())
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\src\genesis_adapters\oddspapi\acquisition.py", line 615, in acquire
+    return self._send(aid, request_id, request, tq, charge)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\src\genesis_adapters\oddspapi\acquisition.py", line 636, in _send
+    return self._complete(aid, request_id, request, charge, t0, deadline, result)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\src\genesis_adapters\oddspapi\acquisition.py", line 688, in _complete
+    return self._finish_no_response(aid, request_id, request, charge, self._safe_stamp(t0), error, sent=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\src\genesis_adapters\oddspapi\acquisition.py", line 660, in _finish_no_response
+    error = self._scanned_error(error)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\src\genesis_adapters\oddspapi\acquisition.py", line 655, in _scanned_error
+    if self.capture.hits_secret(canonical_json(error)):
+                                ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\src\genesis\repro.py", line 21, in canonical_json
+    json.dumps(
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+ValueError: Exceeds the limit (4300 digits) for integer string conversion; use sys.set_int_max_str_digits() to increase the limit
+
+======================================================================
+ERROR: test_ha01_an_errno_too_large_to_serialize_neither_crashes_nor_persists (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_an_errno_too_large_to_serialize_neither_crashes_nor_persists) (keyed=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 248, in test_ha01_an_errno_too_large_to_serialize_neither_crashes_nor_persists
+    stored, _ = self.stored(root, "OSError", HUGE_ERRNO, secret=keyed)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 227, in stored
+    outcome = rt.runner.acquire(odds_item())
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\src\genesis_adapters\oddspapi\acquisition.py", line 615, in acquire
+    return self._send(aid, request_id, request, tq, charge)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\src\genesis_adapters\oddspapi\acquisition.py", line 636, in _send
+    return self._complete(aid, request_id, request, charge, t0, deadline, result)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\src\genesis_adapters\oddspapi\acquisition.py", line 688, in _complete
+    return self._finish_no_response(aid, request_id, request, charge, self._safe_stamp(t0), error, sent=True)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\src\genesis_adapters\oddspapi\acquisition.py", line 661, in _finish_no_response
+    self._record("acq_completed", at, acquisition_id=aid, T1=None, outcome="NO_RESPONSE", http_status=None,
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\src\genesis_adapters\oddspapi\acquisition.py", line 489, in _record
+    self.ledger.append(kind, recorded_at=at, **fields)
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\src\genesis_adapters\oddspapi\acquisition.py", line 350, in append
+    self.log.append({"record_type": record_type, "schema_version": SCHEMA_VERSION,
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\src\genesis\registry.py", line 312, in append
+    result = self.transaction(lambda _records: record)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\src\genesis\registry.py", line 244, in transaction
+    row = self.appended_row(records, record)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\src\genesis\registry.py", line 301, in appended_row
+    line = canonical_json(cls.chained(records, record))
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\src\genesis\registry.py", line 280, in chained
+    return {**body, "record_hash": sha256_bytes(canonical_json(body))}
+                                                ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\src\genesis\repro.py", line 21, in canonical_json
+    json.dumps(
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+ValueError: Exceeds the limit (4300 digits) for integer string conversion; use sys.set_int_max_str_digits() to increase the limit
+
+======================================================================
+ERROR: test_p006_run_builds_the_transport_with_the_system_trust_store_and_the_pinned_host (adapter_tests.test_v05_r2_transport_boundary.ProductionTrustBoundaryTests.test_p006_run_builds_the_transport_with_the_system_trust_store_and_the_pinned_host)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 499, in test_p006_run_builds_the_transport_with_the_system_trust_store_and_the_pinned_host
+    cli.cmd_run(SimpleNamespace(config=None, root=str(root), plan=str(plan), mode="G2"))
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\src\genesis_adapters\cli.py", line 264, in cmd_run
+    address = _loopback(args.connect)
+                        ^^^^^^^^^^^^
+AttributeError: 'types.SimpleNamespace' object has no attribute 'connect'
+
+======================================================================
+FAIL: test_ha02_keyboard_interrupt_from_close_leaves_fresh (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_keyboard_interrupt_from_close_leaves_fresh)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 298, in test_ha02_keyboard_interrupt_from_close_leaves_fresh
+    self.assert_fresh(self.raise_from_close(injected), injected, KeyboardInterrupt)
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 265, in assert_fresh
+    self.assertTrue(caught is not injected, "the injected exception itself escaped")
+AssertionError: False is not true : the injected exception itself escaped
+
+======================================================================
+FAIL: test_ha02_process_control_during_the_send_and_again_in_close_leaves_one_fresh_exception (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_process_control_during_the_send_and_again_in_close_leaves_one_fresh_exception)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 309, in test_ha02_process_control_during_the_send_and_again_in_close_leaves_one_fresh_exception
+    self.assert_fresh(caught, injected, KeyboardInterrupt)
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 265, in assert_fresh
+    self.assertTrue(caught is not injected, "the injected exception itself escaped")
+AssertionError: False is not true : the injected exception itself escaped
+
+======================================================================
+FAIL: test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text) (code='int')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 304, in test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text
+    self.assert_fresh(self.raise_from_close(injected), injected, SystemExit, expected)
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 265, in assert_fresh
+    self.assertTrue(caught is not injected, "the injected exception itself escaped")
+AssertionError: False is not true : the injected exception itself escaped
+
+======================================================================
+FAIL: test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text) (code='str')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 304, in test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text
+    self.assert_fresh(self.raise_from_close(injected), injected, SystemExit, expected)
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 265, in assert_fresh
+    self.assertTrue(caught is not injected, "the injected exception itself escaped")
+AssertionError: False is not true : the injected exception itself escaped
+
+======================================================================
+FAIL: test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text) (code='NoneType')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 304, in test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text
+    self.assert_fresh(self.raise_from_close(injected), injected, SystemExit, expected)
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 265, in assert_fresh
+    self.assertTrue(caught is not injected, "the injected exception itself escaped")
+AssertionError: False is not true : the injected exception itself escaped
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='identifier', stage='open')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='identifier', stage='write')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='identifier', stage='read_head')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='identifier', stage='read_chunk')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='verbatim', stage='open')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='verbatim', stage='write')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='verbatim', stage='read_head')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='verbatim', stage='read_chunk')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='lower case', stage='open')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='lower case', stage='write')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='lower case', stage='read_head')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='lower case', stage='read_chunk')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='fragment', stage='open')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='fragment', stage='write')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='fragment', stage='read_head')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='fragment', stage='read_chunk')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='hex', stage='open')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='hex', stage='write')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='hex', stage='read_head')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists) (form='hex', stage='read_chunk')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 155, in test_ha01_a_key_bearing_class_label_is_replaced_before_the_result_exists
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got <withheld: could carry a form of a test key>, expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) [newline]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 172, in test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got 'Bad\nName', expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) [space]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 172, in test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got 'Bad Name', expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) [control]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 172, in test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got 'Bad\x1bName', expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) [too long]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 172, in test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got 'EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE', expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) [empty]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 172, in test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got '', expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept) [trailing newline]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 172, in test_ha01_a_structurally_unsafe_label_is_replaced_and_an_ordinary_one_kept
+    self.same(result.sanitized_error["class"], PLACEHOLDER, "class label")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: class label: got 'BadName\n', expected 'REDACTED_EXCEPTION_CLASS'
+
+======================================================================
+FAIL: test_ha01_an_errno_carrying_key_digits_is_dropped_and_the_label_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_an_errno_carrying_key_digits_is_dropped_and_the_label_kept)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 181, in test_ha01_an_errno_carrying_key_digits_is_dropped_and_the_label_kept
+    self.same(result.sanitized_error, {"class": "ConnectionResetError", "errno": None}, "sanitized error")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: sanitized error: got <withheld: could carry a form of a test key>, expected {'class': 'ConnectionResetError', 'errno': None}
+
+======================================================================
+FAIL: test_ha01_an_errno_too_large_to_serialize_is_dropped (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_an_errno_too_large_to_serialize_is_dropped)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 189, in test_ha01_an_errno_too_large_to_serialize_is_dropped
+    self.same(result.sanitized_error, {"class": "OSError", "errno": None}, "sanitized error")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: sanitized error: got <unprintable>, expected {'class': 'OSError', 'errno': None}
+
+======================================================================
+FAIL: test_ha01_errno_keeps_its_meaning_when_only_the_label_is_tainted (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01_errno_keeps_its_meaning_when_only_the_label_is_tainted)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 162, in test_ha01_errno_keeps_its_meaning_when_only_the_label_is_tainted
+    self.same(result.sanitized_error, {"class": PLACEHOLDER, "errno": 104}, "sanitized error")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: sanitized error: got <withheld: could carry a form of a test key>, expected {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': 104}
+
+======================================================================
+FAIL: test_ha08_a_content_encoded_oversize_body_is_screened_on_its_wire_bytes (adapter_tests.test_v05_r2_transport_boundary.FullWireScreeningTests.test_ha08_a_content_encoded_oversize_body_is_screened_on_its_wire_bytes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 465, in test_ha08_a_content_encoded_oversize_body_is_screened_on_its_wire_bytes
+    self.assertEqual(captured.kind, "SECRET")                         # secret precedence (F-11 over F-11b)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'UNINSPECTABLE' != 'SECRET'
+- UNINSPECTABLE
++ SECRET
+
+
+======================================================================
+FAIL: test_ha08_a_fragment_at_every_position_around_the_cap_is_caught (adapter_tests.test_v05_r2_transport_boundary.FullWireScreeningTests.test_ha08_a_fragment_at_every_position_around_the_cap_is_caught) (end=33)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 459, in test_ha08_a_fragment_at_every_position_around_the_cap_is_caught
+    self.assertEqual(self.fixture(root).store(wire).kind, "SECRET")
+AssertionError: 'STORED' != 'SECRET'
+- STORED
++ SECRET
+
+
+======================================================================
+FAIL: test_ha08_a_fragment_ending_at_the_cap_probe_byte_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.FullWireScreeningTests.test_ha08_a_fragment_ending_at_the_cap_probe_byte_is_a_secret_echo)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 452, in test_ha08_a_fragment_ending_at_the_cap_probe_byte_is_a_secret_echo
+    self.assertEqual(captured.kind, "SECRET")
+AssertionError: 'STORED' != 'SECRET'
+- STORED
++ SECRET
+
+
+======================================================================
+FAIL: test_ha07_a_content_type_echo_leaves_no_trace_in_the_quarantine_or_anywhere (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_content_type_echo_leaves_no_trace_in_the_quarantine_or_anywhere)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 418, in test_ha07_a_content_type_echo_leaves_no_trace_in_the_quarantine_or_anywhere
+    with self.assertRaises(err.AcquisitionHalt):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AcquisitionHalt not raised
+
+======================================================================
+FAIL: test_ha07_a_non_ascii_key_echoed_in_a_header_name_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_a_header_name_is_a_secret_echo)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 401, in test_ha07_a_non_ascii_key_echoed_in_a_header_name_is_a_secret_echo
+    self.assertEqual(captured.kind, "SECRET")
+AssertionError: 'STORED' != 'SECRET'
+- STORED
++ SECRET
+
+
+======================================================================
+FAIL: test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo) [etag]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 394, in test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo
+    self.same((captured.kind, captured.headers), ("SECRET", ()), "capture kind and kept headers")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: capture kind and kept headers: got <withheld: could carry a form of a test key>, expected ('SECRET', ())
+
+======================================================================
+FAIL: test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo) [last-modified]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 394, in test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo
+    self.same((captured.kind, captured.headers), ("SECRET", ()), "capture kind and kept headers")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: capture kind and kept headers: got <withheld: could carry a form of a test key>, expected ('SECRET', ())
+
+======================================================================
+FAIL: test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo) [x-requests-used]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 394, in test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo
+    self.same((captured.kind, captured.headers), ("SECRET", ()), "capture kind and kept headers")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: capture kind and kept headers: got <withheld: could carry a form of a test key>, expected ('SECRET', ())
+
+======================================================================
+FAIL: test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo) [date]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 394, in test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo
+    self.same((captured.kind, captured.headers), ("SECRET", ()), "capture kind and kept headers")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: capture kind and kept headers: got <withheld: could carry a form of a test key>, expected ('SECRET', ())
+
+======================================================================
+FAIL: test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo) [content-type]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 394, in test_ha07_a_non_ascii_key_echoed_in_an_allowlisted_header_value_is_a_secret_echo
+    self.same((captured.kind, captured.headers), ("SECRET", ()), "capture kind and kept headers")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: capture kind and kept headers: got ('STORED', (('content-type', 'application/json'),)), expected ('SECRET', ())
+
+======================================================================
+FAIL: test_ha07_the_runtime_scan_finds_a_latin1_reversible_form_in_a_durable_file (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_the_runtime_scan_finds_a_latin1_reversible_form_in_a_durable_file)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 430, in test_ha07_the_runtime_scan_finds_a_latin1_reversible_form_in_a_durable_file
+    self.assertEqual(sorted(path.name for path in verify.scan_runtime_for_secret(root, key)),
+AssertionError: Lists differ: [] != ['planted.json', 'planted_escaped.json']
+
+Second list contains 2 additional elements.
+First extra element 0:
+'planted.json'
+
+- []
++ ['planted.json', 'planted_escaped.json']
+
+======================================================================
+FAIL: test_ha07_through_the_runtime_nothing_reversible_to_the_key_is_durable (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_through_the_runtime_nothing_reversible_to_the_key_is_durable)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 408, in test_ha07_through_the_runtime_nothing_reversible_to_the_key_is_durable
+    with self.assertRaises(err.AcquisitionHalt):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: AcquisitionHalt not raised
+
+======================================================================
+FAIL: test_ha01_an_errno_carrying_key_digits_is_dropped_before_persistence (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_an_errno_carrying_key_digits_is_dropped_before_persistence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 242, in test_ha01_an_errno_carrying_key_digits_is_dropped_before_persistence
+    self.assertTrue(stored == {"class": "ConnectionResetError", "errno": None}, "the errno was kept")
+AssertionError: False is not true : the errno was kept
+
+======================================================================
+FAIL: test_ha01_an_unsafe_label_reported_by_a_transport_is_replaced_and_its_errno_kept (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_an_unsafe_label_reported_by_a_transport_is_replaced_and_its_errno_kept) (keyed=True)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 236, in test_ha01_an_unsafe_label_reported_by_a_transport_is_replaced_and_its_errno_kept
+    self.same(stored, {"class": PLACEHOLDER, "errno": 104}, "stored record")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: stored record: got {'class': 'Bad Name', 'errno': 104}, expected {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': 104}
+
+======================================================================
+FAIL: test_ha01_an_unsafe_label_reported_by_a_transport_is_replaced_and_its_errno_kept (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha01_an_unsafe_label_reported_by_a_transport_is_replaced_and_its_errno_kept) (keyed=False)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 236, in test_ha01_an_unsafe_label_reported_by_a_transport_is_replaced_and_its_errno_kept
+    self.same(stored, {"class": PLACEHOLDER, "errno": 104}, "stored record")
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 81, in same
+    self.fail(f"{what}: got {shown(actual)}, expected {shown(expected)}")
+AssertionError: stored record: got {'class': 'Bad Name', 'errno': 104}, expected {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': 104}
+
+======================================================================
+FAIL: test_ha13_the_test_tls_material_is_export_ignored (adapter_tests.test_v05_r2_transport_boundary.ProductionTrustBoundaryTests.test_ha13_the_test_tls_material_is_export_ignored)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 512, in test_ha13_the_test_tls_material_is_export_ignored
+    self.assertTrue(out.endswith(": set"), name)
+AssertionError: False is not true : server.key
+
+======================================================================
+FAIL: test_p006_no_production_module_references_the_test_tls_material (adapter_tests.test_v05_r2_transport_boundary.ProductionTrustBoundaryTests.test_p006_no_production_module_references_the_test_tls_material)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 506, in test_p006_no_production_module_references_the_test_tls_material
+    self.assertFalse(marker in text, f"{path.name} mentions {marker}")
+AssertionError: True is not false : cli.py mentions ca_file
+
+======================================================================
+FAIL: test_p006_the_production_run_command_has_no_ca_or_connect_option (adapter_tests.test_v05_r2_transport_boundary.ProductionTrustBoundaryTests.test_p006_the_production_run_command_has_no_ca_or_connect_option) [--ca-file]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 480, in test_p006_the_production_run_command_has_no_ca_or_connect_option
+    with self.subTest(extra[0]), mock.patch("sys.stderr"), self.assertRaises(SystemExit):
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: SystemExit not raised
+
+======================================================================
+FAIL: test_p006_the_production_run_command_has_no_ca_or_connect_option (adapter_tests.test_v05_r2_transport_boundary.ProductionTrustBoundaryTests.test_p006_the_production_run_command_has_no_ca_or_connect_option) [--connect]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 480, in test_p006_the_production_run_command_has_no_ca_or_connect_option
+    with self.subTest(extra[0]), mock.patch("sys.stderr"), self.assertRaises(SystemExit):
+                                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: SystemExit not raised
+
+======================================================================
+FAIL: test_ha03_t0_is_read_immediately_before_the_first_request_byte (adapter_tests.test_v05_r2_transport_boundary.WriteBoundaryDeadlineTests.test_ha03_t0_is_read_immediately_before_the_first_request_byte)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 356, in test_ha03_t0_is_read_immediately_before_the_first_request_byte
+    self.assertEqual(result.request_started_at, ps.iso_add(seen["at_write"], micros=-1000))
+AssertionError: '2026-10-01T12:00:00.000000Z' != '2026-10-01T12:00:00.002000Z'
+- 2026-10-01T12:00:00.000000Z
+?                       ^
++ 2026-10-01T12:00:00.002000Z
+?                       ^
+
+
+======================================================================
+FAIL: test_ha03_the_deadline_arriving_after_the_timeout_setup_prevents_the_write (adapter_tests.test_v05_r2_transport_boundary.WriteBoundaryDeadlineTests.test_ha03_the_deadline_arriving_after_the_timeout_setup_prevents_the_write)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r2_transport_boundary.py", line 334, in test_ha03_the_deadline_arriving_after_the_timeout_setup_prevents_the_write
+    self.assertEqual(conn.writes, [])
+AssertionError: Lists differ: ['GET'] != []
+
+First list contains 1 additional elements.
+First extra element 0:
+'GET'
+
+- ['GET']
++ []
+
+======================================================================
+FAIL: test_cli_run_sends_one_keyed_request_and_keeps_only_scanned_raw_evidence (adapter_tests.test_v05_tx01.LoopbackRunTests.test_cli_run_sends_one_keyed_request_and_keeps_only_scanned_raw_evidence)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_tx01.py", line 334, in test_cli_run_sends_one_keyed_request_and_keeps_only_scanned_raw_evidence
+    self.assertEqual(proc.returncode, 0, proc.stderr[-800:])
+AssertionError: 1 != 0 : b'error: TypeError\r\n'
+
+======================================================================
+FAIL: test_tx01_r2_process_control_raised_by_close_arrives_fresh (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r2_process_control_raised_by_close_arrives_fresh) [KBI]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_tx01.py", line 276, in test_tx01_r2_process_control_raised_by_close_arrives_fresh
+    self.assertEqual(outcome, {"class": cls, "code": recorded, "cause_is_none": True,
+AssertionError: {'cla[52 chars]ne': False, 'context_is_none': True, 'has_note[45 chars]alse} != {'cla[52 chars]ne': True, 'context_is_none': True, 'has_notes[43 chars]True}
+- {'args_ok': False,
+?             ^^^^
+
++ {'args_ok': True,
+?             ^^^
+
+-  'cause_is_none': False,
+?                   ^^^^
+
++  'cause_is_none': True,
+?                   ^^^
+
+   'class': 'KeyboardInterrupt',
+   'code': None,
+   'context_is_none': True,
+-  'frames_clean': False,
+?                  ^^^^
+
++  'frames_clean': True,
+?                  ^^^
+
+-  'has_notes': True}
+?               ^^^
+
++  'has_notes': False}
+?               ^^^^
+
+
+======================================================================
+FAIL: test_tx01_r2_process_control_raised_by_close_arrives_fresh (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r2_process_control_raised_by_close_arrives_fresh) [EXITSTR]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_tx01.py", line 274, in test_tx01_r2_process_control_raised_by_close_arrives_fresh
+    proc, outcome, _ = self.run_case("close", kind)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_tx01.py", line 227, in run_case
+    self.assertFalse(scanner.scan(proc.stderr).hit, "stderr")
+AssertionError: True is not false : stderr
+
+======================================================================
+FAIL: test_tx01_r2_process_control_raised_by_close_arrives_fresh (adapter_tests.test_v05_tx01.Tx01Tests.test_tx01_r2_process_control_raised_by_close_arrives_fresh) [EXITNONE]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_tx01.py", line 276, in test_tx01_r2_process_control_raised_by_close_arrives_fresh
+    self.assertEqual(outcome, {"class": cls, "code": recorded, "cause_is_none": True,
+AssertionError: {'cla[77 chars]ue, 'has_notes': False, 'args_ok': False, 'frames_clean': True} != {'cla[77 chars]ue, 'has_notes': False, 'args_ok': True, 'frames_clean': True}
+- {'args_ok': False,
+?             ^^^^
+
++ {'args_ok': True,
+?             ^^^
+
+   'cause_is_none': True,
+   'class': 'SystemExit',
+   'code': None,
+   'context_is_none': True,
+   'frames_clean': True,
+   'has_notes': False}
+
+======================================================================
+FAIL: test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [identifier]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 98, in test_r1_a_transport_reported_sanitized_error_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()), errno=104)
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 81, in assert_redacted
+    self.fail("stored sanitized_error " + shown(rows[0]["sanitized_error"]) + " is not the placeholder")
+AssertionError: stored sanitized_error {"class": "REDACTED_EXCEPTION_CLASS", "errno": null} is not the placeholder
+
+======================================================================
+FAIL: test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [verbatim]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 98, in test_r1_a_transport_reported_sanitized_error_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()), errno=104)
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 81, in assert_redacted
+    self.fail("stored sanitized_error " + shown(rows[0]["sanitized_error"]) + " is not the placeholder")
+AssertionError: stored sanitized_error {"class": "REDACTED_EXCEPTION_CLASS", "errno": null} is not the placeholder
+
+======================================================================
+FAIL: test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [lower case]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 98, in test_r1_a_transport_reported_sanitized_error_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()), errno=104)
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 81, in assert_redacted
+    self.fail("stored sanitized_error " + shown(rows[0]["sanitized_error"]) + " is not the placeholder")
+AssertionError: stored sanitized_error {"class": "REDACTED_EXCEPTION_CLASS", "errno": null} is not the placeholder
+
+======================================================================
+FAIL: test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [hex]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 98, in test_r1_a_transport_reported_sanitized_error_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()), errno=104)
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 81, in assert_redacted
+    self.fail("stored sanitized_error " + shown(rows[0]["sanitized_error"]) + " is not the placeholder")
+AssertionError: stored sanitized_error {"class": "REDACTED_EXCEPTION_CLASS", "errno": null} is not the placeholder
+
+======================================================================
+FAIL: test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [fragment]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 98, in test_r1_a_transport_reported_sanitized_error_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()), errno=104)
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 81, in assert_redacted
+    self.fail("stored sanitized_error " + shown(rows[0]["sanitized_error"]) + " is not the placeholder")
+AssertionError: stored sanitized_error {"class": "REDACTED_EXCEPTION_CLASS", "errno": null} is not the placeholder
+
+======================================================================
+FAIL: test_r1_a_transport_reported_sanitized_error_is_scanned_too (adapter_tests.test_v05_r1_sanitized_error.SanitizedRecordScanTests.test_r1_a_transport_reported_sanitized_error_is_scanned_too) [percent-encoded]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 98, in test_r1_a_transport_reported_sanitized_error_is_scanned_too
+    self.assert_redacted(root, rt.runner.acquire(odds_item()), errno=104)
+  File "C:\Users\abbot\AppData\Local\Temp\claude\r2red\adapters\adapter_tests\test_v05_r1_sanitized_error.py", line 81, in assert_redacted
+    self.fail("stored sanitized_error " + shown(rows[0]["sanitized_error"]) + " is not the placeholder")
+AssertionError: stored sanitized_error {"class": "REDACTED_EXCEPTION_CLASS", "errno": null} is not the placeholder
+
+----------------------------------------------------------------------
+Ran 65 tests in 139.140s
+
+FAILED (failures=65, errors=4)
+# exit: 1
+# end: 2026-09-30T16:07:27Z

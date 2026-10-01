@@ -5,15 +5,19 @@ Security properties, each tested (TX-01, BND-04, SEC-*):
 * the credential is added to the request target HERE, in one local variable, after the canonical request
   was hashed and persisted; it is never stored on an object, in a closure, a log, an exception argument
   or a return value, and the variable is deleted on every path;
-* TLS uses the system trust store (tests inject a loopback-only test CA), hostname verification is on and
-  is never switched off; redirects are never followed (a 3xx is just a status);
+* TLS uses the system trust store, hostname verification is on and is never switched off; the production
+  operator path has no way to add a CA or redirect the connection (tests construct the transport with a
+  loopback-only test context themselves); redirects are never followed (a 3xx is just a status);
 * the whole attempt is bounded by the hard deadline ``Tq + request_timeout_seconds``: every blocking
-  operation gets the remaining time as its socket timeout, and no request byte is written at or after it;
-* ordinary failures (every ``Exception``) become a sanitized result carrying only a class name and an
+  operation gets the remaining time as its socket timeout, T0 is read immediately before the first request
+  byte, and no request byte is written at or after the deadline (HA-03);
+* ordinary failures (every ``Exception``) become a sanitized result carrying only a safe class label (a
+  plain bounded identifier with no section-7.6 form of the key, else a fixed placeholder, HA-01) and an
   integer errno; warnings raised inside the send path are captured and discarded;
 * process-control exceptions keep their meaning: the ONE ``except BaseException`` clause of the adapter
-  package (FRZ-11) records only the class (and an integer ``SystemExit`` code), and after the block raises
-  a FRESH instance ``from None`` - no message, no cause, no context, no notes.
+  package (FRZ-11) covers the exchange AND closing the connection (HA-02); it records only the class (and
+  an integer ``SystemExit`` code), and after the block a FRESH instance is raised ``from None`` - no
+  message, no cause, no context, no notes.
 """
 
 from __future__ import annotations
@@ -29,8 +33,8 @@ from urllib.parse import urlencode
 
 from genesis.time import parse_utc
 
-from genesis_adapters.oddspapi.transport import TransportResult
-from genesis_adapters.secrets import TRANSPORT_CAPABILITY, Secret
+from genesis_adapters.oddspapi.transport import TransportResult, safe_errno, safe_label
+from genesis_adapters.secrets import TRANSPORT_CAPABILITY, Secret, SecretScanner
 
 HTTPS_PORT = 443
 
@@ -128,28 +132,31 @@ def _reading_after(clock, earlier: str, budget_ms: int) -> str:
     return reading
 
 
-def tls_context(cafile: str | None = None) -> ssl.SSLContext:
-    """The system trust store, or (loopback tests only) exactly one injected test CA. Verification stays on."""
+def tls_context() -> ssl.SSLContext:
+    """The system trust store with hostname verification. The production path never takes any other CA."""
 
-    context = ssl.create_default_context(cafile=cafile) if cafile else ssl.create_default_context()
+    context = ssl.create_default_context()
     context.check_hostname = True
     context.verify_mode = ssl.CERT_REQUIRED
     return context
 
 
 class HttpsTransport:
-    """The live transport. ``connect_address`` and ``connection_factory`` exist for loopback tests and fault
-    injection; the TLS server name and the Host header are always the request's pinned host."""
+    """The live transport. ``ssl_context``, ``connect_address`` and ``connection_factory`` exist only for loopback
+    tests and fault injection; the operator CLI never passes them (hostile audit P:HA-006), so production always
+    verifies against the system trust store. The TLS server name and the Host header are always the request's
+    pinned host."""
 
     def __init__(self, secret: Secret, *, credential_param: str, policy, ssl_context: ssl.SSLContext | None = None,
                  connect_address: tuple[str, int] | None = None,
                  connection_factory: Callable[..., Any] | None = None):
         if not isinstance(secret, Secret):
             raise TransportConfigurationError("the transport needs a Secret")
-        context = ssl_context if ssl_context is not None else ssl.create_default_context()
+        context = ssl_context if ssl_context is not None else tls_context()
         if context.verify_mode != ssl.CERT_REQUIRED or not context.check_hostname:
             raise TransportConfigurationError("TLS verification is never disabled")
         self._secret = secret
+        self._scanner = SecretScanner(secret, policy=policy)
         self._credential_param = credential_param
         self._policy = policy
         self._context = context
@@ -160,10 +167,13 @@ class HttpsTransport:
     def _remaining(clock, deadline: datetime) -> float:
         return (deadline - parse_utc(clock.now())).total_seconds()
 
+    def _hit(self, data: bytes) -> bool:
+        return self._scanner.scan(data).hit
+
     def send(self, request, *, clock, deadline_at: str) -> TransportResult:
         deadline = parse_utc(deadline_at)
-        started = clock.now()
-        if parse_utc(started) >= deadline:                    # T0 at/after the deadline: nothing is written
+        started = clock.now()                                 # replaced by T0 at the request-write boundary
+        if parse_utc(started) >= deadline:                    # at/after the deadline: nothing is even opened
             return TransportResult("NO_RESPONSE", None, (), None,
                                    {"class": "DeadlineElapsedBeforeSend", "errno": None}, started, None)
         status = None
@@ -173,63 +183,71 @@ class HttpsTransport:
         control = None
         complete = False
         connection = None
+        closing = None
         target = None
         cap = self._policy.max_response_bytes + 1
         with warnings.catch_warnings(record=True) as seen:   # a warning may name the URL: kept from everyone
             warnings.simplefilter("always")
             try:
-                connection = self._factory(request.host, HTTPS_PORT, self._context, self._address)
-                remaining = self._remaining(clock, deadline)
-                if remaining <= 0:
-                    raise TimeoutError("deadline")
-                connection.open(remaining)
-                remaining = self._remaining(clock, deadline)
-                if remaining <= 0:
-                    raise TimeoutError("deadline")
-                connection.settimeout(remaining)
-                target = request.path + "?" + urlencode(
-                    list(request.query) + [(self._credential_param,
-                                            self._secret.reveal_for_transport(TRANSPORT_CAPABILITY))])
-                connection.write(request.method, target, request.headers)
-                target = None
-                remaining = self._remaining(clock, deadline)
-                if remaining <= 0:
-                    raise TimeoutError("deadline")
-                connection.settimeout(remaining)
-                code, raw_headers = connection.read_head()
-                headers = _decode_headers(raw_headers)
-                status = code
-                while len(body) < cap and not connection.finished():
+                try:
+                    connection = self._factory(request.host, HTTPS_PORT, self._context, self._address)
+                    remaining = self._remaining(clock, deadline)
+                    if remaining <= 0:
+                        raise TimeoutError("deadline")
+                    connection.open(remaining)                # connect and TLS, bounded by the remaining time
                     remaining = self._remaining(clock, deadline)
                     if remaining <= 0:
                         raise TimeoutError("deadline")
                     connection.settimeout(remaining)
-                    chunk = connection.read_chunk(min(self._policy.read_chunk_bytes, cap - len(body)))
-                    if not chunk:
-                        break
-                    body += chunk
-                complete = True
-            except Exception as exc:                          # ordinary failure: class and errno only
-                errno_value = getattr(exc, "errno", None)
-                error = {"class": type(exc).__name__, "errno": errno_value if type(errno_value) is int else None}
-                exc.__traceback__ = None
-                del exc
-                target = None
-            except BaseException as exc:                      # the single process-control clause (FRZ-11)
-                control = _fresh_process_control(exc)
-                exc.__traceback__ = None
-                del exc
-                target = None
-            finally:
-                target = None
-                if connection is not None:
+                    target = request.path + "?" + urlencode(
+                        list(request.query) + [(self._credential_param,
+                                                self._secret.reveal_for_transport(TRANSPORT_CAPABILITY))])
+                    started = clock.now()                     # T0: immediately before the first request byte
+                    if parse_utc(started) >= deadline:
+                        raise TimeoutError("deadline")        # no request byte at or after the deadline (HA-03)
+                    connection.write(request.method, target, request.headers)
+                    target = None
+                    remaining = self._remaining(clock, deadline)
+                    if remaining <= 0:
+                        raise TimeoutError("deadline")
+                    connection.settimeout(remaining)
+                    code, raw_headers = connection.read_head()
+                    headers = _decode_headers(raw_headers)
+                    status = code
+                    while len(body) < cap and not connection.finished():
+                        remaining = self._remaining(clock, deadline)
+                        if remaining <= 0:
+                            raise TimeoutError("deadline")
+                        connection.settimeout(remaining)
+                        chunk = connection.read_chunk(min(self._policy.read_chunk_bytes, cap - len(body)))
+                        if not chunk:
+                            break
+                        body += chunk
+                    complete = True
+                except Exception as exc:                      # ordinary failure: a safe label and errno only (HA-01)
+                    bound = self._policy.header_value_max_chars
+                    error = {"class": safe_label(type(exc).__name__, max_chars=bound, hit=self._hit),
+                             "errno": safe_errno(getattr(exc, "errno", None), max_chars=bound, hit=self._hit)}
+                    exc.__traceback__ = None
+                    del exc
+                finally:
+                    target = None
+                    closing, connection = connection, None    # it may still hold an unsent request line
                     try:
-                        connection.close()
-                    except Exception:
-                        pass
-                connection = None                             # it may still hold an unsent request line
+                        if closing is not None:
+                            try:
+                                closing.close()
+                            except Exception:                 # a failed close changes nothing that was received
+                                pass
+                    finally:
+                        closing = None
+            except BaseException as exc:                      # the single process-control clause (FRZ-11): it covers
+                control = _fresh_process_control(exc)         # the exchange AND closing the connection (HA-02)
+                exc.__traceback__ = None
+                del exc
+                target = None
             seen.clear()
-        del target, connection
+        del target, connection, closing
         if control is not None:
             raise control from None
         if status is None:

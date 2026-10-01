@@ -218,19 +218,6 @@ def time_sync_attestation() -> dict:
             "source": status.stdout.strip()}
 
 
-def _loopback(value: str | None):
-    """``HOST:PORT`` for loopback tests only; any other address is refused (the key never goes elsewhere)."""
-
-    import ipaddress
-
-    if value is None:
-        return None
-    host, _, port = value.rpartition(":")
-    if not ipaddress.ip_address(host).is_loopback:
-        raise ValueError("--connect accepts loopback addresses only")
-    return host, int(port)
-
-
 def cmd_run(args) -> int:
     """A gated live run (G2 verification: raw capture only; G2R: full pipeline). Refuses without the gates."""
 
@@ -244,7 +231,7 @@ def cmd_run(args) -> int:
         MODE_VERIFICATION, AdapterAuthorityLedger, LiveGate, load_gate_limits, sent_counter,
     )
     from genesis_adapters.oddspapi.quota_gate import open_operational_ledger
-    from genesis_adapters.oddspapi.transport_http import HttpsTransport, tls_context
+    from genesis_adapters.oddspapi.transport_http import HttpsTransport
 
     config_dir, root = _config_dir(args.config), Path(args.root)
     attestation = time_sync_attestation()
@@ -261,13 +248,9 @@ def cmd_run(args) -> int:
     except CredentialProblem as problem:
         sys.stderr.write(f"refused: {problem.code}\n")
         return EXIT_REFUSED
-    address = _loopback(args.connect)
-    if args.ca_file and address is None:
-        sys.stderr.write("refused: a test CA is only accepted together with a loopback address\n")
-        return EXIT_REFUSED
     specs = config.endpoints
-    transport = HttpsTransport(secret, credential_param=specs["ODDS"].credential_param, policy=config.policy,
-                               ssl_context=tls_context(args.ca_file), connect_address=address)
+    # always the system trust store and the pinned host: the operator path has no CA or address option (P:HA-006)
+    transport = HttpsTransport(secret, credential_param=specs["ODDS"].credential_param, policy=config.policy)
     ledger, cache = open_operational_ledger(root)
     clock = SystemUtcClock(drift_max_ms=config.policy.wall_monotonic_drift_max_ms)
     gate = LiveGate(authority, mode=args.mode, credential_fingerprint=secret.fingerprint,
@@ -338,8 +321,6 @@ def _parser() -> argparse.ArgumentParser:
     run.add_argument("--root", required=True)
     run.add_argument("--plan", required=True)
     run.add_argument("--mode", choices=("G2", "G2R"), required=True)
-    run.add_argument("--connect")
-    run.add_argument("--ca-file")
     ready = commands.add_parser("approve-ready")
     for name in ("--root", "--at", "--derivation-version", "--source-id", "--contract-id", "--cost-tier"):
         ready.add_argument(name, required=True)

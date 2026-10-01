@@ -122,8 +122,9 @@ python -B -m genesis_adapters.cli run --root <runtime root> --plan plan.json --m
 `run` refuses without: a G1 record whose credential fingerprint matches the loaded key; a G2 record
 pinning the planned request hashes (G2 mode: raw capture only, at most `max_calls` sends inside its window)
 or a G2R record pinning the running `derivation_version` and `policy_digest`; an OS time-sync attestation;
-the frozen active quota policy; and the production clock. `--connect`/`--ca-file` accept loopback test
-addresses and a test CA only. `approve`, `approve-ready` and `reset` refuse without an interactive terminal,
+the frozen active quota policy; and the production clock. It always verifies TLS against the system trust
+store and connects to the pinned host: there is no option to add a CA or redirect the connection (hostile
+audit P:HA-006). `approve`, `approve-ready` and `reset` refuse without an interactive terminal,
 the typed confirmation phrase and an `approval_reference` naming an out-of-band artifact (`adr:`,
 `signed-tag:`, `pr-approval:` or an `https://` link). Gate bounds live in `config/oddspapi_gate_limits.json`.
 
@@ -148,7 +149,10 @@ the typed confirmation phrase and an `approval_reference` naming an out-of-band 
 `adapter_tests/fixtures/tls/` holds a throwaway loopback test CA certificate (`test-ca.pem`) and one server
 certificate and key (`server.pem`, `server.key`) for the pinned host name; the CA's private key was destroyed
 after signing, so no further certificate can be minted from it. They are trusted only by a client that injects
-`test-ca.pem`, which the CLI accepts only together with a loopback address. They exist only so the dormant
+`test-ca.pem`, and only test code can do that: tests construct the transport with a test-CA context and a
+loopback address themselves (`loopback_support.test_ca_context`, the TX-01 harness); no production module
+references this material and the operator CLI has no CA or address option. The directory is `export-ignore`d
+(`adapters/.gitattributes`), so it is never part of a source archive or release. It exists only so the dormant
 HTTPS transport can be exercised against 127.0.0.1; the suite's audit hook refuses any non-loopback contact.
 
 ## Mutation smoke (optional, evidence in `evidence/S<n>/MUTATION.txt`)

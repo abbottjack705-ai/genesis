@@ -93,6 +93,19 @@ def _json_unescape(data: bytes) -> bytes:
     return data.replace(b"\\/", b"/")
 
 
+def reversible_views(data: bytes) -> tuple[bytes, ...]:
+    """Byte views of stored text that a Latin-1 header decode may have hidden (hostile audit HA-07): the UTF-8 text
+    of ``data``, and of its JSON-unescaped form, re-encoded as Latin-1. That restores wire octets which were decoded
+    as Latin-1 and then written out as UTF-8 (or as JSON escapes). Used by the runtime scan of durable files."""
+
+    views: list[bytes] = []
+    for candidate in (data, _json_unescape(data)):
+        view = candidate.decode("utf-8", "ignore").encode("latin-1", "ignore")
+        if view and view != candidate and view not in views:
+            views.append(view)
+    return tuple(views)
+
+
 def _b64_cores(raw: bytes, minimum: int) -> set[bytes]:
     """Stable inner base64 cores of ``raw`` at all three alignments, both alphabets."""
 

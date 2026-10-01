@@ -1,0 +1,136 @@
+# R2 mutation smoke (adapters/evidence/R2/MUTATION.txt)
+# Each mutation is applied alone to the R2 production code, the listed test modules run with PYTHONPATH=adapters and
+# fresh bytecode, and the source is restored in a finally. KILLED = the run failed; the unmutated baseline passed first.
+#
+# NOTE on transport_http.py: the first run (module set R2 + R1 + TX-01 + static) aborted with a helper TimeoutExpired
+# (900 s) on its first mutant. The machine was asleep meanwhile: the Windows System log shows Kernel-Power 524
+# "Critical Battery Trigger Met" at 2026-09-30T16:30:33Z, event 42 "entering sleep" at 16:30:36Z and event 107
+# "resumed from sleep" with the clock moving to 23:15:26Z (hence this run's end stamp); the helper's timeout clock
+# counts suspended time. It was not a hang: transport_http.py was verified byte-identical to R2 afterwards and every
+# mutant was re-run on the awake machine, (1) against R2 + R1 + static (all 10 KILLED, about 15 s each) and (2)
+# against TX-01 alone, end to end, each in under 90 s (the 3 close-boundary mutants KILLED; the 7 label, errno and
+# deadline mutants are invisible to TX-01 by design - the durable outcome is also screened at persistence - and are
+# KILLED by (1)). A TIMEOUT is never counted as KILLED.
+
+# R2 mutation smoke: one textual mutation at a time; a mutation is KILLED only if the unmutated baseline passed first
+# helper: s0/mutate.py (applies one mutation, runs the listed modules with PYTHONPATH=adapters and fresh bytecode, restores in finally)
+# start: 2026-09-30T16:10:32Z | HEAD: 875656e9328d1af2a95429457a0ac04eb9ccf6dc + R2 worktree changes
+
+== adapters/src/genesis_adapters/oddspapi/transport.py  (modules: adapter_tests.test_v05_r2_transport_boundary,adapter_tests.test_v05_r1_sanitized_error)
+baseline: PASS (OK)
+KILLED    label shape rule dropped
+KILLED    label length bound dropped
+KILLED    label length bound off by one
+KILLED    label pattern accepts a trailing newline
+KILLED    label key scan ignored
+KILLED    errno length bound dropped
+KILLED    errno key scan ignored
+KILLED    errno type rule loosened
+KILLED    sanitize_exception keeps the raw class name
+KILLED    sanitize_exception keeps the raw errno
+
+== adapters/src/genesis_adapters/oddspapi/transport_http.py  (modules: adapter_tests.test_v05_r2_transport_boundary,adapter_tests.test_v05_r1_sanitized_error,adapter_tests.test_v05_tx01,adapter_tests.test_v05_static)
+baseline: PASS (OK)
+Traceback (most recent call last):
+  File "C:\Users\abbot\AppData\Local\Temp\claude\s0\mutate.py", line 44, in <module>
+    proc = subprocess.run(command, cwd=repo, env=env, capture_output=True, text=True, timeout=900)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 1228, in communicate
+    sts = self.wait(timeout=self._remaining_time(endtime))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 1593, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['C:\\Users\\abbot\\AppData\\Local\\Programs\\Python\\Python312\\python.exe', '-B', '-m', 'unittest', 'adapter_tests.test_v05_r2_transport_boundary', 'adapter_tests.test_v05_r1_sanitized_error', 'adapter_tests.test_v05_tx01', 'adapter_tests.test_v05_static']' timed out after -23559.420999999973 seconds
+
+== adapters/src/genesis_adapters/oddspapi/acquisition.py  (modules: adapter_tests.test_v05_r2_transport_boundary,adapter_tests.test_v05_r1_sanitized_error)
+baseline: PASS (OK)
+KILLED    sanitized record not screened before persistence
+KILLED    label shape not enforced at persistence
+KILLED    errno shape not enforced at persistence
+KILLED    record scan verdict ignored
+KILLED    a key-bearing label is kept
+KILLED    a key-bearing errno is kept
+KILLED    every hit drops the errno too
+KILLED    the record as persisted is not rescanned
+
+== adapters/src/genesis_adapters/oddspapi/raw_capture.py  (modules: adapter_tests.test_v05_r2_transport_boundary,adapter_tests.test_v05_raw_capture,adapter_tests.test_v05_secret_capture)
+baseline: PASS (OK)
+KILLED    wire octet (latin-1) form not screened
+KILLED    header names screened as UTF-8 only
+KILLED    header values screened as UTF-8 only
+KILLED    quarantine content type screened as UTF-8 only
+KILLED    the cap is applied before the wire scan
+
+== adapters/src/genesis_adapters/secrets.py  (modules: adapter_tests.test_v05_r2_transport_boundary,adapter_tests.test_v05_secrets)
+baseline: PASS (OK)
+KILLED    no reversible views
+KILLED    the JSON-unescaped form is not considered
+
+== adapters/src/genesis_adapters/oddspapi/verify.py  (modules: adapter_tests.test_v05_r2_transport_boundary)
+baseline: PASS (OK)
+KILLED    the runtime scan ignores reversible views
+
+== adapters/src/genesis_adapters/cli.py  (modules: adapter_tests.test_v05_r2_transport_boundary,adapter_tests.test_v05_cli)
+baseline: PASS (OK)
+KILLED    the operator path passes a TLS context
+KILLED    the operator path passes a connect address
+KILLED    the run command takes a CA file again
+KILLED    the run command takes a connect address again
+# end: 2026-09-30T23:27:02Z
+
+== adapters/src/genesis_adapters/oddspapi/transport_http.py, rerun WITHOUT TX-01 (the first run timed out, see above) (modules: R2, R1, static)
+baseline: PASS (OK)
+KILLED (15s)     transport label not screened for the key
+KILLED (14s)     transport records the raw class name
+KILLED (14s)     transport errno not screened for the key
+KILLED (15s)     transport records the raw errno
+KILLED (14s)     T0 not re-read at the write boundary
+KILLED (14s)     no deadline check at the write boundary
+KILLED (14s)     write-boundary check strict (equality writes)
+KILLED (15s)     close moved outside the process-control boundary
+KILLED (15s)     close exceptions of every kind swallowed
+KILLED (14s)     the connection is never closed
+-- summary
+KILLED (15s)     transport label not screened for the key
+KILLED (14s)     transport records the raw class name
+KILLED (14s)     transport errno not screened for the key
+KILLED (15s)     transport records the raw errno
+KILLED (14s)     T0 not re-read at the write boundary
+KILLED (14s)     no deadline check at the write boundary
+KILLED (14s)     write-boundary check strict (equality writes)
+KILLED (15s)     close moved outside the process-control boundary
+KILLED (15s)     close exceptions of every kind swallowed
+KILLED (14s)     the connection is never closed
+
+
+== adapters/src/genesis_adapters/oddspapi/transport_http.py, TX-01 ONLY (subprocess, end to end), per-mutation timeout 400s; TIMEOUT is reported as such, never as killed
+# start: 2026-09-30T23:30:17Z
+baseline: PASS (OK)
+SURVIVED (57s)   transport label not screened for the key
+SURVIVED (46s)   transport records the raw class name
+SURVIVED (49s)   transport errno not screened for the key
+SURVIVED (52s)   transport records the raw errno
+SURVIVED (47s)   T0 not re-read at the write boundary
+SURVIVED (49s)   no deadline check at the write boundary
+SURVIVED (76s)   write-boundary check strict (equality writes)
+KILLED (45s)     close moved outside the process-control boundary
+KILLED (82s)     close exceptions of every kind swallowed
+KILLED (45s)     the connection is never closed
+-- summary
+SURVIVED (57s)   transport label not screened for the key
+SURVIVED (46s)   transport records the raw class name
+SURVIVED (49s)   transport errno not screened for the key
+SURVIVED (52s)   transport records the raw errno
+SURVIVED (47s)   T0 not re-read at the write boundary
+SURVIVED (49s)   no deadline check at the write boundary
+SURVIVED (76s)   write-boundary check strict (equality writes)
+KILLED (45s)     close moved outside the process-control boundary
+KILLED (82s)     close exceptions of every kind swallowed
+KILLED (45s)     the connection is never closed
+# end: 2026-09-30T23:40:13Z

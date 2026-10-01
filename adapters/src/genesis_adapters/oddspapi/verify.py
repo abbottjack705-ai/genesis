@@ -125,6 +125,8 @@ def scan_runtime_for_secret(root: Path, secret, *, policy=None) -> tuple[Path, .
         for name in files:
             path = Path(directory) / name
             relative = path.relative_to(base).as_posix().encode("utf-8", "replace")
-            if scanner.scan(relative).hit or scanner.scan(path.read_bytes()).hit:
+            data = path.read_bytes()
+            if scanner.scan(relative).hit or scanner.scan(data).hit \
+                    or any(scanner.scan(view).hit for view in secrets_module.reversible_views(data)):
                 hits.append(path)
     return tuple(sorted(hits))

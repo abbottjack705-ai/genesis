@@ -125,8 +125,7 @@ class GateLimitPinTests(unittest.TestCase):
             self.assertFalse((base / "runtime" / "authority.jsonl").exists())    # nothing was approved
             plan = base / "plan.json"
             plan.write_text("[]", encoding="utf-8")
-            run_args = SimpleNamespace(config=str(config_dir), root=str(base / "runtime"), plan=str(plan),
-                                       mode="G2", connect=None, ca_file=None)
+            run_args = SimpleNamespace(config=str(config_dir), root=str(base / "runtime"), plan=str(plan), mode="G2")
             with self.assertRaises(auth.AuthorityRecordInvalid):
                 cli.cmd_run(run_args)
 

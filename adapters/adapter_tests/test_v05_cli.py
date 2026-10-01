@@ -119,31 +119,9 @@ class CommandTests(unittest.TestCase):
             plan.write_text("[]", encoding="utf-8")
             err = io.StringIO()
             with contextlib.redirect_stderr(err):
-                code = cli.cmd_run(SimpleNamespace(config=None, root=str(root), plan=str(plan), mode="G2",
-                                                   connect=None, ca_file=None))
+                code = cli.cmd_run(SimpleNamespace(config=None, root=str(root), plan=str(plan), mode="G2"))
             self.assertEqual(code, cli.EXIT_REFUSED)
             self.assertIn("no G1 record", err.getvalue())
-
-    def test_run_refuses_a_test_ca_without_a_loopback_address(self):
-        from .loopback_support import TEST_CA
-        from .test_v05_tx01 import prepare
-        with scratch_root() as base:
-            root, plan, env = prepare(base)                   # synthetic G1/G2 records and the sentinel key file
-            plan.write_text("[]", encoding="utf-8")           # nothing is ever planned, so nothing could be sent
-            err = io.StringIO()
-            credential = {"GENESIS_ODDSPAPI_CREDENTIAL_FILE": env["GENESIS_ODDSPAPI_CREDENTIAL_FILE"]}
-            with mock.patch.dict(os.environ, credential), contextlib.redirect_stderr(err):
-                code = cli.cmd_run(SimpleNamespace(config=None, root=str(root), plan=str(plan), mode="G2",
-                                                   connect=None, ca_file=str(TEST_CA)))
-            self.assertEqual(code, cli.EXIT_REFUSED)
-            self.assertIn("a test CA is only accepted together with a loopback address", err.getvalue())
-
-    def test_the_connect_override_accepts_loopback_addresses_only(self):
-        self.assertEqual(cli._loopback("127.0.0.1:8443"), ("127.0.0.1", 8443))
-        self.assertIsNone(cli._loopback(None))
-        for value in ("192.0.2.1:443", "10.0.0.1:443"):
-            with self.assertRaises(ValueError):
-                cli._loopback(value)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,7 @@
 # Byte-exact fixtures and pinned config: no end-of-line conversion on any checkout.
 adapter_tests/fixtures/** -text
+# Throwaway loopback TLS material is test-only: never part of a source archive or release (hostile audit HA-13).
+adapter_tests/fixtures/tls/** export-ignore
 config/** -text
 # Raw transcripts are byte evidence (hashed in HASHES.sha256): keep their exact bytes.
 evidence/** -text whitespace=-trailing-space,-blank-at-eof

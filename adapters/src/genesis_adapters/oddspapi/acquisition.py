@@ -28,7 +28,7 @@ from genesis_adapters.oddspapi.endpoints import RAW_CONTRACT_ID, CanonicalReques
 from genesis_adapters.oddspapi.quota_gate import QuotaCharge
 from genesis_adapters.oddspapi.raw_capture import CaptureConflict, Captured
 from genesis_adapters.oddspapi.transport import (
-    REDACTED_EXCEPTION_CLASS, Transport, TransportResult, sanitize_exception,
+    REDACTED_EXCEPTION_CLASS, Transport, TransportResult, safe_errno, safe_label, sanitize_exception,
 )
 
 SCHEMA_VERSION = "acquisition-ledger-v1"
@@ -630,7 +630,7 @@ class AcquisitionRunner:
                                      {"class": "ClockFault", "errno": None}, sent=True)
             self._halt(aid, request, AdapterFailure.CLOCK_FAULT, self._safe_stamp(t0), refused=False)
         except Exception as exc:                            # a transport that raised: sanitize it
-            error = sanitize_exception(exc)
+            error = sanitize_exception(exc, max_chars=self.config.policy.header_value_max_chars)
             return self._finish_no_response(aid, request_id, request, charge, self._safe_stamp(t0), error,
                                             sent=True)
         return self._complete(aid, request_id, request, charge, t0, deadline, result)
@@ -642,19 +642,28 @@ class AcquisitionRunner:
             return floor
 
     def _scanned_error(self, error: dict) -> dict:
-        """Design 7.6 item 3 (hostile audit F-01): the sanitized record is itself scanned before it is persisted.
+        """Design 7.6 item 3 (hostile audits F-01 / HA-01): the sanitized record is itself screened before it is
+        persisted or returned.
 
-        Every non-empty ``sanitized_error`` - from ``sanitize_exception`` or reported by a transport - reaches the
-        ledger only through ``_finish_no_response``, which calls this first. A record that carries any section-7.6
-        form of the key (an exception class named after it, say) keeps its row, because the attempt happened,
-        but not its content: a fixed placeholder class and no errno. With no key configured (fixture mode) there
-        is no form to find, so the record is kept as sanitized."""
+        Every non-empty ``sanitized_error`` - from ``sanitize_exception`` or reported by any transport - reaches the
+        ledger only through ``_finish_no_response``, which calls this first. Whatever the transport, a label that is
+        not a plain bounded identifier becomes the fixed placeholder and an errno that is not a bounded ``int`` is
+        dropped. The record is then scanned for every section-7.6 form of the configured key; on a hit, a label that
+        carries one becomes the placeholder and an errno whose digits carry one is dropped, while the other field
+        keeps its meaning; the record exactly as it will be persisted is scanned again, and if it still hits,
+        nothing of it is kept. The row itself is still written: the attempt happened. With no key configured
+        (fixture mode) only the structural rules apply."""
 
-        if self.capture is None or not self.capture.scans_for_secret:
-            return error
-        if self.capture.hits_secret(canonical_json(error)):
-            return {"class": REDACTED_EXCEPTION_CLASS, "errno": None}
-        return error
+        max_chars = self.config.policy.header_value_max_chars
+        label = safe_label(error.get("class"), max_chars=max_chars)
+        errno = safe_errno(error.get("errno"), max_chars=max_chars)
+        hit = self.capture.hits_secret if self.capture is not None and self.capture.scans_for_secret else None
+        if hit is not None and hit(canonical_json({"class": label, "errno": errno})):
+            label = safe_label(label, max_chars=max_chars, hit=hit)
+            errno = safe_errno(errno, max_chars=max_chars, hit=hit)
+            if hit(canonical_json({"class": label, "errno": errno})):                # the record as persisted
+                label, errno = REDACTED_EXCEPTION_CLASS, None
+        return {"class": label, "errno": errno}
 
     def _finish_no_response(self, aid, request_id, request, charge, at, error, *, sent: bool) -> AcquisitionOutcome:
         error = self._scanned_error(error)

@@ -106,6 +106,19 @@ def parse_http_date(value: str):
     return moment.astimezone(timezone.utc)
 
 
+def header_octet_forms(text: str) -> tuple[bytes, ...]:
+    """A header string as UTF-8 and, where it maps back, as the ORIGINAL wire octets. ``http.client`` decodes
+    header bytes as Latin-1, so encoding back to Latin-1 restores exactly what the provider sent: a non-ASCII key
+    echoed as UTF-8 octets is only visible in that form (hostile audit HA-07)."""
+
+    forms = [text.encode("utf-8", "replace")]
+    try:
+        forms.append(text.encode("latin-1"))
+    except UnicodeEncodeError:
+        pass
+    return tuple(forms)
+
+
 class RawCapture:
     def __init__(self, *, root: Path, evidence: EvidenceStore, gate, config, secret: Secret | None,
                  require_date: bool, licensing_note: str):
@@ -127,6 +140,11 @@ class RawCapture:
 
     def _hit(self, data: bytes) -> bool:
         return self.scanner is not None and self.scanner.scan(data).hit
+
+    def _hit_text(self, text: str) -> bool:
+        """A header name or value, screened as UTF-8 AND as the original wire octets (hostile audit HA-07)."""
+
+        return self.scanner is not None and any(self._hit(form) for form in header_octet_forms(text))
 
     def hits_secret(self, data: bytes) -> bool:
         """True when ``data`` carries the configured key in any section-7.6 form (never True without a key)."""
@@ -185,9 +203,9 @@ class RawCapture:
         names: list[str] = []
         for name, value in result.headers:
             key = name.lower()
-            if _NAME.match(key) and not self._hit(key.encode("utf-8", "replace")):
+            if _NAME.match(key) and not self._hit_text(key):
                 names.append(key)
-            if key == "content-type" and len(value) <= cap and not self._hit(value.encode("utf-8", "replace")):
+            if key == "content-type" and len(value) <= cap and not self._hit_text(value):
                 content_type = value
         meta = {"acquisition_id": aid, "provider_request_hash": request.provider_request_hash, "T1": t1,
                 "http_status": result.http_status, "byte_length": byte_length, "content_type": content_type,
@@ -208,16 +226,17 @@ class RawCapture:
         classes: set[str] = set()
         if self.scanner is not None:
             for name, value in result.headers:
-                if self._hit(name.encode("utf-8", "replace")):
+                if self._hit_text(name):
                     classes.add("HEADER_NAME")
-                if self._hit(value.encode("utf-8", "replace")):
+                if self._hit_text(value):
                     classes.add("HEADER_VALUE")
         encoding = self._encoding(result.headers)
         oversize = len(wire) > policy.max_response_bytes
         inspected_wire = wire[:policy.max_response_bytes]
         decoded = None if (oversize and encoding != "none") else self._decode(inspected_wire, encoding)
         if self.scanner is not None:
-            for label, data in (("BODY_", inspected_wire), ("BODY_", decoded)):
+            # every RECEIVED byte, the cap+1 probe byte included, before any retention decision (HA-08)
+            for label, data in (("BODY_", wire), ("BODY_", decoded)):
                 if data is not None:
                     classes.update(label + item for item in self.scanner.scan(data).detection_classes)
         if classes:

@@ -73,11 +73,11 @@ class Boom:
 
 
 class SanitizedRecordScanTests(unittest.TestCase):
-    def assert_redacted(self, root, outcome):
+    def assert_redacted(self, root, outcome, errno=None):
         rows = completed_rows(root)
         self.assertEqual(len(rows), 1)                                        # the attempt is still recorded
         self.assertEqual((rows[0]["outcome"], rows[0]["failure"]), ("NO_RESPONSE", "NO_RESPONSE"))
-        if rows[0]["sanitized_error"] != PLACEHOLDER:
+        if rows[0]["sanitized_error"] != dict(PLACEHOLDER, errno=errno):
             self.fail("stored sanitized_error " + shown(rows[0]["sanitized_error"]) + " is not the placeholder")
         if outcome.detail != PLACEHOLDER["class"]:                           # what callers see is clean too
             self.fail("outcome detail " + shown(outcome.detail) + " is not the placeholder")
@@ -94,7 +94,8 @@ class SanitizedRecordScanTests(unittest.TestCase):
         for label, name in KEY_FORMS.items():
             with self.subTest(label), scratch_root() as root:
                 rt = open_rt(root, script=[no_response(error_class=name, errno=104)], secret=Secret(SENTINEL_KEY))
-                self.assert_redacted(root, rt.runner.acquire(odds_item()))    # errno dropped with the class
+                # HA-01 (controlling audit): only the tainted label is replaced; the integer errno keeps its meaning
+                self.assert_redacted(root, rt.runner.acquire(odds_item()), errno=104)
 
     def test_r1_the_real_https_transport_boundary_is_scanned_too(self):
         for label in ("identifier", "verbatim"):
@@ -143,10 +144,10 @@ class SanitizedRecordScanTests(unittest.TestCase):
             rt.runner.acquire(odds_item())
         scans = [i for i, (what, data) in enumerate(events) if what == "scanned" and name.encode() in data]
         completed = [i for i, (what, kind) in enumerate(events) if what == "appended" and kind == "acq_completed"]
-        self.assertEqual(len(scans), 1)                                       # the record itself was scanned
+        self.assertGreaterEqual(len(scans), 1)                                # the record itself was scanned
         self.assertEqual(len(completed), 1)
-        self.assertLess(scans[0], completed[0])                               # ... before it was persisted
-        scanned = json.loads(events[scans[0]][1])
+        self.assertLess(max(scans), completed[0])                             # ... every scan before it was persisted
+        scanned = json.loads(events[scans[0]][1])                              # the first scan is the whole record
         self.assertTrue(scanned == {"class": name, "errno": None}, "the scanned bytes are not the sanitized record")
 
 

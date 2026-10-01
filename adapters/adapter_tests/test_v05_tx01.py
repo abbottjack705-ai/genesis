@@ -117,9 +117,19 @@ HARNESS = textwrap.dedent('''
         def finished(self):
             return False
         def close(self):
-            pass
+            if STAGE == "close":                 # HA-02: a fault while the connection is being closed
+                boom()
 
-    if STAGE != "loopback":                      # "loopback": the real connection, to the test's loopback server
+    if STAGE == "loopback":                      # the real connection, to the test's loopback server; the test CA
+        import os, ssl                           # and address are injected HERE, never through the production CLI
+        _Real = transport_http.HttpsTransport
+        class LoopbackTransport(_Real):
+            def __init__(self, secret, **kw):
+                context = ssl.create_default_context(cafile=os.environ["GENESIS_TEST_LOOPBACK_CA"])
+                address = ("127.0.0.1", int(os.environ["GENESIS_TEST_LOOPBACK_PORT"]))
+                super().__init__(secret, ssl_context=context, connect_address=address, **kw)
+        transport_http.HttpsTransport = LoopbackTransport
+    else:
         transport_http._Connection = FaultyConnection
     cli.time_sync_attestation = lambda: {"synchronized": True, "method": "harness", "source": "harness"}
 
@@ -208,7 +218,7 @@ class Tx01Tests(unittest.TestCase):
             root, plan, env = prepare(base)
             harness, result = base / "harness.py", base / "result.json"
             harness.write_text(HARNESS, encoding="utf-8")
-            args = ["run", "--root", str(root), "--plan", str(plan), "--mode", "G2", "--connect", "127.0.0.1:9"]
+            args = ["run", "--root", str(root), "--plan", str(plan), "--mode", "G2"]
             proc = subprocess.run([sys.executable, "-B", str(harness), str(result), stage, kind, SENTINEL_KEY,
                                    json.dumps(args)], env=env, cwd=str(REPO), capture_output=True, timeout=180)
             scanner = SecretScanner(Secret(SENTINEL_KEY), policy=POLICY)
@@ -254,6 +264,28 @@ class Tx01Tests(unittest.TestCase):
                 self.assertTrue(stored == {"class": "REDACTED_EXCEPTION_CLASS", "errno": None},
                                 "the stored sanitized record is not the redaction placeholder")
 
+    def test_tx01_r2_process_control_raised_by_close_arrives_fresh(self):
+        # HA-02: close() runs after the exchange; its KeyboardInterrupt / SystemExit must leave exactly like one
+        # raised during the send (fresh, status kept, no text, cause, context, notes or keyed frame local)
+        wanted = {"KBI": (STATUS_CONTROL_C_EXIT if sys.platform == "win32" else -2, "KeyboardInterrupt", None),
+                  "EXIT37": (37, "SystemExit", 37), "EXITSTR": (1, "SystemExit", 1), "EXITNONE": (0, "SystemExit", None)}
+        for kind, (code, cls, recorded) in wanted.items():
+            with self.subTest(kind):
+                proc, outcome, _ = self.run_case("close", kind)
+                self.assertEqual(proc.returncode, code)
+                self.assertEqual(outcome, {"class": cls, "code": recorded, "cause_is_none": True,
+                                           "context_is_none": True, "has_notes": False, "args_ok": True,
+                                           "frames_clean": True})
+                self.assertNotIn(b"apiKey", proc.stderr)
+
+    def test_tx01_r2_an_ordinary_or_key_named_error_in_close_is_contained(self):
+        for kind in ("EXC", "NAMED"):
+            with self.subTest(kind):
+                proc, outcome, completed = self.run_case("close", kind)
+                self.assertEqual(proc.returncode, 0, proc.stderr[-500:])
+                self.assertIsNone(outcome["class"])                           # nothing reached the top level
+                self.assertEqual(len(completed), 1)
+
     def test_tx01_keyboard_interrupt_keeps_its_meaning_and_arrives_fresh(self):
         wanted = STATUS_CONTROL_C_EXIT if sys.platform == "win32" else -2
         for stage in ("connect", "write", "read_headers", "read_body", "decode"):
@@ -277,7 +309,8 @@ class Tx01Tests(unittest.TestCase):
 
 class LoopbackRunTests(unittest.TestCase):
     """The operator CLI's ``run`` end to end through the REAL HTTPS transport to the in-process loopback server
-    (the test CA injected with ``--ca-file``, ``--connect 127.0.0.1:<port>``). The gate records are synthetic and
+    (the test CA and the loopback address injected by the harness, never through the production CLI, which has no
+    such option). The gate records are synthetic and
     live in a scratch directory; the pinned production host is never contacted. A loopback test, not the G2 smoke."""
 
     def setUp(self):
@@ -294,8 +327,8 @@ class LoopbackRunTests(unittest.TestCase):
             root, plan, env = prepare(base)
             harness, result = base / "harness.py", base / "result.json"
             harness.write_text(HARNESS, encoding="utf-8")
-            args = ["run", "--root", str(root), "--plan", str(plan), "--mode", "G2",
-                    "--connect", f"127.0.0.1:{self.server.port}", "--ca-file", str(TEST_CA)]
+            args = ["run", "--root", str(root), "--plan", str(plan), "--mode", "G2"]
+            env.update({"GENESIS_TEST_LOOPBACK_CA": str(TEST_CA), "GENESIS_TEST_LOOPBACK_PORT": str(self.server.port)})
             proc = subprocess.run([sys.executable, "-B", str(harness), str(result), "loopback", "NONE", SENTINEL_KEY,
                                    json.dumps(args)], env=env, cwd=str(REPO), capture_output=True, timeout=180)
             self.assertEqual(proc.returncode, 0, proc.stderr[-800:])
@@ -311,7 +344,8 @@ class LoopbackRunTests(unittest.TestCase):
             self.assertLess(parse_utc(sent[0]["T0"]), parse_utc(done["T1"]))    # design 6.3, on the real clock
             self.assertEqual(len(self.server.seen), 1)                           # G2 max_calls = 1
             _, target, _ = self.server.seen[0].request_line.split(" ")
-            self.assertEqual(dict(parse_qsl(urlsplit(target).query))["apiKey"], SENTINEL_KEY)   # on the wire only
+            self.assertTrue(dict(parse_qsl(urlsplit(target).query))["apiKey"] == SENTINEL_KEY,   # on the wire only
+                            "the key on the wire is not the configured key")
             self.assertEqual({k.lower(): v for k, v in self.server.seen[0].headers}["host"], "api.oddspapi.io")
             pit = [r for r in read_jsonl(root / "pit.jsonl") if r.get("record_type") == "pit_record"]
             self.assertEqual(pit, [])                                            # G2: raw capture only

@@ -1,0 +1,8 @@
+# R2 git diff --check
+# command: git diff --check (worktree) and git diff --cached --check
+# start: 2026-10-01T00:14:33Z
+# python: Python 3.12.10
+# HEAD (base): 875656e9328d1af2a95429457a0ac04eb9ccf6dc
+----
+# exit: 0
+# exit(cached): 0

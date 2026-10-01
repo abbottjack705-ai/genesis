@@ -1,0 +1,28 @@
+# R2 GREEN supplement: adapter_tests.test_v05_authority (incl. LiveGateTests) re-run outside the UTC day-boundary guard zone
+# why: GREEN.txt crossed 00:00 UTC; five LiveGateTests use the real clock and skip themselves inside the guard zone
+#      [23:57, 00:02) UTC (design 14.6), so they did not run there. Same tree, same command form.
+# command: PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B -m unittest -v adapter_tests.test_v05_authority
+# start: 2026-10-01T00:15:19Z | HEAD (base): 875656e9328d1af2a95429457a0ac04eb9ccf6dc + R2 worktree changes
+----
+test_approve_refuses_without_a_terminal_a_phrase_or_an_out_of_band_reference (adapter_tests.test_v05_authority.CapabilityGateTests.test_approve_refuses_without_a_terminal_a_phrase_or_an_out_of_band_reference) ... ok
+test_g03_ready_only_through_the_operator_cli_after_a_g3_record (adapter_tests.test_v05_authority.CapabilityGateTests.test_g03_ready_only_through_the_operator_cli_after_a_g3_record) ... ok
+test_g04_auth_rejection_blocks_every_market_book_source (adapter_tests.test_v05_authority.CapabilityGateTests.test_g04_auth_rejection_blocks_every_market_book_source) ... ok
+test_only_an_interactive_operator_reset_clears_a_durable_circuit (adapter_tests.test_v05_authority.CapabilityGateTests.test_only_an_interactive_operator_reset_clears_a_durable_circuit) ... ok
+test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_a_relaxed_tightened_or_reformatted_file_is_refused_at_load) ... ok
+test_r2_the_operator_cli_cannot_be_pointed_at_relaxed_limits (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_the_operator_cli_cannot_be_pointed_at_relaxed_limits) ... ok
+test_r2_the_pinned_digest_is_the_digest_of_the_shipped_file (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_the_pinned_digest_is_the_digest_of_the_shipped_file) ... ok
+test_r2_the_shipped_file_holds_exactly_the_design_16_3_and_16_4_bounds (adapter_tests.test_v05_authority.GateLimitPinTests.test_r2_the_shipped_file_holds_exactly_the_design_16_3_and_16_4_bounds) ... ok
+test_clk02_a_live_runner_refuses_a_test_clock_and_a_test_quota_policy (adapter_tests.test_v05_authority.LiveGateTests.test_clk02_a_live_runner_refuses_a_test_clock_and_a_test_quota_policy) ... ok
+test_g01_without_every_gate_element_nothing_is_sent (adapter_tests.test_v05_authority.LiveGateTests.test_g01_without_every_gate_element_nothing_is_sent) ... ok
+test_g02_only_pinned_requests_at_most_max_calls_inside_the_window (adapter_tests.test_v05_authority.LiveGateTests.test_g02_only_pinned_requests_at_most_max_calls_inside_the_window) ... ok
+test_g2r_must_pin_the_running_derivation_and_policy (adapter_tests.test_v05_authority.LiveGateTests.test_g2r_must_pin_the_running_derivation_and_policy) ... ok
+test_sent_counter_counts_only_sends_of_the_given_requests_since_the_window_opened (adapter_tests.test_v05_authority.LiveGateTests.test_sent_counter_counts_only_sends_of_the_given_requests_since_the_window_opened) ... ok
+test_only_the_operator_cli_can_reach_the_gate_ledger_or_write_ready (adapter_tests.test_v05_authority.RecordTests.test_only_the_operator_cli_can_reach_the_gate_ledger_or_write_ready) ... ok
+test_records_are_closed_and_bounded (adapter_tests.test_v05_authority.RecordTests.test_records_are_closed_and_bounded) ... ok
+
+----------------------------------------------------------------------
+Ran 15 tests in 6.827s
+
+OK
+# exit: 0
+# end: 2026-10-01T00:15:42Z

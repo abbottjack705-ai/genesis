@@ -11,6 +11,7 @@ from genesis_adapters.oddspapi import emit, parser, scope
 from genesis_adapters.oddspapi.reader import UsableBook, Unusable, admissible_head
 
 from . import emit_support as es
+from .emit_support import derivation_accepted
 from . import parser_support as ps
 from .emit_support import (
     CAPTURE_1, CAPTURE_2, build_stores, capture, doc_json, head_book, iso, pit_rows, small_payload,
@@ -35,7 +36,7 @@ def repriced(over=1.9, under=1.96):
 
 
 def head(stores, entity_id, decision_at):
-    return admissible_head(entity_id, decision_at, stores=stores)
+    return admissible_head(entity_id, decision_at, stores=stores, derivation_check=derivation_accepted)
 
 
 class AsOfTests(unittest.TestCase):
@@ -285,9 +286,11 @@ class FreshnessTests(unittest.TestCase):
             parsed, _, _ = capture(stores, small_payload())
             entity = head_book(parsed).entity_id
             before = pit_rows(stores)
-            for index, (label, body) in enumerate((("not json", b"{"), ("envelope", b'{"a": 1}'))):
+            # each rejected refresh carries its content verdict in its completed row (design 11.1, hostile audit HA-04)
+            for index, (label, body, verdict) in enumerate((("not json", b"{", "NOT_JSON"),
+                                                            ("envelope", b'{"a": 1}', "ENVELOPE_SCHEMA_MISMATCH"))):
                 with self.subTest(label), self.assertRaises(emit.EmitConflict):
-                    capture(stores, body, t1=iso(CAPTURE_2, seconds=60 * index), tag=label)
+                    capture(stores, body, t1=iso(CAPTURE_2, seconds=60 * index), tag=label, seed_failure=verdict)
             self.assertEqual(pit_rows(stores), before)
             record = record_of(stores, entity, CAPTURE_1)
             self.assertEqual(record.valid_to, iso(CAPTURE_1, seconds=stores.policy.price_ttl_seconds))
@@ -345,7 +348,9 @@ class CrashAndRebuildTests(unittest.TestCase):
                 observations = restarted.evidence.get_observations(row["payload_hash"])
                 self.assertEqual(len(observations), 1)
                 self.assertEqual(observations[0].parse_ready_at, iso(CAPTURE_1, seconds=0.5))
-                self.assertEqual(row["ready_at"], iso(CAPTURE_1, seconds=6))       # the new, later T3
+                # nothing of the PIT append was durable, so the resume stamps a new, later T3 - its first clock reading,
+                # because the durable T2 above is reused, not re-stamped (design 6.2, hostile audit HA-06)
+                self.assertEqual(row["ready_at"], iso(CAPTURE_1, seconds=5))
 
     def test_pit09_rederiving_the_same_captures_into_empty_stores_gives_identical_artifacts_and_record_ids(self):
         payloads = [(small_payload(bookmakers=("pinnacle", "fixture-book-a")), CAPTURE_1),

@@ -27,6 +27,7 @@ from genesis_adapters.errors import (
     AcquisitionHalt, AdapterFailure, CredentialProblem, GateMissing, PlanRefused, reason_code,
 )
 from genesis_adapters.ids import gid
+from genesis_adapters.oddspapi import quiescence
 from genesis_adapters.oddspapi.endpoints import RAW_CONTRACT_ID, CanonicalRequest
 from genesis_adapters.oddspapi.quota_gate import QuotaCharge
 from genesis_adapters.oddspapi.raw_capture import CaptureConflict, Captured
@@ -189,6 +190,7 @@ _RECONCILE_OUTCOMES = ("ORPHANED_RESERVATION", "NOT_RESERVED")
 _SEND_STATES = ("NOT_SENT", "MAY_HAVE_BEEN_SENT")
 _COMPLETED_OUTCOMES = ("RESPONSE", "NO_RESPONSE", "TRUNCATED")
 _OPEN_STATES = ("PLANNED", "DECIDED", "SENT")
+OPEN_STATES = _OPEN_STATES                  # an attempt still in flight, or cut short by a crash (quiescence)
 
 
 class LedgerInvariantError(RegistryConflict):
@@ -669,9 +671,14 @@ class AcquisitionRunner:
 
     # -- the attempt -----------------------------------------------------------------------
     def acquire(self, item: PlanItem, *, clock_check: bool = False) -> AcquisitionOutcome:
-        """One attempt. ``clock_check`` marks the explicit, gated and debited probe that may re-arm sends after a
+        """One attempt, under the runtime root's run lock (design 6.3: one adapter phase at a time, never while a
+        decision reads). ``clock_check`` marks the explicit, gated and debited probe that may re-arm sends after a
         CLOCK_SKEW suspension with a clean ``Date`` check (design 14.6 rule 5); it bypasses nothing else."""
 
+        with quiescence.run_lock(self.root):
+            return self._acquire(item, clock_check=clock_check)
+
+    def _acquire(self, item: PlanItem, *, clock_check: bool) -> AcquisitionOutcome:
         self.settle_last()                                  # a crash never skips the previous verdict's effects
         request = item.request
         aid = attempt_id(request.provider_request_hash, item.window_id, item.attempt)
@@ -1049,8 +1056,12 @@ class AcquisitionRunner:
 
     def reconcile_after_restart(self) -> tuple[str, ...]:
         """Complete the newest verdict's side effects, then close every attempt left open by a crash. Debits
-        stand; nothing is re-sent."""
+        stand; nothing is re-sent. Under the run lock (design 6.3)."""
 
+        with quiescence.run_lock(self.root):
+            return self._reconcile_after_restart()
+
+    def _reconcile_after_restart(self) -> tuple[str, ...]:
         now = self._stamp()
         require_not_before(now, *self._durable_heads())
         self.settle_last()

@@ -1,0 +1,365 @@
+# R4 RED: the R4 tests (HA-05/06/12, the quiescence lock) against the UNMODIFIED production code of R3 a6fd975, before any R4 production change
+# test-side only before this run: emit_support.derivation_accepted (a named accept-all verifier for reader tests on synthetic stores)
+# production tree: git diff --stat HEAD -- adapters/src = 0 lines (none)
+# command: PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B -m unittest -v adapter_tests.test_v05_r4_pit_recovery
+# start: 2026-10-01T01:41:11Z | HEAD: a6fd9756b8af13d7272b5eee6958244f2d5ff263
+----
+test_ha12_an_underivable_head_is_refused_and_invalidated_automatically (adapter_tests.test_v05_r4_pit_recovery.MandatoryDerivationTests.test_ha12_an_underivable_head_is_refused_and_invalidated_automatically) ... ERROR
+test_ha12_no_consumption_path_works_without_a_verifier (adapter_tests.test_v05_r4_pit_recovery.MandatoryDerivationTests.test_ha12_no_consumption_path_works_without_a_verifier) ... FAIL
+test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) ... 
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_observation:0] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_structured:0] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_observation:1] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_structured:1] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_observation:2] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_structured:2] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_observation:3] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_structured:3] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_t3] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_pit:0] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_pit:1] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_pit:2] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_pit:3] ... FAIL
+  test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_coverage] ... FAIL
+test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree) ... 
+  test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree) [after_pit:0] ... ERROR
+  test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree) [after_pit:1] ... ERROR
+  test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree) [after_pit:2] ... ERROR
+  test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree) [after_pit:3] ... ERROR
+  test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree) [after_coverage] ... ERROR
+test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it) ... 
+  test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it) [after_recorded] ... FAIL
+  test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it) [after_invalidation_observation] ... FAIL
+  test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it) [after_invalidation_pit] ... FAIL
+test_ha05_a_restart_completes_every_pending_invalidation_exactly_once (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_restart_completes_every_pending_invalidation_exactly_once) ... 
+  test_ha05_a_restart_completes_every_pending_invalidation_exactly_once (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_restart_completes_every_pending_invalidation_exactly_once) [after_recorded] ... ERROR
+  test_ha05_a_restart_completes_every_pending_invalidation_exactly_once (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_restart_completes_every_pending_invalidation_exactly_once) [after_invalidation_observation] ... ERROR
+  test_ha05_a_restart_completes_every_pending_invalidation_exactly_once (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_restart_completes_every_pending_invalidation_exactly_once) [after_invalidation_pit] ... ERROR
+test_ha05_the_cli_run_reconciles_before_its_first_send (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_the_cli_run_reconciles_before_its_first_send) ... ERROR
+test_ha05_the_pipeline_start_completes_a_pending_invalidation (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_the_pipeline_start_completes_a_pending_invalidation) ... FAIL
+test_ha06_a_lock_held_by_another_process_refuses_adapter_phases_and_reads (adapter_tests.test_v05_r4_pit_recovery.RunLockTests.test_ha06_a_lock_held_by_another_process_refuses_adapter_phases_and_reads) ... ERROR
+test_ha06_the_lock_is_reentrant_within_one_process (adapter_tests.test_v05_r4_pit_recovery.RunLockTests.test_ha06_the_lock_is_reentrant_within_one_process) ... ERROR
+
+======================================================================
+ERROR: test_ha12_an_underivable_head_is_refused_and_invalidated_automatically (adapter_tests.test_v05_r4_pit_recovery.MandatoryDerivationTests.test_ha12_an_underivable_head_is_refused_and_invalidated_automatically)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 333, in test_ha12_an_underivable_head_is_refused_and_invalidated_automatically
+    good = rt.reader().head(row["entity_id"], cutoff)
+           ^^^^^^^^^
+AttributeError: 'AdapterRuntime' object has no attribute 'reader'
+
+======================================================================
+ERROR: test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree) [after_pit:0]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 220, in test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree
+    self.assertEqual(halfway.code, F.DATA_CAPABILITY_NOT_READY)   # ... is unreadable meanwhile
+                     ^^^^^^^^^^^^
+AttributeError: 'UsableBook' object has no attribute 'code'
+
+======================================================================
+ERROR: test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree) [after_pit:1]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 220, in test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree
+    self.assertEqual(halfway.code, F.DATA_CAPABILITY_NOT_READY)   # ... is unreadable meanwhile
+                     ^^^^^^^^^^^^
+AttributeError: 'UsableBook' object has no attribute 'code'
+
+======================================================================
+ERROR: test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree) [after_pit:2]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 220, in test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree
+    self.assertEqual(halfway.code, F.DATA_CAPABILITY_NOT_READY)   # ... is unreadable meanwhile
+                     ^^^^^^^^^^^^
+AttributeError: 'UsableBook' object has no attribute 'code'
+
+======================================================================
+ERROR: test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree) [after_pit:3]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 220, in test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree
+    self.assertEqual(halfway.code, F.DATA_CAPABILITY_NOT_READY)   # ... is unreadable meanwhile
+                     ^^^^^^^^^^^^
+AttributeError: 'UsableBook' object has no attribute 'code'
+
+======================================================================
+ERROR: test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree) [after_coverage]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 220, in test_ha06_no_decision_reads_a_half_emitted_response_and_after_recovery_reader_and_verifier_agree
+    self.assertEqual(halfway.code, F.DATA_CAPABILITY_NOT_READY)   # ... is unreadable meanwhile
+                     ^^^^^^^^^^^^
+AttributeError: 'UsableBook' object has no attribute 'code'
+
+======================================================================
+ERROR: test_ha05_a_restart_completes_every_pending_invalidation_exactly_once (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_restart_completes_every_pending_invalidation_exactly_once) [after_recorded]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 105, in test_ha05_a_restart_completes_every_pending_invalidation_exactly_once
+    done = emit.complete_pending_invalidations(stores, clock=self.later_clock(stores))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'genesis_adapters.oddspapi.emit' has no attribute 'complete_pending_invalidations'
+
+======================================================================
+ERROR: test_ha05_a_restart_completes_every_pending_invalidation_exactly_once (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_restart_completes_every_pending_invalidation_exactly_once) [after_invalidation_observation]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 105, in test_ha05_a_restart_completes_every_pending_invalidation_exactly_once
+    done = emit.complete_pending_invalidations(stores, clock=self.later_clock(stores))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'genesis_adapters.oddspapi.emit' has no attribute 'complete_pending_invalidations'
+
+======================================================================
+ERROR: test_ha05_a_restart_completes_every_pending_invalidation_exactly_once (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_restart_completes_every_pending_invalidation_exactly_once) [after_invalidation_pit]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 105, in test_ha05_a_restart_completes_every_pending_invalidation_exactly_once
+    done = emit.complete_pending_invalidations(stores, clock=self.later_clock(stores))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'genesis_adapters.oddspapi.emit' has no attribute 'complete_pending_invalidations'
+
+======================================================================
+ERROR: test_ha05_the_cli_run_reconciles_before_its_first_send (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_the_cli_run_reconciles_before_its_first_send)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 146, in test_ha05_the_cli_run_reconciles_before_its_first_send
+    real = emit.complete_pending_invalidations
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'genesis_adapters.oddspapi.emit' has no attribute 'complete_pending_invalidations'
+
+======================================================================
+ERROR: test_ha06_a_lock_held_by_another_process_refuses_adapter_phases_and_reads (adapter_tests.test_v05_r4_pit_recovery.RunLockTests.test_ha06_a_lock_held_by_another_process_refuses_adapter_phases_and_reads)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 267, in test_ha06_a_lock_held_by_another_process_refuses_adapter_phases_and_reads
+    from genesis_adapters.oddspapi import quiescence
+ImportError: cannot import name 'quiescence' from 'genesis_adapters.oddspapi' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\__init__.py)
+
+======================================================================
+ERROR: test_ha06_the_lock_is_reentrant_within_one_process (adapter_tests.test_v05_r4_pit_recovery.RunLockTests.test_ha06_the_lock_is_reentrant_within_one_process)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 293, in test_ha06_the_lock_is_reentrant_within_one_process
+    from genesis_adapters.oddspapi import quiescence
+ImportError: cannot import name 'quiescence' from 'genesis_adapters.oddspapi' (C:\Users\abbot\fz\g\adapters\src\genesis_adapters\oddspapi\__init__.py)
+
+======================================================================
+FAIL: test_ha12_no_consumption_path_works_without_a_verifier (adapter_tests.test_v05_r4_pit_recovery.MandatoryDerivationTests.test_ha12_no_consumption_path_works_without_a_verifier)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 312, in test_ha12_no_consumption_path_works_without_a_verifier
+    with self.assertRaises(TypeError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: TypeError not raised
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_observation:0]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 206, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(len(t2s), 1, t2s)
+AssertionError: 2 != 1 : {'2026-10-01T12:00:05.000000Z', '2026-10-01T12:00:00.500000Z'}
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_structured:0]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 206, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(len(t2s), 1, t2s)
+AssertionError: 2 != 1 : {'2026-10-01T12:00:05.000000Z', '2026-10-01T12:00:00.500000Z'}
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_observation:1]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 206, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(len(t2s), 1, t2s)
+AssertionError: 2 != 1 : {'2026-10-01T12:00:05.000000Z', '2026-10-01T12:00:00.500000Z'}
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_structured:1]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 206, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(len(t2s), 1, t2s)
+AssertionError: 2 != 1 : {'2026-10-01T12:00:05.000000Z', '2026-10-01T12:00:00.500000Z'}
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_observation:2]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 206, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(len(t2s), 1, t2s)
+AssertionError: 2 != 1 : {'2026-10-01T12:00:05.000000Z', '2026-10-01T12:00:00.500000Z'}
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_structured:2]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 206, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(len(t2s), 1, t2s)
+AssertionError: 2 != 1 : {'2026-10-01T12:00:05.000000Z', '2026-10-01T12:00:00.500000Z'}
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_observation:3]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 209, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(({normalized[0]["T2"]}, {normalized[0]["T3"]}), (t2s, t3s))
+AssertionError: Tuples differ: ({'2026-10-01T12:00:05.000000Z'}, {'2026-10-01T12:00:06.000000Z'}) != ({'2026-10-01T12:00:00.500000Z'}, {'2026-10-01T12:00:06.000000Z'})
+
+First differing element 0:
+{'2026-10-01T12:00:05.000000Z'}
+{'2026-10-01T12:00:00.500000Z'}
+
+- ({'2026-10-01T12:00:05.000000Z'}, {'2026-10-01T12:00:06.000000Z'})
+?                       --
+
++ ({'2026-10-01T12:00:00.500000Z'}, {'2026-10-01T12:00:06.000000Z'})
+?                      ++
+
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_structured:3]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 209, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(({normalized[0]["T2"]}, {normalized[0]["T3"]}), (t2s, t3s))
+AssertionError: Tuples differ: ({'2026-10-01T12:00:05.000000Z'}, {'2026-10-01T12:00:06.000000Z'}) != ({'2026-10-01T12:00:00.500000Z'}, {'2026-10-01T12:00:06.000000Z'})
+
+First differing element 0:
+{'2026-10-01T12:00:05.000000Z'}
+{'2026-10-01T12:00:00.500000Z'}
+
+- ({'2026-10-01T12:00:05.000000Z'}, {'2026-10-01T12:00:06.000000Z'})
+?                       --
+
++ ({'2026-10-01T12:00:00.500000Z'}, {'2026-10-01T12:00:06.000000Z'})
+?                      ++
+
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_t3]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 209, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(({normalized[0]["T2"]}, {normalized[0]["T3"]}), (t2s, t3s))
+AssertionError: Tuples differ: ({'2026-10-01T12:00:05.000000Z'}, {'2026-10-01T12:00:06.000000Z'}) != ({'2026-10-01T12:00:00.500000Z'}, {'2026-10-01T12:00:06.000000Z'})
+
+First differing element 0:
+{'2026-10-01T12:00:05.000000Z'}
+{'2026-10-01T12:00:00.500000Z'}
+
+- ({'2026-10-01T12:00:05.000000Z'}, {'2026-10-01T12:00:06.000000Z'})
+?                       --
+
++ ({'2026-10-01T12:00:00.500000Z'}, {'2026-10-01T12:00:06.000000Z'})
+?                      ++
+
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_pit:0]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 207, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(len(t3s), 1, t3s)
+AssertionError: 2 != 1 : {'2026-10-01T12:00:06.000000Z', '2026-10-01T12:00:01.000000Z'}
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_pit:1]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 207, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(len(t3s), 1, t3s)
+AssertionError: 2 != 1 : {'2026-10-01T12:00:06.000000Z', '2026-10-01T12:00:01.000000Z'}
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_pit:2]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 207, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(len(t3s), 1, t3s)
+AssertionError: 2 != 1 : {'2026-10-01T12:00:06.000000Z', '2026-10-01T12:00:01.000000Z'}
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_pit:3]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 209, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(({normalized[0]["T2"]}, {normalized[0]["T3"]}), (t2s, t3s))
+AssertionError: Tuples differ: ({'2026-10-01T12:00:05.000000Z'}, {'2026-10-01T12:00:06.000000Z'}) != ({'2026-10-01T12:00:00.500000Z'}, {'2026-10-01T12:00:01.000000Z'})
+
+First differing element 0:
+{'2026-10-01T12:00:05.000000Z'}
+{'2026-10-01T12:00:00.500000Z'}
+
+- ({'2026-10-01T12:00:05.000000Z'}, {'2026-10-01T12:00:06.000000Z'})
+?                       --                              ^
+
++ ({'2026-10-01T12:00:00.500000Z'}, {'2026-10-01T12:00:01.000000Z'})
+?                      ++                               ^
+
+
+======================================================================
+FAIL: test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere (adapter_tests.test_v05_r4_pit_recovery.OneResponseOneTimeTests.test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere) [after_coverage]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 209, in test_ha06_every_record_of_a_response_keeps_one_t2_and_one_t3_after_a_crash_anywhere
+    self.assertEqual(({normalized[0]["T2"]}, {normalized[0]["T3"]}), (t2s, t3s))
+AssertionError: Tuples differ: ({'2026-10-01T12:00:05.000000Z'}, {'2026-10-01T12:00:06.000000Z'}) != ({'2026-10-01T12:00:00.500000Z'}, {'2026-10-01T12:00:01.000000Z'})
+
+First differing element 0:
+{'2026-10-01T12:00:05.000000Z'}
+{'2026-10-01T12:00:00.500000Z'}
+
+- ({'2026-10-01T12:00:05.000000Z'}, {'2026-10-01T12:00:06.000000Z'})
+?                       --                              ^
+
++ ({'2026-10-01T12:00:00.500000Z'}, {'2026-10-01T12:00:01.000000Z'})
+?                      ++                               ^
+
+
+======================================================================
+FAIL: test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it) [after_recorded]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 70, in test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it
+    self.assertNotIsInstance(verdict, UsableBook, (step, cutoff))   # never the old price
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: UsableBook(entity_id='book:2650fa318aa59788dcdbb8fa1e0e05131689500dd35b03d13caccf18447853f3', decision_at='2026-10-01T12:09:59.000000Z', record=BitemporalRecord(record_id='pit:06d3507ee3268a6d7c3161e2f0c1864215c8957f941aae2fd8f5d370bb9919af', entity_id='book:2650fa318aa59788dcdbb8fa1e0e05131689500dd35b03d13caccf18447853f3', source_id='oddspapi.v4.soccer.market_book.mb1-5456effb3fe6701f', payload_hash='6db78bd9660c10abc5753bccdb0e0f3e0a4617eef60810b65b1625d23a705418', available_at='2026-10-01T12:00:00.000000Z', published_at='2026-10-01T11:58:30.000000Z', retrieved_at='2026-10-01T12:00:00.000000Z', ready_at='2026-10-01T12:00:01.000000Z', valid_from='2026-10-01T12:00:00.000000Z', valid_to='2026-10-01T13:00:00.000000Z', superseded_by=None, superseded_at=None), observation=EvidenceObservation(observation_id='649d9229bcdc880424a6c230a4afbbe53ae8aad61f60a046fdd54f9b20f60e17', artifact_hash='6db78bd9660c10abc5753bccdb0e0f3e0a4617eef60810b65b1625d23a705418', contract_id='oddspapi-v4-market-book-mb1-5456effb3fe6701f', source_uri='genesis-derived:oddspapi-v4-market-book:mb1-5456effb3fe6701f:book:2650fa318aa59788dcdbb8fa1e0e05131689500dd35b03d13caccf18447853f3:1108d3f19f65d99b776645daf4804cfdf4a3ca68e1d095aef67365b451111b6e', provider='oddspapi', source_type='oddspapi_v4_market_book', retrieved_at='2026-10-01T12:00:00.000000Z', first_seen_at='2026-10-01T12:00:00.000000Z', parse_ready_at='2026-10-01T12:00:00.500000Z', publisher_timestamp='2026-10-01T11:58:30.000000Z', valid_from='2026-10-01T12:00:00.000000Z', valid_to='2026-10-01T13:00:00.000000Z', upstream_version='v4', parser_version='mb1-5456effb3fe6701f', content_type='application/json', byte_length=2314, licensing_note='FIXTURE-ONLY-NO-PROVIDER-TERMS', availability_class=<AvailabilityClass.DERIVED: 'derived'>, schema_version='evidence-observation-v2'), document={'acquisition_id': 'a0344087120649ef8959f3d53be085a9d79069bd066a331b85a409072a9eda5d', 'api_version': 'v4', 'away_participant_id': 'part:3026ed1dd3a36e45273fdfef3d946531a2acbc278f6c4018705e1cbb9f1c0e68', 'bookmaker_id': 'bk.pinnacle', 'competition_id': 'soccer.eng.premier-league', 'derivation_kind': 'RESPONSE', 'derivation_version': 'mb1-5456effb3fe6701f', 'entity_id': 'book:2650fa318aa59788dcdbb8fa1e0e05131689500dd35b03d13caccf18447853f3', 'event_id': 'evt:059ee6f856804dc220fe7bb3239c9dac26534536578d01662a5e24e47a0978bf', 'expected_scope_hash': None, 'fixture_join_observation_id': None, 'home_participant_id': 'part:36c364dfcdaa8f4e5b58ab1dca72e17ebc76ff60074fb42e9addb82c10d5f8cc', 'identity_registry_head': {'record_hash': '0000000000000000000000000000000000000000000000000000000000000000', 'sequence': 0}, 'line': '2.5', 'market_family': 'SOCCER_TOTAL_GOALS_OU_FT', 'market_id': 'mkt:068048358bb3c85ffb251b7b79e5f619a501626bdee549bc7239df8caccbc935', 'market_state': 'OPEN', 'period': 'FT_REGULAR', 'provider': 'oddspapi', 'provider_bookmaker_key': 'pinnacle', 'provider_fixture_id': {'native_type': 'str', 'value': 'id1000001761301153'}, 'provider_request_hash': 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc', 'provider_status': {'event': {'statusId': 0}, 'market': {}, 'outcomes': {'2001': True, '2002': True}}, 'provider_timestamps': {'outcome.2001.changedAt': '2026-10-01T11:58:30.000Z', 'outcome.2002.changedAt': '2026-10-01T11:58:30.000Z'}, 'raw_artifact_hash': '012f159d77db87ab87270a3d38b3a5224f1b19f31f4f8718fcc17427e830d7ab', 'raw_observation_id': '1108d3f19f65d99b776645daf4804cfdf4a3ca68e1d095aef67365b451111b6e', 'scheduled_start_as_known': '2026-10-03T14:00:00.000000Z', 'schema': 'genesis.adapters.oddspapi.market-book.v1', 'selections': {'OVER': {'odds_decimal': '1.91', 'provider_outcome_id': {'native_type': 'int', 'value': '2001'}, 'selection_id': 'sel:b676ed6a8f9c9a4eda7775d7931d38d7e37ee60dd888ec4bebebf77e5fd505ce'}, 'UNDER': {'odds_decimal': '1.95', 'provider_outcome_id': {'native_type': 'int', 'value': '2002'}, 'selection_id': 'sel:ca04453b1f289ade1e1b060e5084175fc51eaffc41d8dab8b77d1b2e35852c9d'}}, 'side': 'BACK', 'sport': 'soccer', 'state_reasons': [], 'times': {'request_started_at': '2026-10-01T11:59:59.900000Z', 'response_received_at': '2026-10-01T12:00:00.000000Z'}, 'valid_from': '2026-10-01T12:00:00.000000Z', 'valid_to': '2026-10-01T13:00:00.000000Z'}, source_id='oddspapi.v4.soccer.market_book.mb1-5456effb3fe6701f', contract_id='oddspapi-v4-market-book-mb1-5456effb3fe6701f', capability=SourceCapability(source_id='oddspapi.v4.soccer.market_book.mb1-5456effb3fe6701f', provider='oddspapi', access_method='rest_pregame_v4', cost_tier='fixture', entitlement_class='fixture', historical_availability_class='none', point_in_time_reliability='prospective_verified', revision_behaviour='append_only_supersede', coverage='fixture', rate_quota_limits='fixture', schema_version='v1', operational_status=<OperationalStatus.READY: 'ready'>, recorded_at='2026-09-30T00:00:00.000000Z', version='mb1-5456effb3fe6701f-ready-1')) is an instance of <class 'genesis_adapters.oddspapi.reader.UsableBook'> : ('after_recorded', '2026-10-01T12:09:59.000000Z')
+
+======================================================================
+FAIL: test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it) [after_invalidation_observation]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 70, in test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it
+    self.assertNotIsInstance(verdict, UsableBook, (step, cutoff))   # never the old price
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: UsableBook(entity_id='book:2650fa318aa59788dcdbb8fa1e0e05131689500dd35b03d13caccf18447853f3', decision_at='2026-10-01T12:09:59.000000Z', record=BitemporalRecord(record_id='pit:06d3507ee3268a6d7c3161e2f0c1864215c8957f941aae2fd8f5d370bb9919af', entity_id='book:2650fa318aa59788dcdbb8fa1e0e05131689500dd35b03d13caccf18447853f3', source_id='oddspapi.v4.soccer.market_book.mb1-5456effb3fe6701f', payload_hash='6db78bd9660c10abc5753bccdb0e0f3e0a4617eef60810b65b1625d23a705418', available_at='2026-10-01T12:00:00.000000Z', published_at='2026-10-01T11:58:30.000000Z', retrieved_at='2026-10-01T12:00:00.000000Z', ready_at='2026-10-01T12:00:01.000000Z', valid_from='2026-10-01T12:00:00.000000Z', valid_to='2026-10-01T13:00:00.000000Z', superseded_by=None, superseded_at=None), observation=EvidenceObservation(observation_id='649d9229bcdc880424a6c230a4afbbe53ae8aad61f60a046fdd54f9b20f60e17', artifact_hash='6db78bd9660c10abc5753bccdb0e0f3e0a4617eef60810b65b1625d23a705418', contract_id='oddspapi-v4-market-book-mb1-5456effb3fe6701f', source_uri='genesis-derived:oddspapi-v4-market-book:mb1-5456effb3fe6701f:book:2650fa318aa59788dcdbb8fa1e0e05131689500dd35b03d13caccf18447853f3:1108d3f19f65d99b776645daf4804cfdf4a3ca68e1d095aef67365b451111b6e', provider='oddspapi', source_type='oddspapi_v4_market_book', retrieved_at='2026-10-01T12:00:00.000000Z', first_seen_at='2026-10-01T12:00:00.000000Z', parse_ready_at='2026-10-01T12:00:00.500000Z', publisher_timestamp='2026-10-01T11:58:30.000000Z', valid_from='2026-10-01T12:00:00.000000Z', valid_to='2026-10-01T13:00:00.000000Z', upstream_version='v4', parser_version='mb1-5456effb3fe6701f', content_type='application/json', byte_length=2314, licensing_note='FIXTURE-ONLY-NO-PROVIDER-TERMS', availability_class=<AvailabilityClass.DERIVED: 'derived'>, schema_version='evidence-observation-v2'), document={'acquisition_id': 'a0344087120649ef8959f3d53be085a9d79069bd066a331b85a409072a9eda5d', 'api_version': 'v4', 'away_participant_id': 'part:3026ed1dd3a36e45273fdfef3d946531a2acbc278f6c4018705e1cbb9f1c0e68', 'bookmaker_id': 'bk.pinnacle', 'competition_id': 'soccer.eng.premier-league', 'derivation_kind': 'RESPONSE', 'derivation_version': 'mb1-5456effb3fe6701f', 'entity_id': 'book:2650fa318aa59788dcdbb8fa1e0e05131689500dd35b03d13caccf18447853f3', 'event_id': 'evt:059ee6f856804dc220fe7bb3239c9dac26534536578d01662a5e24e47a0978bf', 'expected_scope_hash': None, 'fixture_join_observation_id': None, 'home_participant_id': 'part:36c364dfcdaa8f4e5b58ab1dca72e17ebc76ff60074fb42e9addb82c10d5f8cc', 'identity_registry_head': {'record_hash': '0000000000000000000000000000000000000000000000000000000000000000', 'sequence': 0}, 'line': '2.5', 'market_family': 'SOCCER_TOTAL_GOALS_OU_FT', 'market_id': 'mkt:068048358bb3c85ffb251b7b79e5f619a501626bdee549bc7239df8caccbc935', 'market_state': 'OPEN', 'period': 'FT_REGULAR', 'provider': 'oddspapi', 'provider_bookmaker_key': 'pinnacle', 'provider_fixture_id': {'native_type': 'str', 'value': 'id1000001761301153'}, 'provider_request_hash': 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc', 'provider_status': {'event': {'statusId': 0}, 'market': {}, 'outcomes': {'2001': True, '2002': True}}, 'provider_timestamps': {'outcome.2001.changedAt': '2026-10-01T11:58:30.000Z', 'outcome.2002.changedAt': '2026-10-01T11:58:30.000Z'}, 'raw_artifact_hash': '012f159d77db87ab87270a3d38b3a5224f1b19f31f4f8718fcc17427e830d7ab', 'raw_observation_id': '1108d3f19f65d99b776645daf4804cfdf4a3ca68e1d095aef67365b451111b6e', 'scheduled_start_as_known': '2026-10-03T14:00:00.000000Z', 'schema': 'genesis.adapters.oddspapi.market-book.v1', 'selections': {'OVER': {'odds_decimal': '1.91', 'provider_outcome_id': {'native_type': 'int', 'value': '2001'}, 'selection_id': 'sel:b676ed6a8f9c9a4eda7775d7931d38d7e37ee60dd888ec4bebebf77e5fd505ce'}, 'UNDER': {'odds_decimal': '1.95', 'provider_outcome_id': {'native_type': 'int', 'value': '2002'}, 'selection_id': 'sel:ca04453b1f289ade1e1b060e5084175fc51eaffc41d8dab8b77d1b2e35852c9d'}}, 'side': 'BACK', 'sport': 'soccer', 'state_reasons': [], 'times': {'request_started_at': '2026-10-01T11:59:59.900000Z', 'response_received_at': '2026-10-01T12:00:00.000000Z'}, 'valid_from': '2026-10-01T12:00:00.000000Z', 'valid_to': '2026-10-01T13:00:00.000000Z'}, source_id='oddspapi.v4.soccer.market_book.mb1-5456effb3fe6701f', contract_id='oddspapi-v4-market-book-mb1-5456effb3fe6701f', capability=SourceCapability(source_id='oddspapi.v4.soccer.market_book.mb1-5456effb3fe6701f', provider='oddspapi', access_method='rest_pregame_v4', cost_tier='fixture', entitlement_class='fixture', historical_availability_class='none', point_in_time_reliability='prospective_verified', revision_behaviour='append_only_supersede', coverage='fixture', rate_quota_limits='fixture', schema_version='v1', operational_status=<OperationalStatus.READY: 'ready'>, recorded_at='2026-09-30T00:00:00.000000Z', version='mb1-5456effb3fe6701f-ready-1')) is an instance of <class 'genesis_adapters.oddspapi.reader.UsableBook'> : ('after_invalidation_observation', '2026-10-01T12:09:59.000000Z')
+
+======================================================================
+FAIL: test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it) [after_invalidation_pit]
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 70, in test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it
+    self.assertNotIsInstance(verdict, UsableBook, (step, cutoff))   # never the old price
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: UsableBook(entity_id='book:2650fa318aa59788dcdbb8fa1e0e05131689500dd35b03d13caccf18447853f3', decision_at='2026-10-01T12:09:59.000000Z', record=BitemporalRecord(record_id='pit:06d3507ee3268a6d7c3161e2f0c1864215c8957f941aae2fd8f5d370bb9919af', entity_id='book:2650fa318aa59788dcdbb8fa1e0e05131689500dd35b03d13caccf18447853f3', source_id='oddspapi.v4.soccer.market_book.mb1-5456effb3fe6701f', payload_hash='6db78bd9660c10abc5753bccdb0e0f3e0a4617eef60810b65b1625d23a705418', available_at='2026-10-01T12:00:00.000000Z', published_at='2026-10-01T11:58:30.000000Z', retrieved_at='2026-10-01T12:00:00.000000Z', ready_at='2026-10-01T12:00:01.000000Z', valid_from='2026-10-01T12:00:00.000000Z', valid_to='2026-10-01T13:00:00.000000Z', superseded_by=None, superseded_at=None), observation=EvidenceObservation(observation_id='649d9229bcdc880424a6c230a4afbbe53ae8aad61f60a046fdd54f9b20f60e17', artifact_hash='6db78bd9660c10abc5753bccdb0e0f3e0a4617eef60810b65b1625d23a705418', contract_id='oddspapi-v4-market-book-mb1-5456effb3fe6701f', source_uri='genesis-derived:oddspapi-v4-market-book:mb1-5456effb3fe6701f:book:2650fa318aa59788dcdbb8fa1e0e05131689500dd35b03d13caccf18447853f3:1108d3f19f65d99b776645daf4804cfdf4a3ca68e1d095aef67365b451111b6e', provider='oddspapi', source_type='oddspapi_v4_market_book', retrieved_at='2026-10-01T12:00:00.000000Z', first_seen_at='2026-10-01T12:00:00.000000Z', parse_ready_at='2026-10-01T12:00:00.500000Z', publisher_timestamp='2026-10-01T11:58:30.000000Z', valid_from='2026-10-01T12:00:00.000000Z', valid_to='2026-10-01T13:00:00.000000Z', upstream_version='v4', parser_version='mb1-5456effb3fe6701f', content_type='application/json', byte_length=2314, licensing_note='FIXTURE-ONLY-NO-PROVIDER-TERMS', availability_class=<AvailabilityClass.DERIVED: 'derived'>, schema_version='evidence-observation-v2'), document={'acquisition_id': 'a0344087120649ef8959f3d53be085a9d79069bd066a331b85a409072a9eda5d', 'api_version': 'v4', 'away_participant_id': 'part:3026ed1dd3a36e45273fdfef3d946531a2acbc278f6c4018705e1cbb9f1c0e68', 'bookmaker_id': 'bk.pinnacle', 'competition_id': 'soccer.eng.premier-league', 'derivation_kind': 'RESPONSE', 'derivation_version': 'mb1-5456effb3fe6701f', 'entity_id': 'book:2650fa318aa59788dcdbb8fa1e0e05131689500dd35b03d13caccf18447853f3', 'event_id': 'evt:059ee6f856804dc220fe7bb3239c9dac26534536578d01662a5e24e47a0978bf', 'expected_scope_hash': None, 'fixture_join_observation_id': None, 'home_participant_id': 'part:36c364dfcdaa8f4e5b58ab1dca72e17ebc76ff60074fb42e9addb82c10d5f8cc', 'identity_registry_head': {'record_hash': '0000000000000000000000000000000000000000000000000000000000000000', 'sequence': 0}, 'line': '2.5', 'market_family': 'SOCCER_TOTAL_GOALS_OU_FT', 'market_id': 'mkt:068048358bb3c85ffb251b7b79e5f619a501626bdee549bc7239df8caccbc935', 'market_state': 'OPEN', 'period': 'FT_REGULAR', 'provider': 'oddspapi', 'provider_bookmaker_key': 'pinnacle', 'provider_fixture_id': {'native_type': 'str', 'value': 'id1000001761301153'}, 'provider_request_hash': 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc', 'provider_status': {'event': {'statusId': 0}, 'market': {}, 'outcomes': {'2001': True, '2002': True}}, 'provider_timestamps': {'outcome.2001.changedAt': '2026-10-01T11:58:30.000Z', 'outcome.2002.changedAt': '2026-10-01T11:58:30.000Z'}, 'raw_artifact_hash': '012f159d77db87ab87270a3d38b3a5224f1b19f31f4f8718fcc17427e830d7ab', 'raw_observation_id': '1108d3f19f65d99b776645daf4804cfdf4a3ca68e1d095aef67365b451111b6e', 'scheduled_start_as_known': '2026-10-03T14:00:00.000000Z', 'schema': 'genesis.adapters.oddspapi.market-book.v1', 'selections': {'OVER': {'odds_decimal': '1.91', 'provider_outcome_id': {'native_type': 'int', 'value': '2001'}, 'selection_id': 'sel:b676ed6a8f9c9a4eda7775d7931d38d7e37ee60dd888ec4bebebf77e5fd505ce'}, 'UNDER': {'odds_decimal': '1.95', 'provider_outcome_id': {'native_type': 'int', 'value': '2002'}, 'selection_id': 'sel:ca04453b1f289ade1e1b060e5084175fc51eaffc41d8dab8b77d1b2e35852c9d'}}, 'side': 'BACK', 'sport': 'soccer', 'state_reasons': [], 'times': {'request_started_at': '2026-10-01T11:59:59.900000Z', 'response_received_at': '2026-10-01T12:00:00.000000Z'}, 'valid_from': '2026-10-01T12:00:00.000000Z', 'valid_to': '2026-10-01T13:00:00.000000Z'}, source_id='oddspapi.v4.soccer.market_book.mb1-5456effb3fe6701f', contract_id='oddspapi-v4-market-book-mb1-5456effb3fe6701f', capability=SourceCapability(source_id='oddspapi.v4.soccer.market_book.mb1-5456effb3fe6701f', provider='oddspapi', access_method='rest_pregame_v4', cost_tier='fixture', entitlement_class='fixture', historical_availability_class='none', point_in_time_reliability='prospective_verified', revision_behaviour='append_only_supersede', coverage='fixture', rate_quota_limits='fixture', schema_version='v1', operational_status=<OperationalStatus.READY: 'ready'>, recorded_at='2026-09-30T00:00:00.000000Z', version='mb1-5456effb3fe6701f-ready-1')) is an instance of <class 'genesis_adapters.oddspapi.reader.UsableBook'> : ('after_invalidation_pit', '2026-10-01T12:09:59.000000Z')
+
+======================================================================
+FAIL: test_ha05_the_pipeline_start_completes_a_pending_invalidation (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationTests.test_ha05_the_pipeline_start_completes_a_pending_invalidation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\g\adapters\adapter_tests\test_v05_r4_pit_recovery.py", line 133, in test_ha05_the_pipeline_start_completes_a_pending_invalidation
+    self.assertIsNotNone(state[0]["applied"])
+AssertionError: unexpectedly None
+
+----------------------------------------------------------------------
+Ran 10 tests in 19.803s
+
+FAILED (failures=19, errors=12)
+# exit: 1
+# end: 2026-10-01T01:41:33Z

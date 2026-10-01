@@ -11,6 +11,7 @@ from genesis_adapters import errors as err
 from genesis_adapters.oddspapi import capability, reader
 from genesis_adapters.oddspapi.reader import UsableBook, Unusable, admissible_head
 
+from .emit_support import derivation_accepted
 from . import emit_support as es
 from . import parser_support as ps
 from .emit_support import (
@@ -57,7 +58,7 @@ class HeadSelectionTests(unittest.TestCase):
             newest = max(admissible, key=lambda record: record.valid_from)
             position = [r.record_id for r in admissible].index(newest.record_id)
             self.assertNotIn(position, (0, len(prices) - 1))       # both naive picks ([0], [-1]) would be wrong
-            result = admissible_head(entity, decision_at, stores=stores)
+            result = admissible_head(entity, decision_at, stores=stores, derivation_check=derivation_accepted)
             self.assertIsInstance(result, UsableBook)
             self.assertEqual(result.record, newest)
             self.assertEqual(result.document["selections"]["OVER"]["odds_decimal"], "1.89")
@@ -84,7 +85,7 @@ class HeadSelectionTests(unittest.TestCase):
             self.assertLess(second.t3, published)
             for decision_at in (second.t3, iso(published, micros=-1)):
                 with self.subTest(decision_at):
-                    result = admissible_head(entity, decision_at, stores=stores)
+                    result = admissible_head(entity, decision_at, stores=stores, derivation_check=derivation_accepted)
                     self.assertIsInstance(result, Unusable)
                     self.assertEqual(result.code, err.AdapterFailure.NOT_PUBLISHED_AT_CUTOFF)
                     self.assertEqual(result.pass_reason.value, "PASS_MISSING_EVIDENCE")
@@ -92,7 +93,7 @@ class HeadSelectionTests(unittest.TestCase):
                         accepted, why = verifier_verdict(stores, [(record, "OVER")], decision_at=decision_at,
                                                          scratch=root, label=label + decision_at[-9:-1])
                         self.assertFalse(accepted, f"{label}: {why}")
-            usable = admissible_head(entity, published, stores=stores)
+            usable = admissible_head(entity, published, stores=stores, derivation_check=derivation_accepted)
             self.assertIsInstance(usable, UsableBook)
             self.assertEqual(usable.record, newer)
 
@@ -109,7 +110,7 @@ class HeadSelectionTests(unittest.TestCase):
             self.assertLess(newer.valid_to, older.valid_to)
             decision_at = iso(newer.valid_to, seconds=60)                  # newer expired, older still in its TTL
             self.assertEqual(stores.pit.as_of_query(entity, decision_at, source_id=stores.source_id), (older,))
-            result = admissible_head(entity, decision_at, stores=stores)
+            result = admissible_head(entity, decision_at, stores=stores, derivation_check=derivation_accepted)
             self.assertIsInstance(result, Unusable)
             self.assertEqual(result.code, err.AdapterFailure.STALE)
             # the frozen verifier alone would accept the older record here: this refusal is adapter-only
@@ -138,7 +139,8 @@ class HeadSelectionTests(unittest.TestCase):
 
             import dataclasses as dc
             tied = dc.replace(stores, pit=Query(stores.pit))
-            result = admissible_head(entity, iso(CAPTURE_1, seconds=5), stores=tied)
+            result = admissible_head(entity, iso(CAPTURE_1, seconds=5), stores=tied,
+                                     derivation_check=derivation_accepted)
             self.assertEqual(result.code, err.AdapterFailure.AMBIGUOUS)
 
 
@@ -147,12 +149,14 @@ class SourceTests(unittest.TestCase):
         with scratch_root() as root:
             stores = build_stores(root, ready=False)
             parsed, _, result = capture(stores, small_payload())
-            verdict = admissible_head(head_book(parsed).entity_id, result.t3, stores=stores)
+            verdict = admissible_head(head_book(parsed).entity_id, result.t3, stores=stores,
+                                      derivation_check=derivation_accepted)
             self.assertEqual(verdict.code, err.AdapterFailure.DATA_CAPABILITY_NOT_READY)
             self.assertEqual(verdict.pass_reason.value, "PASS_DATA_CAPABILITY_NOT_READY")
             capability.register_downgrade(stores.capabilities, stores.source_id, status=OperationalStatus.UNKNOWN,
                                           at=CAPABILITY_TIME, reason="G2R")
-            verdict = admissible_head(head_book(parsed).entity_id, result.t3, stores=stores)
+            verdict = admissible_head(head_book(parsed).entity_id, result.t3, stores=stores,
+                                      derivation_check=derivation_accepted)
             self.assertEqual(verdict.code, err.AdapterFailure.DATA_CAPABILITY_NOT_READY)
 
     def test_f36_two_ready_market_book_sources_fail_closed(self):
@@ -161,7 +165,8 @@ class SourceTests(unittest.TestCase):
             parsed, _, result = capture(stores, small_payload())
             other = es.with_version(stores, "mb1-" + "0" * 16)
             es.approve_source(other, at=CAPABILITY_TIME)
-            verdict = admissible_head(head_book(parsed).entity_id, result.t3, stores=stores)
+            verdict = admissible_head(head_book(parsed).entity_id, result.t3, stores=stores,
+                                      derivation_check=derivation_accepted)
             self.assertEqual(verdict.code, err.AdapterFailure.AMBIGUOUS_SOURCE)
             self.assertEqual(verdict.pass_reason.value, "PASS_DATA_CAPABILITY_NOT_READY")
 
@@ -172,7 +177,7 @@ class SourceTests(unittest.TestCase):
                                                               at=CAPABILITY_TIME, suffix="ready-1"))
             parsed, _, result = capture(stores, small_payload())
             entity = head_book(parsed).entity_id
-            verdict = admissible_head(entity, result.t3, stores=stores)
+            verdict = admissible_head(entity, result.t3, stores=stores, derivation_check=derivation_accepted)
             self.assertEqual(verdict.code, err.AdapterFailure.PARITY_FAILURE)
             accepted, why = verifier_verdict(stores, [(record_at(stores, entity, CAPTURE_1), "OVER")],
                                              decision_at=result.t3, scratch=root)
@@ -188,7 +193,8 @@ class SourceTests(unittest.TestCase):
                                      provider="oddspapi", approval_reference="synthetic-test-only-binding")
             parsed, _, result = capture(stores, small_payload())
             entity = head_book(parsed).entity_id
-            self.assertEqual(admissible_head(entity, result.t3, stores=stores).code, err.AdapterFailure.PARITY_FAILURE)
+            verdict = admissible_head(entity, result.t3, stores=stores, derivation_check=derivation_accepted)
+            self.assertEqual(verdict.code, err.AdapterFailure.PARITY_FAILURE)
             accepted, _ = verifier_verdict(stores, [(record_at(stores, entity, CAPTURE_1), "OVER")],
                                            decision_at=result.t3, scratch=root)
             self.assertFalse(accepted)
@@ -200,7 +206,7 @@ class SourceTests(unittest.TestCase):
             entity = head_book(parsed).entity_id
             twin = es.source_capability(stores, status=OperationalStatus.READY, at=CAPABILITY_TIME, suffix="ready-2")
             stores.capabilities.log.append({"record_type": "source_capability_registered", **twin.to_dict()})
-            verdict = admissible_head(entity, result.t3, stores=stores)
+            verdict = admissible_head(entity, result.t3, stores=stores, derivation_check=derivation_accepted)
             self.assertEqual(verdict.code, err.AdapterFailure.AMBIGUOUS_SOURCE)
             accepted, why = verifier_verdict(stores, [(record_at(stores, entity, CAPTURE_1), "OVER")],
                                              decision_at=result.t3, scratch=root)
@@ -215,8 +221,9 @@ class SourceTests(unittest.TestCase):
             t_fix = iso(result.t3, seconds=10)
             capability.register_downgrade(stores.capabilities, stores.source_id, status=OperationalStatus.BLOCKED,
                                           at=t_fix, reason="DERIVATION_DEFECT")
-            self.assertIsInstance(admissible_head(entity, iso(t_fix, micros=-1), stores=stores), UsableBook)
-            self.assertEqual(admissible_head(entity, t_fix, stores=stores).code,
+            self.assertIsInstance(admissible_head(entity, iso(t_fix, micros=-1), stores=stores,
+                                                  derivation_check=derivation_accepted), UsableBook)
+            self.assertEqual(admissible_head(entity, t_fix, stores=stores, derivation_check=derivation_accepted).code,
                              err.AdapterFailure.DATA_CAPABILITY_NOT_READY)
             accepted, _ = verifier_verdict(stores, [(record_at(stores, entity, CAPTURE_1), "OVER")],
                                            decision_at=t_fix, scratch=root)
@@ -236,7 +243,7 @@ class ObservationParityTests(unittest.TestCase):
                                          valid_from=later, valid_to=iso(genuine.valid_to, seconds=3600))
             stores.pit.append(forged)                              # a record that disagrees with its observation
             decision_at = iso(genuine.valid_to, seconds=60)
-            verdict = admissible_head(entity, decision_at, stores=stores)
+            verdict = admissible_head(entity, decision_at, stores=stores, derivation_check=derivation_accepted)
             self.assertIsInstance(verdict, Unusable)
             self.assertEqual(verdict.code, err.AdapterFailure.PARITY_FAILURE)
             self.assertIn("observation", verdict.detail)
@@ -256,10 +263,13 @@ class AdapterOnlyRefusalTests(unittest.TestCase):
             parsed, _, result = capture(stores, payload)
             ou = head_book(parsed)
             one = ps.one_book(parsed, family="SOCCER_1X2_FT")
-            self.assertEqual((admissible_head(ou.entity_id, result.t3, stores=stores).code,
-                              admissible_head(one.entity_id, result.t3, stores=stores).code),
+            self.assertEqual((admissible_head(ou.entity_id, result.t3, stores=stores,
+                                              derivation_check=derivation_accepted).code,
+                              admissible_head(one.entity_id, result.t3, stores=stores,
+                                              derivation_check=derivation_accepted).code),
                              (err.AdapterFailure.SUSPENDED, err.AdapterFailure.BLOCKED))
-            self.assertEqual(admissible_head(one.entity_id, result.t3, stores=stores).reasons,
+            self.assertEqual(admissible_head(one.entity_id, result.t3, stores=stores,
+                                             derivation_check=derivation_accepted).reasons,
                              ("INCOMPLETE_SELECTIONS",))
 
     def test_a_failed_derivation_check_refuses_the_head(self):
@@ -285,18 +295,23 @@ class AdapterOnlyRefusalTests(unittest.TestCase):
             parsed, _, result = capture(stores, small_payload())
             entity = head_book(parsed).entity_id
             for decision_at in (iso(result.t3, micros=-1), result.t3, iso(CAPTURE_1, seconds=3600)):
-                self.assertEqual(reader.MarketBookReader(stores).head(entity, decision_at),
-                                 admissible_head(entity, decision_at, stores=stores))
+                accepted = reader.MarketBookReader(stores, derivation_check=derivation_accepted)
+                self.assertEqual(accepted.head(entity, decision_at),
+                                 admissible_head(entity, decision_at, stores=stores,
+                                                 derivation_check=derivation_accepted))
 
     def test_a_non_canonical_or_unparseable_cutoff_is_refused(self):
         with scratch_root() as root:
             stores = build_stores(root)
             parsed, _, result = capture(stores, small_payload())
             entity = head_book(parsed).entity_id
-            self.assertEqual(admissible_head(entity, "yesterday", stores=stores).code, err.AdapterFailure.PARITY_FAILURE)
-            self.assertEqual(admissible_head(entity, "2026-10-01T13:00:00", stores=stores).code,
+            verdict = admissible_head(entity, "yesterday", stores=stores, derivation_check=derivation_accepted)
+            self.assertEqual(verdict.code, err.AdapterFailure.PARITY_FAILURE)
+            self.assertEqual(admissible_head(entity, "2026-10-01T13:00:00", stores=stores,
+                                             derivation_check=derivation_accepted).code,
                              err.AdapterFailure.PARITY_FAILURE)                         # naive
-            self.assertIsInstance(admissible_head(entity, "2026-10-01T12:30:00Z", stores=stores), UsableBook)
+            self.assertIsInstance(admissible_head(entity, "2026-10-01T12:30:00Z", stores=stores,
+                                                  derivation_check=derivation_accepted), UsableBook)
 
 
 class DifferentialParityTests(unittest.TestCase):
@@ -335,7 +350,7 @@ class DifferentialParityTests(unittest.TestCase):
                 family = es.doc_json(stores, records_of(stores, entity)[0].payload_hash)["market_family"]
                 selection = "HOME" if family == "SOCCER_1X2_FT" else "OVER"
                 for number, decision_at in enumerate(self.cutoffs(stores, entity)):
-                    result = admissible_head(entity, decision_at, stores=stores)
+                    result = admissible_head(entity, decision_at, stores=stores, derivation_check=derivation_accepted)
                     candidates = [r for r in records_of(stores, entity) if r.admissible_at(decision_at)]
                     verdicts = {}
                     for record in candidates:

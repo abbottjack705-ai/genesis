@@ -1,0 +1,81 @@
+# R4 mutation smoke: one textual mutation at a time; KILLED only after a passing unmutated baseline; TIMEOUT is never KILLED
+# helper: s0/mutate2.py (restores the source in a finally; per-mutant timeout MUT_TIMEOUT=1200 s)
+# start: 2026-10-01T02:01:04Z | HEAD: a6fd9756b8af13d7272b5eee6958244f2d5ff263 + R4 worktree changes | AC power: 2
+
+== adapters/src/genesis_adapters/oddspapi/emit.py [emit] (modules: adapter_tests.test_v05_r4_pit_recovery,adapter_tests.test_v05_emit_crash,adapter_tests.test_v05_invalidation)
+baseline: PASS (OK)
+KILLED (53s)     a resumed emission re-stamps T2
+KILLED (53s)     a resumed emission re-stamps T3
+KILLED (55s)     a resumed invalidation re-stamps its T3
+KILLED (59s)     an invalidation is emitted without the run lock
+KILLED (78s)     pending invalidations are never completed
+KILLED (65s)     complete invalidations are run again
+-- summary
+KILLED (53s)     a resumed emission re-stamps T2
+KILLED (53s)     a resumed emission re-stamps T3
+KILLED (55s)     a resumed invalidation re-stamps its T3
+KILLED (59s)     an invalidation is emitted without the run lock
+KILLED (78s)     pending invalidations are never completed
+KILLED (65s)     complete invalidations are run again
+
+== adapters/src/genesis_adapters/oddspapi/reader.py [reader] (modules: adapter_tests.test_v05_r4_pit_recovery)
+baseline: PASS (OK)
+KILLED (31s)     a missing verifier passes
+KILLED (29s)     unfinished work is read anyway
+KILLED (31s)     the reader takes no lock
+KILLED (30s)     the derivation check is skipped
+-- summary
+KILLED (31s)     a missing verifier passes
+KILLED (29s)     unfinished work is read anyway
+KILLED (31s)     the reader takes no lock
+KILLED (30s)     the derivation check is skipped
+
+== adapters/src/genesis_adapters/oddspapi/quiescence.py [quiescence] (modules: adapter_tests.test_v05_r4_pit_recovery)
+baseline: PASS (OK)
+KILLED (31s)     an open attempt is not unfinished work
+KILLED (30s)     an unnormalized capture is not unfinished work
+KILLED (31s)     a missing credential halt is not unfinished work
+KILLED (31s)     a pending invalidation is not unfinished work
+KILLED (24s)     the lock is not exclusive
+KILLED (24s)     re-entry is not counted
+-- summary
+KILLED (31s)     an open attempt is not unfinished work
+KILLED (30s)     an unnormalized capture is not unfinished work
+KILLED (31s)     a missing credential halt is not unfinished work
+KILLED (31s)     a pending invalidation is not unfinished work
+KILLED (24s)     the lock is not exclusive
+KILLED (24s)     re-entry is not counted
+
+== adapters/src/genesis_adapters/oddspapi/pipeline.py [pipeline] (modules: adapter_tests.test_v05_r4_pit_recovery)
+baseline: PASS (OK)
+KILLED (33s)     resume does not complete pending invalidations
+KILLED (32s)     an underivable head is not invalidated
+-- summary
+KILLED (33s)     resume does not complete pending invalidations
+KILLED (32s)     an underivable head is not invalidated
+
+== adapters/src/genesis_adapters/oddspapi/manifest.py [manifest] (modules: adapter_tests.test_v05_r4_pit_recovery)
+baseline: PASS (OK)
+SURVIVED (31s)   the manifest builder does not verify
+-- summary
+SURVIVED (31s)   the manifest builder does not verify
+
+== adapters/src/genesis_adapters/cli.py [cli] (modules: adapter_tests.test_v05_r4_pit_recovery)
+baseline: PASS (OK)
+KILLED (31s)     the CLI run takes no lock
+KILLED (32s)     the G2 start does not reconcile invalidations
+-- summary
+KILLED (31s)     the CLI run takes no lock
+KILLED (32s)     the G2 start does not reconcile invalidations
+# end: 2026-10-01T02:18:12Z
+
+# ---------------------------------------------------------------------------------------------
+# Survivor follow-up: 'the manifest builder does not verify' SURVIVED above because the only manifest test got its
+# ManifestError from a head the reader had already invalidated. Added test_ha12_the_manifest_builder_runs_the_verifier_it_is_given
+# (builder called directly with a rejecting verifier on a still-valid head). Re-run of that mutant against the module:
+# start: 2026-10-01T02:19:32Z
+baseline: PASS (OK)
+KILLED (32s)     the manifest builder does not verify
+-- summary
+KILLED (32s)     the manifest builder does not verify
+# end: 2026-10-01T02:20:35Z

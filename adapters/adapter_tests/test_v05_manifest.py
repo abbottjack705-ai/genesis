@@ -68,12 +68,13 @@ class BuildTests(unittest.TestCase):
             rt = self.ready(root)
             decision_at = ps.iso_add(records(rt)[0].ready_at, seconds=10)
             entities = ou_entities(rt)
-            books = [admissible_head(entity, decision_at, stores=rt.stores) for entity in sorted(entities)]
+            books = [admissible_head(entity, decision_at, stores=rt.stores,
+                                     derivation_check=rt.verify_derivation) for entity in sorted(entities)]
             self.assertTrue(all(isinstance(book, UsableBook) for book in books))
             first = books[0].document
             body = manifest.build_manifest_body(event_id=first["event_id"], market_id=first["market_id"],
                                                 decision_at=decision_at, books=books, selections=("OVER", "UNDER"),
-                                                stores=rt.stores)
+                                                stores=rt.stores, derivation_check=rt.verify_derivation)
             self.assertEqual(len(body["required_inputs"]), 6)
             self.assertEqual(len(body["structured_evidence_hashes"]), 3)
             for ref in body["required_inputs"]:
@@ -103,7 +104,8 @@ class BuildTests(unittest.TestCase):
             self.assertEqual(set(by_state), {"SUSPENDED", "ABSENT", "BLOCKED"})
             for state, history in by_state.items():
                 with self.subTest(state):
-                    verdict = admissible_head(history[-1].entity_id, decision_at, stores=rt.stores)
+                    verdict = admissible_head(history[-1].entity_id, decision_at, stores=rt.stores,
+                                              derivation_check=rt.verify_derivation)
                     self.assertIsInstance(verdict, Unusable)
                     accepted, why = verifier_verdict(rt.stores, [(history[-1], "OVER")], decision_at=decision_at,
                                                      scratch=root, label=f"head-{state}")
@@ -119,29 +121,33 @@ class BuildTests(unittest.TestCase):
             rt = self.ready(root, script=[odds_response(), odds_response(self.repriced())])
             early = ps.iso_add(records(rt)[0].ready_at, seconds=10)
             entities = sorted(ou_entities(rt))
-            book = admissible_head(entities[0], early, stores=rt.stores)
-            other_event = admissible_head(sorted(ou_entities(rt, FIXTURE_B))[0], early, stores=rt.stores)
+            book = admissible_head(entities[0], early, stores=rt.stores, derivation_check=rt.verify_derivation)
+            other_event = admissible_head(sorted(ou_entities(rt, FIXTURE_B))[0], early, stores=rt.stores,
+                                          derivation_check=rt.verify_derivation)
             document = book.document
             with self.assertRaises(manifest.ManifestError):                   # another event
                 manifest.build_manifest_body(event_id=document["event_id"], market_id=document["market_id"],
                                              decision_at=early, books=[book, other_event], selections=("OVER",),
-                                             stores=rt.stores)
+                                             stores=rt.stores, derivation_check=rt.verify_derivation)
             with self.assertRaises(manifest.ManifestError):                   # no such selection
                 manifest.build_manifest_body(event_id=document["event_id"], market_id=document["market_id"],
-                                             decision_at=early, books=[book], selections=("HOME",), stores=rt.stores)
+                                             decision_at=early, books=[book], selections=("HOME",), stores=rt.stores,
+                                             derivation_check=rt.verify_derivation)
             with self.assertRaises(manifest.ManifestError):                   # nothing to pin
                 manifest.build_manifest_body(event_id=document["event_id"], market_id=document["market_id"],
-                                             decision_at=early, books=[], selections=("OVER",), stores=rt.stores)
+                                             decision_at=early, books=[], selections=("OVER",), stores=rt.stores,
+                                             derivation_check=rt.verify_derivation)
             rt.clock.advance(seconds=600)
             rt.acquire(odds_item("w2"))                                        # a newer price for every book
             later = ps.iso_add(records(rt)[-1].ready_at, seconds=10)
             with self.assertRaises(manifest.ManifestError):                   # the old head is no longer usable
                 manifest.build_manifest_body(event_id=document["event_id"], market_id=document["market_id"],
-                                             decision_at=later, books=[book], selections=("OVER",), stores=rt.stores)
-            fresh = admissible_head(entities[0], later, stores=rt.stores)
+                                             decision_at=later, books=[book], selections=("OVER",), stores=rt.stores,
+                                             derivation_check=rt.verify_derivation)
+            fresh = admissible_head(entities[0], later, stores=rt.stores, derivation_check=rt.verify_derivation)
             body = manifest.build_manifest_body(event_id=document["event_id"], market_id=document["market_id"],
                                                 decision_at=later, books=[fresh], selections=("OVER",),
-                                                stores=rt.stores)
+                                                stores=rt.stores, derivation_check=rt.verify_derivation)
             self.assertEqual(len(verify_body(rt, root, body, "fresh")), 1)
 
     @staticmethod
@@ -211,12 +217,14 @@ class ParityGridTests(unittest.TestCase):
                 family = doc_of(rt, history[0])["market_family"]
                 selection = "OVER" if family == OU else "HOME"
                 for number, decision_at in enumerate(self.cutoffs(history)):
-                    result = admissible_head(entity, decision_at, stores=rt.stores)
+                    result = admissible_head(entity, decision_at, stores=rt.stores,
+                                             derivation_check=rt.verify_derivation)
                     label = f"{entity[-6:]}-{number}"
                     if isinstance(result, UsableBook):
                         body = manifest.build_manifest_body(
                             event_id=result.document["event_id"], market_id=result.document["market_id"],
-                            decision_at=decision_at, books=[result], selections=(selection,), stores=rt.stores)
+                            decision_at=decision_at, books=[result], selections=(selection,), stores=rt.stores,
+                                                            derivation_check=rt.verify_derivation)
                         verified = verify_body(rt, root, body, label)
                         self.assertEqual([r.record_id for r in verified], [result.record.record_id])
                         outcomes.add("USABLE")

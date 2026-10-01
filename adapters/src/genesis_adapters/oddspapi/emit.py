@@ -8,16 +8,19 @@ resumed by simply running the same emission again with a later clock):
 2. one ``ResearchEvidence`` per OPEN book;
 3. ``T3`` <- clock, after everything above is durable;
 4. one PIT record per document (``record_id`` is keyed on the artifact, so a resume can never create a
-   second record; an existing record must equal the intended one in every field except ``ready_at``,
-   whose earlier value is when it really became durable);
+   second record; an existing record must equal the intended one exactly);
 5. coverage entries (exactly once, by deterministic entry id);
 6. the acquisition row ``normalized``;
 7. the identity-registry rows, LAST, so that the registry prefix a resumed derivation sees is the same
    prefix the original derivation pinned.
 
 An existing artifact under the same identity but different content is a conflict and halts; nothing
-is ever overwritten. ``T2``/``T3`` are never reused across a resume, so nothing becomes admissible
-earlier than it really became durable.
+is ever overwritten. One response has ONE ``T2`` and ONE ``T3`` (design 6.2), also across a crash
+(hostile audit HA-06): a resumed emission reuses exactly the times an interrupted one already made
+durable (an observation's ``parse_ready_at``, a PIT record's ``ready_at``) and stamps fresh ones only
+for a step that left nothing durable (design 14.4). A record appended by a resume may therefore carry
+a ``ready_at`` earlier than its append; no decision can have observed the response half emitted,
+because the reader refuses while an emission is unfinished (``quiescence.pending_work``, design 6.3).
 """
 
 from __future__ import annotations
@@ -42,6 +45,7 @@ from genesis_adapters.clock import ClockFault, TrustedClock, require_not_before
 from genesis_adapters.errors import AdapterFailure, reason_code
 from genesis_adapters.ids import gid
 from genesis_adapters.oddspapi import identity_registry as identity_mod
+from genesis_adapters.oddspapi import quiescence
 from genesis_adapters.oddspapi.acquisition import AcquisitionLedger
 from genesis_adapters.oddspapi.invalidation import (
     EFFECT_EMITTED, EFFECT_SUPERSEDED, InvalidationLedger, applied_row, build_invalidation_document,
@@ -221,7 +225,7 @@ def _pit_record(stores: AdapterStores, document: NormalizedDocument, *, t1: str,
 
 
 def append_pit_once(stores: AdapterStores, record: BitemporalRecord) -> str:
-    """Append ``record`` unless the identical one exists (identical except for its earlier ``ready_at``).
+    """Append ``record`` unless the identical one exists (its ``ready_at`` is the response's one T3, HA-06).
 
     Anything else under the same ``record_id`` is a conflict (F-33): the frozen store is append-only and
     an existing row is never replaced.
@@ -234,7 +238,7 @@ def append_pit_once(stores: AdapterStores, record: BitemporalRecord) -> str:
     for row in rows:
         if row.get("record_type") == "pit_record" and row.get("record_id") == record.record_id:
             existing = BitemporalRecord(**{key: row[key] for key in BitemporalRecord.__dataclass_fields__})
-            if dataclasses.replace(existing, ready_at=record.ready_at) != record:
+            if existing != record:
                 raise EmitConflict(AdapterFailure.PIT_APPEND_CONFLICT)
             return existing.record_id
     try:
@@ -383,6 +387,29 @@ def emit_response(parsed: ParsedResponse, ctx: ParseContext, *, stores: AdapterS
     return dataclasses.replace(core, identity_rows_applied=len(applied))
 
 
+def _durable_times(stores: AdapterStores, documents: Sequence[NormalizedDocument]) -> tuple[str | None, str | None]:
+    """The ``T2`` and ``T3`` an interrupted emission of this response already made durable, else None each.
+
+    Every document carries its response's acquisition and raw observation, so an existing observation or PIT
+    record of one of these artifacts belongs to this very response. More than one T2 or T3 among them is a
+    conflict (design 6.2: both are shared by the response)."""
+
+    wanted = {pit_record_id(stores.source_id, document.artifact_hash) for document in documents}
+    try:
+        t2s = {iso_utc(item.parse_ready_at) for document in documents
+               for item in stores.evidence.get_observations(document.artifact_hash)
+               if item.contract_id == stores.contract_id}
+        t3s = {iso_utc(row["ready_at"]) for row in stores.pit.log.records()
+               if row.get("record_type") == "pit_record" and row.get("record_id") in wanted}
+    except (OSError, ValueError):                              # tampered or unreadable existing evidence
+        raise EmitConflict(AdapterFailure.EVIDENCE_CONFLICT, "existing evidence does not verify") from None
+    if len(t2s) > 1:
+        raise EmitConflict(AdapterFailure.EVIDENCE_CONFLICT, "one response carries more than one T2")
+    if len(t3s) > 1:
+        raise EmitConflict(AdapterFailure.PIT_APPEND_CONFLICT, "one response carries more than one T3")
+    return (min(t2s) if t2s else None), (min(t3s) if t3s else None)
+
+
 def emit_documents(parsed: ParsedResponse, ctx: ParseContext, *, stores: AdapterStores, clock: TrustedClock,
                    checkpoint: Callable[[str], None] | None = None,
                    documents: Sequence[NormalizedDocument] | None = None) -> EmitResult:
@@ -398,7 +425,8 @@ def emit_documents(parsed: ParsedResponse, ctx: ParseContext, *, stores: Adapter
         raise EmitConflict(parsed.failure, "a response rejected as a whole emits nothing")
     documents = build_documents(parsed, ctx) if documents is None else documents
     t1 = iso_utc(ctx.response_received_at)
-    t2 = clock.now()
+    durable_t2, durable_t3 = _durable_times(stores, documents)
+    t2 = durable_t2 if durable_t2 is not None else clock.now()
     require_not_before(t2, t1)
     _mark(checkpoint, "after_t2")
     observations: list[EvidenceObservation] = []
@@ -416,7 +444,7 @@ def emit_documents(parsed: ParsedResponse, ctx: ParseContext, *, stores: Adapter
             except (RegistryConflict, ValueError):
                 raise EmitConflict(AdapterFailure.EVIDENCE_CONFLICT) from None
             _mark(checkpoint, f"after_structured:{index}")
-    t3 = clock.now()
+    t3 = durable_t3 if durable_t3 is not None else clock.now()
     require_not_before(t3, t2, *(item.parse_ready_at for item in observations))
     _mark(checkpoint, "after_t3")
     pit_ids: list[str] = []
@@ -475,8 +503,20 @@ def emit_invalidation(*, invalidated_observation_id: str, invalidation_class: st
     """Record an invalidation and, when the target is still its scope's head, emit the INVALIDATED head.
 
     Safe to run again after a crash: an earlier recording of the same invalidation is completed, never
-    duplicated, and an already emitted INVALIDATED head is recognised by its deterministic artifact.
+    duplicated, and an already emitted INVALIDATED head is recognised by its deterministic artifact. Runs under
+    the run lock of the stores' root (design 13.2: "under the acquisition-quiescence lock"), so no decision reads
+    while it emits; a recorded but unapplied invalidation keeps every read refused until a start completes it.
     """
+
+    with quiescence.run_lock(stores.root):
+        return _emit_invalidation(invalidated_observation_id=invalidated_observation_id,
+                                  invalidation_class=invalidation_class, reason=reason, actor=actor,
+                                  evidence_refs=evidence_refs, stores=stores, clock=clock, checkpoint=checkpoint)
+
+
+def _emit_invalidation(*, invalidated_observation_id: str, invalidation_class: str, reason: str, actor: str,
+                       evidence_refs: Sequence[str], stores: AdapterStores, clock: TrustedClock,
+                       checkpoint: Callable[[str], None] | None) -> InvalidationResult:
 
     try:
         observation = stores.evidence.get_observation(invalidated_observation_id)
@@ -538,11 +578,12 @@ def emit_invalidation(*, invalidated_observation_id: str, invalidation_class: st
             invalidation_pit_record_id=None, applied_at=applied_at))
         entry_id = _invalidation_coverage(stores, row, applied_at, note=note)
         return InvalidationResult(row["invalidation_id"], EFFECT_SUPERSEDED, t_inv, None, None, entry_id)
-    t2_inv = clock.now()
+    durable_t2, durable_t3 = _durable_times(stores, [document])  # a resumed emission keeps its durable times
+    t2_inv = durable_t2 if durable_t2 is not None else clock.now()
     source_uri = invalidation_source_uri(stores.derivation_version, entity_id, row["invalidation_id"])
     published = _publish_observation(stores, document, source_uri=source_uri, t2=t2_inv, retrieved_at=t_inv)
     _mark(checkpoint, "after_invalidation_observation")
-    t3_inv = clock.now()
+    t3_inv = durable_t3 if durable_t3 is not None else clock.now()
     require_not_before(t3_inv, published.parse_ready_at)
     pit_id = append_pit_once(stores, _pit_record(stores, document, t1=t_inv, t3=t3_inv))
     _mark(checkpoint, "after_invalidation_pit")
@@ -554,6 +595,28 @@ def emit_invalidation(*, invalidated_observation_id: str, invalidation_class: st
     entry_id = _invalidation_coverage(stores, row, applied_at, note=note)
     return InvalidationResult(row["invalidation_id"], EFFECT_EMITTED, t_inv, published.observation_id, pit_id,
                               entry_id)
+
+
+def complete_pending_invalidations(stores: AdapterStores, *, clock: TrustedClock) -> tuple[str, ...]:
+    """Finish every recorded invalidation that a crash left incomplete (design 13.2 steps 4-5; hostile audit HA-05).
+
+    Runs at every start (``PipelineRuntime.resume``, ``cli.py run``), so nobody has to call ``emit_invalidation``
+    again: an earlier recording is completed, never duplicated. A complete invalidation (applied, with its coverage
+    entry) is left alone. Returns the ids it completed."""
+
+    done: list[str] = []
+    entries = {row.get("entry_id") for row in stores.coverage.log.records() if row.get("record_type") == "coverage"}
+    for invalidation_id, entry in stores.invalidations.state().items():
+        recorded = entry["recorded"]
+        note = f"INVALIDATED:{recorded['reason']}"
+        covered = gid("cov", invalidation_id=invalidation_id, entity_id=recorded["entity_id"], note=note) in entries
+        if entry["applied"] is not None and covered:
+            continue
+        emit_invalidation(invalidated_observation_id=recorded["invalidated_observation_id"],
+                          invalidation_class=recorded["invalidation_class"], reason=recorded["reason"],
+                          actor=recorded["actor"], evidence_refs=recorded["evidence_refs"], stores=stores, clock=clock)
+        done.append(invalidation_id)
+    return tuple(done)
 
 
 def _invalidation_coverage(stores: AdapterStores, row: dict[str, Any], at: str, *, note: str) -> str:

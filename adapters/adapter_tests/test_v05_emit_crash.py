@@ -81,6 +81,7 @@ class CrashResumeTests(unittest.TestCase):
                     emit.emit_response(parsed, ctx, stores=stores, clock=SequenceClock(
                         [iso(CAPTURE_2, seconds=0.5), iso(CAPTURE_2, seconds=1), iso(CAPTURE_2, seconds=1.000001)]),
                         checkpoint=hook_at(name))
+                durable_before = [r for r in pit_rows(stores) if r["available_at"] == CAPTURE_2]
                 restarted = reopen(stores)
                 resumed = emit.emit_response(parsed, ctx, stores=restarted, clock=SequenceClock(
                     [iso(CAPTURE_2, seconds=10), iso(CAPTURE_2, seconds=11), iso(CAPTURE_2, seconds=12)]))
@@ -92,11 +93,16 @@ class CrashResumeTests(unittest.TestCase):
                         self.assertEqual(summary[key], value, f"{key} after a crash at {name}")
                 self.assertEqual(summary["coverage_duplicates"], 0, name)
                 self.assertEqual(len(restarted.pit.log.records()), len(pit_rows(restarted)), name)
-                # nothing became admissible earlier than it really became durable, and nothing precedes its
-                # own observation
-                allowed = {self.baseline_t3, iso(CAPTURE_2, seconds=11)}
-                for row in [r for r in pit_rows(restarted) if r["available_at"] == CAPTURE_2]:
-                    self.assertIn(row["ready_at"], allowed, name)
+                # one T3 for the whole response (design 6.2, hostile audit HA-06): the durable one if any PIT record
+                # survived the crash, else one stamped at the resume; never before its own observation
+                rows = [r for r in pit_rows(restarted) if r["available_at"] == CAPTURE_2]
+                self.assertEqual(len({row["ready_at"] for row in rows}), 1, name)
+                expected_t3 = self.baseline_t3 if durable_before else None
+                for row in rows:
+                    if expected_t3 is not None:
+                        self.assertEqual(row["ready_at"], expected_t3, name)
+                    else:
+                        self.assertIn(row["ready_at"], {iso(CAPTURE_2, seconds=10), iso(CAPTURE_2, seconds=11)}, name)
                     observation = restarted.evidence.get_observations(row["payload_hash"])[0]
                     self.assertGreaterEqual(row["ready_at"], observation.parse_ready_at, name)
                 # a second resume is a no-op
@@ -155,7 +161,7 @@ class CrashResumeTests(unittest.TestCase):
             first = restarted.evidence.get_observations(pit_rows(restarted)[0]["payload_hash"])[0]
             self.assertEqual(first.parse_ready_at, iso(CAPTURE_1, seconds=0.5))     # the pre-crash T2 stands
             second = restarted.evidence.get_observations(pit_rows(restarted)[1]["payload_hash"])[0]
-            self.assertEqual(second.parse_ready_at, iso(CAPTURE_1, seconds=5))      # the rest use the new T2
+            self.assertEqual(second.parse_ready_at, iso(CAPTURE_1, seconds=0.5))    # one T2 for the response (HA-06)
 
 
 if __name__ == "__main__":

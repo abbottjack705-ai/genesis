@@ -62,6 +62,12 @@ def source_capability(stores: emit.AdapterStores, *, status: OperationalStatus, 
         schema_version="v1", operational_status=status, recorded_at=at, version=f"{stores.derivation_version}-{suffix}")
 
 
+def derivation_accepted(observation_id: str) -> None:
+    """The derivation verifier for reader tests that are NOT about derivation verification, and whose stores (built
+    here, with synthetic request hashes) hold nothing re-derivable. It accepts every head and says so by its name; the
+    production reader always re-derives (``PipelineRuntime.reader``, design 12.3 step 7, hostile audit HA-12)."""
+
+
 def approve_source(stores: emit.AdapterStores, *, at: str, approval: str = "synthetic-test-only-binding") -> None:
     """READY capability plus the approved 1:1 binding (test registries only; never adapter runtime code)."""
 
@@ -74,8 +80,10 @@ def set_capability(stores: emit.AdapterStores, status: OperationalStatus, at: st
     stores.capabilities.register(source_capability(stores, status=status, at=at, suffix=suffix))
 
 
-def seed_acquisition(stores: emit.AdapterStores, ctx: parser.ParseContext, *, request_hash: str | None = None) -> None:
-    """The acquisition rows that precede emission (planned .. completed), timed consistently with ``ctx``."""
+def seed_acquisition(stores: emit.AdapterStores, ctx: parser.ParseContext, *, request_hash: str | None = None,
+                     failure: str | None = None) -> None:
+    """The acquisition rows that precede emission (planned .. completed), timed consistently with ``ctx``.
+    ``failure`` is the content verdict a rejected response carries in its completed row (design 11.1, HA-04)."""
 
     aid, t0, t1 = ctx.acquisition_id, ctx.request_started_at, ctx.response_received_at
     tq = iso(t0, micros=-1000)
@@ -92,7 +100,7 @@ def seed_acquisition(stores: emit.AdapterStores, ctx: parser.ParseContext, *, re
                   expected_scope_hash=ctx.expected_scope_hash)            # pinned before the send (12.4)
     ledger.append("acq_completed", recorded_at=t1, acquisition_id=aid, T1=t1, outcome="RESPONSE", http_status=200,
                   headers=[], content_encoding=None, byte_length=1, raw_observation_id=ctx.raw_observation_id,
-                  sanitized_error=None, provider_reported_usage=None, failure=None)
+                  sanitized_error=None, provider_reported_usage=None, failure=failure)
 
 
 # The request this emission harness answers: tournament 17 only, which is what ``small_payload()`` keeps (fixture
@@ -118,7 +126,7 @@ def make_capture_ctx(stores: emit.AdapterStores, raw: bytes, *, t1: str, expecte
 def capture(stores: emit.AdapterStores, payload, *, t1: str = CAPTURE_1, t2: str | None = None,
             t3: str | None = None, stamp: str | None = None, expected_scope=None, expected_hash=None,
             complete_hint: bool = True, checkpoint=None, clock=None, ctx=None, seed: bool = True, tag: str = "",
-            fixture_join=None):
+            fixture_join=None, seed_failure: str | None = None):
     """Parse ``payload`` as one ODDS response received at ``t1`` and emit it. Returns (parsed, ctx, result).
 
     ``T2``/``T3`` default to ``t1 + 0.5 s`` / ``t1 + 1 s`` (the times the stages really completed)."""
@@ -128,7 +136,7 @@ def capture(stores: emit.AdapterStores, payload, *, t1: str = CAPTURE_1, t2: str
                                   complete_hint=complete_hint, tag=tag, fixture_join=fixture_join)
     parsed = parser.parse_odds_response(raw, ctx)
     if seed:
-        seed_acquisition(stores, ctx)
+        seed_acquisition(stores, ctx, failure=seed_failure)
     t2 = t2 or iso(t1, seconds=0.5)
     t3 = t3 or iso(t1, seconds=1)
     clock = clock or SequenceClock([t2, t3, stamp or iso(t3, micros=1)])

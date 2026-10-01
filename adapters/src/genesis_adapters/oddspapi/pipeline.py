@@ -30,6 +30,7 @@ from genesis_adapters.errors import AdapterFailure, reason_code
 from genesis_adapters.ids import gid
 from genesis_adapters.oddspapi import capability, derivation, emit, normalize, parser
 from genesis_adapters.oddspapi import identity_registry as identity_mod
+from genesis_adapters.oddspapi import quiescence
 from genesis_adapters.oddspapi import scope as scope_mod
 from genesis_adapters.oddspapi.acquisition import AcquisitionLedger, AcquisitionRunner, AttemptOutcome, PlanItem
 from genesis_adapters.oddspapi.endpoints import RAW_CONTRACT_ID
@@ -37,6 +38,7 @@ from genesis_adapters.oddspapi.invalidation import InvalidationLedger
 from genesis_adapters.oddspapi.maps import AdapterMaps, maps_from_config
 from genesis_adapters.oddspapi.quota_gate import QuotaGate
 from genesis_adapters.oddspapi.raw_capture import RawCapture, register_raw_contract
+from genesis_adapters.oddspapi.reader import MarketBookReader
 
 FIXTURE_LICENSING_NOTE = "FIXTURE-ONLY-NO-PROVIDER-TERMS"
 _TAMPER_FAILURES = frozenset({AdapterFailure.EVIDENCE_CONFLICT, AdapterFailure.PIT_APPEND_CONFLICT})
@@ -95,14 +97,15 @@ class AdapterRuntime:
 
     # -- acquisition and normalization -------------------------------------------------------
     def acquire(self, item: PlanItem, *, clock_check: bool = False) -> PipelineResult:
-        self.check_configuration()
-        outcome = self.runner.acquire(item, clock_check=clock_check)
-        emitted = None
-        captured = getattr(outcome, "captured", None)
-        if item.request.role == derivation.ROLE_ODDS and outcome.outcome == AttemptOutcome.RESPONSE \
-                and outcome.failure is None and captured is not None and captured.kind == "STORED":
-            emitted = self.normalize(outcome.acquisition_id)
-        return PipelineResult(outcome, emitted)
+        with quiescence.run_lock(self.root):              # design 6.3: one adapter phase at a time
+            self.check_configuration()
+            outcome = self.runner.acquire(item, clock_check=clock_check)
+            emitted = None
+            captured = getattr(outcome, "captured", None)
+            if item.request.role == derivation.ROLE_ODDS and outcome.outcome == AttemptOutcome.RESPONSE \
+                    and outcome.failure is None and captured is not None and captured.kind == "STORED":
+                emitted = self.normalize(outcome.acquisition_id)
+            return PipelineResult(outcome, emitted)
 
     def _inputs(self, acquisition_id: str) -> derivation.DerivationInputs:
         rows = derivation.acquisition_rows(self.stores.acquisition, acquisition_id)
@@ -128,17 +131,18 @@ class AdapterRuntime:
                                       request_root=self.root)
 
     def normalize(self, acquisition_id: str) -> emit.EmitResult:
-        self.check_configuration()
-        inputs = self._inputs(acquisition_id)
-        parsed = parser.parse_odds_response(inputs.raw, inputs.ctx)
-        if parsed.failure is not None:
-            # the envelope was checked at capture time; a parse-level rejection here is a derivation fault
-            self._halt(parsed.failure, inputs.ctx.provider_request_hash)
-        try:
-            return emit.emit_response(parsed, inputs.ctx, stores=self.stores, clock=self.clock,
-                                      checkpoint=self.checkpoint)
-        except emit.EmitConflict as conflict:
-            self._halt(conflict.failure, inputs.ctx.provider_request_hash)
+        with quiescence.run_lock(self.root):
+            self.check_configuration()
+            inputs = self._inputs(acquisition_id)
+            parsed = parser.parse_odds_response(inputs.raw, inputs.ctx)
+            if parsed.failure is not None:
+                # the envelope was checked at capture time; a parse-level rejection here is a derivation fault
+                self._halt(parsed.failure, inputs.ctx.provider_request_hash)
+            try:
+                return emit.emit_response(parsed, inputs.ctx, stores=self.stores, clock=self.clock,
+                                          checkpoint=self.checkpoint)
+            except emit.EmitConflict as conflict:
+                self._halt(conflict.failure, inputs.ctx.provider_request_hash)
 
     def _halt(self, failure: AdapterFailure, request_hash: str) -> None:
         """Record a durable halt (every later acquisition is refused) plus its coverage entry, then stop."""
@@ -156,27 +160,47 @@ class AdapterRuntime:
 
     # -- restart ---------------------------------------------------------------------------------
     def resume(self) -> tuple[tuple[str, ...], tuple[emit.EmitResult, ...]]:
-        """Reconcile orphaned reservations, finish the newest derivation's identity rows, then derive every
-        successful ODDS capture that has no normalized row yet (in ledger order)."""
+        """Reconcile orphaned reservations (and settle the newest verdict), complete every invalidation a crash
+        left pending (design 13.2, hostile audit HA-05), finish the newest derivation's identity rows, then derive
+        every successful ODDS capture that has no normalized row yet (in ledger order)."""
 
-        reconciled = self.runner.reconcile_after_restart()
-        attempts = self.stores.acquisition.attempts()
-        order: list[str] = []
-        for row in self.stores.acquisition.rows():
-            if row["record_type"] == "acq_planned":
-                order.append(row["acquisition_id"])
-        odds = [aid for aid in order if attempts[aid].role == derivation.ROLE_ODDS]
-        results: list[emit.EmitResult] = []
-        finished = [aid for aid in odds if attempts[aid].state == "NORMALIZED"]
-        if finished:
-            results.append(self.normalize(finished[-1]))
-        for aid in odds:
-            rows = derivation.acquisition_rows(self.stores.acquisition, aid)
-            if attempts[aid].state == "COMPLETED" and derivation.successful_capture(rows):
-                results.append(self.normalize(aid))
-        return reconciled, tuple(results)
+        with quiescence.run_lock(self.root):
+            reconciled = self.runner.reconcile_after_restart()
+            emit.complete_pending_invalidations(self.stores, clock=self.clock)
+            attempts = self.stores.acquisition.attempts()
+            order: list[str] = []
+            for row in self.stores.acquisition.rows():
+                if row["record_type"] == "acq_planned":
+                    order.append(row["acquisition_id"])
+            odds = [aid for aid in order if attempts[aid].role == derivation.ROLE_ODDS]
+            results: list[emit.EmitResult] = []
+            finished = [aid for aid in odds if attempts[aid].state == "NORMALIZED"]
+            if finished:
+                results.append(self.normalize(finished[-1]))
+            for aid in odds:
+                rows = derivation.acquisition_rows(self.stores.acquisition, aid)
+                if attempts[aid].state == "COMPLETED" and derivation.successful_capture(rows):
+                    results.append(self.normalize(aid))
+            return reconciled, tuple(results)
 
-    # -- verification --------------------------------------------------------------------------
+    # -- consumption and verification ----------------------------------------------------------
+    def reader(self) -> MarketBookReader:
+        """The production consumer (design 12.3): every head it returns re-derives exactly (step 7)."""
+
+        return MarketBookReader(self.stores, derivation_check=self.checked_derivation)
+
+    def checked_derivation(self, observation_id: str) -> None:
+        """``verify_derivation`` for a head about to be used; one that fails is invalidated automatically
+        (design 13.2, ADAPTER_AUTOMATIC) before the failure is passed on, so the reader refuses it now and the
+        INVALIDATED head supersedes it from its own admissible time on (hostile audit HA-12)."""
+
+        try:
+            self.verify_derivation(observation_id)
+        except Exception:
+            emit.invalidate_if_underivable(observation_id, check=self.verify_derivation, stores=self.stores,
+                                           clock=self.clock)
+            raise
+
     def verify_derivation(self, observation_id: str) -> None:
         derivation.verify_derivation(observation_id, stores=self.stores, config=self.config, maps=self.maps)
 

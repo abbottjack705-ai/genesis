@@ -235,8 +235,13 @@ class ConflictTests(unittest.TestCase):
             with self.assertRaises(emit.EmitConflict) as caught:
                 emit.append_pit_once(stores, forged)
             self.assertEqual(caught.exception.failure, err.AdapterFailure.PIT_APPEND_CONFLICT)
-            earlier_ready = dataclasses.replace(record, ready_at=iso(record.ready_at, seconds=9))
-            self.assertEqual(emit.append_pit_once(stores, earlier_ready), record.record_id)   # only ready_at differs
+            # one T3 per response, reused exactly by a resumed emission (design 6.2, hostile audit HA-06): a record
+            # that differs only in its ready_at is a conflict too, never a silent reuse
+            later_ready = dataclasses.replace(record, ready_at=iso(record.ready_at, seconds=9))
+            with self.assertRaises(emit.EmitConflict) as caught:
+                emit.append_pit_once(stores, later_ready)
+            self.assertEqual(caught.exception.failure, err.AdapterFailure.PIT_APPEND_CONFLICT)
+            self.assertEqual(emit.append_pit_once(stores, record), record.record_id)          # the identical one
             self.assertEqual(len(pit_rows(stores)), len(result.pit_record_ids))
 
     def test_emission_requires_its_completed_acquisition(self):

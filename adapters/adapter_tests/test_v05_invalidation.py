@@ -15,6 +15,7 @@ from genesis_adapters.clock import ClockFault
 from genesis_adapters.oddspapi import emit, invalidation as inv
 from genesis_adapters.oddspapi.reader import UsableBook, Unusable, admissible_head
 
+from .emit_support import derivation_accepted
 from . import emit_support as es
 from .emit_support import CAPTURE_1, CAPTURE_2, build_stores, capture, coverage_rows, head_book, iso, pit_rows, small_payload
 from .parity_support import manifest_body, verifier_verdict
@@ -70,7 +71,7 @@ class CurrentHeadTests(unittest.TestCase):
             self.assertEqual(invalidated.record_id, result.invalidation_pit_record_id)
             for decision_at in (before_cutoff, T_INV, iso(T3_INV, micros=-1)):      # D < T3_inv: unchanged
                 with self.subTest(decision_at):
-                    usable = admissible_head(entity, decision_at, stores=stores)
+                    usable = admissible_head(entity, decision_at, stores=stores, derivation_check=derivation_accepted)
                     self.assertIsInstance(usable, UsableBook)
                     self.assertEqual(usable.record, record)
                     accepted, why = verifier_verdict(stores, [(record, "OVER")], decision_at=decision_at,
@@ -82,7 +83,7 @@ class CurrentHeadTests(unittest.TestCase):
             self.assertEqual(manifest_body(stores, [(record, "OVER")], decision_at=before_cutoff)[0], early_manifest)
             for decision_at in (T3_INV, iso(T3_INV, seconds=86400 * 7)):
                 with self.subTest(decision_at):
-                    verdict = admissible_head(entity, decision_at, stores=stores)
+                    verdict = admissible_head(entity, decision_at, stores=stores, derivation_check=derivation_accepted)
                     self.assertIsInstance(verdict, Unusable)
                     self.assertEqual((verdict.code, verdict.reasons),
                                      (err.AdapterFailure.INVALIDATED, ("PROVIDER_ERROR_NOTICE",)))
@@ -137,14 +138,15 @@ class SupersededTests(unittest.TestCase):
             capture(stores, newer, t1=CAPTURE_2)
             grid = [iso(CAPTURE_1, seconds=1), iso(CAPTURE_2, seconds=0.5), iso(CAPTURE_2, seconds=1),
                     iso(CAPTURE_2, seconds=3600), iso(CAPTURE_2, seconds=86400)]
-            before = [admissible_head(entity, d, stores=stores) for d in grid]
+            before = [admissible_head(entity, d, stores=stores, derivation_check=derivation_accepted) for d in grid]
             rows_before = pit_rows(stores)
             result = invalidate(stores, observation.observation_id,
                                 clock=SequenceClock([iso(CAPTURE_2, seconds=60), iso(CAPTURE_2, seconds=61)]))
             self.assertEqual(result.head_effect, inv.EFFECT_SUPERSEDED)
             self.assertIsNone(result.invalidation_pit_record_id)
             self.assertEqual(pit_rows(stores), rows_before)
-            self.assertEqual([admissible_head(entity, d, stores=stores) for d in grid], before)
+            self.assertEqual([admissible_head(entity, d, stores=stores,
+                                              derivation_check=derivation_accepted) for d in grid], before)
             applied = stores.invalidations.state()[result.invalidation_id]["applied"]
             self.assertEqual((applied["head_effect"], applied["invalidation_observation_id"],
                               applied["invalidation_pit_record_id"]), ("NONE_ALREADY_SUPERSEDED", None, None))
@@ -242,12 +244,13 @@ class TimingTests(unittest.TestCase):
         with scratch_root() as root:
             stores, entity, record, observation = one_capture(root)
             invalidate(stores, observation.observation_id)
-            self.assertEqual(admissible_head(entity, iso(CAPTURE_2, seconds=5), stores=stores).code,
+            self.assertEqual(admissible_head(entity, iso(CAPTURE_2, seconds=5), stores=stores,
+                                             derivation_check=derivation_accepted).code,
                              err.AdapterFailure.INVALIDATED)
             newer = small_payload()
             price_of(newer, "pinnacle", "1010", "2001")["price"] = 1.9
             _, _, result = capture(stores, newer, t1=CAPTURE_2)
-            usable = admissible_head(entity, result.t3, stores=stores)
+            usable = admissible_head(entity, result.t3, stores=stores, derivation_check=derivation_accepted)
             self.assertIsInstance(usable, UsableBook)
             self.assertEqual(usable.document["selections"]["OVER"]["odds_decimal"], "1.9")
 
@@ -267,7 +270,7 @@ class TimingTests(unittest.TestCase):
             row = stores.invalidations.state()[result.invalidation_id]["recorded"]
             self.assertEqual((row["invalidation_class"], row["reason"], row["actor"]),
                              ("DERIVATION_DEFECT", "DERIVATION_UNVERIFIED", "ADAPTER_AUTOMATIC"))
-            verdict = admissible_head(entity, T3_INV, stores=stores)
+            verdict = admissible_head(entity, T3_INV, stores=stores, derivation_check=derivation_accepted)
             self.assertEqual((verdict.code, verdict.reasons),
                              (err.AdapterFailure.INVALIDATED, ("DERIVATION_UNVERIFIED",)))
 
@@ -329,7 +332,8 @@ class CoverageAndRefusalTests(unittest.TestCase):
                 self.assertEqual((len(restarted.invalidations.rows()), len(pit_rows(restarted)),
                                   restarted.evidence.verify_manifest()), baseline)
                 inv.verify_invalidation_derivation(result.invalidation_observation_id, stores=restarted)
-                self.assertEqual(admissible_head(entity, iso(T_INV, seconds=86400), stores=restarted).code,
+                self.assertEqual(admissible_head(entity, iso(T_INV, seconds=86400), stores=restarted,
+                                                 derivation_check=derivation_accepted).code,
                                  err.AdapterFailure.INVALIDATED)
 
 

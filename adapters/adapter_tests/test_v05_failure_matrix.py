@@ -446,11 +446,13 @@ class FailureMatrixTests(unittest.TestCase):
             rt = open_rt(root, script=[odds_response()])
             rt.acquire(odds_item())
             entity, later = pit_rows(rt)[0]["entity_id"], ps.iso_add(START, seconds=60)
-            self.assertEqual(admissible_head(entity, later, stores=rt.stores).code, A.DATA_CAPABILITY_NOT_READY)
+            self.assertEqual(admissible_head(entity, later, stores=rt.stores,
+                                             derivation_check=rt.verify_derivation).code, A.DATA_CAPABILITY_NOT_READY)
             approve(rt)
             from .emit_support import approve_source, with_version
             approve_source(with_version(rt.stores, "mb1-" + "3" * 16), at="2026-09-30T00:00:01.000000Z")
-            self.assertEqual(admissible_head(entity, later, stores=rt.stores).code, A.AMBIGUOUS_SOURCE)
+            self.assertEqual(admissible_head(entity, later, stores=rt.stores,
+                                             derivation_check=rt.verify_derivation).code, A.AMBIGUOUS_SOURCE)
 
     def test_fm37_and_q09_provider_usage_above_the_genesis_debit_halts(self):
         with scratch_root() as root:
@@ -492,7 +494,8 @@ class FailureMatrixTests(unittest.TestCase):
             rt.acquire(odds_item("w2"))
             late = [r for r in pit_rows(rt) if r["published_at"] and r["published_at"] > r["ready_at"]]
             self.assertTrue(late)
-            verdict = admissible_head(late[0]["entity_id"], late[0]["ready_at"], stores=rt.stores)
+            verdict = admissible_head(late[0]["entity_id"], late[0]["ready_at"], stores=rt.stores,
+                                      derivation_check=rt.verify_derivation)
             self.assertEqual(verdict.code, A.NOT_PUBLISHED_AT_CUTOFF)
 
     @staticmethod
@@ -517,11 +520,13 @@ class FailureMatrixTests(unittest.TestCase):
                                    clock=SequenceClock([t_inv, ps.iso_add(t_inv, seconds=1), ps.iso_add(t_inv, seconds=2),
                                                         ps.iso_add(t_inv, seconds=3)]))
             self.assert_notes(rt, "INVALIDATED", "quarantined", "contradictory_evidence")
-            verdict = admissible_head(row["entity_id"], ps.iso_add(t_inv, seconds=5), stores=rt.stores)
+            verdict = admissible_head(row["entity_id"], ps.iso_add(t_inv, seconds=5), stores=rt.stores,
+                                      derivation_check=rt.verify_derivation)
             self.assertEqual(verdict.code, A.INVALIDATED)
-            self.assertIsInstance(admissible_head(row["entity_id"], ps.iso_add(t_inv, seconds=1), stores=rt.stores),
+            self.assertIsInstance(admissible_head(row["entity_id"], ps.iso_add(t_inv, seconds=1), stores=rt.stores,
+                                                  derivation_check=rt.verify_derivation),
                                   type(admissible_head(row["entity_id"], ps.iso_add(START, seconds=60),
-                                                       stores=rt.stores)))
+                                                       stores=rt.stores, derivation_check=rt.verify_derivation)))
 
     def test_fm41_a_module_provenance_failure_refuses_to_start(self):
         def failing():

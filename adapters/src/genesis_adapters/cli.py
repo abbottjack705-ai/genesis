@@ -219,13 +219,25 @@ def time_sync_attestation() -> dict:
 
 
 def cmd_run(args) -> int:
-    """A gated live run (G2 verification: raw capture only; G2R: full pipeline). Refuses without the gates."""
+    """A gated live run (G2 verification: raw capture only; G2R: full pipeline). Refuses without the gates, and while
+    another adapter phase holds the runtime root's run lock (design 6.3), which it holds for the whole run."""
 
+    from genesis_adapters.oddspapi import quiescence
+
+    try:
+        with quiescence.run_lock(Path(args.root)):
+            return _run(args)
+    except quiescence.QuiescenceBusy:
+        sys.stderr.write("refused: another adapter phase holds the run lock\n")
+        return EXIT_REFUSED
+
+
+def _run(args) -> int:
     from genesis_adapters.clock import SystemUtcClock
     from genesis_adapters.config import load_adapter_config
     from genesis_adapters.credential import CredentialSource
     from genesis_adapters.errors import CredentialProblem, PlanRefused
-    from genesis_adapters.oddspapi import endpoints, normalize, pipeline
+    from genesis_adapters.oddspapi import emit, endpoints, normalize, pipeline
     from genesis_adapters.oddspapi.acquisition import AcquisitionLedger, PlanItem
     from genesis_adapters.oddspapi.authority import (
         MODE_VERIFICATION, AdapterAuthorityLedger, LiveGate, load_gate_limits, sent_counter,
@@ -261,6 +273,12 @@ def cmd_run(args) -> int:
                                licensing_note=grants[-1]["licensing_note"],
                                allow_fixture_only=args.mode == MODE_VERIFICATION,
                                provenance_check=lambda: startup_guard(config_dir))
+    # every start first finishes what a crash left (design 13.2, 14.4; hostile audit HA-04, HA-05)
+    if args.mode == MODE_VERIFICATION:                          # G2: raw only, nothing normalized
+        rt.runner.reconcile_after_restart()
+        emit.complete_pending_invalidations(rt.stores, clock=clock)
+    else:
+        rt.resume()
     entries = json.loads(Path(args.plan).read_text(encoding="utf-8"))
     clock_check = bool(getattr(args, "clock_check", False))
     if clock_check and len(entries) != 1:

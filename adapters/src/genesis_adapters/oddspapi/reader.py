@@ -27,6 +27,7 @@ from genesis.time import AvailabilityWindow, TimestampError, iso_utc, parse_utc
 
 from genesis_adapters import config as adapter_config
 from genesis_adapters.errors import PASS_REASON_MAP, AdapterFailure
+from genesis_adapters.oddspapi import quiescence
 from genesis_adapters.oddspapi.emit import AdapterStores
 
 SOURCE_PREFIX = "oddspapi.v4.soccer.market_book."
@@ -114,9 +115,29 @@ def _ready_source(stores: AdapterStores, decision_at: str) -> str | Unusable:
 
 
 def admissible_head(entity_id: str, decision_at: str, *, stores: AdapterStores,
-                    derivation_check: Callable[[str], None] | None = None) -> UsableBook | Unusable:
-    """The usable head of ``entity_id`` at ``decision_at``, or the exact reason it is not usable."""
+                    derivation_check: Callable[[str], None] | None) -> UsableBook | Unusable:
+    """The usable head of ``entity_id`` at ``decision_at``, or the exact reason it is not usable.
 
+    ``derivation_check`` is mandatory (design 12.3 step 7, hostile audit HA-12): every head is re-derived before it
+    is returned, and without a verifier nothing is usable. The adapter run lock is held while reading (design 6.3):
+    nothing is read while an adapter phase of another process holds it, nor while durable adapter work is
+    unfinished (``quiescence.pending_work``)."""
+
+    if derivation_check is None:
+        return Unusable(AdapterFailure.DERIVATION_UNVERIFIED, detail="no derivation verifier was supplied")
+    try:
+        with quiescence.run_lock(stores.root):
+            unfinished = quiescence.pending_work(stores)
+            if unfinished:
+                return Unusable(AdapterFailure.DATA_CAPABILITY_NOT_READY,
+                                detail="adapter work is unfinished: " + unfinished[0])
+            return _admissible_head(entity_id, decision_at, stores=stores, derivation_check=derivation_check)
+    except quiescence.QuiescenceBusy as busy:
+        return Unusable(AdapterFailure.DATA_CAPABILITY_NOT_READY, detail=str(busy))
+
+
+def _admissible_head(entity_id: str, decision_at: str, *, stores: AdapterStores,
+                     derivation_check: Callable[[str], None]) -> UsableBook | Unusable:
     try:
         cutoff = iso_utc(decision_at)
     except TimestampError:
@@ -186,11 +207,10 @@ def admissible_head(entity_id: str, decision_at: str, *, stores: AdapterStores,
     start = document.get("scheduled_start_as_known")
     if start is None or point >= parse_utc(start) - timedelta(seconds=stores.policy.prematch_guard_seconds):
         return Unusable(AdapterFailure.PREMATCH_WINDOW_CLOSED)
-    if derivation_check is not None:
-        try:
-            derivation_check(observation.observation_id)
-        except Exception:                                  # any failure to re-derive is a refusal, never a pass
-            return Unusable(AdapterFailure.DERIVATION_UNVERIFIED)
+    try:
+        derivation_check(observation.observation_id)
+    except Exception:                                      # any failure to re-derive is a refusal, never a pass
+        return Unusable(AdapterFailure.DERIVATION_UNVERIFIED)
     return UsableBook(entity_id, cutoff, head, observation, document, source, contract_id, capability)
 
 
@@ -214,9 +234,9 @@ def _newer_capture_exists(stores: AdapterStores, entity_id: str, source: str, he
 
 
 class MarketBookReader:
-    """The as-of consumer: ``head`` is exactly :func:`admissible_head`."""
+    """The as-of consumer: ``head`` is exactly :func:`admissible_head` (the derivation verifier is mandatory)."""
 
-    def __init__(self, stores: AdapterStores, *, derivation_check: Callable[[str], None] | None = None):
+    def __init__(self, stores: AdapterStores, *, derivation_check: Callable[[str], None] | None):
         self.stores = stores
         self.derivation_check = derivation_check
 

@@ -85,7 +85,7 @@ class RequestedTournamentTests(unittest.TestCase):
             entities = w1_entities(rt, fixture_id)
             self.assertTrue(entities)
             for entity in entities:
-                head = admissible_head(entity, cutoff, stores=rt.stores)
+                head = admissible_head(entity, cutoff, stores=rt.stores, derivation_check=rt.verify_derivation)
                 self.assertIsInstance(head, UsableBook, entity)
 
     # -- the cases of the remediation brief --------------------------------------------------------

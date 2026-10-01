@@ -13,6 +13,7 @@ from genesis_adapters import errors as err
 from genesis_adapters.oddspapi import capability, emit, normalize
 from genesis_adapters.oddspapi.reader import UsableBook, admissible_head
 
+from .emit_support import derivation_accepted
 from . import emit_support as es
 from . import parser_support as ps
 from .emit_support import CAPABILITY_TIME, CAPTURE_1, CAPTURE_2, build_stores, capture, head_book, iso, pit_rows, small_payload
@@ -86,16 +87,18 @@ class SourceChangeTests(unittest.TestCase):
                                                            suffix="ready-1"))
             new.bindings.register(source_id=new.source_id, source_contract_id=new.contract_id, provider="oddspapi",
                                   approval_reference="synthetic-test-only-binding-2")
-            self.assertEqual(admissible_head(entity, t_fix, stores=old).code, err.AdapterFailure.AMBIGUOUS_SOURCE)
+            self.assertEqual(admissible_head(entity, t_fix, stores=old, derivation_check=derivation_accepted).code,
+                             err.AdapterFailure.AMBIGUOUS_SOURCE)
             # the old source is BLOCKED (a downgrade adapter code may make) -> the new one serves from there on
             capability.register_downgrade(old.capabilities, old.source_id, status=OperationalStatus.BLOCKED,
                                           at=iso(t_fix, micros=1), reason="DERIVATION_SOURCE_CHANGE")
-            before = admissible_head(entity, iso(CAPTURE_2, seconds=30), stores=old)
+            before = admissible_head(entity, iso(CAPTURE_2, seconds=30), stores=old,
+                                     derivation_check=derivation_accepted)
             self.assertIsInstance(before, UsableBook)
             self.assertEqual((before.source_id, before.record.source_id), (old.source_id, old.source_id))
-            during = admissible_head(entity, t_fix, stores=old)
+            during = admissible_head(entity, t_fix, stores=old, derivation_check=derivation_accepted)
             self.assertEqual(during.code, err.AdapterFailure.AMBIGUOUS_SOURCE)          # both READY at t_fix
-            after = admissible_head(entity, iso(t_fix, micros=1), stores=old)
+            after = admissible_head(entity, iso(t_fix, micros=1), stores=old, derivation_check=derivation_accepted)
             self.assertIsInstance(after, UsableBook)
             self.assertEqual(after.source_id, new.source_id)
             self.assertEqual(after.record.source_id, new.source_id)
@@ -145,7 +148,8 @@ class DowngradeTests(unittest.TestCase):
                 with self.assertRaises(Exception):
                     stores.capabilities.require_ready_at(source_id, at)
             parsed, _, result = capture(stores, small_payload(), t1=CAPTURE_1)
-            self.assertEqual(admissible_head(head_book(parsed).entity_id, result.t3, stores=stores).code,
+            self.assertEqual(admissible_head(head_book(parsed).entity_id, result.t3, stores=stores,
+                                             derivation_check=derivation_accepted).code,
                              err.AdapterFailure.DATA_CAPABILITY_NOT_READY)
 
 

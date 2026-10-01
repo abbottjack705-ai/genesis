@@ -97,6 +97,7 @@ end-of-line conversion so pinned digests hold on every checkout.
 | `oddspapi/raw_capture.py` | pre-persistence secret scan, bounded decoding, quarantine, raw evidence |
 | `oddspapi/maps.py`, `identity_registry.py`, `parser.py`, `normalize.py` | pure parsing and `MarketBookDocument` normalization |
 | `oddspapi/emit.py`, `invalidation.py`, `scope.py`, `capability.py`, `reader.py` | emission, invalidation, expected scope, capability downgrades, the verifier-parity reader |
+| `oddspapi/quiescence.py` | the run lock and the unfinished-work check (design 6.3) |
 | `oddspapi/derivation.py`, `manifest.py`, `pipeline.py` | `verify_derivation`, manifest bodies, the end-to-end fixture pipeline |
 | `oddspapi/scheduler.py`, `authority.py`, `transport_http.py` | window planning, gate checks, the dormant HTTPS transport |
 | `oddspapi/verify.py` | freeze guard, runtime secret scan, frozen-transcript comparison |
@@ -132,6 +133,15 @@ ordinary sends, and an operator `reset` never does. Every content verdict is rec
 `completed` row, and its side effects (quarantine, suspension, halt, circuit, capability block, coverage,
 metadata cache) are completed again, idempotently, after a crash before anything else runs (HA-04). The
 expected scope of an ODDS request is fixed and pinned on its `sent` row before the send (design 12.4, HA-11).
+
+One adapter phase runs at a time (design 6.3, HA-06): `run` holds the OS lock `<runtime root>/run.lock` for its
+whole duration and refuses (`refused: another adapter phase holds the run lock`) while another process holds
+it; the OS releases it when its holder exits or dies. A run first completes what an interrupted one left
+durable - open attempts, verdict side effects, recorded but unapplied invalidations (HA-05) - and a resumed
+emission reuses that response's durable T2/T3. While any such work is unfinished, or while the lock is held
+elsewhere, every read refuses with `DATA_CAPABILITY_NOT_READY`. Every read re-derives the head it returns
+(`verify_derivation`, HA-12); a head that no longer re-derives is refused and invalidated automatically
+(`ADAPTER_AUTOMATIC`).
 
 `run` refuses without: a G1 record whose credential fingerprint matches the loaded key; a G2 record
 pinning the planned request hashes (G2 mode: raw capture only, at most `max_calls` sends inside its window)

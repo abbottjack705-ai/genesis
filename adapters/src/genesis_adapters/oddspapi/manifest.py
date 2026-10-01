@@ -47,8 +47,10 @@ def _pit_row(stores, record_id: str) -> dict[str, Any]:
 
 
 def build_manifest_body(*, event_id: str, market_id: str, decision_at: str, books: Sequence[UsableBook],
-                        selections: Sequence[str], stores) -> dict[str, Any]:
-    """The manifest body pinning ``selections`` of every book in ``books`` (all heads of one event and market)."""
+                        selections: Sequence[str], stores, derivation_check) -> dict[str, Any]:
+    """The manifest body pinning ``selections`` of every book in ``books`` (all heads of one event and market).
+
+    Every pinned head is re-checked with the mandatory derivation verifier (design 12.3 step 7, HA-12)."""
 
     cutoff = iso_utc(decision_at)
     if not books or not selections or len(set(selections)) != len(selections):
@@ -56,7 +58,7 @@ def build_manifest_body(*, event_id: str, market_id: str, decision_at: str, book
     inputs: list[dict[str, Any]] = []
     structured: set[str] = set()
     for book in books:
-        current = admissible_head(book.entity_id, cutoff, stores=stores)
+        current = admissible_head(book.entity_id, cutoff, stores=stores, derivation_check=derivation_check)
         if not isinstance(current, UsableBook) or current.record != book.record \
                 or current.observation != book.observation:
             raise ManifestError("a pinned book is not the usable head at the cutoff")

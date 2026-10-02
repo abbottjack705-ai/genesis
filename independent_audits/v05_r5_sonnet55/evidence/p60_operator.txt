@@ -1,0 +1,24 @@
+J1_approve_granted_at_one_day_back                         (2, 'refused: granted_at is stamped by the trusted clock at approval, not c')
+J2_approve_within_skew_overwritten_with_trusted_now        (0, 100.001234)
+J2b_future_dated                                           2
+J2c_approve_with_no_granted_at_key_then_ledger_has_stamp   (0, '')
+J3_approve_ready_rc                                        (0, '')
+J3_ready_row_recorded_at_vs_now                            ('2026-10-02T22:53:37.207163Z', '2026-10-02T22:53')
+J4_D_between_capture_and_approval                          Unusable:DATA_CAPABILITY_NOT_READY
+J4_D_just_before_approval                                  Unusable:DATA_CAPABILITY_NOT_READY
+J4_D_at_approval                                           UsableBook:
+J4_D_after_approval                                        UsableBook:
+K0_secret_echo_halt_recorded                               ['SECRET_ECHO']
+K1_reset_without_any_G1                                    2
+K2_reset_after_G1_for_SAME_key                             0
+K2b_reset_after_G1_same_key_UPPERCASE_fingerprint          0
+K3_reset_after_G1_for_different_fingerprint                0
+L1_edited_limits_file_6_requests                           ('EXC', 'AuthorityRecordInvalid: the gate limits file is not the pinn')
+L2_pristine_limits_6_requests                              ('EXC', 'AuthorityRecordInvalid: G2 pins a bounded list of distinct r')
+L3_pristine_5_requests_73h                                 ('EXC', 'AuthorityRecordInvalid: the G2 window is too long')
+L4_pristine_g2r_36d                                        ('EXC', 'AuthorityRecordInvalid: the G2R window is too long')
+L5_policy_declared_bookmakers_max_50_loads                 ('loads', 50, 3)
+
+real	0m0.734s
+user	0m0.574s
+sys	0m0.073s

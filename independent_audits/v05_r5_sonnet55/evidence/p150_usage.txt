@@ -1,0 +1,11 @@
+99999                ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': 99999, 'window': 'utc_month'}
+1e5                  ('returned', 'RESPONSE', 'None') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+99,999               ('returned', 'RESPONSE', 'None') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+-5                   ('returned', 'RESPONSE', 'None') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+fullwidth 99999      ('returned', 'RESPONSE', 'None') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+'99999 units'        ('returned', 'RESPONSE', 'None') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+0x1869F              ('returned', 'RESPONSE', 'None') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+
+real	0m1.584s
+user	0m0.766s
+sys	0m0.448s

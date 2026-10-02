@@ -1,0 +1,1 @@
+{"ran": 690, "errors": ["test_f04_a_link_reported_by_lstat_is_refused_on_every_platform"], "failures": [], "skipped": 0, "total_net_events": 24, "nonloopback_events": [["getaddrinfo", "('192.0.2.1', 443)"], ["getaddrinfo", "('genesis.example.invalid', 443)"]], "n_nonloopback": 2}

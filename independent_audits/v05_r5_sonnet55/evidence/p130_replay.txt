@@ -1,0 +1,5 @@
+files run A: 174 run B: 174 | differing: none
+
+real	0m1.518s
+user	0m0.950s
+sys	0m0.227s

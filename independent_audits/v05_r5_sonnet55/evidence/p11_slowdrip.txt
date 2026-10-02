@@ -1,0 +1,5 @@
+{"deadline_after_s": 3, "send_returned_after_s": 40.62, "outcome": "RESPONSE", "bytes": 59, "T1": "2026-10-02T22:54:45.693904Z", "deadline": "2026-10-02T22:54:08.070607Z", "T1_after_deadline": true}
+
+real	0m41.754s
+user	0m0.435s
+sys	0m0.020s

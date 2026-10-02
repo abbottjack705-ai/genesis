@@ -1,0 +1,7 @@
+iterations 8000 seed ['23', '8000']
+ESCAPE ('Overflow', ('parser.py', 204)) 30147
+ESCAPE ('UnicodeEncodeError', ('repro.py', 29)) 30182
+
+real	0m41.817s
+user	0m41.694s
+sys	0m0.112s

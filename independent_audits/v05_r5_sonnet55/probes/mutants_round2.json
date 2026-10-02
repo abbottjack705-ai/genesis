@@ -1,0 +1,114 @@
+[
+ {
+  "id": "M38",
+  "file": "adapters/src/genesis_adapters/cli.py",
+  "desc": "approve: stated-granted_at bound widened WITHOUT a numeric literal (re-do of M18)",
+  "old": "        if off is None or off > timedelta(seconds=policy.clock_skew_max_seconds):",
+  "new": "        if off is None or off > timedelta(seconds=policy.max_response_bytes):",
+  "expect_count": 1
+ },
+ {
+  "id": "M39",
+  "file": "adapters/src/genesis_adapters/oddspapi/raw_capture.py",
+  "desc": "raw: response header NAMES no longer screened",
+  "old": "                if self._hit_text(name):\n                    classes.add(\"HEADER_NAME\")",
+  "new": "                if False:\n                    classes.add(\"HEADER_NAME\")",
+  "expect_count": 1
+ },
+ {
+  "id": "M40",
+  "file": "adapters/src/genesis_adapters/oddspapi/raw_capture.py",
+  "desc": "raw: quarantine metadata not re-scanned (defence in depth)",
+  "old": "        if self._hit(canonical_json(meta)):                    # defence in depth: nothing optional survives",
+  "new": "        if False:                    # defence in depth: nothing optional survives",
+  "expect_count": 1
+ },
+ {
+  "id": "M41",
+  "file": "adapters/src/genesis_adapters/cli.py",
+  "desc": "reset: an AUTH_REJECTED circuit is cleared without any later G1",
+  "old": "        elif not after:",
+  "new": "        elif False:",
+  "expect_count": 1
+ },
+ {
+  "id": "M42",
+  "file": "adapters/src/genesis_adapters/oddspapi/reader.py",
+  "desc": "reader: published_at > D no longer refused",
+  "old": "    if observation.publisher_timestamp is not None and parse_utc(observation.publisher_timestamp) > point:",
+  "new": "    if False:",
+  "expect_count": 1
+ },
+ {
+  "id": "M43",
+  "file": "adapters/src/genesis_adapters/oddspapi/emit.py",
+  "desc": "emit: an existing observation with different content is reused",
+  "old": "        if stored != value:\n            raise EmitConflict(AdapterFailure.EVIDENCE_CONFLICT)",
+  "new": "        if False:\n            raise EmitConflict(AdapterFailure.EVIDENCE_CONFLICT)",
+  "expect_count": 1
+ },
+ {
+  "id": "M44",
+  "file": "adapters/src/genesis_adapters/oddspapi/quiescence.py",
+  "desc": "quiescence: run lock blocks instead of refusing (LOCK_NB removed)",
+  "old": "fcntl.LOCK_EX | fcntl.LOCK_NB",
+  "new": "fcntl.LOCK_EX",
+  "expect_count": 1
+ },
+ {
+  "id": "M45",
+  "file": "adapters/src/genesis_adapters/credential.py",
+  "desc": "credential: files inside the repo / runtime root allowed",
+  "old": "        if _inside(resolved, self.repo) or _inside(resolved, self.runtime_root):",
+  "new": "        if False:",
+  "expect_count": 1
+ },
+ {
+  "id": "M46",
+  "file": "adapters/src/genesis_adapters/oddspapi/authority.py",
+  "desc": "authority: duplicate request hashes in a G2 record allowed",
+  "old": "                    or len(set(hashes)) != len(hashes):",
+  "new": "                    or False:",
+  "expect_count": 1
+ },
+ {
+  "id": "M47",
+  "file": "adapters/src/genesis_adapters/cli.py",
+  "desc": "run: G2R no longer anchors the source UNKNOWN",
+  "old": "        capability.anchor_unknown(rt.stores.capabilities, rt.stores.source_id, at=clock.now(), reason=\"G2R_START\")",
+  "new": "        pass",
+  "expect_count": 1
+ },
+ {
+  "id": "M48",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "acquisition: a secret-bearing persisted error record is kept",
+  "old": "            if hit(canonical_json({\"class\": label, \"errno\": errno})):                # the record as persisted",
+  "new": "            if False:                # the record as persisted",
+  "expect_count": 1
+ },
+ {
+  "id": "M49",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "acquisition: a 429 circuit for one role blocks nothing",
+  "old": "                if row[\"scope\"] == \"ALL\" or row[\"role\"] == role:",
+  "new": "                if row[\"scope\"] == \"ALL\":",
+  "expect_count": 1
+ },
+ {
+  "id": "M50",
+  "file": "adapters/src/genesis_adapters/oddspapi/authority.py",
+  "desc": "live gate: time-sync attestation not required",
+  "old": "        if not (isinstance(self.attestation, Mapping) and self.attestation.get(\"synchronized\") is True):",
+  "new": "        if False:",
+  "expect_count": 1
+ },
+ {
+  "id": "M51",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "live: sending allowed without a secret scanner",
+  "old": "        if self.live and (self.capture is None or not self.capture.scans_for_secret):",
+  "new": "        if False:",
+  "expect_count": 1
+ }
+]

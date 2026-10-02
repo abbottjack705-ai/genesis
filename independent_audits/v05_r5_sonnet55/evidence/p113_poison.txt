@@ -1,0 +1,11 @@
+healthy_before                     UsableBook
+poison_acquire                     RAISED Overflow
+acq_rows                           ['acq_planned', 'acq_quota_decided', 'acq_sent', 'acq_completed:None']
+restart_1_resume                   RAISED Overflow
+restart_2_resume                   RAISED Overflow
+reader_after_restart               Unusable:DATA_CAPABILITY_NOT_READY adapter work is unfinished: a successful ODDS capture is not
+next_healthy_capture_after_wedge   RESPONSE
+
+real	0m0.940s
+user	0m0.619s
+sys	0m0.182s

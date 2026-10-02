@@ -1,0 +1,10 @@
+native_id 'abc' ACCEPTED {'native_type': 'str', 'value': 'abc'}
+native_id 'abc\n' ACCEPTED {'native_type': 'str', 'value': 'abc\n'}
+native_id 'abc\r\n' rejected IdentityTypeError
+native_id 'abc\n\n' rejected IdentityTypeError
+build_request bookmaker 'pinnacle' ACCEPTED; query (('bookmaker', 'pinnacle'), ('oddsFormat', 'decimal'), ('tournamentIds', '17')) hash 7a23a5121d2c
+build_request bookmaker 'pinnacle\n' ACCEPTED; query (('bookmaker', 'pinnacle\n'), ('oddsFormat', 'decimal'), ('tournamentIds', '17')) hash fc917e18a1b7
+
+real	0m0.394s
+user	0m0.374s
+sys	0m0.020s

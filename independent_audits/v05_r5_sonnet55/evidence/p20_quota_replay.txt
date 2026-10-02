@@ -1,0 +1,11 @@
+before_quota {"crashed": true, "sends_before_crash": 0, "reconciled": ["f1aead"], "resent_by_same_item": 0, "same_item_result": ["DUPLICATE", "None", null], "retry_result": ["RESPONSE", "None", null], "total_sends": 1, "quota_rows": [["quota_billable_call", "901b71a4", 1]]}
+after_quota {"crashed": true, "sends_before_crash": 0, "reconciled": ["f1aead"], "resent_by_same_item": 0, "same_item_result": ["REFUSED", "ORPHANED_RESERVATION", "NOT_SENT"], "retry_result": ["RESPONSE", "None", null], "total_sends": 1, "quota_rows": [["quota_billable_call", "b825fcc6", 1], ["quota_billable_call", "901b71a4", 1]]}
+after_quota_decided {"crashed": true, "sends_before_crash": 0, "reconciled": ["f1aead"], "resent_by_same_item": 0, "same_item_result": ["REFUSED", "ORPHANED_RESERVATION", "NOT_SENT"], "retry_result": ["RESPONSE", "None", null], "total_sends": 1, "quota_rows": [["quota_billable_call", "b825fcc6", 1], ["quota_billable_call", "901b71a4", 1]]}
+after_scope {"crashed": true, "sends_before_crash": 0, "reconciled": ["f1aead"], "resent_by_same_item": 0, "same_item_result": ["REFUSED", "ORPHANED_RESERVATION", "NOT_SENT"], "retry_result": ["RESPONSE", "None", null], "total_sends": 1, "quota_rows": [["quota_billable_call", "b825fcc6", 1], ["quota_billable_call", "901b71a4", 1]]}
+after_sent {"crashed": true, "sends_before_crash": 0, "reconciled": ["f1aead"], "resent_by_same_item": 0, "same_item_result": ["REFUSED", "ORPHANED_RESERVATION", "MAY_HAVE_BEEN_SENT"], "retry_result": ["RESPONSE", "None", null], "total_sends": 1, "quota_rows": [["quota_billable_call", "b825fcc6", 1], ["quota_billable_call", "901b71a4", 1]]}
+after_raw {"crashed": true, "sends_before_crash": 1, "reconciled": ["f1aead"], "resent_by_same_item": 0, "same_item_result": ["REFUSED", "ORPHANED_RESERVATION", "MAY_HAVE_BEEN_SENT"], "retry_result": ["RESPONSE", "None", null], "total_sends": 2, "quota_rows": [["quota_billable_call", "b825fcc6", 1], ["quota_billable_call", "901b71a4", 1]]}
+after_completed {"crashed": true, "sends_before_crash": 1, "reconciled": [], "resent_by_same_item": 0, "same_item_result": ["DUPLICATE", "None", null], "retry_result": ["PlanRefused", "NOT_RETRYABLE"], "total_sends": 1, "quota_rows": [["quota_billable_call", "b825fcc6", 1]]}
+
+real	0m1.834s
+user	0m1.116s
+sys	0m0.247s

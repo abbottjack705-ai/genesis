@@ -1,0 +1,6 @@
+alt-scope derivation produced an extra ABSENT document; pinned-scope hash differs: True
+RESULT: verify_derivation REJECTED: DerivationError the document's expected scope is not the one pinned before the send (design 12.4)
+
+real	0m0.610s
+user	0m0.493s
+sys	0m0.057s

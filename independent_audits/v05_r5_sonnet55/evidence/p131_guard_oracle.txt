@@ -1,0 +1,5 @@
+checked 21200 mismatches 0
+
+real	0m0.711s
+user	0m0.678s
+sys	0m0.032s

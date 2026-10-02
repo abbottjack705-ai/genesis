@@ -1,0 +1,22 @@
+A_changedAt_1E+999999999 (decimal.Overflow @parser.py:204)
+    acquire = RAISED Overflow
+    completed_row = ('RESPONSE', 200, None, 'raw_stored=True')
+    restart_resume = RAISED Overflow
+    later_healthy_capture = ok
+    reader_after_later_healthy_capture = Unusable:DATA_CAPABILITY_NOT_READY | adapter work is unfinished: a successful ODDS capture is not normalize
+B_active_lone_surrogate (UnicodeEncodeError @repro.py:29)
+    acquire = RAISED UnicodeEncodeError
+    completed_row = ('RESPONSE', 200, None, 'raw_stored=True')
+    restart_resume = RAISED UnicodeEncodeError
+    later_healthy_capture = ok
+    reader_after_later_healthy_capture = Unusable:DATA_CAPABILITY_NOT_READY | adapter work is unfinished: a successful ODDS capture is not normalize
+C_participant1Id_70_digits (IdentityTypeError @ids.py:58)
+    acquire = RAISED IdentityTypeError
+    completed_row = ('RESPONSE', 200, None, 'raw_stored=True')
+    restart_resume = RAISED IdentityTypeError
+    later_healthy_capture = ok
+    reader_after_later_healthy_capture = Unusable:DATA_CAPABILITY_NOT_READY | adapter work is unfinished: a successful ODDS capture is not normalize
+
+real	0m1.918s
+user	0m1.162s
+sys	0m0.361s

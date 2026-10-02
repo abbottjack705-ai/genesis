@@ -1,0 +1,9 @@
+poison acquire: Overflow
+operator `reset` rc: 0 reset
+resume after reset: RAISED Overflow
+reader after reset: Unusable DATA_CAPABILITY_NOT_READY | adapter work is unfinished: a successful ODDS capture is not normalize
+pending_work: ('a successful ODDS capture is not normalized yet',)
+
+real	0m0.707s
+user	0m0.538s
+sys	0m0.075s

@@ -1,0 +1,12 @@
+recursionlimit 1000
+depth 50 parsed failure=None
+depth 200 parsed failure=None
+depth 400 parsed failure=None
+depth 480 parsed failure=None
+depth 600 ESCAPED RecursionError
+depth 900 ESCAPED RecursionError
+depth 990 parsed failure=NOT_JSON
+
+real	0m0.417s
+user	0m0.405s
+sys	0m0.012s

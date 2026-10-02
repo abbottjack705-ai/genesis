@@ -1,0 +1,10 @@
+price 1E+999999999 EXC Overflow [<class 'decimal.Overflow'>] 0.0 s
+price 1E-999999999 parsed OK in 0.0 s; ['OPEN', 'OPEN', 'OPEN', 'OPEN']
+price 999999999999999999999999999999999999999999 parsed OK in 0.0 s; ['OPEN', 'OPEN', 'OPEN', 'OPEN']
+price 1.0000000000000000000000000000000001 parsed OK in 0.0 s; ['OPEN', 'OPEN', 'OPEN', 'OPEN']
+price -0 parsed OK in 0.0 s; ['OPEN', 'OPEN', 'OPEN', 'OPEN']
+price 1e0 parsed OK in 0.0 s; ['OPEN', 'OPEN', 'OPEN', 'OPEN']
+
+real	0m0.420s
+user	0m0.399s
+sys	0m0.021s

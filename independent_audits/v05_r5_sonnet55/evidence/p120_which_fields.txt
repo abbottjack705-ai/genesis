@@ -1,0 +1,6 @@
+UnicodeEncodeError 212 ['0/statusId', '1/statusId', 'players/0/active', 'players/0/betslip', 'players/0/bookmakerOutcomeId', 'players/0/changedAt', 'players/0/limit', 'players/0/playerName', 'players/0/price']
+leaf count 1134
+
+real	0m5.984s
+user	0m5.956s
+sys	0m0.028s

@@ -1,0 +1,6 @@
+pipeline fuzz iterations 250
+none
+
+real	2m11.605s
+user	1m19.416s
+sys	0m22.664s

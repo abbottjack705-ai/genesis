@@ -1,0 +1,2 @@
+alt-scope derivation produced an extra ABSENT document; pinned-scope hash differs: True
+RESULT: verify_derivation ACCEPTED a document derived under an unpinned scope

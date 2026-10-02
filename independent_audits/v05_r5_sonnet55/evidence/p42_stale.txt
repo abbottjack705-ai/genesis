@@ -1,0 +1,7 @@
+states: ['OPEN', 'OPEN'] valid_to: ['2026-10-01T13:00:00.055000Z', '2026-10-01T12:15:00.000000Z']
+D in newer window UsableBook 
+D after newer.valid_to, older still in TTL Unusable STALE
+
+real	0m0.792s
+user	0m0.548s
+sys	0m0.120s

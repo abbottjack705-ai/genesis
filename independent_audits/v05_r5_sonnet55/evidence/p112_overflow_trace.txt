@@ -1,0 +1,46 @@
+Traceback (most recent call last):
+  File "/home/user/genesis/independent_audits/v05_r5_sonnet55/probes/p112_overflow_trace.py", line 8, in <module>
+    parp.parse(raw)
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/adapter_tests/parser_support.py", line 89, in parse
+    return parser.parse_odds_response(raw, make_ctx(**overrides))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/oddspapi/parser.py", line 848, in parse_odds_response
+    return _Parser(ctx).run(payload, findings)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/oddspapi/parser.py", line 418, in run
+    self._event(fixture_id, groups[fixture_id], attribution)
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/oddspapi/parser.py", line 512, in _event
+    reads = self._reads(index, fixture, attribution)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/oddspapi/parser.py", line 642, in _reads
+    read = self._read_market(market_key, markets[market_key], entry,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/oddspapi/parser.py", line 672, in _read_market
+    read.outcomes[selection] = self._read_outcome(outcome_id, selection, outcomes[outcome_id], read)
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/oddspapi/parser.py", line 708, in _read_outcome
+    if not all(_same(entry, entries[0]) for entry in entries):   # identical duplicates collapse
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/oddspapi/parser.py", line 708, in <genexpr>
+    if not all(_same(entry, entries[0]) for entry in entries):   # identical duplicates collapse
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/oddspapi/parser.py", line 264, in _same
+    return canonical_json(_comparable(first)) == canonical_json(_comparable(second))
+                          ^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/oddspapi/parser.py", line 257, in _comparable
+    return {key: _comparable(item) for key, item in value.items()}
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/oddspapi/parser.py", line 257, in <dictcomp>
+    return {key: _comparable(item) for key, item in value.items()}
+                 ^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/oddspapi/parser.py", line 255, in _comparable
+    return decimal_text(value)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/oddspapi/parser.py", line 204, in decimal_text
+    return format(value.normalize(_DECIMAL), "f")
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+decimal.Overflow: [<class 'decimal.Overflow'>]
+
+real	0m0.421s
+user	0m0.399s
+sys	0m0.022s

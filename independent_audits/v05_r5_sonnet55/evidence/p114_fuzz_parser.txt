@@ -1,0 +1,8 @@
+iterations 6000
+ESCAPED EXCEPTION CLASS: decimal.Overflow (sample repro bytes: 30165)
+ESCAPED EXCEPTION CLASS: builtins.UnicodeEncodeError (sample repro bytes: 30579)
+ESCAPED EXCEPTION CLASS: genesis_adapters.ids.IdentityTypeError (sample repro bytes: 30973)
+
+real	0m27.628s
+user	0m27.405s
+sys	0m0.216s

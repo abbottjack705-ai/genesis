@@ -1,0 +1,8 @@
+iterations 10000 seed ['11', '10000']
+ESCAPE ('Overflow', ('parser.py', 204)) 30187
+ESCAPE ('UnicodeEncodeError', ('repro.py', 29)) 30292
+ESCAPE ('IdentityTypeError', ('ids.py', 58)) 30590
+
+real	0m45.395s
+user	0m45.287s
+sys	0m0.096s

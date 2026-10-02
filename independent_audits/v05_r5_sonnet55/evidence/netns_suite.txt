@@ -1,0 +1,27 @@
+NETNS-CHECK: external unreachable: 101
+NETNS-CHECK: loopback bind OK
+..........................................................................................................................E.......................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................
+======================================================================
+ERROR: test_f04_a_link_reported_by_lstat_is_refused_on_every_platform (adapter_tests.test_v05_credential.CredentialTests.test_f04_a_link_reported_by_lstat_is_refused_on_every_platform)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/adapter_tests/test_v05_credential.py", line 121, in test_f04_a_link_reported_by_lstat_is_refused_on_every_platform
+    self.refused(self.source(base, path), "CREDENTIAL_PERMISSIONS")
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/adapter_tests/test_v05_credential.py", line 42, in source
+    return CredentialSource(repo=REPO, runtime_root=base / "runtime", expected_fingerprint=fingerprint,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/claude-0/-home-user-genesis/51ddf190-7b03-51cf-985f-bdd155d99d39/scratchpad/cand/adapters/src/genesis_adapters/credential.py", line 61, in __init__
+    self.repo = Path(repo).resolve()
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/pathlib.py", line 993, in resolve
+    s = os.path.realpath(self, strict=strict)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 413, in realpath
+  File "<frozen posixpath>", line 480, in _joinrealpath
+OSError: [Errno 22] Invalid argument: '/tmp'
+
+----------------------------------------------------------------------
+Ran 690 tests in 92.953s
+
+FAILED (errors=1)

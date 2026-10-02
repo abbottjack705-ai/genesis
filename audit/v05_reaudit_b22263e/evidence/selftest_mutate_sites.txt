@@ -1,0 +1,24 @@
+22 changed lines in 1 files -> 13 mutants
+D000 KILLED        mod.py:6 CMP < -> <=
+D001 KILLED        mod.py:10 IF test negated
+D002 KILLED        mod.py:10 CMP in -> not in
+D003 KILLED        mod.py:11 IF test negated
+D004 KILLED        mod.py:11 NOT removed
+D005 KILLED        mod.py:11 BOOL or -> and
+D006 KILLED        mod.py:11 CMP == -> !=
+D007 KILLED        mod.py:12 RAISE deleted
+D008 KILLED        mod.py:13 RETURN True -> False
+D009 KILLED        mod.py:17 WHILE test negated
+D010 KILLED        mod.py:19 IF test negated
+D011 TIMEOUT       mod.py:19 CMP >= -> >
+D012 SURVIVED      mod.py:24 CMP >= -> >
+== {"KILLED": 11, "SURVIVED": 1, "TIMEOUT": 1} checkout_clean_after=True
+[OK ] deadline < -> <= KILLED
+[OK ] poll >= -> > on a stuck clock is TIMEOUT (never counted as killed)
+[OK ] equivalent n >= 0 -> n > 0 SURVIVED
+[OK ] every reset-authority mutant KILLED {'reset': {(10, 'IF test negated'): 'KILLED', (10, 'CMP in -> not in'): 'KILLED', (11, 'IF test negated'): 'KILLED', (11, 'NOT removed'): 'KILLED', (11, 'BOOL or -> and'): 'KILLED', (11, 'CMP == -> !='): 'KILLED', (12, 'RAISE deleted'): 'KILLED', (13, 'RETURN True -> False'): 'KILLED'}}
+[OK ] the unchanged base line is never mutated
+[OK ] checkout restored byte-for-byte
+[OK ] no INVALID mutant {'counts': {'KILLED': 11, 'SURVIVED': 1, 'TIMEOUT': 1}}
+{"KILLED": 11, "SURVIVED": 1, "TIMEOUT": 1}
+exit=0

@@ -1,0 +1,1 @@
+40 cases, expected hits=36; wrote CORPUS.json

@@ -1,0 +1,343 @@
+{
+ "candidate": "4979715356f0547f710a018ba510d5006bb23fd3",
+ "counts": {
+  "CANNOT_RUN": 1,
+  "FAIL": 2,
+  "INFO": 3,
+  "PASS": 38,
+  "REVIEW": 1
+ },
+ "results": [
+  {
+   "id": "R00",
+   "title": "candidate resolves to a commit",
+   "status": "PASS",
+   "candidate": "4979715356f0547f710a018ba510d5006bb23fd3",
+   "subject": "synthetic BAD B4"
+  },
+  {
+   "id": "R00",
+   "title": "authority c8dfafd is an ancestor of the candidate",
+   "status": "PASS",
+   "rev": "c8dfafdff3be611fa6255a03ed361bc46d7ad8fe"
+  },
+  {
+   "id": "R00",
+   "title": "freeze 2278e2a is an ancestor of the candidate",
+   "status": "PASS",
+   "rev": "2278e2a68083f7ac58d796b1ed9c43d50020b6b0"
+  },
+  {
+   "id": "R00",
+   "title": "predecessor is an ancestor of the candidate",
+   "status": "PASS",
+   "rev": "c8dfafdff3be611fa6255a03ed361bc46d7ad8fe"
+  },
+  {
+   "id": "R00",
+   "title": "authority blob at c8dfafd is 30c4ca7",
+   "status": "PASS",
+   "blob": "30c4ca7d43fe11504e873e25944f9bdd30079253"
+  },
+  {
+   "id": "R00",
+   "title": "authority text unchanged at the candidate",
+   "status": "PASS",
+   "blob": "30c4ca7d43fe11504e873e25944f9bdd30079253"
+  },
+  {
+   "id": "R00",
+   "title": "git fsck --connectivity-only",
+   "status": "PASS",
+   "stderr": ""
+  },
+  {
+   "id": "R00",
+   "title": "first-parent chain authority..candidate (informational)",
+   "status": "INFO",
+   "commits": [
+    "ae9bb2a3868caf0f3270c9dec89964f5d4e41038 selftest <selftest@invalid> synthetic GOOD candidate",
+    "4979715356f0547f710a018ba510d5006bb23fd3 selftest <selftest@invalid> synthetic BAD B4"
+   ]
+  },
+  {
+   "id": "R00",
+   "title": "remediation commits predecessor..candidate (informational)",
+   "status": "INFO",
+   "commits": [
+    "ae9bb2a3868caf0f3270c9dec89964f5d4e41038 synthetic GOOD candidate",
+    "4979715356f0547f710a018ba510d5006bb23fd3 synthetic BAD B4"
+   ]
+  },
+  {
+   "id": "R01",
+   "title": "six frozen tree SHAs at the candidate",
+   "status": "PASS",
+   "mismatches": {}
+  },
+  {
+   "id": "R01",
+   "title": "six tree SHAs at EVERY commit authority..candidate (2 commits, \u00a72.1.2)",
+   "status": "PASS",
+   "mismatches": []
+  },
+  {
+   "id": "R01",
+   "title": "git diff --name-status freeze..candidate -- <six trees> is empty",
+   "status": "PASS",
+   "diff": []
+  },
+  {
+   "id": "R01",
+   "title": "every path changed authority..candidate is under adapters/ (14 paths)",
+   "status": "PASS",
+   "outside": []
+  },
+  {
+   "id": "R01",
+   "title": "no-touch list untouched (\u00a723)",
+   "status": "PASS",
+   "touched": []
+  },
+  {
+   "id": "R01",
+   "title": "implementer claim: remediation changed only adapters/ (14 paths)",
+   "status": "PASS",
+   "outside": []
+  },
+  {
+   "id": "R01",
+   "title": "no frozen blob is stored with CRLF/mixed endings",
+   "status": "PASS",
+   "lines": []
+  },
+  {
+   "id": "R01",
+   "title": "adapters/.gitattributes protects fixtures with -text",
+   "status": "PASS",
+   "content": [
+    "adapter_tests/fixtures/** -text",
+    "adapter_tests/fixtures/tls/** export-ignore"
+   ]
+  },
+  {
+   "id": "R01",
+   "title": "git diff --check authority..candidate",
+   "status": "PASS",
+   "output": []
+  },
+  {
+   "id": "R02",
+   "title": "expected frozen module set from git tree 51cb635 (36 modules)",
+   "status": "INFO",
+   "digest": "3eb9e179fe62346adee779fc4bd2d8f63725ee4a3d1e774f3a78f1d06a91625a"
+  },
+  {
+   "id": "R02",
+   "title": "candidate manifest bytes are LF-only",
+   "status": "PASS",
+   "sha256": "f58d0827c51b2dbe6697950676e078d005c3a32285128269bde259406edff682"
+  },
+  {
+   "id": "R02",
+   "title": "FRZ-09 manifest equals git ls-tree 51cb635 (blob SHA-1 + SHA-256, no extra, no missing)",
+   "status": "PASS",
+   "entries": 36,
+   "missing": [],
+   "extra": [],
+   "wrong": []
+  },
+  {
+   "id": "R02",
+   "title": "manifest SHA-256 is pinned as a literal in adapters/src (\u00a72.4)",
+   "status": "PASS",
+   "manifest_sha256": "f58d0827c51b2dbe6697950676e078d005c3a32285128269bde259406edff682",
+   "pinned_in": [
+    "adapters/src/genesis_adapters/oddspapi/verify.py"
+   ]
+  },
+  {
+   "id": "R03",
+   "title": "precondition: LF clone holds frozen bytes; autocrlf=true clone changes them",
+   "status": "PASS",
+   "lf_equal": 36,
+   "crlf_different": 36,
+   "modules": 36
+  },
+  {
+   "id": "R03",
+   "title": "control: adapter_tests imports cleanly (guard passes) in the LF clone",
+   "status": "PASS",
+   "exit": 0,
+   "stderr": ""
+  },
+  {
+   "id": "R03",
+   "title": "A-1: adapter_tests REFUSES to start in the autocrlf=true clone (FRZ-09 fail-closed)",
+   "status": "PASS",
+   "exit": 1,
+   "stderr_tail": "Traceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n  File \"/tmp/reaudit-work-3940is37/crlf/adapters/adapter_tests/__init__.py\", line 9, in <module>\n    provenance_guard.verify(ROOT)\n  File \"/tmp/reaudit-work-3940is37/crlf/adapters/src/genesis_adapters/provenance_guard.py\", line 15, in verify\n    raise ModuleProvenanceError(\"MODULE_HASH_MISMATCH \" + rel)\ngenesis_adapters.provenance_guard.ModuleProvenanceError: MODULE_HASH_MISMATCH genesis/__init__.py"
+  },
+  {
+   "id": "R04",
+   "title": "FRZ-06: network modules imported only by transport_http.py",
+   "status": "PASS",
+   "offenders": [],
+   "transport_files": [
+    "adapters/src/genesis_adapters/oddspapi/transport_http.py"
+   ]
+  },
+  {
+   "id": "R04",
+   "title": "FRZ-06: Secret.reveal_for_transport called only in transport_http.py",
+   "status": "PASS",
+   "offenders": [],
+   "all_calls": []
+  },
+  {
+   "id": "R04",
+   "title": "FRZ-07: no reserve authority / BudgetClass.RESERVE",
+   "status": "PASS",
+   "offenders": []
+  },
+  {
+   "id": "R04",
+   "title": "FRZ-08: OperationalStatus.READY referenced only by cli.py",
+   "status": "PASS",
+   "offenders": [],
+   "cli": []
+  },
+  {
+   "id": "R04",
+   "title": "FRZ-11: exactly one BaseException handler (transport_http.send); no other process-control handler",
+   "status": "PASS",
+   "handlers": [
+    [
+     "adapters/src/genesis_adapters/oddspapi/transport_http.py",
+     10,
+     "BaseException"
+    ]
+   ]
+  },
+  {
+   "id": "R04",
+   "title": "FRZ-11: no bare except, no suppress(BaseException/KI/SE), no return/break/continue in finally",
+   "status": "PASS",
+   "bare": [],
+   "suppress": [],
+   "finally_flow": []
+  },
+  {
+   "id": "R04",
+   "title": "FRZ-10: no literal timeout/settimeout/setdefaulttimeout/sleep",
+   "status": "PASS",
+   "offenders": []
+  },
+  {
+   "id": "R04",
+   "title": "production sleep() calls (timing-dependent code; read each)",
+   "status": "PASS",
+   "calls": []
+  },
+  {
+   "id": "R04",
+   "title": "FRZ-05: no private genesis.* member used",
+   "status": "PASS",
+   "offenders": []
+  },
+  {
+   "id": "R04",
+   "title": "\u00a77.6/\u00a77.7: exception text extraction sites (each must be secret-scanned or never persisted)",
+   "status": "PASS",
+   "sites": []
+  },
+  {
+   "id": "R04",
+   "title": "HA-006: no CA/connect/insecure option in any production parser (\u00a77.6 system trust store)",
+   "status": "FAIL",
+   "offenders": [
+    [
+     "adapters/src/genesis_adapters/cli.py",
+     12,
+     "run:--ca-file"
+    ]
+   ]
+  },
+  {
+   "id": "R04",
+   "title": "HA-013: no operator-supplied time option on approve/ready/grant/reset parsers (\u00a716.2/\u00a716.5)",
+   "status": "FAIL",
+   "approval": [
+    [
+     "adapters/src/genesis_adapters/cli.py",
+     11,
+     "approve-ready:--at"
+    ]
+   ],
+   "other_time_flags": [
+    [
+     "adapters/src/genesis_adapters/cli.py",
+     11,
+     "approve-ready:--at"
+    ]
+   ]
+  },
+  {
+   "id": "R05",
+   "title": "history secret sweep authority..candidate (14 blobs): no credential-shaped token",
+   "status": "PASS",
+   "hits": []
+  },
+  {
+   "id": "R05",
+   "title": "sentinel key appears only under adapter_tests/ or evidence/",
+   "status": "PASS",
+   "outside": [],
+   "count": 0
+  },
+  {
+   "id": "R05",
+   "title": "private keys anywhere in authority..candidate history (HA-006)",
+   "status": "REVIEW",
+   "at_candidate": [
+    "adapters/adapter_tests/fixtures/tls/server.key"
+   ],
+   "removed_but_in_history": []
+  },
+  {
+   "id": "R05",
+   "title": "export-ignore set for committed private key adapters/adapter_tests/fixtures/tls/server.key",
+   "status": "PASS",
+   "attr": "adapters/adapter_tests/fixtures/tls/server.key: export-ignore: set"
+  },
+  {
+   "id": "R05",
+   "title": "git archive <candidate> ships no private key",
+   "status": "PASS",
+   "shipped": []
+  },
+  {
+   "id": "R05",
+   "title": "no committed certificate names a pinned provider host (HA-006)",
+   "status": "PASS",
+   "certs": [],
+   "pinned_hosts": [
+    "api.oddspapi.io"
+   ]
+  },
+  {
+   "id": "R06",
+   "title": "every \u00a718 test ID (167; 166 tabled + FM-11b) is named in adapter_tests",
+   "status": "PASS",
+   "count": 167,
+   "absent": [],
+   "note": "name presence only; behaviour is judged by the probes and mutation run"
+  },
+  {
+   "id": "R07",
+   "title": "suites",
+   "status": "CANNOT_RUN",
+   "reason": "--suites none"
+  }
+ ]
+}

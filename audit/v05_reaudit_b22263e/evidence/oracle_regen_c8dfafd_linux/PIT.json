@@ -1,0 +1,915 @@
+{
+ "S1_single": {
+  "records": [
+   {
+    "record_id": "pit:A",
+    "entity_id": "book:1",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:00:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:00:00.000000Z",
+    "ready_at": "2026-10-03T10:02:00.000000Z",
+    "valid_from": "2026-10-03T10:00:00.000000Z",
+    "valid_to": "2026-10-03T11:00:00.000000Z",
+    "superseded_by": null,
+    "superseded_at": null
+   }
+  ],
+  "grid": [
+   {
+    "D": "2026-10-03T09:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:01:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   }
+  ]
+ },
+ "S2_tie": {
+  "records": [
+   {
+    "record_id": "pit:A",
+    "entity_id": "book:2",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:00:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:00:00.000000Z",
+    "ready_at": "2026-10-03T10:02:00.000000Z",
+    "valid_from": "2026-10-03T10:00:00.000000Z",
+    "valid_to": "2026-10-03T11:00:00.000000Z",
+    "superseded_by": null,
+    "superseded_at": null
+   },
+   {
+    "record_id": "pit:B",
+    "entity_id": "book:2",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:00:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:00:00.000000Z",
+    "ready_at": "2026-10-03T10:03:00.000000Z",
+    "valid_from": "2026-10-03T10:00:00.000000Z",
+    "valid_to": "2026-10-03T11:00:00.000000Z",
+    "superseded_by": null,
+    "superseded_at": null
+   }
+  ],
+  "grid": [
+   {
+    "D": "2026-10-03T09:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:01:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:02:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:03:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "AMBIGUOUS"
+   },
+   {
+    "D": "2026-10-03T10:03:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "AMBIGUOUS"
+   },
+   {
+    "D": "2026-10-03T10:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "AMBIGUOUS"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   }
+  ]
+ },
+ "S3_invalidated": {
+  "records": [
+   {
+    "record_id": "pit:A",
+    "entity_id": "book:3",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:00:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:00:00.000000Z",
+    "ready_at": "2026-10-03T10:02:00.000000Z",
+    "valid_from": "2026-10-03T10:00:00.000000Z",
+    "valid_to": "2026-10-03T11:00:00.000000Z",
+    "superseded_by": null,
+    "superseded_at": null
+   },
+   {
+    "record_id": "pit:INV",
+    "entity_id": "book:3",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:10:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:10:00.000000Z",
+    "ready_at": "2026-10-03T10:11:00.000000Z",
+    "valid_from": "2026-10-03T10:10:00.000000Z",
+    "valid_to": null,
+    "superseded_by": null,
+    "superseded_at": null
+   }
+  ],
+  "grid": [
+   {
+    "D": "2026-10-03T09:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:01:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:09:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:10:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:10:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:10:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:11:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:INV"
+   },
+   {
+    "D": "2026-10-03T10:11:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:INV"
+   },
+   {
+    "D": "2026-10-03T10:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:INV"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:INV"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:INV"
+   }
+  ]
+ },
+ "S4_newer_expires_first": {
+  "records": [
+   {
+    "record_id": "pit:OLD",
+    "entity_id": "book:4",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:00:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:00:00.000000Z",
+    "ready_at": "2026-10-03T10:02:00.000000Z",
+    "valid_from": "2026-10-03T10:00:00.000000Z",
+    "valid_to": "2026-10-03T11:00:00.000000Z",
+    "superseded_by": null,
+    "superseded_at": null
+   },
+   {
+    "record_id": "pit:NEW",
+    "entity_id": "book:4",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:10:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:10:00.000000Z",
+    "ready_at": "2026-10-03T10:12:00.000000Z",
+    "valid_from": "2026-10-03T10:10:00.000000Z",
+    "valid_to": "2026-10-03T10:30:00.000000Z",
+    "superseded_by": null,
+    "superseded_at": null
+   }
+  ],
+  "grid": [
+   {
+    "D": "2026-10-03T09:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:01:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:09:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:10:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:10:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:11:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:12:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:NEW"
+   },
+   {
+    "D": "2026-10-03T10:12:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:NEW"
+   },
+   {
+    "D": "2026-10-03T10:29:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:NEW"
+   },
+   {
+    "D": "2026-10-03T10:30:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:30:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   }
+  ]
+ },
+ "S5_correction_chain": {
+  "records": [
+   {
+    "record_id": "pit:A",
+    "entity_id": "book:5",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:00:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:00:00.000000Z",
+    "ready_at": "2026-10-03T10:02:00.000000Z",
+    "valid_from": "2026-10-03T10:00:00.000000Z",
+    "valid_to": "2026-10-03T11:00:00.000000Z",
+    "superseded_by": null,
+    "superseded_at": null
+   },
+   {
+    "record_id": "pit:SUSP",
+    "entity_id": "book:5",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:10:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:10:00.000000Z",
+    "ready_at": "2026-10-03T10:11:00.000000Z",
+    "valid_from": "2026-10-03T10:10:00.000000Z",
+    "valid_to": null,
+    "superseded_by": null,
+    "superseded_at": null
+   },
+   {
+    "record_id": "pit:C",
+    "entity_id": "book:5",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:20:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:20:00.000000Z",
+    "ready_at": "2026-10-03T10:22:00.000000Z",
+    "valid_from": "2026-10-03T10:20:00.000000Z",
+    "valid_to": "2026-10-03T11:20:00.000000Z",
+    "superseded_by": null,
+    "superseded_at": null
+   }
+  ],
+  "grid": [
+   {
+    "D": "2026-10-03T09:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:01:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:09:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:10:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:10:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:10:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:11:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:SUSP"
+   },
+   {
+    "D": "2026-10-03T10:11:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:SUSP"
+   },
+   {
+    "D": "2026-10-03T10:19:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:SUSP"
+   },
+   {
+    "D": "2026-10-03T10:20:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:SUSP"
+   },
+   {
+    "D": "2026-10-03T10:20:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:SUSP"
+   },
+   {
+    "D": "2026-10-03T10:21:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:SUSP"
+   },
+   {
+    "D": "2026-10-03T10:22:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:C"
+   },
+   {
+    "D": "2026-10-03T10:22:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:C"
+   },
+   {
+    "D": "2026-10-03T10:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:C"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:C"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:C"
+   },
+   {
+    "D": "2026-10-03T11:19:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:C"
+   },
+   {
+    "D": "2026-10-03T11:20:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:SUSP"
+   },
+   {
+    "D": "2026-10-03T11:20:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:SUSP"
+   }
+  ]
+ },
+ "S7_published_after_D": {
+  "records": [
+   {
+    "record_id": "pit:OLD",
+    "entity_id": "book:7",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:00:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:00:00.000000Z",
+    "ready_at": "2026-10-03T10:02:00.000000Z",
+    "valid_from": "2026-10-03T10:00:00.000000Z",
+    "valid_to": "2026-10-03T11:00:00.000000Z",
+    "superseded_by": null,
+    "superseded_at": null
+   },
+   {
+    "record_id": "pit:NEW",
+    "entity_id": "book:7",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:10:00.000000Z",
+    "published_at": "2026-10-03T10:12:05.000000Z",
+    "retrieved_at": "2026-10-03T10:10:00.000000Z",
+    "ready_at": "2026-10-03T10:12:00.000000Z",
+    "valid_from": "2026-10-03T10:10:00.000000Z",
+    "valid_to": "2026-10-03T11:10:00.000000Z",
+    "superseded_by": null,
+    "superseded_at": null
+   }
+  ],
+  "grid": [
+   {
+    "D": "2026-10-03T09:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:01:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:09:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:10:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:10:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:11:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:OLD"
+   },
+   {
+    "D": "2026-10-03T10:12:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:NEW|UNUSABLE_PUBLISHED_AFTER_D|NO_FALLBACK"
+   },
+   {
+    "D": "2026-10-03T10:12:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:NEW|UNUSABLE_PUBLISHED_AFTER_D|NO_FALLBACK"
+   },
+   {
+    "D": "2026-10-03T10:12:04.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:NEW|UNUSABLE_PUBLISHED_AFTER_D|NO_FALLBACK"
+   },
+   {
+    "D": "2026-10-03T10:12:05.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:NEW"
+   },
+   {
+    "D": "2026-10-03T10:12:05.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:NEW"
+   },
+   {
+    "D": "2026-10-03T10:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:NEW"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:NEW"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:NEW"
+   },
+   {
+    "D": "2026-10-03T11:09:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:NEW"
+   },
+   {
+    "D": "2026-10-03T11:10:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T11:10:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   }
+  ]
+ },
+ "S8_two_sources": {
+  "records": [
+   {
+    "record_id": "pit:A",
+    "entity_id": "book:8",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:00:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:00:00.000000Z",
+    "ready_at": "2026-10-03T10:02:00.000000Z",
+    "valid_from": "2026-10-03T10:00:00.000000Z",
+    "valid_to": "2026-10-03T11:00:00.000000Z",
+    "superseded_by": null,
+    "superseded_at": null
+   },
+   {
+    "record_id": "pit:B",
+    "entity_id": "book:8",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "payload_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "available_at": "2026-10-03T10:05:00.000000Z",
+    "published_at": null,
+    "retrieved_at": "2026-10-03T10:05:00.000000Z",
+    "ready_at": "2026-10-03T10:06:00.000000Z",
+    "valid_from": "2026-10-03T10:05:00.000000Z",
+    "valid_to": "2026-10-03T11:05:00.000000Z",
+    "superseded_by": null,
+    "superseded_at": null
+   }
+  ],
+  "grid": [
+   {
+    "D": "2026-10-03T09:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T09:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:01:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:01:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:02:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:04:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:04:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:05:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:05:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:05:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:05:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:05:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:05:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T10:06:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:06:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "HEAD:B"
+   },
+   {
+    "D": "2026-10-03T10:06:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:06:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "HEAD:B"
+   },
+   {
+    "D": "2026-10-03T10:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "HEAD:A"
+   },
+   {
+    "D": "2026-10-03T10:59:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "HEAD:B"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "HEAD:B"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T11:00:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "HEAD:B"
+   },
+   {
+    "D": "2026-10-03T11:04:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T11:04:59.999999Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "HEAD:B"
+   },
+   {
+    "D": "2026-10-03T11:05:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T11:05:00.000000Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T11:05:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-test",
+    "expected": "NONE"
+   },
+   {
+    "D": "2026-10-03T11:05:00.000001Z",
+    "source_id": "oddspapi.v4.soccer.market_book.mb1-other",
+    "expected": "NONE"
+   }
+  ]
+ }
+}

@@ -1,0 +1,39 @@
+$ python -B probes/p20_deadline_stages.py --repo <c8dfafd worktree: no adapters/>
+[CANNOT_RUN] P20 candidate transport binding: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P20 D5 runner deadline binding: ModuleNotFoundError: No module named 'genesis_adapters'
+== 2 checks, 0 failed, 2 cannot run
+exit=2
+$ python -B probes/p21_rejected_restart.py --repo <c8dfafd worktree: no adapters/>
+[CANNOT_RUN] P21 fixture odds_by_tournaments.json: FileNotFoundError: [Errno 2] No such file or directory: '<scratch>/wt_c8dfafd/adapters/adapter_tests/fixtures/oddspapi/v4/FIXTURES.sha256'
+== 1 checks, 0 failed, 1 cannot run
+exit=2
+$ python -B probes/p22_invalidation_selfheal.py --repo <c8dfafd worktree: no adapters/>
+[CANNOT_RUN] P22 fixture: FileNotFoundError: [Errno 2] No such file or directory: '<scratch>/wt_c8dfafd/adapters/adapter_tests/fixtures/oddspapi/v4/FIXTURES.sha256'
+== 1 checks, 0 failed, 1 cannot run
+exit=2
+$ python -B probes/p23_f44_protective_halts.py --repo <c8dfafd worktree: no adapters/>
+[CANNOT_RUN] P23 fixture: FileNotFoundError: [Errno 2] No such file or directory: '<scratch>/wt_c8dfafd/adapters/adapter_tests/fixtures/oddspapi/v4/FIXTURES.sha256'
+== 1 checks, 0 failed, 1 cannot run
+exit=2
+$ python -B probes/p24_tournament_omission.py --repo <c8dfafd worktree: no adapters/>
+[CANNOT_RUN] P24 fixture binding: FileNotFoundError: [Errno 2] No such file or directory: '<scratch>/wt_c8dfafd/adapters/adapter_tests/fixtures/oddspapi/v4/FIXTURES.sha256'
+== 1 checks, 0 failed, 1 cannot run
+exit=2
+$ python -B probes/p25_operator_authority.py --repo <c8dfafd worktree: no adapters/>
+[CANNOT_RUN] P25 READY and grant time: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 K0 fingerprint formula: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 R1 no G1 at all [SECRET_ECHO]: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 R2 G1 older than the halt, same key [SECRET_ECHO]: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 R3 G1 newer than the halt, same key [SECRET_ECHO]: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 R4 G1 older than the halt, different key [SECRET_ECHO]: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 R5 G1 newer than the halt, different key [SECRET_ECHO]: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 R6 valid rotation but wrong confirmation phrase [SECRET_ECHO]: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 R1 no G1 at all [AUTH_REJECTED]: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 R2 G1 older than the halt, same key [AUTH_REJECTED]: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 R3 G1 newer than the halt, same key [AUTH_REJECTED]: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 R4 G1 older than the halt, different key [AUTH_REJECTED]: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 R5 G1 newer than the halt, different key [AUTH_REJECTED]: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 R6 valid rotation but wrong confirmation phrase [AUTH_REJECTED]: ModuleNotFoundError: No module named 'genesis_adapters'
+[CANNOT_RUN] P25 gate limits: ModuleNotFoundError: No module named 'genesis_adapters'
+== 15 checks, 0 failed, 15 cannot run
+exit=2

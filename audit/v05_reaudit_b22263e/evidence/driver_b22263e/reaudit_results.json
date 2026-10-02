@@ -1,0 +1,14 @@
+{
+ "candidate": "b22263e",
+ "counts": {
+  "CANNOT_RUN": 1
+ },
+ "results": [
+  {
+   "id": "R00",
+   "title": "candidate b22263e resolves to a commit in /home/user/genesis",
+   "status": "CANNOT_RUN",
+   "error": "git rev-parse --verify b22263e^{commit}: fatal: Needed a single revision"
+  }
+ ]
+}

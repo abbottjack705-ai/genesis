@@ -1,0 +1,14 @@
+$ /usr/local/bin/python3 -B /home/user/genesis/audit/v05_reaudit_b22263e/reaudit/netblock.py -m unittest discover -s adapters/adapter_tests -t adapters -v
+(cwd=/tmp/reaudit-work-ro5lm9g1/lf)
+
+--- stderr ---
+test_loopback_only (adapter_tests.test_selftest.SelfTest.test_loopback_only) ... ok
+test_passes (adapter_tests.test_selftest.SelfTest.test_passes) ... ok
+test_real_symlink (adapter_tests.test_selftest.SelfTest.test_real_symlink) ... skipped 'no symlink privilege (synthetic)'
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.007s
+
+OK (skipped=1)
+
+exit=0

@@ -1,0 +1,3 @@
+[CANNOT_RUN] R00 candidate b22263e resolves to a commit in /home/user/genesis
+== {"CANNOT_RUN": 1}
+exit=2 (0 pass, 1 fail, 2 cannot-run)

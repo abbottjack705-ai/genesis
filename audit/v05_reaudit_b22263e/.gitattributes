@@ -1,0 +1,5 @@
+# Every file in this package is hashed in ARTIFACT_MANIFEST.sha256 over its committed (LF) bytes.
+# Keep those bytes on every checkout (including core.autocrlf=true on Windows, where run_all.sh must stay LF
+# for Git Bash), and apply no whitespace rules to captured evidence.
+* -text
+evidence/** -text -whitespace

@@ -1,0 +1,52 @@
+{
+  "Q-A_identical_replay": {
+    "first": "billable_call_reserved",
+    "replay": "billable_call_reserved",
+    "replay_allowed": true,
+    "new_rows_written": 0,
+    "raised": false
+  },
+  "Q-B_new_time_same_id": {
+    "raised": true,
+    "message": "quota request ID cannot be reused with another payload"
+  },
+  "Q-C_time_regression": {
+    "allowed": false,
+    "reason": "quota_event_time_regressed",
+    "raised": false
+  },
+  "Q-D_daily_8th": {
+    "seventh": [
+      true,
+      "billable_call_reserved"
+    ],
+    "eighth": [
+      false,
+      "daily_quota_exhausted"
+    ]
+  },
+  "Q-D_normal_221st": {
+    "requests_possible_in_31_day_month_at_1_unit": 217,
+    "last_reason": "billable_call_reserved",
+    "normal_used": 217,
+    "note": "31 days x 7/day = 217 < 220: the monthly NORMAL cap is unreachable with 1-unit debits under the frozen active policy. A Q-03 test must use billable_units > 1 or a test policy; a test claiming to reach the 221st unit with 1-unit ODDS calls is impossible."
+  },
+  "Q-E_reserve_unauthorized": {
+    "allowed": false,
+    "reason": "normal_monthly_budget_not_exhausted"
+  },
+  "Q-F_zero_units": {
+    "raised": true,
+    "message": "billable units must be positive"
+  },
+  "Q-G_day_boundary_by_Tq": {
+    "eighth_across_midnight_allowed": true,
+    "reason": "billable_call_reserved",
+    "daily_used_after": 1,
+    "monthly_used_after": 1
+  },
+  "Q-H_forged_cache": {
+    "reason": "billable_call_reserved",
+    "billable_units": 1
+  }
+}

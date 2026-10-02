@@ -1,0 +1,140 @@
+[PASS] P20 D1 deadline reached exactly during connect: no request byte written at/after the deadline {"writes": 0, "late": [], "outcome": "NO_RESPONSE"}
+[PASS] P20 D2 deadline reached exactly during connect: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D4 deadline reached exactly during connect: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[PASS] P20 D1 deadline passed by 1us during connect: no request byte written at/after the deadline {"writes": 0, "late": [], "outcome": "NO_RESPONSE"}
+[PASS] P20 D2 deadline passed by 1us during connect: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D4 deadline passed by 1us during connect: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[PASS] P20 D1 connect ends 5us before the deadline: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "RESPONSE"}
+[PASS] P20 D2 connect ends 5us before the deadline: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 connect ends 5us before the deadline: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:59.999995Z", "connect_done": "2026-10-01 12:00:59.999995+00:00"}
+[PASS] P20 D4 connect ends 5us before the deadline: a RESPONSE completed strictly before the deadline {"T1": "2026-10-01T12:00:59.999998Z", "deadline": "2026-10-01T12:01:00.000000Z"}
+[PASS] P20 D1 deadline reached exactly during the request write: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "NO_RESPONSE"}
+[PASS] P20 D2 deadline reached exactly during the request write: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 deadline reached exactly during the request write: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000001Z", "connect_done": "2026-10-01 12:00:00.000001+00:00"}
+[PASS] P20 D4 deadline reached exactly during the request write: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[PASS] P20 D1 deadline reached exactly while reading the status line: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "TRUNCATED"}
+[PASS] P20 D2 deadline reached exactly while reading the status line: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 deadline reached exactly while reading the status line: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000001Z", "connect_done": "2026-10-01 12:00:00.000001+00:00"}
+[PASS] P20 D4 deadline reached exactly while reading the status line: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "TRUNCATED"}
+[PASS] P20 D1 deadline reached exactly while reading the body: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "TRUNCATED"}
+[PASS] P20 D2 deadline reached exactly while reading the body: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 deadline reached exactly while reading the body: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000001Z", "connect_done": "2026-10-01 12:00:00.000001+00:00"}
+[PASS] P20 D4 deadline reached exactly while reading the body: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "TRUNCATED"}
+[OK ] CORRECT   expected failing none; probe failed none
+[FAIL] P20 D1 deadline reached exactly during connect: no request byte written at/after the deadline {"writes": 1, "late": ["2026-10-01 12:01:00.000001+00:00"], "outcome": "NO_RESPONSE"}
+[PASS] P20 D2 deadline reached exactly during connect: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[FAIL] P20 D3 deadline reached exactly during connect: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:01:00.000000Z", "connect_done": "2026-10-01 12:01:00+00:00"}
+[PASS] P20 D4 deadline reached exactly during connect: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[PASS] P20 D1 deadline passed by 1us during connect: no request byte written at/after the deadline {"writes": 0, "late": [], "outcome": "NO_RESPONSE"}
+[PASS] P20 D2 deadline passed by 1us during connect: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D4 deadline passed by 1us during connect: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[PASS] P20 D1 connect ends 5us before the deadline: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "RESPONSE"}
+[PASS] P20 D2 connect ends 5us before the deadline: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 connect ends 5us before the deadline: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:59.999995Z", "connect_done": "2026-10-01 12:00:59.999995+00:00"}
+[PASS] P20 D4 connect ends 5us before the deadline: a RESPONSE completed strictly before the deadline {"T1": "2026-10-01T12:00:59.999998Z", "deadline": "2026-10-01T12:01:00.000000Z"}
+[PASS] P20 D1 deadline reached exactly during the request write: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "NO_RESPONSE"}
+[PASS] P20 D2 deadline reached exactly during the request write: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 deadline reached exactly during the request write: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000001Z", "connect_done": "2026-10-01 12:00:00.000001+00:00"}
+[PASS] P20 D4 deadline reached exactly during the request write: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[PASS] P20 D1 deadline reached exactly while reading the status line: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "TRUNCATED"}
+[PASS] P20 D2 deadline reached exactly while reading the status line: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 deadline reached exactly while reading the status line: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000001Z", "connect_done": "2026-10-01 12:00:00.000001+00:00"}
+[PASS] P20 D4 deadline reached exactly while reading the status line: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "TRUNCATED"}
+[PASS] P20 D1 deadline reached exactly while reading the body: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "TRUNCATED"}
+[PASS] P20 D2 deadline reached exactly while reading the body: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 deadline reached exactly while reading the body: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000001Z", "connect_done": "2026-10-01 12:00:00.000001+00:00"}
+[PASS] P20 D4 deadline reached exactly while reading the body: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "TRUNCATED"}
+[OK ] GT        expected failing ['D1']; probe failed ['D1', 'D3']
+        - D1 deadline reached exactly during connect: no request byte written at/after the deadline
+        - D3 deadline reached exactly during connect: T0 read after connect and before the write, and < deadline
+[FAIL] P20 D1 deadline reached exactly during connect: no request byte written at/after the deadline {"writes": 1, "late": ["2026-10-01 12:01:00+00:00"], "outcome": "NO_RESPONSE"}
+[PASS] P20 D2 deadline reached exactly during connect: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[FAIL] P20 D3 deadline reached exactly during connect: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000000Z", "connect_done": "2026-10-01 12:01:00+00:00"}
+[PASS] P20 D4 deadline reached exactly during connect: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[FAIL] P20 D1 deadline passed by 1us during connect: no request byte written at/after the deadline {"writes": 1, "late": ["2026-10-01 12:01:00.000001+00:00"], "outcome": "NO_RESPONSE"}
+[PASS] P20 D2 deadline passed by 1us during connect: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[FAIL] P20 D3 deadline passed by 1us during connect: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000000Z", "connect_done": "2026-10-01 12:01:00.000001+00:00"}
+[PASS] P20 D4 deadline passed by 1us during connect: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[PASS] P20 D1 connect ends 5us before the deadline: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "RESPONSE"}
+[PASS] P20 D2 connect ends 5us before the deadline: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[FAIL] P20 D3 connect ends 5us before the deadline: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000000Z", "connect_done": "2026-10-01 12:00:59.999995+00:00"}
+[PASS] P20 D4 connect ends 5us before the deadline: a RESPONSE completed strictly before the deadline {"T1": "2026-10-01T12:00:59.999997Z", "deadline": "2026-10-01T12:01:00.000000Z"}
+[PASS] P20 D1 deadline reached exactly during the request write: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "NO_RESPONSE"}
+[PASS] P20 D2 deadline reached exactly during the request write: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[FAIL] P20 D3 deadline reached exactly during the request write: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000000Z", "connect_done": "2026-10-01 12:00:00.000002+00:00"}
+[PASS] P20 D4 deadline reached exactly during the request write: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[PASS] P20 D1 deadline reached exactly while reading the status line: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "TRUNCATED"}
+[PASS] P20 D2 deadline reached exactly while reading the status line: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[FAIL] P20 D3 deadline reached exactly while reading the status line: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000000Z", "connect_done": "2026-10-01 12:00:00.000002+00:00"}
+[PASS] P20 D4 deadline reached exactly while reading the status line: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "TRUNCATED"}
+[PASS] P20 D1 deadline reached exactly while reading the body: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "TRUNCATED"}
+[PASS] P20 D2 deadline reached exactly while reading the body: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[FAIL] P20 D3 deadline reached exactly while reading the body: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000000Z", "connect_done": "2026-10-01 12:00:00.000002+00:00"}
+[PASS] P20 D4 deadline reached exactly while reading the body: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "TRUNCATED"}
+[OK ] EARLY_T0  expected failing ['D1', 'D3']; probe failed ['D1', 'D3']
+        - D1 deadline reached exactly during connect: no request byte written at/after the deadline
+        - D3 deadline reached exactly during connect: T0 read after connect and before the write, and < deadline
+        - D1 deadline passed by 1us during connect: no request byte written at/after the deadline
+        - D3 deadline passed by 1us during connect: T0 read after connect and before the write, and < deadline
+        - D3 connect ends 5us before the deadline: T0 read after connect and before the write, and < deadline
+        - D3 deadline reached exactly during the request write: T0 read after connect and before the write, and < deadline
+        - D3 deadline reached exactly while reading the status line: T0 read after connect and before the write, and < deadline
+        - D3 deadline reached exactly while reading the body: T0 read after connect and before the write, and < deadline
+[FAIL] P20 D1 deadline reached exactly during connect: no request byte written at/after the deadline {"writes": 1, "late": ["2026-10-01 12:01:00.000001+00:00"], "outcome": "NO_RESPONSE"}
+[FAIL] P20 D2 deadline reached exactly during connect: every blocking timeout is > 0 and <= the remaining time {"bad": [["settimeout", "2026-10-01 12:01:00.000001+00:00", 0.0, -1e-06]]}
+[FAIL] P20 D3 deadline reached exactly during connect: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:01:00.000000Z", "connect_done": "2026-10-01 12:01:00+00:00"}
+[PASS] P20 D4 deadline reached exactly during connect: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[FAIL] P20 D1 deadline passed by 1us during connect: no request byte written at/after the deadline {"writes": 1, "late": ["2026-10-01 12:01:00.000002+00:00"], "outcome": "NO_RESPONSE"}
+[FAIL] P20 D2 deadline passed by 1us during connect: every blocking timeout is > 0 and <= the remaining time {"bad": [["settimeout", "2026-10-01 12:01:00.000002+00:00", 0.0, -2e-06]]}
+[FAIL] P20 D3 deadline passed by 1us during connect: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:01:00.000001Z", "connect_done": "2026-10-01 12:01:00.000001+00:00"}
+[PASS] P20 D4 deadline passed by 1us during connect: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[PASS] P20 D1 connect ends 5us before the deadline: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "RESPONSE"}
+[PASS] P20 D2 connect ends 5us before the deadline: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 connect ends 5us before the deadline: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:59.999995Z", "connect_done": "2026-10-01 12:00:59.999995+00:00"}
+[PASS] P20 D4 connect ends 5us before the deadline: a RESPONSE completed strictly before the deadline {"T1": "2026-10-01T12:00:59.999998Z", "deadline": "2026-10-01T12:01:00.000000Z"}
+[PASS] P20 D1 deadline reached exactly during the request write: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "NO_RESPONSE"}
+[PASS] P20 D2 deadline reached exactly during the request write: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 deadline reached exactly during the request write: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000001Z", "connect_done": "2026-10-01 12:00:00.000001+00:00"}
+[PASS] P20 D4 deadline reached exactly during the request write: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[PASS] P20 D1 deadline reached exactly while reading the status line: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "TRUNCATED"}
+[PASS] P20 D2 deadline reached exactly while reading the status line: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 deadline reached exactly while reading the status line: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000001Z", "connect_done": "2026-10-01 12:00:00.000001+00:00"}
+[PASS] P20 D4 deadline reached exactly while reading the status line: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "TRUNCATED"}
+[PASS] P20 D1 deadline reached exactly while reading the body: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "TRUNCATED"}
+[PASS] P20 D2 deadline reached exactly while reading the body: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 deadline reached exactly while reading the body: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000001Z", "connect_done": "2026-10-01 12:00:00.000001+00:00"}
+[PASS] P20 D4 deadline reached exactly while reading the body: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "TRUNCATED"}
+[OK ] ZERO_TO   expected failing ['D1', 'D2']; probe failed ['D1', 'D2', 'D3']
+        - D1 deadline reached exactly during connect: no request byte written at/after the deadline
+        - D2 deadline reached exactly during connect: every blocking timeout is > 0 and <= the remaining time
+        - D3 deadline reached exactly during connect: T0 read after connect and before the write, and < deadline
+        - D1 deadline passed by 1us during connect: no request byte written at/after the deadline
+        - D2 deadline passed by 1us during connect: every blocking timeout is > 0 and <= the remaining time
+        - D3 deadline passed by 1us during connect: T0 read after connect and before the write, and < deadline
+[PASS] P20 D1 deadline reached exactly during connect: no request byte written at/after the deadline {"writes": 0, "late": [], "outcome": "NO_RESPONSE"}
+[PASS] P20 D2 deadline reached exactly during connect: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D4 deadline reached exactly during connect: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[PASS] P20 D1 deadline passed by 1us during connect: no request byte written at/after the deadline {"writes": 0, "late": [], "outcome": "NO_RESPONSE"}
+[PASS] P20 D2 deadline passed by 1us during connect: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D4 deadline passed by 1us during connect: outcome after the deadline is NO_RESPONSE/TRUNCATED {"outcome": "NO_RESPONSE"}
+[PASS] P20 D1 connect ends 5us before the deadline: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "RESPONSE"}
+[PASS] P20 D2 connect ends 5us before the deadline: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 connect ends 5us before the deadline: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:59.999995Z", "connect_done": "2026-10-01 12:00:59.999995+00:00"}
+[PASS] P20 D4 connect ends 5us before the deadline: a RESPONSE completed strictly before the deadline {"T1": "2026-10-01T12:00:59.999996Z", "deadline": "2026-10-01T12:01:00.000000Z"}
+[PASS] P20 D1 deadline reached exactly during the request write: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "RESPONSE"}
+[PASS] P20 D2 deadline reached exactly during the request write: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 deadline reached exactly during the request write: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000001Z", "connect_done": "2026-10-01 12:00:00.000001+00:00"}
+[FAIL] P20 D4 deadline reached exactly during the request write: a RESPONSE completed strictly before the deadline {"T1": "2026-10-01T12:01:00.000000Z", "deadline": "2026-10-01T12:01:00.000000Z"}
+[PASS] P20 D1 deadline reached exactly while reading the status line: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "RESPONSE"}
+[PASS] P20 D2 deadline reached exactly while reading the status line: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 deadline reached exactly while reading the status line: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000001Z", "connect_done": "2026-10-01 12:00:00.000001+00:00"}
+[FAIL] P20 D4 deadline reached exactly while reading the status line: a RESPONSE completed strictly before the deadline {"T1": "2026-10-01T12:01:00.000000Z", "deadline": "2026-10-01T12:01:00.000000Z"}
+[PASS] P20 D1 deadline reached exactly while reading the body: no request byte written at/after the deadline {"writes": 1, "late": [], "outcome": "RESPONSE"}
+[PASS] P20 D2 deadline reached exactly while reading the body: every blocking timeout is > 0 and <= the remaining time {"bad": []}
+[PASS] P20 D3 deadline reached exactly while reading the body: T0 read after connect and before the write, and < deadline {"T0": "2026-10-01T12:00:00.000001Z", "connect_done": "2026-10-01 12:00:00.000001+00:00"}
+[FAIL] P20 D4 deadline reached exactly while reading the body: a RESPONSE completed strictly before the deadline {"T1": "2026-10-01T12:01:00.000000Z", "deadline": "2026-10-01T12:01:00.000000Z"}
+[OK ] LATE_READ expected failing ['D4']; probe failed ['D4']
+        - D4 deadline reached exactly during the request write: a RESPONSE completed strictly before the deadline
+        - D4 deadline reached exactly while reading the status line: a RESPONSE completed strictly before the deadline
+        - D4 deadline reached exactly while reading the body: a RESPONSE completed strictly before the deadline
+exit=0

@@ -1,0 +1,37 @@
+$ REAUDIT_NETLOG=net.jsonl PYTHONPATH=reaudit/netblock_site python -B reaudit/netblock.py -m probe_mod
+{"connect 192.0.2.1:443": "BLOCKED", "getaddrinfo example.com": "BLOCKED", "gethostbyname api.oddspapi.io": "BLOCKED", "connect 127.0.0.1:1": "ALLOWED(ConnectionRefusedError)", "connect localhost:1": "ALLOWED(ConnectionRefusedError)", "child": {"connect 192.0.2.1:443": "BLOCKED", "getaddrinfo example.com": "BLOCKED", "gethostbyname api.oddspapi.io": "BLOCKED", "connect 127.0.0.1:1": "ALLOWED(ConnectionRefusedError)", "connect localhost:1": "ALLOWED(ConnectionRefusedError)"}}
+exit=0
+--- probe_mod.py
+import json, socket, subprocess, sys, os
+out = {}
+def attempt(label, fn):
+    try:
+        fn(); out[label] = "ALLOWED"
+    except PermissionError: out[label] = "BLOCKED"
+    except OSError as e: out[label] = "ALLOWED(" + type(e).__name__ + ")"
+attempt("connect 192.0.2.1:443", lambda: socket.create_connection(("192.0.2.1", 443), timeout=2))
+attempt("getaddrinfo example.com", lambda: socket.getaddrinfo("example.com", 443))
+attempt("gethostbyname api.oddspapi.io", lambda: socket.gethostbyname("api.oddspapi.io"))
+attempt("connect 127.0.0.1:1", lambda: socket.create_connection(("127.0.0.1", 1), timeout=2))
+attempt("connect localhost:1", lambda: socket.create_connection(("localhost", 1), timeout=2))
+if len(sys.argv) < 2:
+    child = subprocess.run([sys.executable, "-B", __file__, "child"], capture_output=True, text=True)
+    out["child"] = json.loads(child.stdout)
+print(json.dumps(out))
+--- netlog
+{"argv0": "reaudit/netblock.py", "event": "netblock.installed", "host": "", "loopback": true, "pid": 7389, "port": null}
+{"event": "socket.getaddrinfo", "host": "192.0.2.1", "loopback": false, "pid": 7389, "port": 443}
+{"event": "socket.getaddrinfo", "host": "example.com", "loopback": false, "pid": 7389, "port": 443}
+{"event": "socket.gethostbyname", "host": "api.oddspapi.io", "loopback": false, "pid": 7389, "port": null}
+{"event": "socket.getaddrinfo", "host": "127.0.0.1", "loopback": true, "pid": 7389, "port": 1}
+{"event": "socket.connect", "host": "127.0.0.1", "loopback": true, "pid": 7389, "port": 1}
+{"event": "socket.getaddrinfo", "host": "localhost", "loopback": true, "pid": 7389, "port": 1}
+{"event": "socket.connect", "host": "127.0.0.1", "loopback": true, "pid": 7389, "port": 1}
+{"argv0": "<scratch>/nbtest/probe_mod.py", "event": "netblock.installed", "host": "", "loopback": true, "pid": 7390, "port": null}
+{"event": "socket.getaddrinfo", "host": "192.0.2.1", "loopback": false, "pid": 7390, "port": 443}
+{"event": "socket.getaddrinfo", "host": "example.com", "loopback": false, "pid": 7390, "port": 443}
+{"event": "socket.gethostbyname", "host": "api.oddspapi.io", "loopback": false, "pid": 7390, "port": null}
+{"event": "socket.getaddrinfo", "host": "127.0.0.1", "loopback": true, "pid": 7390, "port": 1}
+{"event": "socket.connect", "host": "127.0.0.1", "loopback": true, "pid": 7390, "port": 1}
+{"event": "socket.getaddrinfo", "host": "localhost", "loopback": true, "pid": 7390, "port": 1}
+{"event": "socket.connect", "host": "127.0.0.1", "loopback": true, "pid": 7390, "port": 1}

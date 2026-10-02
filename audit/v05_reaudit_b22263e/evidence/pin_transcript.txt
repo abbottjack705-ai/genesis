@@ -1,0 +1,102 @@
+# Pin transcript - re-audit session, 2026-10-02T10:54:22Z, Linux container, git version 2.43.0, Python 3.11.15
+
+$ git ls-remote origin
+4f11606615c7650f3bd74c7ccf5d2fb7a5a753c5	HEAD
+37b86fbf825cf0e0a754f918afa184ce791cfa12	refs/heads/ccr-c8695f69-sghhe5
+c8dfafdff3be611fa6255a03ed361bc46d7ad8fe	refs/heads/ccr-dc07c30b-wxq872
+2278e2a68083f7ac58d796b1ed9c43d50020b6b0	refs/heads/claude/windows-containment-module-qfk13i
+4f11606615c7650f3bd74c7ccf5d2fb7a5a753c5	refs/heads/t6-remediation
+2278e2a68083f7ac58d796b1ed9c43d50020b6b0	refs/heads/v0.5-adapters
+a5ca3c96cf04800e03d808d913f612234d8ff1a4	refs/tags/v0.4-foundation-freeze
+2278e2a68083f7ac58d796b1ed9c43d50020b6b0	refs/tags/v0.4-foundation-freeze^{}
+
+$ git fetch origin "+refs/heads/*:refs/remotes/origin/*" "+refs/tags/*:refs/tags/*"   (done at session start; repeated)
+exit=0
+
+$ git rev-parse --verify --quiet b22263e^{commit}
+(not present: exit=1)
+
+$ git rev-parse --verify --quiet cfcff3dbb285eaa48a6cfc1eceedb91e27662c81^{commit}
+(not present: exit=1)
+
+$ git rev-parse --verify --quiet 63e06a1^{commit}
+(not present: exit=1)
+
+$ git rev-parse --verify --quiet 1bc6001^{commit}
+(not present: exit=1)
+
+$ git rev-parse --verify --quiet 78bedb9^{commit}
+(not present: exit=1)
+
+$ git rev-parse --verify --quiet b95465e^{commit}
+(not present: exit=1)
+
+$ git rev-parse --verify --quiet 9de0790^{commit}
+(not present: exit=1)
+
+$ git rev-parse --verify --quiet ff7f4ba^{commit}
+(not present: exit=1)
+
+$ git rev-parse --verify --quiet 9c35c5c^{commit}
+(not present: exit=1)
+
+$ git fetch origin cfcff3dbb285eaa48a6cfc1eceedb91e27662c81
+fatal: remote error: upload-pack: not our ref cfcff3dbb285eaa48a6cfc1eceedb91e27662c81
+exit=128
+
+$ git log --all --oneline | grep -cE "^(b22263e|cfcff3d)"
+0
+
+GitHub API (MCP get_commit, abbottjack705-ai/genesis):
+  sha=b22263e                                  -> "failed to get commit: b22263e: No commit found for SHA: b22263e"
+  sha=cfcff3dbb285eaa48a6cfc1eceedb91e27662c81 -> "No commit found for SHA: cfcff3dbb285eaa48a6cfc1eceedb91e27662c81"
+  list_branches -> ccr-c8695f69-sghhe5 37b86fb, ccr-dc07c30b-wxq872 c8dfafd, claude/windows-containment-module-qfk13i 2278e2a, t6-remediation 4f11606, v0.5-adapters 2278e2a
+  list_pull_requests(state=all) -> []
+Google Drive search (b22263e | V05_REMEDIATION | HOSTILE_AUDIT | cfcff3d) -> one unrelated file SOL_HOSTILE_AUDIT_v0.4.md (2026-09-20)
+
+$ git cat-file -p v0.4-foundation-freeze | head -3
+object 2278e2a68083f7ac58d796b1ed9c43d50020b6b0
+type commit
+tag v0.4-foundation-freeze
+
+$ for t in src tests config tools DECISIONS v04_pack; do git rev-parse 4f11606:$t; done   (4f11606615c7650f3bd74c7ccf5d2fb7a5a753c5)
+src        51cb635bc42b993815b6c02a23c4c3ceb7d98476
+tests      e90b298180068fec03ba7e2fa81957082e7fb3ce
+config     abd22db01ff482a8da84634ee740ba382b68c804
+tools      a0e3411edb4e068fd4708050516cb6870834e7ac
+DECISIONS  cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64
+v04_pack   3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12
+
+$ for t in src tests config tools DECISIONS v04_pack; do git rev-parse 2278e2a:$t; done   (2278e2a68083f7ac58d796b1ed9c43d50020b6b0)
+src        51cb635bc42b993815b6c02a23c4c3ceb7d98476
+tests      e90b298180068fec03ba7e2fa81957082e7fb3ce
+config     abd22db01ff482a8da84634ee740ba382b68c804
+tools      a0e3411edb4e068fd4708050516cb6870834e7ac
+DECISIONS  cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64
+v04_pack   3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12
+
+$ for t in src tests config tools DECISIONS v04_pack; do git rev-parse c8dfafd:$t; done   (c8dfafdff3be611fa6255a03ed361bc46d7ad8fe)
+src        51cb635bc42b993815b6c02a23c4c3ceb7d98476
+tests      e90b298180068fec03ba7e2fa81957082e7fb3ce
+config     abd22db01ff482a8da84634ee740ba382b68c804
+tools      a0e3411edb4e068fd4708050516cb6870834e7ac
+DECISIONS  cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64
+v04_pack   3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12
+
+$ for t in src tests config tools DECISIONS v04_pack; do git rev-parse 37b86fb:$t; done   (37b86fbf825cf0e0a754f918afa184ce791cfa12)
+src        51cb635bc42b993815b6c02a23c4c3ceb7d98476
+tests      e90b298180068fec03ba7e2fa81957082e7fb3ce
+config     abd22db01ff482a8da84634ee740ba382b68c804
+tools      a0e3411edb4e068fd4708050516cb6870834e7ac
+DECISIONS  cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64
+v04_pack   3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12
+
+$ git rev-parse c8dfafd:V05_ADAPTER_ARCHITECTURE.md
+30c4ca7d43fe11504e873e25944f9bdd30079253
+
+$ git diff --stat 2278e2a c8dfafd
+ V05_ADAPTER_ARCHITECTURE.md | 2526 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 2526 insertions(+)
+
+$ git diff --name-status 2278e2a c8dfafd -- src tests config tools DECISIONS v04_pack   (must be empty)
+(end)

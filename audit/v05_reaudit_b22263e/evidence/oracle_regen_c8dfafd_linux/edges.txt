@@ -1,0 +1,27 @@
+{
+  "policy": {
+    "request_timeout_seconds": 60,
+    "clock_skew_max_seconds": 120
+  },
+  "guard_zone_each_day_utc": "[23:57:00 , 00:02:00)",
+  "expected_send_pattern_per_boundary": {
+    "B - m - 1us": true,
+    "B - m": false,
+    "B - timeout": false,
+    "B - 1us": false,
+    "B": false,
+    "B + skew - 1us": false,
+    "B + skew": true
+  },
+  "pattern_consistent_across_boundaries": true,
+  "sanity_bound": {
+    "zone_seconds": 300,
+    "must_be_lt_3600": true
+  }
+}
+day_plain ['SEND', 'refuse', 'refuse', 'refuse', 'refuse', 'refuse', 'SEND']
+month_30_to_31 ['SEND', 'refuse', 'refuse', 'refuse', 'refuse', 'refuse', 'SEND']
+month_31_to_30 ['SEND', 'refuse', 'refuse', 'refuse', 'refuse', 'refuse', 'SEND']
+feb_nonleap_2027 ['SEND', 'refuse', 'refuse', 'refuse', 'refuse', 'refuse', 'SEND']
+feb_leap_2028 ['SEND', 'refuse', 'refuse', 'refuse', 'refuse', 'refuse', 'SEND']
+year_end ['SEND', 'refuse', 'refuse', 'refuse', 'refuse', 'refuse', 'SEND']

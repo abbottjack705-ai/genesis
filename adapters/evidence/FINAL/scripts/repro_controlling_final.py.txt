@@ -1,0 +1,532 @@
+"""[FINAL-TREE VARIANT: identical scenarios; adapted ONLY where the remediation changed an API the probe calls -
+marked "ADAPTED" below: admissible_head needs an explicit derivation verifier (HA-12), and a refused retry is now
+raised as PlanRefused instead of being sent (HA-10).]
+
+Reproduction of the controlling hostile-audit findings (hostile_audit_cfcff3d) and of the still-relevant findings
+of the two earlier packages, against the tree in the current directory.
+
+Run from a repository root (a clean clone of the candidate, or the remediated tree):
+    PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B repro_controlling.py
+
+Every line is 'REPRODUCED' (the defect is present) or 'NOT REPRODUCED' (the defect is absent), with booleans and
+counts only: no form of any (synthetic) key is ever printed. Nothing contacts a network: the adapter test package
+installs its loopback-only audit hook, and every transport is a fake or a fault-injecting connection.
+"""
+
+from __future__ import annotations
+
+import json
+import shutil
+import subprocess
+import sys
+import tempfile
+import traceback
+from pathlib import Path
+from types import SimpleNamespace
+
+import adapter_tests  # noqa: F401  (path setup, provenance guard, loopback-only hook)
+from adapter_tests import parser_support as ps
+from adapter_tests.parser_support import FIXTURE_A, FIXTURE_B, fixture_of
+from adapter_tests.pipeline_support import (
+    acquisition_rows, coverage_rows, documents, odds_item, odds_response, open_rt, pit_rows, reopen,
+)
+from adapter_tests.support import (
+    REPO, SENTINEL_KEY, Crash, FixedClock, http_date, no_response, ok, read_jsonl, scratch_root, status,
+)
+
+from genesis_adapters import cli
+from genesis_adapters.errors import AcquisitionHalt
+from genesis_adapters.oddspapi import transport_http as th
+from genesis_adapters.oddspapi import verify
+from genesis_adapters.secrets import Secret, SecretScanner
+
+RESULTS: list[tuple[str, bool, str]] = []
+SCANNER = SecretScanner(Secret(SENTINEL_KEY), policy=ps.POLICY)
+JSON = (("content-type", "application/json"),)
+
+
+def report(finding: str, reproduced, detail: str) -> None:
+    """``reproduced`` is True / False, or None for a probe that could not run (never counted as NOT REPRODUCED)."""
+    RESULTS.append((finding, reproduced, detail))
+    label = "PROBE ERROR" if reproduced is None else ("REPRODUCED" if reproduced else "NOT REPRODUCED")
+    print(f"{finding:<34} {label:<15} {detail}", flush=True)
+
+
+def probe(finding: str):
+    def wrap(function):
+        try:
+            function()
+        except Exception as exc:                                    # a probe that cannot run is reported, not hidden
+            text = "".join(traceback.format_exception_only(type(exc), exc)).strip().splitlines()[-1]
+            if SCANNER.scan(text.encode()).hit:
+                text = type(exc).__name__ + " <message withheld>"
+            report(finding, None, f"PROBE ERROR: {text[:150]}")
+        return function
+    return wrap
+
+
+def runtime_hits(root: Path, secret: Secret) -> int:
+    return len(verify.scan_runtime_for_secret(root, secret))
+
+
+class Clock:
+    def __init__(self, start="2026-10-01T12:00:00.000000Z", step=1000):
+        self.inner = FixedClock(start, step_micros=step)
+
+    def now(self):
+        return self.inner.now()
+
+
+def request():
+    return odds_item().request
+
+
+# -- C:HA-01 ------------------------------------------------------------------------------------------
+@probe("C:HA-01 class name persisted")
+def _():
+    named = type("Error_" + SENTINEL_KEY.replace("-", "_"), (OSError,), {})
+
+    class Conn:
+        def __init__(self, *args):
+            pass
+
+        def open(self, timeout):
+            raise named()
+
+        def close(self):
+            pass
+
+    transport = th.HttpsTransport(Secret(SENTINEL_KEY), credential_param="apiKey", policy=ps.POLICY,
+                                  connection_factory=Conn)
+    result = transport.send(request(), clock=Clock(), deadline_at="2026-10-01T13:00:00.000000Z")
+    in_result = SCANNER.scan(repr(result).encode()).hit
+    with scratch_root() as root:
+        transport = th.HttpsTransport(Secret(SENTINEL_KEY), credential_param="apiKey", policy=ps.POLICY,
+                                      connection_factory=Conn)
+        rt = open_rt(root, transport=transport, secret=Secret(SENTINEL_KEY))
+        rt.runner.acquire(odds_item())
+        hits = runtime_hits(root, Secret(SENTINEL_KEY))
+    report("C:HA-01 class name persisted", in_result or hits > 0,
+           f"key form in TransportResult={in_result}; runtime files carrying a key form={hits}")
+
+
+# -- C:HA-02 ------------------------------------------------------------------------------------------
+@probe("C:HA-02 close() process control")
+def _():
+    outcomes = []
+    for injected in (KeyboardInterrupt("close-error: " + SENTINEL_KEY), SystemExit("close-error: " + SENTINEL_KEY)):
+        class Conn:
+            def __init__(self, *args):
+                self.done = False
+
+            def open(self, timeout):
+                pass
+
+            def settimeout(self, timeout):
+                pass
+
+            def write(self, method, target, headers):
+                pass
+
+            def read_head(self):
+                return 200, [("Content-Type", "application/json")]
+
+            def read_chunk(self, size):
+                if self.done:
+                    return b""
+                self.done = True
+                return b"[]"
+
+            def finished(self):
+                return self.done
+
+            def close(self, exc=injected):
+                raise exc
+
+        transport = th.HttpsTransport(Secret(SENTINEL_KEY), credential_param="apiKey", policy=ps.POLICY,
+                                      connection_factory=Conn)
+        try:
+            transport.send(request(), clock=Clock(), deadline_at="2026-10-01T13:00:00.000000Z")
+            outcomes.append((type(injected).__name__, "swallowed", False))
+        except BaseException as caught:                             # noqa: BLE001 - the probe inspects it
+            same_object = caught is injected
+            text = SCANNER.scan(repr(caught.args).encode()).hit
+            keyed_context = caught.__context__ is not None or caught.__cause__ is not None
+            notes = hasattr(caught, "__notes__")
+            outcomes.append((type(caught).__name__, "same" if same_object else "fresh",
+                             same_object or text or keyed_context or notes))
+    report("C:HA-02 close() process control", any(bad for _, _, bad in outcomes),
+           "; ".join(f"{cls}:{kind}:unsafe={bad}" for cls, kind, bad in outcomes))
+
+
+# -- C:HA-03 ------------------------------------------------------------------------------------------
+@probe("C:HA-03 write at deadline")
+def _():
+    before, deadline = "2026-10-01T12:00:00.000000Z", "2026-10-01T12:00:01.000000Z"
+    state = {"value": before}
+
+    class DeadlineClock:
+        def now(self):
+            return state["value"]
+
+    writes = []
+
+    class Conn:
+        def __init__(self, *args):
+            pass
+
+        def open(self, timeout):
+            pass
+
+        def settimeout(self, timeout):
+            state["value"] = deadline                                  # the deadline arrives before the write
+
+        def write(self, *args):
+            writes.append(state["value"])
+            raise OSError("stop after write")
+
+        def close(self):
+            pass
+
+    transport = th.HttpsTransport(Secret("SENTINEL-12345678"), credential_param="apiKey", policy=ps.POLICY,
+                                  connection_factory=Conn)
+    result = transport.send(request(), clock=DeadlineClock(), deadline_at=deadline)
+    report("C:HA-03 write at deadline", bool(writes),
+           f"writes at/after the deadline={len(writes)}; outcome={result.outcome}")
+
+
+# -- C:HA-04 ------------------------------------------------------------------------------------------
+@probe("C:HA-04 rejected content revived")
+def _():
+    from genesis_adapters.oddspapi.pipeline import PipelineHalt
+    cases = {
+        "wrong content type": odds_response(headers=(("content-type", "text/plain"),)),
+        "not JSON": ok(b"{not json", headers=JSON),
+        "envelope mismatch": ok(b'{"not": "a list"}', headers=JSON),
+    }
+    outcomes = []
+    for label, step in cases.items():
+        with scratch_root() as root:
+            rt = open_rt(root, script=[step])
+            first = rt.acquire(odds_item())
+            before = len(pit_rows(rt))
+            restarted = reopen(rt)
+            try:
+                restarted.resume()
+                effect = "resumed"
+            except PipelineHalt as halt:
+                effect = f"resume HALTED {halt}"
+            after = len(pit_rows(restarted))
+            revived = after > before or effect != "resumed"
+            outcomes.append((label, first.outcome.failure.value if first.outcome.failure else None, before, after,
+                             effect, revived))
+    report("C:HA-04 rejected content revived", any(item[-1] for item in outcomes),
+           "; ".join(f"{label}: {failure}, PIT {before}->{after}, {effect}"
+                     for label, failure, before, after, effect, _ in outcomes))
+
+
+# -- C:HA-05 ------------------------------------------------------------------------------------------
+@probe("C:HA-05 pending invalidation")
+def _():
+    from adapter_tests import emit_support as es
+    from adapter_tests.test_v05_invalidation import T_INV, invalidate, iso, one_capture
+    from genesis_adapters.oddspapi.reader import UsableBook, admissible_head
+    with scratch_root() as root:
+        stores, entity, record, observation = one_capture(root)
+
+        def hook(step):
+            if step == "after_recorded":
+                raise Crash()
+
+        try:
+            invalidate(stores, observation.observation_id, checkpoint=hook)
+        except Crash:
+            pass
+        reopened = es.reopen(stores)
+        verdict = admissible_head(entity, iso(T_INV, seconds=2), stores=reopened,
+                                  derivation_check=lambda _: None)   # ADAPTED: verifier now mandatory (HA-12)
+        usable = isinstance(verdict, UsableBook)
+        pending = len(reopened.invalidations.rows())
+    report("C:HA-05 pending invalidation", usable, f"pending ledger rows={pending}; old price usable at T_inv+2s={usable}")
+
+
+# -- C:HA-06 ------------------------------------------------------------------------------------------
+@probe("C:HA-06 mixed T3 after crash")
+def _():
+    from adapter_tests.emit_support import CAPTURE_1, build_stores, capture, iso, small_payload
+    from adapter_tests.emit_support import pit_rows as store_pit_rows
+    with scratch_root() as root:
+        stores = build_stores(root)
+        payload = small_payload(bookmakers=("pinnacle", "fixture-book-a"))
+
+        def hook(step):
+            if step == "after_pit:0":
+                raise Crash()
+
+        try:
+            capture(stores, payload, checkpoint=hook)
+        except Crash:
+            pass
+        capture(stores, payload, t2=iso(CAPTURE_1, seconds=5), t3=iso(CAPTURE_1, seconds=6),
+                stamp=iso(CAPTURE_1, seconds=7), seed=False)
+        ready = sorted({row["ready_at"] for row in store_pit_rows(stores)})
+    report("C:HA-06 mixed T3 after crash", len(ready) > 1, f"distinct PIT ready_at values in one response={len(ready)}")
+
+
+# -- C:HA-07 ------------------------------------------------------------------------------------------
+@probe("C:HA-07 non-ASCII key in header")
+def _():
+    key = "éèêëàáâã"
+    mojibake = key.encode("utf-8").decode("latin-1")                   # what http.client hands over
+    with scratch_root() as root:
+        rt = open_rt(root, script=[odds_response(headers=JSON + (("etag", mojibake),))], secret=Secret(key))
+        try:
+            outcome = rt.acquire(odds_item())
+            verdict = outcome.outcome.failure.value if outcome.outcome.failure else None
+        except AcquisitionHalt as halt:      # ADAPTED: since R3 (HA-04) a SECRET_ECHO verdict halts, after its rows
+            verdict = f"halted {halt.code.value}"
+        completed = [r for r in acquisition_rows(rt) if r["record_type"] == "acq_completed"][0]
+        kept = [value for name, value in completed["headers"] if name == "etag"]
+        recoverable = any(value.encode("latin-1") == key.encode("utf-8") for value in kept)
+        hits = runtime_hits(root, Secret(key))
+        # independent of the implementation's scanner: the raw byte forms of this key, in every runtime file
+        forms = {key.encode("utf-8"), key.encode("latin-1"), mojibake.encode("utf-8"),
+                 json.dumps(key).strip('"').encode("ascii"), json.dumps(mojibake).strip('"').encode("ascii"),
+                 json.dumps(key).strip('"').upper().encode("ascii")}
+        raw_hits = sum(1 for path in root.rglob("*") if path.is_file() and any(form in path.read_bytes() for form in forms))
+    report("C:HA-07 non-ASCII key in header", recoverable or hits > 0 or raw_hits > 0,
+           f"verdict={verdict}; completed-row failure={completed['failure']}; etag retained={bool(kept)}; "
+           f"key bytes recoverable from it={recoverable}; files with a key form: scanner={hits}, raw bytes={raw_hits}")
+
+
+# -- C:HA-08 ------------------------------------------------------------------------------------------
+@probe("C:HA-08 cap+1 byte not screened")
+def _():
+    from genesis_adapters.oddspapi.raw_capture import RawCapture
+    from genesis_adapters.oddspapi.transport import TransportResult
+    from genesis.evidence import EvidenceStore
+    from genesis.provenance import SourceContractRegistry
+    from genesis_adapters.oddspapi.raw_capture import register_raw_contract
+    key = "ABCDEFGH12345678"
+    with scratch_root() as root:
+        contracts = SourceContractRegistry(root / "contracts.jsonl")
+        register_raw_contract(contracts, licensing_note="FIXTURE-ONLY-NO-PROVIDER-TERMS")
+        evidence = EvidenceStore(root / "evidence", contracts=contracts)
+        config = SimpleNamespace(policy=ps.policy_with(max_response_bytes=32), endpoints=ps.CONFIG_BODY.endpoints,
+                                 schemas=ps.CONFIG_BODY.schemas)
+        capture = RawCapture(root=root, evidence=evidence, gate=None, config=config, secret=Secret(key),
+                             require_date=False, licensing_note="FIXTURE-ONLY-NO-PROVIDER-TERMS")
+        wire = b"x" * 25 + b"ABCDEFGH"
+        result = TransportResult("RESPONSE", 200, JSON, wire, None, "2026-10-01T12:00:00.000000Z",
+                                 "2026-10-01T12:00:01.000000Z")
+        captured = capture.store(aid="d" * 64, request=request(), result=result, t1="2026-10-01T12:00:01.000000Z")
+    report("C:HA-08 cap+1 byte not screened", captured.kind == "STORED", f"33-byte wire at cap 32 -> {captured.kind}")
+
+
+# -- C:HA-09 ------------------------------------------------------------------------------------------
+@probe("C:HA-09 skew rearm by date alone")
+def _():
+    from adapter_tests.support import build_rig
+
+    def dated(offset):
+        def step(clock):
+            return ok(b"[]", headers=JSON + (("date", http_date(ps.iso_add(clock.peek(), seconds=offset))),))
+        return step
+
+    with scratch_root() as root:
+        clock = FixedClock("2026-10-01T12:00:00.000000Z", step_micros=1000)
+        rig = build_rig(root, capture=True, require_date=True, clock=clock,
+                        script=[dated(ps.POLICY.clock_skew_max_seconds + 5), dated(0)])
+        rig.runner.acquire(odds_item(window="d1"))
+        clock.set("2026-10-02T00:05:00.000000Z")
+        rig.runner.acquire(odds_item(window="d2"))                  # an ordinary send, no clean Date check first
+        sends = len(rig.transport.calls)
+    report("C:HA-09 skew rearm by date alone", sends > 1, f"provider sends={sends} (1 = only the skewed one)")
+
+
+# -- C:HA-10 ------------------------------------------------------------------------------------------
+@probe("C:HA-10 retry policy bypassed")
+def _():
+    with scratch_root() as root:
+        rt = open_rt(root, script=[status(404, b"{}"), odds_response()])
+        rt.runner.acquire(odds_item("w1", attempt=1))                  # 4xx: never retryable
+        try:                                                           # ADAPTED: a refusal is now raised (HA-10)
+            rt.runner.acquire(odds_item("w1", attempt=2))              # the operator plan simply asks again
+        except Exception as refused:
+            if type(refused).__name__ != "PlanRefused":
+                raise
+        sends = len(rt.runner.transport.calls)
+    report("C:HA-10 retry policy bypassed", sends > 1, f"sends for one window after a 4xx={sends}")
+
+
+# -- C:HA-11 ------------------------------------------------------------------------------------------
+@probe("C:HA-11 scope not pinned pre-send")
+def _():
+    with scratch_root() as root:
+        def hook(step):
+            if step == "after_sent":
+                raise Crash()
+
+        rt = open_rt(root, script=[odds_response()], runner_checkpoint=hook)
+        try:
+            rt.acquire(odds_item())
+        except Crash:
+            pass
+        rows = acquisition_rows(rt)
+        pinned = any(row.get("expected_scope_hash") for row in rows)
+        scopes = list((root / "scopes").glob("*.json")) if (root / "scopes").exists() else []
+    report("C:HA-11 scope not pinned pre-send", not pinned and not scopes,
+           f"at the send checkpoint: scope hash on a row={pinned}; scope artifacts={len(scopes)}")
+
+
+# -- C:HA-12 ------------------------------------------------------------------------------------------
+@probe("C:HA-12 derivation check optional")
+def _():
+    import inspect
+    from genesis_adapters.oddspapi.reader import UsableBook, admissible_head
+    from adapter_tests.pipeline_support import approve
+    default = inspect.signature(admissible_head).parameters.get("derivation_check")
+    with scratch_root() as root:
+        rt = open_rt(root, script=[odds_response()])
+        rt.acquire(odds_item())
+        approve(rt)
+        row = pit_rows(rt)[0]
+        normalized = [r for r in acquisition_rows(rt) if r["record_type"] == "acq_normalized"][0]
+        scope_file = root / "scopes" / f"{normalized['expected_scope_hash']}.json"
+        scope_file.write_bytes(scope_file.read_bytes() + b" ")         # a derivation input no longer reproduces;
+                                                                     # every frozen store still verifies
+        try:
+            rt.verify_all()
+            underivable = False
+        except Exception:
+            underivable = True
+        try:
+            verdict = admissible_head(row["entity_id"], ps.iso_add(row["ready_at"], seconds=1), stores=rt.stores)
+        except TypeError:
+            verdict = None                                            # a checker is now required
+        usable = isinstance(verdict, UsableBook)
+    report("C:HA-12 derivation check optional", underivable and usable,
+           f"default derivation_check={None if default is None else default.default}; underivable={underivable}; "
+           f"reader without a checker says usable={usable}")
+
+
+# -- C:HA-13 / P:HA-006 -------------------------------------------------------------------------------
+@probe("C:HA-13/P:HA-006 test key + CA seam")
+def _():
+    tracked = subprocess.run(["git", "ls-files", "adapters/adapter_tests/fixtures/tls/server.key"], capture_output=True,
+                             text=True, cwd=REPO).stdout.strip() != ""
+    attr = subprocess.run(["git", "check-attr", "export-ignore", "adapters/adapter_tests/fixtures/tls/server.key"],
+                          capture_output=True, text=True, cwd=REPO).stdout.strip()
+    exported = not attr.endswith(": set")
+    try:
+        cli._parser().parse_args(["run", "--root", "r", "--plan", "p", "--mode", "G2", "--connect", "127.0.0.1:1",
+                                  "--ca-file", "test-ca.pem"])
+        seam = True
+    except SystemExit:
+        seam = False
+    report("C:HA-13/P:HA-006 test key + CA seam", seam or exported,
+           f"key tracked={tracked}; key in source archives (no export-ignore)={exported}; "
+           f"production run accepts --connect/--ca-file={seam}")
+
+
+# -- P:HA-013 -----------------------------------------------------------------------------------------
+@probe("P:HA-013 READY back-dated")
+def _():
+    from datetime import datetime, timezone
+    from genesis_adapters.oddspapi import authority as auth
+    from genesis_adapters.oddspapi.reader import UsableBook, admissible_head
+    from genesis.time import iso_utc
+    with scratch_root() as root:
+        rt = open_rt(root, script=[odds_response()])
+        rt.acquire(odds_item())
+        row = pit_rows(rt)[0]
+        early = "2000-01-01T00:00:00.000000Z"
+        record = {"record_type": "gate_record", "schema_version": auth.SCHEMA_VERSION, "gate": "G3",
+                  "approval_reference": "adr:synthetic-test-only-g3", "approver": "synthetic-test-only",
+                  "granted_at": early, "derivation_version": rt.config.derivation_version,
+                  "source_id": rt.stores.source_id, "contract_id": rt.stores.contract_id,
+                  "review_reference": "adr:synthetic-test-only-review",
+                  "acceptance_evidence": {f"AC-{n}": "2" * 64 for n in range(1, 10)},
+                  "unobserved_paths_accepted": [],
+                  "observation_window": {"from": "1999-12-01T00:00:00.000000Z", "to": early}}
+        record_path = root / "g3.json"
+        record_path.write_text(json.dumps(record), encoding="utf-8")
+        approved = cli.cmd_approve(SimpleNamespace(config=None, root=str(root), record=str(record_path)),
+                                   prompt=lambda _: cli.CONFIRMATION_PHRASE)
+        stored = auth.AdapterAuthorityLedger(root / "authority.jsonl", limits=auth.load_gate_limits(
+            cli._config_dir(None))).records("G3")[-1]["granted_at"] if approved == cli.EXIT_OK else None
+        args = SimpleNamespace(config=None, root=str(root), at=early, derivation_version=rt.config.derivation_version,
+                               source_id=rt.stores.source_id, contract_id=rt.stores.contract_id, cost_tier="fixture")
+        try:
+            ready = cli.cmd_approve_ready(args, prompt=lambda _: cli.CONFIRMATION_PHRASE)
+        except Exception:
+            ready = None
+        cutoff = ps.iso_add(row["ready_at"], seconds=1)               # before any real approval could exist
+        verdict = admissible_head(row["entity_id"], cutoff, stores=rt.stores,
+                                  derivation_check=lambda _: None)   # ADAPTED: verifier now mandatory (HA-12)
+        backdated = isinstance(verdict, UsableBook)
+    report("P:HA-013 READY back-dated", backdated or stored == early,
+           f"G3 granted_at stored as supplied={stored == early}; approve-ready exit={ready}; "
+           f"usable at a cutoff before the approval={backdated}")
+
+
+# -- P:HA-014 -----------------------------------------------------------------------------------------
+@probe("P:HA-014 reset clears SECRET_ECHO")
+def _():
+    from datetime import datetime, timedelta, timezone
+    from genesis.time import iso_utc
+    from genesis_adapters import errors as err
+    real_now = datetime.now(timezone.utc)
+    with scratch_root() as root:
+        echo = ok(("[" + json.dumps(SENTINEL_KEY) + "]").encode(), headers=JSON)
+        clock = FixedClock(iso_utc(real_now - timedelta(days=1)), step_micros=1000)   # behind the real clock
+        rt = open_rt(root, script=[echo, odds_response()], secret=Secret(SENTINEL_KEY), clock=clock)
+        try:
+            rt.runner.acquire(odds_item("w1"))
+        except err.AcquisitionHalt:
+            pass
+        args = SimpleNamespace(config=None, root=str(root), approval_reference="adr:synthetic-test-only-reset",
+                               reason="probe")
+        code = cli.cmd_reset(args, prompt=lambda _: cli.CONFIRMATION_PHRASE)
+        clock.set(iso_utc(real_now + timedelta(hours=1)))
+        after = rt.runner.acquire(odds_item("w2"))
+        cleared = after.failure not in (err.AdapterFailure.CIRCUIT_OPEN,)
+    report("P:HA-014 reset clears SECRET_ECHO", code == cli.EXIT_OK and cleared,
+           f"reset exit={code} with no new G1; next attempt still blocked={not cleared}")
+
+
+# -- A:F-02 / P:HA-015 --------------------------------------------------------------------------------
+@probe("A:F-02/P:HA-015 limits editable")
+def _():
+    from genesis_adapters.oddspapi import authority as auth
+    folder = Path(tempfile.mkdtemp(prefix="repro_limits_"))
+    try:
+        body = json.loads((cli._config_dir(None) / auth.GATE_LIMITS_FILE).read_text(encoding="utf-8"))
+        (folder / auth.GATE_LIMITS_FILE).write_text(json.dumps({**body, "g2_requests_cap": 500}), encoding="utf-8")
+        try:
+            auth.load_gate_limits(folder)
+            accepted = True
+        except Exception:
+            accepted = False
+    finally:
+        shutil.rmtree(folder, ignore_errors=True)
+    report("A:F-02/P:HA-015 limits editable", accepted, f"a 500-request limits file accepted={accepted}")
+
+
+# -- A:F-03 -------------------------------------------------------------------------------------------
+@probe("A:F-03 omitted tournament ABSENT")
+def _():
+    with scratch_root() as root:
+        rt = open_rt(root, script=[odds_response(), odds_response([fixture_of(ps.odds_payload(), FIXTURE_A)])])
+        rt.acquire(odds_item("w1"))
+        rt.clock.advance(seconds=600)
+        rt.acquire(odds_item("w2"))
+        absent = sum(1 for d in documents(rt) if d["market_state"] == "ABSENT")
+    report("A:F-03 omitted tournament ABSENT", absent > 0, f"ABSENT tombstones from an omitted tournament={absent}")
+
+
+REPRODUCED_COUNT = sum(1 for _, r, _ in RESULTS if r is True)
+ERROR_COUNT = sum(1 for _, r, _ in RESULTS if r is None)
+print(f"\nSUMMARY reproduced={REPRODUCED_COUNT} not_reproduced={sum(1 for _, r, _ in RESULTS if r is False)} "
+      f"probe_errors={ERROR_COUNT}")
+sys.exit(1 if REPRODUCED_COUNT or ERROR_COUNT else 0)

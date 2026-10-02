@@ -1,0 +1,25 @@
+#!/bin/bash
+# Targeted re-run of the one R3 mutant whose FINAL verdict was TIMEOUT because the host slept mid-mutant
+# (System log: Kernel-Power 42 "entering sleep" 2026-10-01T12:38:45Z; Power-Troubleshooter 1 resume 23:37:46Z).
+# Same helper, same module list and MUT_TIMEOUT as final_mutation.sh R3 [r3_pipeline]; MUTATION_R3.txt is kept as recorded.
+set -u
+cd /c/Users/abbot/fz/g || exit 2
+M=/c/Users/abbot/AppData/Local/Temp/claude/s0
+O=adapters/src/genesis_adapters/oddspapi
+R3S=adapter_tests.test_v05_r3_runner_state
+MODS="$R3S.PinnedScopeTests,$R3S.DurableVerdictTests"
+OUT=adapters/evidence/FINAL/MUTATION_R3_RERUN.txt
+{
+  echo "# FINAL mutation suite, round R3 targeted re-run - start: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "# reason: MUTATION_R3.txt reports 'normalization accepts a capture without a pinned scope' as TIMEOUT (39655s). The host"
+  echo "#   slept for that mutant's whole window (Kernel-Power 42 at 2026-10-01T12:38:45Z, resumed 23:37:46Z), so that verdict"
+  echo "#   measures the sleep, not the tests. This re-runs that single mutant; the original transcript is unchanged."
+  echo "# HEAD: $(git rev-parse HEAD) | worktree clean (adapters/src): $([ -z "$(git status --porcelain -- adapters/src)" ] && echo yes || echo NO)"
+  echo "# power: BatteryStatus=$(powershell.exe -NoProfile -Command '(Get-CimInstance Win32_Battery).BatteryStatus' | tr -d '\r') charge=$(powershell.exe -NoProfile -Command '(Get-CimInstance Win32_Battery).EstimatedChargeRemaining' | tr -d '\r')% | other python processes: $(powershell.exe -NoProfile -Command "(Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | Measure-Object).Count" | tr -d '\r')"
+  echo "# helper: s0/mutate2.py (unmutated baseline first; source restored in a finally; MUT_TIMEOUT=1200 s; TIMEOUT never counts as KILLED),"
+  echo "#   run under s0/keepawake.py (Windows keep-awake request held for the run)"
+  echo
+  echo "== $O/pipeline.py [final_r3_pipeline_rerun] (modules: $MODS)"
+  MUT_TIMEOUT=1200 python -B $M/keepawake.py python -B $M/mutate2.py . "$O/pipeline.py" "$MODS" "$M/muts_final_r3_pipeline_rerun.py" 2>&1
+  echo "# end: $(date -u +%Y-%m-%dT%H:%M:%SZ) | worktree clean after (adapters/src): $([ -z "$(git status --porcelain -- adapters/src)" ] && echo yes || echo NO)"
+} > "$OUT" 2>&1

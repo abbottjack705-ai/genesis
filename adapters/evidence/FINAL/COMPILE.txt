@@ -1,0 +1,9 @@
+# FINAL compileall
+# command: python -m compileall -q src tests adapters/src adapters/adapter_tests
+# start: 2026-10-01T10:10:47Z
+# python: Python 3.12.10
+# HEAD: 9f846d8abcd7383d6acae78294f0aefaba08e630 | adapters/src clean: yes
+# power: BatteryStatus=1 charge=68% | python processes running before this step: 0
+----
+# exit: 0
+# end: 2026-10-01T10:10:50Z

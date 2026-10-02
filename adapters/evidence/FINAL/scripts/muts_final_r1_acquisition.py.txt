@@ -1,0 +1,19 @@
+# The five R1 (F-01) mutants of oddspapi/acquisition.py re-anchored to the final code: R2 (HA-01) rewrote
+# _scanned_error, so four original anchors no longer exist. Same intent per mutant; names keep the R1 wording.
+MUTATIONS = [
+    ("sanitized record not scanned before persistence",
+     "        error = self._scanned_error(error)\n",
+     "\n"),
+    ("scan verdict ignored (re-anchored)",
+     "        if hit is not None and hit(canonical_json({\"class\": label, \"errno\": errno})):\n",
+     "        if False:\n"),
+    ("every record redacted when a key is configured (re-anchored)",
+     "        if hit is not None and hit(canonical_json({\"class\": label, \"errno\": errno})):\n",
+     "        if hit is not None:\n            label, errno = REDACTED_EXCEPTION_CLASS, None\n        if False:\n"),
+    ("a hit keeps its class name (re-anchored)",
+     "            label = safe_label(label, max_chars=max_chars, hit=hit)\n",
+     "\n"),
+    ("a hit keeps its errno (re-anchored)",
+     "            errno = safe_errno(errno, max_chars=max_chars, hit=hit)\n",
+     "\n"),
+]

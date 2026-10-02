@@ -1,0 +1,5 @@
+MUTATIONS = [
+    ("the runtime scan ignores reversible views",
+     "                    or any(scanner.scan(view).hit for view in secrets_module.reversible_views(data)):\n",
+     "                    or False:\n"),
+]

@@ -1,0 +1,1 @@
+MUTATIONS = [('clock faults not halted', '                in _CLOCK_FAULT_LABELS:\n', '                in ():\n')]

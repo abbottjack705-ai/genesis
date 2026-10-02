@@ -1,0 +1,14 @@
+MUTATIONS = [
+    ("the operator path passes a TLS context",
+     "    transport = HttpsTransport(secret, credential_param=specs[\"ODDS\"].credential_param, policy=config.policy)\n",
+     "    transport = HttpsTransport(secret, credential_param=specs[\"ODDS\"].credential_param, policy=config.policy,\n                               ssl_context=None)\n"),
+    ("the operator path passes a connect address",
+     "    transport = HttpsTransport(secret, credential_param=specs[\"ODDS\"].credential_param, policy=config.policy)\n",
+     "    transport = HttpsTransport(secret, credential_param=specs[\"ODDS\"].credential_param, policy=config.policy,\n                               connect_address=None)\n"),
+    ("the run command takes a CA file again",
+     "    run.add_argument(\"--mode\", choices=(\"G2\", \"G2R\"), required=True)\n",
+     "    run.add_argument(\"--mode\", choices=(\"G2\", \"G2R\"), required=True)\n    run.add_argument(\"--ca-file\")\n"),
+    ("the run command takes a connect address again",
+     "    run.add_argument(\"--mode\", choices=(\"G2\", \"G2R\"), required=True)\n",
+     "    run.add_argument(\"--mode\", choices=(\"G2\", \"G2R\"), required=True)\n    run.add_argument(\"--connect\")\n"),
+]

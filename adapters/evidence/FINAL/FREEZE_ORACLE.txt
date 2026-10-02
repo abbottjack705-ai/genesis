@@ -1,0 +1,27 @@
+# FINAL oracle freeze / placement / committed-artifact check (read-only git plumbing)
+# command: python -B oracle_freeze_check.py C:/Users/abbot/fz/g HEAD
+# start: 2026-10-01T10:10:57Z
+# python: Python 3.12.10
+# HEAD: 9f846d8abcd7383d6acae78294f0aefaba08e630 | adapters/src clean: yes
+# power: BatteryStatus=1 charge=67% | python processes running before this step: 0
+----
+[HARD] FZ-06 committed state: adapters/src/genesis_adapters/credential.py looks like runtime state / credential / authority record
+[REVIEW] FZ-06 committed state: adapters/adapter_tests/fixtures/tls/server.key (fixture; confirm it is synthetic)
+[REVIEW] FZ-06 committed state: adapters/adapter_tests/fixtures/tls/server.pem (fixture; confirm it is synthetic)
+[REVIEW] FZ-06 committed state: adapters/adapter_tests/fixtures/tls/test-ca.pem (fixture; confirm it is synthetic)
+[REVIEW] GT-00 G0 record: no adapters/DECISIONS/ADR-A001* in the tree: G0 (architecture acceptance) is not recorded in-repo; confirm the out-of-band approval
+[REVIEW] PR-01 commit prefix: 875656e9328d 'v05(R1): first hostile-audit remediation R-1..R-4 (audit_cfcff3d F-01..F-04)' lacks the v05(S<n>): prefix
+[REVIEW] PR-01 commit prefix: 72cca77c1c9c 'v05(R2): controlling hostile-audit remediation - credential and transport boundary (HA-01/02/03/07/08/13)' lacks the v05(S<n>): prefix
+[REVIEW] PR-01 commit prefix: a6fd9756b8af 'v05(R3): controlling hostile-audit remediation - acquisition state across crash and restart (HA-04/09/10/11)' lacks the v05(S<n>): prefix
+[REVIEW] PR-01 commit prefix: 2e1fb27cfe9f 'v05(R4): controlling hostile-audit remediation - PIT recovery, quiescence and consumption (HA-05/06/12)' lacks the v05(S<n>): prefix
+[REVIEW] PR-01 commit prefix: 9f846d8abcd7 'v05(R5): hostile-audit remediation - operator times and security resets (parallel audit HA-013/HA-014)' lacks the v05(S<n>): prefix
+[INFO] IDENTITY: implementation commit = 9f846d8abcd7383d6acae78294f0aefaba08e630
+[INFO] FZ-02 ancestry: certified baseline 4f11606615c7 is an ancestor of impl
+[INFO] FZ-02 ancestry: freeze tag commit 2278e2a68083 is an ancestor of impl
+[INFO] FZ-02 ancestry: architecture r3 c8dfafdff3be is an ancestor of impl
+[INFO] FZ-01: 16 commits after the freeze commit examined
+[INFO] EOL checkout: frozen src/genesis/*.py are LF in this checkout
+
+SUMMARY HARD=1 REVIEW=9 INFO=6
+# exit: 1
+# end: 2026-10-01T10:11:04Z

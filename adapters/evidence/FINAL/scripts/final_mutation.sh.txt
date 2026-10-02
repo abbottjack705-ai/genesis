@@ -1,0 +1,66 @@
+#!/bin/bash
+# usage: final_mutation.sh R1|R2|R3|R4|R5 <out file>
+# Final-validation mutation suite: every mutant of every remediation round, re-run against the FINAL code with the
+# module lists that round used (R1 acquisition mutants re-anchored: R2 rewrote _scanned_error). One heavy job at a time.
+set -u
+cd /c/Users/abbot/fz/g || exit 2
+M=/c/Users/abbot/AppData/Local/Temp/claude/s0
+A=adapters/src/genesis_adapters
+O=$A/oddspapi
+T=adapter_tests
+R3S=$T.test_v05_r3_runner_state
+ROUND="$1"; OUT="$2"
+case "$ROUND" in
+  R1) MGROUPS=(
+        "$O/acquisition.py|final_r1_acquisition|$T.test_v05_r1_sanitized_error"
+        "$O/raw_capture.py|r1_raw_capture|$T.test_v05_r1_sanitized_error"
+        "$O/authority.py|r1_authority|$T.test_v05_authority"
+        "$O/parser.py|r1_parser|$T.test_v05_r1_requested_tournaments"
+        "$O/derivation.py|r1_derivation|$T.test_v05_r1_requested_tournaments"
+        "$A/credential.py|r1_credential|$T.test_v05_credential") ;;
+  R2) MGROUPS=(
+        "$O/transport.py|r2_transport|$T.test_v05_r2_transport_boundary,$T.test_v05_r1_sanitized_error"
+        "$O/transport_http.py|r2_transport_http|$T.test_v05_r2_transport_boundary,$T.test_v05_r1_sanitized_error,$T.test_v05_static,$T.test_v05_tx01"
+        "$O/acquisition.py|r2_acquisition|$T.test_v05_r2_transport_boundary,$T.test_v05_r1_sanitized_error"
+        "$O/raw_capture.py|r2_raw_capture|$T.test_v05_r2_transport_boundary,$T.test_v05_raw_capture,$T.test_v05_secret_capture"
+        "$A/secrets.py|r2_secrets|$T.test_v05_r2_transport_boundary,$T.test_v05_secrets"
+        "$O/verify.py|r2_verify|$T.test_v05_r2_transport_boundary"
+        "$A/cli.py|r2_cli|$T.test_v05_r2_transport_boundary,$T.test_v05_cli") ;;
+  R3) MGROUPS=(
+        "$O/acquisition.py|r3_acq_verdict|$R3S.DurableVerdictTests"
+        "$O/acquisition.py|r3_acq_legacy|$T.test_v05_acquisition,$T.test_v05_failure_matrix"
+        "$O/acquisition.py|r3_acq_skew|$R3S.ClockSkewRearmTests,$T.test_v05_bnd07"
+        "$O/acquisition.py|r3_acq_scope|$R3S.PinnedScopeTests"
+        "$O/acquisition.py|r3_acq_retry|$R3S.RetryStateMachineTests"
+        "$O/acquisition.py|r3_acq_clockfault|$R3S.DurableVerdictTests"
+        "$O/raw_capture.py|r3_raw_capture|$R3S.ClockSkewRearmTests"
+        "$O/pipeline.py|r3_pipeline|$R3S.PinnedScopeTests,$R3S.DurableVerdictTests"
+        "$O/derivation.py|r3_derivation|$T.test_v05_pipeline,$R3S.PinnedScopeTests"
+        "$O/quota_gate.py|r3_quota_gate|$R3S.DurableVerdictTests"
+        "$O/capability.py|r3_capability|$R3S.DurableVerdictTests"
+        "$A/cli.py|r3_cli|$R3S.RetryStateMachineTests") ;;
+  R4) MGROUPS=(
+        "$O/emit.py|r4_emit|$T.test_v05_r4_pit_recovery,$T.test_v05_emit_crash,$T.test_v05_invalidation"
+        "$O/reader.py|r4_reader|$T.test_v05_r4_pit_recovery"
+        "$O/quiescence.py|r4_quiescence|$T.test_v05_r4_pit_recovery"
+        "$O/pipeline.py|r4_pipeline|$T.test_v05_r4_pit_recovery"
+        "$O/manifest.py|r4_manifest|$T.test_v05_r4_pit_recovery"
+        "$A/cli.py|r4_cli|$T.test_v05_r4_pit_recovery") ;;
+  R5) MGROUPS=(
+        "$A/cli.py|r5_cli|$T.test_v05_r5_operator,$T.test_v05_authority"
+        "$O/capability.py|r5_capability|$T.test_v05_r5_operator,$T.test_v05_authority") ;;
+  *) echo "unknown round $ROUND"; exit 2 ;;
+esac
+{
+  echo "# FINAL mutation suite, round $ROUND - start: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  echo "# HEAD: $(git rev-parse HEAD) | worktree clean (adapters/src): $([ -z "$(git status --porcelain -- adapters/src)" ] && echo yes || echo NO)"
+  echo "# power: BatteryStatus=$(powershell.exe -NoProfile -Command '(Get-CimInstance Win32_Battery).BatteryStatus') charge=$(powershell.exe -NoProfile -Command '(Get-CimInstance Win32_Battery).EstimatedChargeRemaining')% | other python processes: $(powershell.exe -NoProfile -Command "(Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | Measure-Object).Count")"
+  echo "# helper: s0/mutate2.py (unmutated baseline first; source restored in a finally; MUT_TIMEOUT=1200 s; TIMEOUT never counts as KILLED)"
+  for spec in "${MGROUPS[@]}"; do
+    IFS='|' read -r src name mods <<< "$spec"
+    echo
+    echo "== $src [$name] (modules: $mods)"
+    MUT_TIMEOUT=1200 python -B $M/mutate2.py . "$src" "$mods" "$M/muts_$name.py" 2>&1
+  done
+  echo "# end: $(date -u +%Y-%m-%dT%H:%M:%SZ) | worktree clean after (adapters/src): $([ -z "$(git status --porcelain -- adapters/src)" ] && echo yes || echo NO)"
+} >> "$OUT" 2>&1

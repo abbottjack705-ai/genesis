@@ -1,0 +1,39 @@
+# FINAL no-network guard: the single ERROR / single oracle violation in NO_NETWORK.txt, isolated
+# run: 2026-10-01T11:45:57Z | HEAD 9f846d8abcd7383d6acae78294f0aefaba08e630
+#
+# test_v05_transport_http.ConnectionFailureTests.test_the_suite_refuses_any_non_loopback_contact is the suite's own self-test of
+# its loopback-only audit hook: it deliberately calls socket.create_connection(('192.0.2.1', 443)) - 192.0.2.1 is TEST-NET-1
+# (RFC 5737, documentation only, never routed) - and asserts that the SUITE's hook raises RuntimeError. Under the oracle
+# runner the oracle's hook is registered first, so it intercepts the getaddrinfo call and raises PermissionError: the
+# test errors on the exception type, and the oracle records that one deliberate attempt as its only violation. Nothing
+# reached connect(). Every other test of the 690 made no non-loopback attempt (ORACLE NETWORK VIOLATIONS=1, this one).
+#
+== A. the single test under the oracle runner (deterministic: the same error and the same single violation)
+test_the_suite_refuses_any_non_loopback_contact (adapter_tests.test_v05_transport_http.ConnectionFailureTests.test_the_suite_refuses_any_non_loopback_contact) ... ERROR
+
+======================================================================
+ERROR: test_the_suite_refuses_any_non_loopback_contact (adapter_tests.test_v05_transport_http.ConnectionFailureTests.test_the_suite_refuses_any_non_loopback_contact)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+    socket.create_connection(("192.0.2.1", 443), timeout=1)
+    raise PermissionError(f"oracle: DNS resolution blocked: {host!r}")
+PermissionError: oracle: DNS resolution blocked: '192.0.2.1'
+
+----------------------------------------------------------------------
+Ran 1 test in 0.011s
+
+FAILED (errors=1)
+
+ORACLE NETWORK VIOLATIONS=1
+  socket.getaddrinfo '192.0.2.1'
+# exit: 0
+
+== B. the same test without the oracle (the suite's own hook refuses the contact itself)
+test_the_suite_refuses_any_non_loopback_contact (adapter_tests.test_v05_transport_http.ConnectionFailureTests.test_the_suite_refuses_any_non_loopback_contact) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.008s
+
+OK
+# exit: 0
+# note: section A's '# exit: 0' is the status of the grep filter that drops traceback frames; the oracle run itself reports FAILED (errors=1) as shown.

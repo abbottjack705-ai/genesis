@@ -1,0 +1,5 @@
+MUTATIONS = [
+    ("the requested set is not read from the stored request",
+     "    requested, _ = request_scope_filters(load_request(request_root, planned[\"provider_request_hash\"]), maps)\n",
+     "    requested = ()\n"),
+]

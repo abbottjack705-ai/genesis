@@ -1,0 +1,1 @@
+MUTATIONS = [('normalization accepts a capture without a pinned scope', '        if scope_hash is None or scope_hash != rows["acq_sent"]["expected_scope_hash"]:\n            raise derivation.DerivationError("no expected scope was pinned before this ODDS request was sent")\n', '')]

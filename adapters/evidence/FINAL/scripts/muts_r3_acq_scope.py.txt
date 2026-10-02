@@ -1,0 +1,1 @@
+MUTATIONS = [('no scope pinned before the send', '        scope_hash = self.scope_pinner(request, tq) if self.scope_pinner is not None else None\n', '        scope_hash = None\n')]

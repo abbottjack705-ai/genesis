@@ -1,0 +1,125 @@
+#!/bin/bash
+# usage: final_checks.sh <step>   steps: adapter frozen subsets nonet repro replay static sweep inventory
+# Final isolated validation of the remediated tree (HEAD). One step per invocation, one heavy job at a time.
+set -u
+cd /c/Users/abbot/fz/g || exit 2
+D=adapters/evidence/FINAL
+mkdir -p "$D"
+SP=/c/Users/abbot/AppData/Local/Temp/claude/C--Users-abbot/52bb25ab-4de3-4b05-948d-d8dfc5ab12ae/scratchpad
+TOOLS=/c/Users/abbot/a8/v05_prep/audit_oracle/tools
+T=adapter_tests
+stamp() { date -u +%Y-%m-%dT%H:%M:%SZ; }
+power() { echo "BatteryStatus=$(powershell.exe -NoProfile -Command '(Get-CimInstance Win32_Battery).BatteryStatus') charge=$(powershell.exe -NoProfile -Command '(Get-CimInstance Win32_Battery).EstimatedChargeRemaining')%"; }
+others() { powershell.exe -NoProfile -Command "(Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | Measure-Object).Count"; }
+hdr() {
+  echo "# FINAL $1"
+  echo "# command: $2"
+  echo "# start: $(stamp)"
+  echo "# python: $(python --version 2>&1)"
+  echo "# HEAD: $(git rev-parse HEAD) | adapters/src clean: $([ -z "$(git status --porcelain -- adapters/src adapters/adapter_tests adapters/config)" ] && echo yes || echo NO)"
+  echo "# power: $(power) | python processes running before this step: $(others)"
+  echo "----"
+}
+ftr() { echo "# exit: $1"; echo "# end: $(stamp)"; }
+unit() {  # unit <file> <title> <modules...>
+  local out="$1" title="$2"; shift 2
+  { hdr "$title" "PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B -m unittest -v $*"
+    PYTHONPATH=adapters PYTHONPYCACHEPREFIX="$(mktemp -d)" python -B -m unittest -v "$@" 2>&1; ftr $?; } > "$D/$out"
+}
+case "$1" in
+  adapter)
+    { hdr "full adapter suite" "PYTHONPYCACHEPREFIX=<fresh> python -B -m unittest discover -s adapters/adapter_tests -t adapters -v"
+      PYTHONPYCACHEPREFIX="$(mktemp -d)" python -B -m unittest discover -s adapters/adapter_tests -t adapters -v 2>&1; ftr $?; } > "$D/ADAPTER_SUITE.txt" ;;
+  frozen)
+    { hdr "frozen V0.4 suite" "python -m unittest discover -s tests -t . -v"
+      python -m unittest discover -s tests -t . -v 2>&1; ftr $?; } > "$D/FROZEN.txt"
+    { hdr "frozen-suite count comparison vs the S0 baseline" "verify.compare_frozen_transcripts(S0/FROZEN.txt, FINAL/FROZEN.txt)"
+      PYTHONPATH="adapters/src" python -B -c "
+from genesis_adapters.oddspapi import verify as v
+a=open('adapters/evidence/S0/FROZEN.txt',encoding='utf-8',errors='replace').read(); b=open('$D/FROZEN.txt',encoding='utf-8',errors='replace').read()
+print('baseline', v.parse_unittest_summary(a)); print('current ', v.parse_unittest_summary(b)); print('IDENTICAL:', v.compare_frozen_transcripts(a,b) is not None)" 2>&1; ftr $?; } > "$D/FROZEN_COMPARE.txt" ;;
+  subsets)
+    unit SUBSET_HOSTILE_REGRESSION.txt "hostile regression subset (R1-R5 remediation tests, credential link attacks, gate-limit pin)" \
+      $T.test_v05_r1_requested_tournaments $T.test_v05_r1_sanitized_error $T.test_v05_r2_transport_boundary \
+      $T.test_v05_r3_runner_state $T.test_v05_r4_pit_recovery $T.test_v05_r5_operator $T.test_v05_credential \
+      $T.test_v05_authority.GateLimitPinTests
+    unit SUBSET_CRASH_RECOVERY.txt "crash/restart convergence matrix" \
+      $T.test_v05_acquisition.CrashAndRestartTests $T.test_v05_emit_crash $T.test_v05_pipeline.CrashResumeTests \
+      $T.test_v05_pit.CrashAndRebuildTests $T.test_v05_r3_runner_state $T.test_v05_r4_pit_recovery \
+      $T.test_v05_raw_capture.RawPublicationFailureTests $T.test_v05_failure_matrix \
+      $T.test_v05_invalidation.CoverageAndRefusalTests $T.test_v05_parser_identity.RegistryTests \
+      $T.test_v05_r1_requested_tournaments.RequestedTournamentTests
+    unit SUBSET_PIT_INVALIDATION.txt "PIT / invalidation / reader recovery matrix" \
+      $T.test_v05_pit $T.test_v05_invalidation $T.test_v05_r4_pit_recovery $T.test_v05_reader \
+      $T.test_v05_derivation_source $T.test_v05_manifest
+    unit SUBSET_DEADLINE_BOUNDARY.txt "deadline / UTC boundary / clock matrix" \
+      $T.test_v05_boundary $T.test_v05_bnd07 $T.test_v05_boundability $T.test_v05_clock $T.test_v05_scheduler \
+      $T.test_v05_r2_transport_boundary.WriteBoundaryDeadlineTests $T.test_v05_r3_runner_state.ClockSkewRearmTests \
+      $T.test_v05_raw_capture.ClockSkewTests $T.test_v05_acquisition.ClockTests
+    unit SUBSET_CREDENTIAL_SECRET.txt "credential / secret matrix" \
+      $T.test_v05_credential $T.test_v05_secrets $T.test_v05_secret_capture $T.test_v05_secret_pipeline \
+      $T.test_v05_r1_sanitized_error $T.test_v05_r2_transport_boundary $T.test_v05_tx01 $T.test_v05_transport_http \
+      $T.test_v05_acquisition.CredentialHygieneTests $T.test_v05_r5_operator.SecurityResetTests ;;
+  nonet)
+    { hdr "no-network guard: full adapter suite under the oracle's in-process network audit hook" "PYTHONPYCACHEPREFIX=<fresh> python -B oracle_no_network_run.py -s adapters/adapter_tests -t adapters -v"
+      PYTHONPYCACHEPREFIX="$(mktemp -d)" python -B "$TOOLS/oracle_no_network_run.py" -s adapters/adapter_tests -t adapters -v 2>&1; ftr $?; } > "$D/NO_NETWORK.txt" ;;
+  repro)
+    { hdr "controlling-audit reproduction probes (final-tree variant; every line must be NOT REPRODUCED)" "PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B repro_controlling_final.py"
+      PYTHONPATH=adapters PYTHONPYCACHEPREFIX="$(mktemp -d)" python -B "$SP/repro_controlling_final.py" 2>&1; ftr $?; } > "$D/REPRO_CONTROLLING.txt" ;;
+  replay)
+    { hdr "deterministic replay: two uninterrupted fixture runs, every durable file compared by SHA-256" "PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B replay_check.py"
+      PYTHONPATH=adapters PYTHONPYCACHEPREFIX="$(mktemp -d)" python -B "$SP/replay_check.py" 2>&1; ftr $?; } > "$D/REPLAY.txt" ;;
+  static)
+    { hdr "compileall" "python -m compileall -q src tests adapters/src adapters/adapter_tests"
+      PYTHONPYCACHEPREFIX="$(mktemp -d)" python -m compileall -q src tests adapters/src adapters/adapter_tests 2>&1; ftr $?; } > "$D/COMPILE.txt"
+    { hdr "git diff --check" "git diff --check cfcff3d HEAD; git diff --check (worktree)"
+      git diff --check cfcff3dbb285eaa48a6cfc1eceedb91e27662c81 HEAD 2>&1; echo "# exit(cfcff3d..HEAD): $?"; git diff --check 2>&1; ftr $?; } > "$D/DIFFCHECK.txt"
+    { hdr "frozen tree SHAs" 'git rev-parse HEAD:<tree> for the six frozen trees; diff vs v0.4-foundation-freeze; worktree status'
+      for t in src tests config tools DECISIONS v04_pack; do echo "$t $(git rev-parse HEAD:$t)"; done
+      echo "-- git diff --name-status 2278e2a68083f7ac58d796b1ed9c43d50020b6b0 HEAD -- <six trees> (must be empty):"
+      git diff --name-status 2278e2a68083f7ac58d796b1ed9c43d50020b6b0 HEAD -- src tests config tools DECISIONS v04_pack
+      echo "-- git status --porcelain -- <six trees> (must be empty):"
+      git status --porcelain -- src tests config tools DECISIONS v04_pack
+      echo "-- files changed cfcff3d..HEAD outside adapters/ (must be empty):"
+      git diff --name-only cfcff3dbb285eaa48a6cfc1eceedb91e27662c81 HEAD | grep -v '^adapters/'
+      echo "-- cfcff3d is an ancestor of HEAD and unchanged:"; git merge-base --is-ancestor cfcff3dbb285eaa48a6cfc1eceedb91e27662c81 HEAD && echo yes
+      git cat-file -t cfcff3dbb285eaa48a6cfc1eceedb91e27662c81
+      ftr 0; } > "$D/TREES.txt"
+    { hdr "freeze guard + module-provenance guard" "verify_frozen_trees / verify_frozen_worktree_clean / verify_loaded_genesis_modules"
+      PYTHONPYCACHEPREFIX="$(mktemp -d)" PYTHONPATH="adapters;adapters/src;src" python -B - <<'PYEOF'
+import importlib, json
+import adapter_tests
+from adapter_tests.support import REPO, CONFIG
+from genesis_adapters import provenance_guard as g
+from genesis_adapters.oddspapi import verify as v
+v.verify_frozen_trees(REPO, "HEAD"); print("freeze guard (six tree SHAs @ HEAD): PASS")
+v.verify_frozen_worktree_clean(REPO); print("frozen worktree clean: PASS")
+for n in ("time","repro","registry","provenance","evidence","pit","feature_manifest","quota","coverage","reasons","logging","canonical","capabilities","evidence_pack"):
+    importlib.import_module("genesis." + n)
+d = g.verify_loaded_genesis_modules(REPO, manifest_path=CONFIG/"frozen_genesis_modules.json", expected_manifest_sha256=v.FROZEN_MANIFEST_SHA256)
+print("module-provenance guard:", d["verdict"])
+print("manifest sha256:", d["manifest_sha256"])
+print("genesis origin:", d["genesis_origin"])
+print("flags:", json.dumps(d["flags"], sort_keys=True))
+print("genesis modules verified:", len(d["modules"]), "; adapter modules loaded:", len(d["adapter_modules"]))
+PYEOF
+      ftr $?; } > "$D/GUARDS.txt"
+    { hdr "oracle freeze / placement / committed-artifact check (read-only git plumbing)" "python -B oracle_freeze_check.py C:/Users/abbot/fz/g HEAD"
+      python -B "$TOOLS/oracle_freeze_check.py" "C:/Users/abbot/fz/g" HEAD 2>&1; ftr $?; } > "$D/FREEZE_ORACLE.txt" ;;
+  sweep)
+    { hdr "secret sweep (oracle_secret_sweep.py: every section-7.6 form of the test sentinel)" "see each section"
+      echo "== self-test"; python -B "$TOOLS/oracle_secret_sweep.py" --self-test 2>&1 | tail -1
+      echo "== adapters/src (production code)"; python -B "$TOOLS/oracle_secret_sweep.py" adapters/src 2>&1 | tail -3
+      echo "== adapters/config adapters/README.md"; python -B "$TOOLS/oracle_secret_sweep.py" adapters/config adapters/README.md 2>&1 | tail -3
+      echo "== adapters/evidence (every round, FINAL included)"; python -B "$TOOLS/oracle_secret_sweep.py" adapters/evidence 2>&1 | tail -5
+      echo "== adapters/adapter_tests (support.py defines the sentinel constant: EXPECTED there only)"
+      python -B "$TOOLS/oracle_secret_sweep.py" --allow adapter_tests/support.py adapters/adapter_tests 2>&1 | grep -v "^EXPECTED" | tail -12
+      echo "== git history of the remediation (git log -p cfcff3d..HEAD, stdin)"
+      git log -p cfcff3dbb285eaa48a6cfc1eceedb91e27662c81..HEAD 2>&1 | python -B "$TOOLS/oracle_secret_sweep.py" - 2>&1 | tail -6
+      ftr 0; } > "$D/SECRET_SWEEP.txt" ;;
+  inventory)
+    { hdr "section-18 test-ID inventory and skip audit of the final adapter-suite transcript" "python -B oracle_test_inventory.py C:/Users/abbot/fz/g --transcript FINAL/ADAPTER_SUITE.txt"
+      python -B "$TOOLS/oracle_test_inventory.py" "C:/Users/abbot/fz/g" --transcript "$D/ADAPTER_SUITE.txt" 2>&1; ftr $?; } > "$D/INVENTORY.txt" ;;
+  *) echo "unknown step $1"; exit 2 ;;
+esac
+echo "step $1 done: $(stamp)"

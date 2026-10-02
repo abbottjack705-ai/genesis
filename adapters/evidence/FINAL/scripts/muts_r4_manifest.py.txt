@@ -1,0 +1,1 @@
+MUTATIONS = [('the manifest builder does not verify', '        current = admissible_head(book.entity_id, cutoff, stores=stores, derivation_check=derivation_check)\n', '        current = admissible_head(book.entity_id, cutoff, stores=stores, derivation_check=lambda _: None)\n')]

@@ -1,0 +1,58 @@
+"""Mutation smoke test: apply one textual mutation at a time, run the given test pattern, report survivors.
+
+usage: python mutate.py <repo> <relative source file> <pattern> <mutations.py>
+where mutations.py defines MUTATIONS = [(name, old, new), ...]
+"""
+
+import os
+import runpy
+import subprocess
+import sys
+import tempfile
+import time
+from pathlib import Path
+
+repo = Path(sys.argv[1])
+source = repo / sys.argv[2]
+pattern = sys.argv[3]
+mutations = runpy.run_path(sys.argv[4])["MUTATIONS"]
+original = source.read_text(encoding="utf-8")
+results = []
+
+
+def command_and_env():
+    env = dict(os.environ, PYTHONPYCACHEPREFIX=tempfile.mkdtemp())
+    if pattern.startswith("adapter_tests."):              # an explicit, comma-separated module list
+        env["PYTHONPATH"] = "adapters"
+        return [sys.executable, "-B", "-m", "unittest", *pattern.split(",")], env
+    return [sys.executable, "-B", "-m", "unittest", "discover", "-s", "adapters/adapter_tests", "-t", "adapters",
+            "-p", pattern], env
+
+
+baseline_command, baseline_env = command_and_env()
+baseline = subprocess.run(baseline_command, cwd=repo, env=baseline_env, capture_output=True, text=True, timeout=900)
+if baseline.returncode != 0:                              # an unmutated failure would make every mutant "KILLED"
+    print(baseline.stdout[-3000:], baseline.stderr[-3000:])
+    raise SystemExit("baseline run failed: mutation results would be meaningless")
+print("baseline: PASS (" + (baseline.stderr.strip().splitlines() or ["?"])[-1] + ")")
+try:
+    for name, old, new in mutations:
+        if original.count(old) != 1:
+            results.append((name, f"SKIPPED (anchor count {original.count(old)})"))
+            continue
+        source.write_text(original.replace(old, new), encoding="utf-8", newline="\n")
+        command, env = command_and_env()
+        started = time.monotonic()
+        try:
+            proc = subprocess.run(command, cwd=repo, env=env, capture_output=True, text=True,
+                                  timeout=float(os.environ.get("MUT_TIMEOUT", "900")))
+            verdict = "KILLED" if proc.returncode != 0 else "SURVIVED"
+        except subprocess.TimeoutExpired:
+            verdict = "TIMEOUT"                      # reported as such: never counted as killed
+        results.append((name, f"{verdict} ({time.monotonic() - started:.0f}s)"))
+        print(f"{results[-1][1]:16} {name}", flush=True)
+finally:
+    source.write_text(original, encoding="utf-8", newline="\n")
+print("-- summary")
+for name, verdict in results:
+    print(f"{verdict:16} {name}")

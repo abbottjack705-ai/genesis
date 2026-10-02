@@ -1,0 +1,71 @@
+# FINAL mutation suite, round R4 - start: 2026-10-01T23:49:13Z
+# HEAD: 9f846d8abcd7383d6acae78294f0aefaba08e630 | worktree clean (adapters/src): yes
+# power: BatteryStatus=2 charge=79% | other python processes: 0
+# helper: s0/mutate2.py (unmutated baseline first; source restored in a finally; MUT_TIMEOUT=1200 s; TIMEOUT never counts as KILLED)
+
+== adapters/src/genesis_adapters/oddspapi/emit.py [r4_emit] (modules: adapter_tests.test_v05_r4_pit_recovery,adapter_tests.test_v05_emit_crash,adapter_tests.test_v05_invalidation)
+baseline: PASS (OK)
+KILLED (82s)     a resumed emission re-stamps T2
+KILLED (81s)     a resumed emission re-stamps T3
+KILLED (86s)     a resumed invalidation re-stamps its T3
+KILLED (85s)     an invalidation is emitted without the run lock
+KILLED (62s)     pending invalidations are never completed
+KILLED (61s)     complete invalidations are run again
+-- summary
+KILLED (82s)     a resumed emission re-stamps T2
+KILLED (81s)     a resumed emission re-stamps T3
+KILLED (86s)     a resumed invalidation re-stamps its T3
+KILLED (85s)     an invalidation is emitted without the run lock
+KILLED (62s)     pending invalidations are never completed
+KILLED (61s)     complete invalidations are run again
+
+== adapters/src/genesis_adapters/oddspapi/reader.py [r4_reader] (modules: adapter_tests.test_v05_r4_pit_recovery)
+baseline: PASS (OK)
+KILLED (34s)     a missing verifier passes
+KILLED (27s)     unfinished work is read anyway
+KILLED (28s)     the reader takes no lock
+KILLED (28s)     the derivation check is skipped
+-- summary
+KILLED (34s)     a missing verifier passes
+KILLED (27s)     unfinished work is read anyway
+KILLED (28s)     the reader takes no lock
+KILLED (28s)     the derivation check is skipped
+
+== adapters/src/genesis_adapters/oddspapi/quiescence.py [r4_quiescence] (modules: adapter_tests.test_v05_r4_pit_recovery)
+baseline: PASS (OK)
+KILLED (46s)     an open attempt is not unfinished work
+KILLED (43s)     an unnormalized capture is not unfinished work
+KILLED (45s)     a missing credential halt is not unfinished work
+KILLED (45s)     a pending invalidation is not unfinished work
+KILLED (96s)     the lock is not exclusive
+KILLED (0s)      re-entry is not counted
+-- summary
+KILLED (46s)     an open attempt is not unfinished work
+KILLED (43s)     an unnormalized capture is not unfinished work
+KILLED (45s)     a missing credential halt is not unfinished work
+KILLED (45s)     a pending invalidation is not unfinished work
+KILLED (96s)     the lock is not exclusive
+KILLED (0s)      re-entry is not counted
+
+== adapters/src/genesis_adapters/oddspapi/pipeline.py [r4_pipeline] (modules: adapter_tests.test_v05_r4_pit_recovery)
+baseline: PASS (OK)
+KILLED (72s)     resume does not complete pending invalidations
+KILLED (76s)     an underivable head is not invalidated
+-- summary
+KILLED (72s)     resume does not complete pending invalidations
+KILLED (76s)     an underivable head is not invalidated
+
+== adapters/src/genesis_adapters/oddspapi/manifest.py [r4_manifest] (modules: adapter_tests.test_v05_r4_pit_recovery)
+baseline: PASS (OK)
+KILLED (52s)     the manifest builder does not verify
+-- summary
+KILLED (52s)     the manifest builder does not verify
+
+== adapters/src/genesis_adapters/cli.py [r4_cli] (modules: adapter_tests.test_v05_r4_pit_recovery)
+baseline: PASS (OK)
+KILLED (48s)     the CLI run takes no lock
+KILLED (30s)     the G2 start does not reconcile invalidations
+-- summary
+KILLED (48s)     the CLI run takes no lock
+KILLED (30s)     the G2 start does not reconcile invalidations
+# end: 2026-10-02T00:14:23Z | worktree clean after (adapters/src): yes

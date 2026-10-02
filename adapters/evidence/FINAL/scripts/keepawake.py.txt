@@ -1,0 +1,12 @@
+"""Run a command while holding a Windows keep-awake request (SetThreadExecutionState); it ends with this process.
+Idle sleep is blocked for the duration; closing the lid can still force sleep."""
+import ctypes
+import subprocess
+import sys
+
+ES_CONTINUOUS, ES_SYSTEM_REQUIRED = 0x80000000, 0x00000001
+ctypes.windll.kernel32.SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED)
+try:
+    sys.exit(subprocess.call(sys.argv[1:]))
+finally:
+    ctypes.windll.kernel32.SetThreadExecutionState(ES_CONTINUOUS)

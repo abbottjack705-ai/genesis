@@ -1,0 +1,61 @@
+# FINAL mutation suite, round R1 - start: 2026-10-01T11:47:21Z
+# HEAD: 9f846d8abcd7383d6acae78294f0aefaba08e630 | worktree clean (adapters/src): yes
+# power: BatteryStatus=2 charge=14% | other python processes: 0
+# helper: s0/mutate2.py (unmutated baseline first; source restored in a finally; MUT_TIMEOUT=1200 s; TIMEOUT never counts as KILLED)
+
+== adapters/src/genesis_adapters/oddspapi/acquisition.py [final_r1_acquisition] (modules: adapter_tests.test_v05_r1_sanitized_error)
+baseline: PASS (OK)
+KILLED (6s)      sanitized record not scanned before persistence
+KILLED (6s)      scan verdict ignored (re-anchored)
+KILLED (6s)      every record redacted when a key is configured (re-anchored)
+KILLED (6s)      a hit keeps its class name (re-anchored)
+SURVIVED (6s)    a hit keeps its errno (re-anchored)
+-- summary
+KILLED (6s)      sanitized record not scanned before persistence
+KILLED (6s)      scan verdict ignored (re-anchored)
+KILLED (6s)      every record redacted when a key is configured (re-anchored)
+KILLED (6s)      a hit keeps its class name (re-anchored)
+SURVIVED (6s)    a hit keeps its errno (re-anchored)
+
+== adapters/src/genesis_adapters/oddspapi/raw_capture.py [r1_raw_capture] (modules: adapter_tests.test_v05_r1_sanitized_error)
+baseline: PASS (OK)
+KILLED (6s)      the capture's scan hook never reports a hit
+-- summary
+KILLED (6s)      the capture's scan hook never reports a hit
+
+== adapters/src/genesis_adapters/oddspapi/authority.py [r1_authority] (modules: adapter_tests.test_v05_authority)
+baseline: PASS (OK)
+KILLED (7s)      gate-limits digest not checked
+KILLED (1s)      gate-limits digest pinned to other bytes
+-- summary
+KILLED (7s)      gate-limits digest not checked
+KILLED (1s)      gate-limits digest pinned to other bytes
+
+== adapters/src/genesis_adapters/oddspapi/parser.py [r1_parser] (modules: adapter_tests.test_v05_r1_requested_tournaments)
+baseline: PASS (OK)
+KILLED (37s)     an omitted requested tournament is ignored
+KILLED (97s)     a loosely typed tournament id counts as present
+KILLED (97s)     a fixture of another sport counts as present
+KILLED (39s)     any fixture at all makes every requested tournament present
+-- summary
+KILLED (37s)     an omitted requested tournament is ignored
+KILLED (97s)     a loosely typed tournament id counts as present
+KILLED (97s)     a fixture of another sport counts as present
+KILLED (39s)     any fixture at all makes every requested tournament present
+
+== adapters/src/genesis_adapters/oddspapi/derivation.py [r1_derivation] (modules: adapter_tests.test_v05_r1_requested_tournaments)
+baseline: PASS (OK)
+KILLED (38s)     the requested set is not read from the stored request
+-- summary
+KILLED (38s)     the requested set is not read from the stored request
+
+== adapters/src/genesis_adapters/credential.py [r1_credential] (modules: adapter_tests.test_v05_credential)
+baseline: PASS (OK (skipped=1))
+KILLED (3s)      the location is checked on the unresolved path (junctions not followed)
+KILLED (3s)      the runtime-root location is not checked
+KILLED (3s)      a second hard-link name is accepted
+-- summary
+KILLED (3s)      the location is checked on the unresolved path (junctions not followed)
+KILLED (3s)      the runtime-root location is not checked
+KILLED (3s)      a second hard-link name is accepted
+# end: 2026-10-01T11:57:04Z | worktree clean after (adapters/src): yes

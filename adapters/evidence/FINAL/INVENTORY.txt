@@ -1,0 +1,20 @@
+# FINAL section-18 test-ID inventory and skip audit of the final adapter-suite transcript
+# command: python -B oracle_test_inventory.py C:/Users/abbot/fz/g --transcript FINAL/ADAPTER_SUITE.txt
+# start: 2026-10-01T10:33:48Z
+# python: Python 3.12.10
+# HEAD: 9f846d8abcd7383d6acae78294f0aefaba08e630 | adapters/src clean: yes
+# power: BatteryStatus=1 charge=39% | python processes running before this step: 0
+----
+S0: 10/10 IDs present
+S1: 14/14 IDs present
+S2: 18/18 IDs present
+S3: 11/11 IDs present
+S4: 35/35 IDs present
+S5: 22/22 IDs present
+S6: 50/50 IDs present
+S7: 14/14 IDs present
+TOTAL section 18 IDs=167 present=167
+adapters\evidence\FINAL\ADAPTER_SUITE.txt: ran=('690', '556.067') result=('OK', 'skipped=1')
+  SKIPPED adapter_tests.test_v05_credential.CredentialTests.test_f04_a_link_is_refused.test_f04_a_link_is_refused: 'symbolic links need a privilege this account does not hold'
+# exit: 0
+# end: 2026-10-01T10:33:52Z

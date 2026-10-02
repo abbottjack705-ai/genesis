@@ -1,0 +1,14 @@
+MUTATIONS = [
+    ("an omitted requested tournament is ignored",
+     "            or bool(self._omitted_competitions(payload))\n",
+     "            or False\n"),
+    ("a loosely typed tournament id counts as present",
+     "            if type(tournament) is not int or type(sport) is not int or sport != self.maps.sport_id:\n",
+     "            if tournament is None:\n"),
+    ("a fixture of another sport counts as present",
+     "            if type(tournament) is not int or type(sport) is not int or sport != self.maps.sport_id:\n",
+     "            if type(tournament) is not int:\n"),
+    ("any fixture at all makes every requested tournament present",
+     "        return tuple(item for item in self.ctx.requested_competitions if item not in present)\n",
+     "        return tuple(item for item in self.ctx.requested_competitions if not payload)\n"),
+]

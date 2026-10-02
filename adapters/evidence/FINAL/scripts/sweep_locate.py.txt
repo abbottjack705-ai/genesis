@@ -1,0 +1,34 @@
+"""Locate every oracle_secret_sweep hit to its line and matched needle (uses the oracle's own form generator).
+usage: python -B sweep_locate.py PATH... | python -B sweep_locate.py -   (stdin: git log -p, reports commit/file)"""
+import importlib.util
+import sys
+from pathlib import Path
+
+spec = importlib.util.spec_from_file_location("oss", r"C:\Users\abbot\a8\v05_prep\audit_oracle\tools\oracle_secret_sweep.py")
+oss = importlib.util.module_from_spec(spec); spec.loader.exec_module(oss)
+FS = oss.forms(oss.DEFAULT_KEY)
+
+
+def report(label, data):
+    commit = path = "?"
+    for n, line in enumerate(data.split(b"\n"), 1):
+        if line.startswith(b"commit "):
+            commit = line[7:19].decode()
+        elif line.startswith(b"+++ b/"):
+            path = line[6:].decode(errors="replace")
+        low = line.lower()
+        for cls, needle, ci in FS:
+            if (needle.lower() in low) if ci else (needle in line):
+                where = f"{commit} {path}" if label == "<stdin>" else f"{label}:{n}"
+                print(f"{where}  [{cls}] needle={needle[:40]!r}  line={line.strip()[:150]!r}")
+                break
+
+
+for p in sys.argv[1:]:
+    if p == "-":
+        report("<stdin>", sys.stdin.buffer.read()); continue
+    root = Path(p)
+    for fp in ([root] if root.is_file() else sorted(x for x in root.rglob("*") if x.is_file())):
+        data = fp.read_bytes()
+        if oss.scan_bytes(data, FS):
+            report(str(fp), data)

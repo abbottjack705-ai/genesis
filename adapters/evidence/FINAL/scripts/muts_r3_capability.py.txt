@@ -1,0 +1,1 @@
+MUTATIONS = [('skip_blocked ignored', '        if skip_blocked and history and history[-1].operational_status == OperationalStatus.BLOCKED:\n', '        if False:\n')]

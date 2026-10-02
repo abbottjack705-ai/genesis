@@ -1,0 +1,1 @@
+MUTATIONS = [('cache_indexed ignores the capture time', '                   and row.get("captured_at") == captured for row in self._index.records())\n', '                   for row in self._index.records())\n')]

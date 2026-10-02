@@ -1,0 +1,8 @@
+MUTATIONS = [
+    ("gate-limits digest not checked",
+     "    if hashlib.sha256(data).hexdigest() != GATE_LIMITS_SHA256:\n",
+     "    if False:\n"),
+    ("gate-limits digest pinned to other bytes",
+     "GATE_LIMITS_SHA256 = \"a1df0bc2daa37719f92ef9506e66aad53b4723e2e9682f913f8f6a566297a3d7\"\n",
+     "GATE_LIMITS_SHA256 = \"a1df0bc2daa37719f92ef9506e66aad53b4723e2e9682f913f8f6a566297a3d8\"\n"),
+]

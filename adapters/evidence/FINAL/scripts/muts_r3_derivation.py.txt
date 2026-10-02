@@ -1,0 +1,1 @@
+MUTATIONS = [('verify accepts a scope not pinned before the send', '    if scope_hash is None or rows.get("acq_sent", {}).get("expected_scope_hash") != scope_hash:\n', '    if scope_hash is None:\n')]

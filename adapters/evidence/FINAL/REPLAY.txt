@@ -1,0 +1,10 @@
+# FINAL deterministic replay: two uninterrupted fixture runs, every durable file compared by SHA-256
+# command: PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B replay_check.py
+# start: 2026-10-01T10:11:54Z
+# python: Python 3.12.10
+# HEAD: 9f846d8abcd7383d6acae78294f0aefaba08e630 | adapters/src clean: yes
+# power: BatteryStatus=1 charge=67% | python processes running before this step: 0
+----
+two uninterrupted runs: 128 durable files; same file set=True; byte-different files=none
+# exit: 0
+# end: 2026-10-01T10:12:04Z

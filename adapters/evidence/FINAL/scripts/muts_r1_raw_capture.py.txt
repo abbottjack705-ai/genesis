@@ -1,0 +1,5 @@
+MUTATIONS = [
+    ("the capture's scan hook never reports a hit",
+     "        return self._hit(data)\n",
+     "        return False\n"),
+]

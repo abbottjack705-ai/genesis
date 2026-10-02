@@ -1,0 +1,113 @@
+# FINAL mutation suite, round R2 - start: 2026-10-01T11:57:05Z
+# HEAD: 9f846d8abcd7383d6acae78294f0aefaba08e630 | worktree clean (adapters/src): yes
+# power: BatteryStatus=2 charge=13% | other python processes: 0
+# helper: s0/mutate2.py (unmutated baseline first; source restored in a finally; MUT_TIMEOUT=1200 s; TIMEOUT never counts as KILLED)
+
+== adapters/src/genesis_adapters/oddspapi/transport.py [r2_transport] (modules: adapter_tests.test_v05_r2_transport_boundary,adapter_tests.test_v05_r1_sanitized_error)
+baseline: PASS (OK)
+KILLED (12s)     label shape rule dropped
+KILLED (11s)     label length bound dropped
+KILLED (12s)     label length bound off by one
+KILLED (12s)     label pattern accepts a trailing newline
+KILLED (12s)     label key scan ignored
+KILLED (12s)     errno length bound dropped
+KILLED (12s)     errno key scan ignored
+KILLED (12s)     errno type rule loosened
+KILLED (12s)     sanitize_exception keeps the raw class name
+KILLED (12s)     sanitize_exception keeps the raw errno
+-- summary
+KILLED (12s)     label shape rule dropped
+KILLED (11s)     label length bound dropped
+KILLED (12s)     label length bound off by one
+KILLED (12s)     label pattern accepts a trailing newline
+KILLED (12s)     label key scan ignored
+KILLED (12s)     errno length bound dropped
+KILLED (12s)     errno key scan ignored
+KILLED (12s)     errno type rule loosened
+KILLED (12s)     sanitize_exception keeps the raw class name
+KILLED (12s)     sanitize_exception keeps the raw errno
+
+== adapters/src/genesis_adapters/oddspapi/transport_http.py [r2_transport_http] (modules: adapter_tests.test_v05_r2_transport_boundary,adapter_tests.test_v05_r1_sanitized_error,adapter_tests.test_v05_static,adapter_tests.test_v05_tx01)
+baseline: PASS (OK)
+KILLED (52s)     transport label not screened for the key
+KILLED (52s)     transport records the raw class name
+KILLED (53s)     transport errno not screened for the key
+KILLED (58s)     transport records the raw errno
+KILLED (52s)     T0 not re-read at the write boundary
+KILLED (50s)     no deadline check at the write boundary
+KILLED (49s)     write-boundary check strict (equality writes)
+KILLED (50s)     close moved outside the process-control boundary
+KILLED (52s)     close exceptions of every kind swallowed
+KILLED (52s)     the connection is never closed
+-- summary
+KILLED (52s)     transport label not screened for the key
+KILLED (52s)     transport records the raw class name
+KILLED (53s)     transport errno not screened for the key
+KILLED (58s)     transport records the raw errno
+KILLED (52s)     T0 not re-read at the write boundary
+KILLED (50s)     no deadline check at the write boundary
+KILLED (49s)     write-boundary check strict (equality writes)
+KILLED (50s)     close moved outside the process-control boundary
+KILLED (52s)     close exceptions of every kind swallowed
+KILLED (52s)     the connection is never closed
+
+== adapters/src/genesis_adapters/oddspapi/acquisition.py [r2_acquisition] (modules: adapter_tests.test_v05_r2_transport_boundary,adapter_tests.test_v05_r1_sanitized_error)
+baseline: PASS (OK)
+KILLED (11s)     sanitized record not screened before persistence
+KILLED (12s)     label shape not enforced at persistence
+KILLED (12s)     errno shape not enforced at persistence
+KILLED (11s)     record scan verdict ignored
+KILLED (11s)     a key-bearing label is kept
+KILLED (12s)     a key-bearing errno is kept
+KILLED (12s)     every hit drops the errno too
+KILLED (12s)     the record as persisted is not rescanned
+-- summary
+KILLED (11s)     sanitized record not screened before persistence
+KILLED (12s)     label shape not enforced at persistence
+KILLED (12s)     errno shape not enforced at persistence
+KILLED (11s)     record scan verdict ignored
+KILLED (11s)     a key-bearing label is kept
+KILLED (12s)     a key-bearing errno is kept
+KILLED (12s)     every hit drops the errno too
+KILLED (12s)     the record as persisted is not rescanned
+
+== adapters/src/genesis_adapters/oddspapi/raw_capture.py [r2_raw_capture] (modules: adapter_tests.test_v05_r2_transport_boundary,adapter_tests.test_v05_raw_capture,adapter_tests.test_v05_secret_capture)
+baseline: PASS (OK)
+KILLED (24s)     wire octet (latin-1) form not screened
+KILLED (23s)     header names screened as UTF-8 only
+KILLED (24s)     header values screened as UTF-8 only
+KILLED (24s)     quarantine content type screened as UTF-8 only
+KILLED (23s)     the cap is applied before the wire scan
+-- summary
+KILLED (24s)     wire octet (latin-1) form not screened
+KILLED (23s)     header names screened as UTF-8 only
+KILLED (24s)     header values screened as UTF-8 only
+KILLED (24s)     quarantine content type screened as UTF-8 only
+KILLED (23s)     the cap is applied before the wire scan
+
+== adapters/src/genesis_adapters/secrets.py [r2_secrets] (modules: adapter_tests.test_v05_r2_transport_boundary,adapter_tests.test_v05_secrets)
+baseline: PASS (OK)
+KILLED (7s)      no reversible views
+KILLED (7s)      the JSON-unescaped form is not considered
+-- summary
+KILLED (7s)      no reversible views
+KILLED (7s)      the JSON-unescaped form is not considered
+
+== adapters/src/genesis_adapters/oddspapi/verify.py [r2_verify] (modules: adapter_tests.test_v05_r2_transport_boundary)
+baseline: PASS (OK)
+KILLED (7s)      the runtime scan ignores reversible views
+-- summary
+KILLED (7s)      the runtime scan ignores reversible views
+
+== adapters/src/genesis_adapters/cli.py [r2_cli] (modules: adapter_tests.test_v05_r2_transport_boundary,adapter_tests.test_v05_cli)
+baseline: PASS (OK)
+KILLED (13s)     the operator path passes a TLS context
+KILLED (13s)     the operator path passes a connect address
+KILLED (14s)     the run command takes a CA file again
+KILLED (14s)     the run command takes a connect address again
+-- summary
+KILLED (13s)     the operator path passes a TLS context
+KILLED (13s)     the operator path passes a connect address
+KILLED (14s)     the run command takes a CA file again
+KILLED (14s)     the run command takes a connect address again
+# end: 2026-10-01T12:14:40Z | worktree clean after (adapters/src): yes

@@ -1,0 +1,15 @@
+# FINAL mutation suite, round R3 targeted re-run - start: 2026-10-02T09:45:53Z
+# reason: MUTATION_R3.txt reports 'normalization accepts a capture without a pinned scope' as TIMEOUT (39655s). The host
+#   slept for that mutant's whole window (Kernel-Power 42 at 2026-10-01T12:38:45Z, resumed 23:37:46Z), so that verdict
+#   measures the sleep, not the tests. This re-runs that single mutant; the original transcript is unchanged.
+# HEAD: 9f846d8abcd7383d6acae78294f0aefaba08e630 | worktree clean (adapters/src): yes
+# power: BatteryStatus=1 charge=27% | other python processes: 0
+# helper: s0/mutate2.py (unmutated baseline first; source restored in a finally; MUT_TIMEOUT=1200 s; TIMEOUT never counts as KILLED),
+#   run under s0/keepawake.py (Windows keep-awake request held for the run)
+
+== adapters/src/genesis_adapters/oddspapi/pipeline.py [final_r3_pipeline_rerun] (modules: adapter_tests.test_v05_r3_runner_state.PinnedScopeTests,adapter_tests.test_v05_r3_runner_state.DurableVerdictTests)
+baseline: PASS (OK)
+KILLED (91s)     normalization accepts a capture without a pinned scope
+-- summary
+KILLED (91s)     normalization accepts a capture without a pinned scope
+# end: 2026-10-02T09:49:32Z | worktree clean after (adapters/src): yes

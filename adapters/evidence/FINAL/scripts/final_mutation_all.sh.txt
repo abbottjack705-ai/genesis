@@ -1,0 +1,23 @@
+#!/bin/bash
+# Runs final_mutation.sh for R1..R5 one round at a time. Before each round: if the battery is low, wait on AC until it
+# has recovered; stop cleanly (no round started) if AC is lost at low charge. A round is never cut on purpose.
+set -u
+cd /c/Users/abbot/fz/g || exit 2
+M=/c/Users/abbot/AppData/Local/Temp/claude/s0
+LOG=adapters/evidence/FINAL/MUTATION_GATE_LOG.txt
+charge() { powershell.exe -NoProfile -Command '(Get-CimInstance Win32_Battery).EstimatedChargeRemaining' | tr -d '\r'; }
+status() { powershell.exe -NoProfile -Command '(Get-CimInstance Win32_Battery).BatteryStatus' | tr -d '\r'; }
+for r in R1 R2 R3 R4 R5; do
+  while true; do
+    c=$(charge); s=$(status)
+    if [ "$s" != "2" ] && [ "$c" -lt 25 ]; then
+      echo "$(date -u +%H:%M:%SZ) STOPPED before $r: on battery at ${c}% (status $s)" >> "$LOG"; exit 3
+    fi
+    if [ "$c" -ge 12 ]; then break; fi
+    echo "$(date -u +%H:%M:%SZ) waiting before $r: charge ${c}% on AC (status $s)" >> "$LOG"; sleep 300
+  done
+  echo "$(date -u +%H:%M:%SZ) starting $r at charge ${c}% (status $s)" >> "$LOG"
+  bash "$M/final_mutation.sh" "$r" "adapters/evidence/FINAL/MUTATION_$r.txt"
+  echo "$(date -u +%H:%M:%SZ) finished $r" >> "$LOG"
+done
+echo "$(date -u +%H:%M:%SZ) ALL ROUNDS DONE" >> "$LOG"

@@ -1,0 +1,1 @@
+MUTATIONS = [('the CLI run takes no lock', '        with quiescence.run_lock(Path(args.root)):\n', '        if True:\n'), ('the G2 start does not reconcile invalidations', '        emit.complete_pending_invalidations(rt.stores, clock=clock)\n', '        pass\n')]

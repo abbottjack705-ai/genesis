@@ -1,0 +1,17 @@
+MUTATIONS = [
+    ("wire octet (latin-1) form not screened",
+     "        forms.append(text.encode(\"latin-1\"))\n",
+     "        pass\n"),
+    ("header names screened as UTF-8 only",
+     "                if self._hit_text(name):\n",
+     "                if self._hit(name.encode(\"utf-8\", \"replace\")):\n"),
+    ("header values screened as UTF-8 only",
+     "                if self._hit_text(value):\n",
+     "                if self._hit(value.encode(\"utf-8\", \"replace\")):\n"),
+    ("quarantine content type screened as UTF-8 only",
+     "            if key == \"content-type\" and len(value) <= cap and not self._hit_text(value):\n",
+     "            if key == \"content-type\" and len(value) <= cap and not self._hit(value.encode(\"utf-8\", \"replace\")):\n"),
+    ("the cap is applied before the wire scan",
+     "            for label, data in ((\"BODY_\", wire), (\"BODY_\", decoded)):\n",
+     "            for label, data in ((\"BODY_\", inspected_wire), (\"BODY_\", decoded)):\n"),
+]

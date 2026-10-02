@@ -1,0 +1,47 @@
+# FINAL mutation suite, round R5 - start: 2026-10-02T00:14:26Z
+# HEAD: 9f846d8abcd7383d6acae78294f0aefaba08e630 | worktree clean (adapters/src): yes
+# power: BatteryStatus=2 charge=82% | other python processes: 0
+# helper: s0/mutate2.py (unmutated baseline first; source restored in a finally; MUT_TIMEOUT=1200 s; TIMEOUT never counts as KILLED)
+
+== adapters/src/genesis_adapters/cli.py [r5_cli] (modules: adapter_tests.test_v05_r5_operator,adapter_tests.test_v05_authority)
+baseline: PASS (OK)
+KILLED (13s)     approve keeps the record's granted_at
+KILLED (60s)     approve accepts any stated granted_at
+KILLED (11s)     approve accepts an unparseable granted_at
+KILLED (12s)     approve's clock has no floor
+KILLED (12s)     approve-ready's clock has no floor
+KILLED (12s)     approve-ready checks G3 at the operator time
+KILLED (62s)     approve-ready records READY at the operator time
+KILLED (18s)     approve-ready takes --at again
+KILLED (16s)     a G2R start does not anchor UNKNOWN
+KILLED (47s)     reset ignores security halts
+KILLED (13s)     a SECRET_ECHO halt is not a security halt
+KILLED (13s)     an AUTH_REJECTED circuit is not a security halt
+KILLED (13s)     a G1 granted before the halt counts as after it
+KILLED (13s)     re-approving the echoed key counts as a rotation
+KILLED (13s)     only the latest approval before the halt counts as echoed
+KILLED (34s)     an AUTH_REJECTED circuit needs no new G1
+-- summary
+KILLED (13s)     approve keeps the record's granted_at
+KILLED (60s)     approve accepts any stated granted_at
+KILLED (11s)     approve accepts an unparseable granted_at
+KILLED (12s)     approve's clock has no floor
+KILLED (12s)     approve-ready's clock has no floor
+KILLED (12s)     approve-ready checks G3 at the operator time
+KILLED (62s)     approve-ready records READY at the operator time
+KILLED (18s)     approve-ready takes --at again
+KILLED (16s)     a G2R start does not anchor UNKNOWN
+KILLED (47s)     reset ignores security halts
+KILLED (13s)     a SECRET_ECHO halt is not a security halt
+KILLED (13s)     an AUTH_REJECTED circuit is not a security halt
+KILLED (13s)     a G1 granted before the halt counts as after it
+KILLED (13s)     re-approving the echoed key counts as a rotation
+KILLED (13s)     only the latest approval before the halt counts as echoed
+KILLED (34s)     an AUTH_REJECTED circuit needs no new G1
+
+== adapters/src/genesis_adapters/oddspapi/capability.py [r5_capability] (modules: adapter_tests.test_v05_r5_operator,adapter_tests.test_v05_authority)
+baseline: PASS (OK)
+KILLED (12s)     the UNKNOWN anchor is written again over an existing timeline
+-- summary
+KILLED (12s)     the UNKNOWN anchor is written again over an existing timeline
+# end: 2026-10-02T00:21:16Z | worktree clean after (adapters/src): yes

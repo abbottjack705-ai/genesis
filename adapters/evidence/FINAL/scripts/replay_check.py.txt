@@ -1,0 +1,56 @@
+"""Deterministic replay check (final validation): the same fixture inputs, transport script and trusted clock produce
+byte-identical durable state in two independent runtime roots (every file, compared by SHA-256). Crash/restart
+convergence is asserted by the R3/R4 test matrices, not here.
+
+Run from the repository root:  PYTHONPATH=adapters PYTHONPYCACHEPREFIX=<fresh> python -B replay_check.py
+Prints one line per comparison and exits non-zero on any difference. Fixture data only; no network.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import sys
+from pathlib import Path
+
+import adapter_tests  # noqa: F401  (path setup, provenance guard, loopback-only network hook)
+from adapter_tests.pipeline_support import fixture_body, fixtures_item, odds_item, odds_response, open_rt
+from adapter_tests.support import FixedClock, ok, scratch_root
+
+JSON = (("content-type", "application/json"),)
+START = "2026-10-01T12:00:00.000000Z"
+
+
+def run(root: Path) -> None:
+    rt = open_rt(root, clock=FixedClock(START, step_micros=1000),
+                 script=[ok(fixture_body("fixtures.json"), headers=JSON), odds_response(), odds_response()])
+    rt.acquire(fixtures_item("wf"))
+    rt.acquire(odds_item("w1"))
+    rt.clock.advance(seconds=600)
+    rt.acquire(odds_item("w2"))
+    rt.verify_all()
+
+
+def digest_tree(root: Path) -> dict[str, str]:
+    files = {}
+    for path in sorted(root.rglob("*")):
+        if path.is_file() and path.name != "run.lock":
+            files[path.relative_to(root).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return files
+
+
+def main() -> int:
+    failures = 0
+    with scratch_root() as first, scratch_root() as second:
+        run(first)
+        run(second)
+        a, b = digest_tree(first), digest_tree(second)
+        same_names = sorted(a) == sorted(b)
+        differing = sorted(name for name in a if name in b and a[name] != b[name])
+        print(f"two uninterrupted runs: {len(a)} durable files; same file set={same_names}; "
+              f"byte-different files={differing or 'none'}")
+        failures += (not same_names) + len(differing)
+    return 1 if failures else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

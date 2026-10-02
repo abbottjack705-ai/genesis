@@ -1,0 +1,12 @@
+11:47:21Z starting R1 at charge 14% (status 2)
+11:57:04Z finished R1
+11:57:05Z starting R2 at charge 13% (status 2)
+12:14:41Z finished R2
+12:14:43Z waiting before R3: charge 11% on AC (status 2)
+12:19:44Z starting R3 at charge 13% (status 2)
+23:49:09Z finished R3
+23:49:13Z starting R4 at charge 79% (status 2)
+00:14:23Z finished R4
+00:14:25Z starting R5 at charge 82% (status 2)
+00:21:16Z finished R5
+00:21:16Z ALL ROUNDS DONE

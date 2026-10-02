@@ -1,0 +1,12 @@
+# FINAL frozen-suite count comparison vs the S0 baseline
+# command: verify.compare_frozen_transcripts(S0/FROZEN.txt, FINAL/FROZEN.txt)
+# start: 2026-10-01T10:33:32Z
+# python: Python 3.12.10
+# HEAD: 9f846d8abcd7383d6acae78294f0aefaba08e630 | adapters/src clean: yes
+# power: BatteryStatus=1 charge=40% | python processes running before this step: 0
+----
+baseline {'ran': 493, 'failures': 0, 'errors': 0, 'skipped': 1, 'ok': True}
+current  {'ran': 493, 'failures': 0, 'errors': 0, 'skipped': 1, 'ok': True}
+IDENTICAL: True
+# exit: 0
+# end: 2026-10-01T10:33:35Z

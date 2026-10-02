@@ -1,0 +1,46 @@
+37a38
+> from genesis_adapters.errors import AcquisitionHalt
+47c48,49
+< def report(finding: str, reproduced: bool, detail: str) -> None:
+---
+> def report(finding: str, reproduced, detail: str) -> None:
+>     """``reproduced`` is True / False, or None for a probe that could not run (never counted as NOT REPRODUCED)."""
+49c51,52
+<     print(f"{finding:<34} {'REPRODUCED' if reproduced else 'NOT REPRODUCED':<15} {detail}", flush=True)
+---
+>     label = "PROBE ERROR" if reproduced is None else ("REPRODUCED" if reproduced else "NOT REPRODUCED")
+>     print(f"{finding:<34} {label:<15} {detail}", flush=True)
+60c63
+<             report(finding, False, f"PROBE ERROR: {text[:150]}")
+---
+>             report(finding, None, f"PROBE ERROR: {text[:150]}")
+280c283,287
+<         outcome = rt.acquire(odds_item())
+---
+>         try:
+>             outcome = rt.acquire(odds_item())
+>             verdict = outcome.outcome.failure.value if outcome.outcome.failure else None
+>         except AcquisitionHalt as halt:      # ADAPTED: since R3 (HA-04) a SECRET_ECHO verdict halts, after its rows
+>             verdict = f"halted {halt.code.value}"
+284,286c291,299
+<     report("C:HA-07 non-ASCII key in header", recoverable,
+<            f"outcome failure={outcome.outcome.failure.value if outcome.outcome.failure else None}; "
+<            f"etag retained={bool(kept)}; key bytes recoverable from it={recoverable}")
+---
+>         hits = runtime_hits(root, Secret(key))
+>         # independent of the implementation's scanner: the raw byte forms of this key, in every runtime file
+>         forms = {key.encode("utf-8"), key.encode("latin-1"), mojibake.encode("utf-8"),
+>                  json.dumps(key).strip('"').encode("ascii"), json.dumps(mojibake).strip('"').encode("ascii"),
+>                  json.dumps(key).strip('"').upper().encode("ascii")}
+>         raw_hits = sum(1 for path in root.rglob("*") if path.is_file() and any(form in path.read_bytes() for form in forms))
+>     report("C:HA-07 non-ASCII key in header", recoverable or hits > 0 or raw_hits > 0,
+>            f"verdict={verdict}; completed-row failure={completed['failure']}; etag retained={bool(kept)}; "
+>            f"key bytes recoverable from it={recoverable}; files with a key form: scanner={hits}, raw bytes={raw_hits}")
+515c528,532
+< print(f"\nSUMMARY reproduced={sum(1 for _, r, _ in RESULTS if r)} not_reproduced={sum(1 for _, r, _ in RESULTS if not r)}")
+---
+> REPRODUCED_COUNT = sum(1 for _, r, _ in RESULTS if r is True)
+> ERROR_COUNT = sum(1 for _, r, _ in RESULTS if r is None)
+> print(f"\nSUMMARY reproduced={REPRODUCED_COUNT} not_reproduced={sum(1 for _, r, _ in RESULTS if r is False)} "
+>       f"probe_errors={ERROR_COUNT}")
+> sys.exit(1 if REPRODUCED_COUNT or ERROR_COUNT else 0)

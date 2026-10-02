@@ -1,0 +1,1 @@
+MUTATIONS = [('quota divergence not halted', '        effects += [("halted", AdapterFailure.QUOTA_DIVERGENCE), _coverage_effect(AdapterFailure.QUOTA_DIVERGENCE)]\n', '        effects += []\n'), ('clock faults not halted', '                in _CLOCK_FAULT_LABELS:\n', '                in ():\n')]

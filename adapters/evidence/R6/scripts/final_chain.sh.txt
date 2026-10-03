@@ -1,0 +1,27 @@
+#!/bin/bash
+SCR=<SCRATCH>
+cd /home/user/genesis
+echo "== fuzz $(date -u +%H:%M:%S)" > $SCR/runs/chain_progress.txt
+# (1) the audit's heavy fuzzers against the final tree
+cd $SCR/audit/independent_audits/v05_r5_sonnet55/probes
+export CAND_DIR=/home/user/genesis AUDIT_SCRATCH=$SCR/auditscratch
+: > $SCR/runs/fuzz_final.txt
+for spec in 'p116_fuzz2.py 11 10000' 'p119_fuzz3.py 23 8000' 'p116_fuzz2.py 101 12000' 'p119_fuzz3.py 777 12000' 'p114_fuzz_parser.py' 'p117_fuzz_fixtures.py' 'p121_fuzz_pipeline.py 3 250'; do
+  echo "### $spec" >> $SCR/runs/fuzz_final.txt
+  PYTHONPYCACHEPREFIX=$(mktemp -d) python3 -B $spec 2>&1 | tail -12 >> $SCR/runs/fuzz_final.txt
+done
+echo "FUZZ_DONE" >> $SCR/runs/fuzz_final.txt
+# (2) RED: the R6 tests against the UNMODIFIED b22263e production code
+echo "== red $(date -u +%H:%M:%S)" >> $SCR/runs/chain_progress.txt
+cd $SCR/red_tree
+for pat in "test_v05_r6_poison_pill.py" "test_v05_r6_date_header.py" "test_v05_r6_low_findings.py" "test_v05_r6_tls_boundary.py" "test_v05_jsonstrict.py" "test_v05_parser_schema.py" "test_v05_credential.py" "test_v05_reader.py" "test_v05_r6_deadline.py"; do
+  PYTHONPYCACHEPREFIX=$(mktemp -d) timeout 900 python3 -B -m unittest discover -s adapters/adapter_tests -t adapters -p "$pat" > $SCR/runs/red_final/$pat.txt 2>&1
+  echo "exit=$?" >> $SCR/runs/red_final/$pat.txt
+done
+echo "RED_DONE" >> $SCR/runs/chain_progress.txt
+# (3) the secondary-findings mutation campaign on the final tree
+echo "== mutation_low $(date -u +%H:%M:%S)" >> $SCR/runs/chain_progress.txt
+cd /home/user/genesis
+rm -f $SCR/runs/mutation_r6_low.txt
+python3 $SCR/r6_campaign_low.py > $SCR/runs/mutation_r6_low_driver.log 2>&1
+echo "ALL_DONE $(date -u +%H:%M:%S)" >> $SCR/runs/chain_progress.txt

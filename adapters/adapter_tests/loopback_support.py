@@ -1,6 +1,7 @@
-"""TEST-ONLY loopback HTTPS server with a throwaway test CA (``fixtures/tls``; the CA key was destroyed after
-signing the one server certificate, which names the pinned host ``api.oddspapi.io``). Nothing here ever
-leaves 127.0.0.1; the suite's audit hook refuses any other address."""
+"""TEST-ONLY loopback HTTPS server. Its TLS material is a throwaway PKI minted at test time (``tls_support``): a CA and
+a leaf for the pinned host name ``api.oddspapi.io`` that live for one test process, so the transport tests exercise
+the real host-name verification while nothing - no CA, no certificate, no private key - is committed (hostile audit
+RA5-003). Nothing here ever leaves 127.0.0.1; the suite's audit hook refuses any other address."""
 
 from __future__ import annotations
 
@@ -11,10 +12,24 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-TLS_DIR = Path(__file__).resolve().parent / "fixtures" / "tls"
-TEST_CA = TLS_DIR / "test-ca.pem"
-SERVER_CERT = TLS_DIR / "server.pem"
-SERVER_KEY = TLS_DIR / "server.key"
+from . import tls_support
+
+PINNED_HOST = "api.oddspapi.io"
+_PROCESS_PKI: list = []
+
+
+def process_pki() -> tls_support.Pki:
+    """The one throwaway PKI of this test process (minted on first use, removed at exit)."""
+
+    if not _PROCESS_PKI:
+        _PROCESS_PKI.append(tls_support.new_pki(PINNED_HOST))
+    return _PROCESS_PKI[0]
+
+
+def test_ca_file() -> Path:
+    """The public CA certificate of this process's PKI, for a child process that must trust it."""
+
+    return process_pki().ca_file
 
 
 @dataclass
@@ -32,6 +47,7 @@ class Reply:
     chunks: int = 1                              # send the body in this many pieces
     pause: float = 0.0                           # seconds between pieces (a slow server)
     close_early: bool = False                    # close before the whole body was sent
+    head_pause: float = 0.0                      # seconds between single bytes of the status line and headers
 
 
 @dataclass
@@ -39,10 +55,10 @@ class LoopbackHttps:
     replies: list = field(default_factory=list)
     seen: list = field(default_factory=list)
     handshake_failures: int = 0
+    pki: object = None                           # a ``tls_support.Pki`` to present; the process PKI by default
 
     def __post_init__(self):
-        self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        self.context.load_cert_chain(SERVER_CERT, SERVER_KEY)
+        self.context = (self.pki or process_pki()).server_context()
         self.listener = socket.create_server(("127.0.0.1", 0))
         self.port = self.listener.getsockname()[1]
         self.stopping = False
@@ -87,7 +103,13 @@ class LoopbackHttps:
         length = len(reply.body) if reply.content_length is None else reply.content_length
         lines = [reply.status_line, *[f"{k}: {v}" for k, v in reply.headers], f"Content-Length: {length}",
                  "Connection: close", "", ""]
-        conn.sendall("\r\n".join(lines).encode("latin-1"))
+        head = "\r\n".join(lines).encode("latin-1")
+        if reply.head_pause:                                       # a slow-drip head: one byte at a time
+            for index in range(len(head)):
+                conn.sendall(head[index:index + 1])
+                time.sleep(reply.head_pause)
+        else:
+            conn.sendall(head)
         body = reply.body if not reply.close_early else reply.body[: len(reply.body) // 2]
         size = max(1, -(-len(body) // reply.chunks))
         for start in range(0, len(body), size):
@@ -102,10 +124,10 @@ class LoopbackHttps:
 
 
 def test_ca_context() -> ssl.SSLContext:
-    """A verifying client context that trusts ONLY the throwaway test CA (tests only; production uses the system
-    trust store and has no way to take this CA)."""
+    """A verifying client context that trusts ONLY this process's throwaway CA (tests only; production uses the
+    system trust store and has no way to take any other CA)."""
 
-    return ssl.create_default_context(cafile=str(TEST_CA))
+    return process_pki().client_context()
 
 
 def unused_loopback_port() -> int:

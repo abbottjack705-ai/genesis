@@ -1,0 +1,123 @@
+# R6 AUDIT HARNESS MUTATION: the audit's independent 51-mutant list (probes/mutate.py, full adapter suite fail-fast) on a clone of the candidate
+# command: AUDIT_SCRATCH=<clone> python3 mutate.py mutants.json|mutants_round2.json|mutants_r6_adapted.json <out.jsonl>
+# python: Python 3.11.15
+# platform: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39
+# HEAD (base): b22263e582386f04e5b7939e511757940ffdfbe0
+# note: build host is Linux, not Windows; no Windows result is claimed anywhere here
+----
+
+=== round 1 (M00-M37)
+M00          SURVIVED   158s  CONTROL: no-op edit must SURVIVE (suite green on the mutation worktree)
+             
+M01          KILLED     157s  transport entry deadline >= -> >
+             FAIL: test_bnd04_nothing_is_written_at_or_after_the_deadline (adapter_tests.test_v05_transport_http.LoopbackTests.test_bnd04_nothing_is_written_at_or_
+M02          KILLED      72s  transport T0-before-write deadline >= -> >
+             FAIL: test_ha03_the_deadline_arriving_after_the_timeout_setup_prevents_the_write (adapter_tests.test_v05_r2_transport_boundary.WriteBoundaryDeadlineTe
+M03          KILLED      96s  transport: no remaining check after connect/TLS (HA-03 slow connect)
+             FAIL: test_a_connect_that_uses_up_the_deadline_writes_nothing_and_arms_no_non_positive_timeout (adapter_tests.test_v05_r6_deadline.RemainingTimeIsRede
+M04          KILLED      94s  transport: read loop ignores deadline
+             FAIL: test_exactly_at_the_deadline_nothing_more_is_read (adapter_tests.test_v05_r6_deadline.RemainingTimeIsRederivedBeforeEveryOperationTests.test_exa
+M05          KILLED      69s  transport: process-control SystemExit keeps raw code (text leak)
+             FAIL: test_ha02_system_exit_from_close_keeps_its_status_and_drops_its_text (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.te
+M06          KILLED      70s  transport: re-raise the ORIGINAL control exception, not a fresh one
+             FAIL: test_ha02_keyboard_interrupt_from_close_leaves_fresh (adapter_tests.test_v05_r2_transport_boundary.CleanupProcessControlTests.test_ha02_keyboard
+M07          KILLED      95s  runner: T0 before send >= -> >
+             FAIL: test_no_request_is_started_at_or_after_the_deadline (adapter_tests.test_v05_r6_deadline.RunnerDeadlineBranchTests.test_no_request_is_started_at_
+M08          KILLED      93s  runner: late response (T1>=deadline) accepted
+             FAIL: test_a_response_after_the_deadline_is_discarded (adapter_tests.test_v05_r6_deadline.RunnerDeadlineBranchTests.test_a_response_after_the_deadline
+M09          KILLED      92s  runner: T1 == deadline accepted (>= -> >)
+             FAIL: test_a_response_received_exactly_at_the_deadline_is_discarded (adapter_tests.test_v05_r6_deadline.RunnerDeadlineBranchTests.test_a_response_rece
+M10          KILLED       3s  guard W1 strict -> non-strict
+             FAIL: test_bnd01_day_conditions_bind_alone_when_month_boundaries_are_out_of_reach (adapter_tests.test_v05_boundary.DayEdgeTests.test_bnd01_day_conditi
+M11          KILLED       3s  guard W3 >= -> >
+             FAIL: test_bnd01_day_conditions_bind_alone_when_month_boundaries_are_out_of_reach (adapter_tests.test_v05_boundary.DayEdgeTests.test_bnd01_day_conditi
+M12          KILLED       3s  guard W2 (month) removed
+             FAIL: test_bnd02_leap_february_has_a_29th_day (adapter_tests.test_v05_boundary.MonthEdgeTests.test_bnd02_leap_february_has_a_29th_day)
+M13          KILLED       3s  guard W4 (month start) removed
+             FAIL: test_bnd02_month_conditions_bind_alone_when_day_boundaries_are_out_of_reach (adapter_tests.test_v05_boundary.MonthEdgeTests.test_bnd02_month_con
+M14          KILLED       2s  retry limit off by one
+             FAIL: test_q05_attempt_limit_backoff_window_headroom_and_circuit (adapter_tests.test_v05_acquisition.RetryPolicyTests.test_q05_attempt_limit_backoff_w
+M15          BAD_SPEC     0s  provider usage divergence threshold loosened
+             
+M16          KILLED       1s  3xx treated as success
+             FAIL: test_f07_redirects_are_refused_never_followed (adapter_tests.test_v05_acquisition.HttpFailureTests.test_f07_redirects_are_refused_never_followed
+M17          KILLED      85s  reset: any later G1 clears SECRET_ECHO (no rotation required)
+             FAIL: test_p014_a_secret_echo_halt_is_cleared_only_after_a_g1_for_a_rotated_key (adapter_tests.test_v05_r5_operator.SecurityResetTests.test_p014_a_sec
+M18          KILLED      25s  approve: stated granted_at skew bound becomes 10 years
+             FAIL: test_real_package_has_no_forbidden_numeric_literals (adapter_tests.test_v05_frz10.Frz10Tests.test_real_package_has_no_forbidden_numeric_literals
+M19          KILLED      90s  approve-ready: no capability floor
+             ERROR: test_p013_ready_is_never_recorded_before_the_sources_latest_capability_row (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_read
+M20          KILLED      33s  reader: no STALE refusal when a newer capture expired
+             FAIL: test_rdr01_reader_builder_and_frozen_verifier_agree_on_the_whole_grid (adapter_tests.test_v05_manifest.ParityGridTests.test_rdr01_reader_builder
+M21          KILLED      34s  parser: omitted requested tournaments no longer make a response partial
+             FAIL: test_an_empty_response_to_a_request_that_named_tournaments_is_partial_and_tombstones_nothing (adapter_tests.test_v05_parser_schema.EnvelopeTests
+M22          KILLED      96s  raw: exact-size body treated as oversize
+             FAIL: test_the_capture_accepts_a_body_of_exactly_the_cap_and_flags_one_byte_more (adapter_tests.test_v05_r6_low_findings.ExactSizeBodyTests.test_the_c
+M23          KILLED      12s  raw: unsupported/nested content-encoding treated as identity
+             FAIL: test_fm11b_an_uninspectable_body_is_quarantined_metadata_only_without_a_halt (adapter_tests.test_v05_failure_matrix.FailureMatrixTests.test_fm11
+M24          KILLED      66s  raw: wire body not scanned (decoded only)
+             FAIL: test_ha08_a_content_encoded_oversize_body_is_screened_on_its_wire_bytes (adapter_tests.test_v05_r2_transport_boundary.FullWireScreeningTests.tes
+M25          KILLED     143s  raw: gzip trailing/second member tolerated
+             FAIL: test_gzip_with_trailing_or_second_member_data_is_uninspectable (adapter_tests.test_v05_secret_capture.LiveScannerRequirementTests.test_gzip_with
+M26          KILLED      99s  secrets: double-encoded percent not decoded twice
+             FAIL: test_the_key_echoed_percent_encoded_once_twice_and_three_times_is_detected (adapter_tests.test_v05_r6_low_findings.SecretFormTests.test_the_key_
+M27          KILLED      94s  secrets: JSON \/ escape not normalised
+             FAIL: test_the_key_echoed_through_the_pipeline_halts_and_leaves_nothing_durable (adapter_tests.test_v05_r6_low_findings.SecretFormTests.test_the_key_e
+M28          KILLED      97s  secrets: base64 core min length off by one
+             FAIL: test_a_base64_core_of_exactly_the_minimum_length_is_detected (adapter_tests.test_v05_r6_low_findings.SecretFormTests.test_a_base64_core_of_exact
+M29          KILLED       6s  credential: hard-link count not required to be 1
+             FAIL: test_f04_a_file_with_a_second_hard_link_name_is_refused (adapter_tests.test_v05_credential.CredentialTests.test_f04_a_file_with_a_second_hard_li
+M30          KILLED      98s  credential: group/other bits only (0400 accepted)
+             FAIL: test_only_mode_0600_is_accepted (adapter_tests.test_v05_r6_low_findings.CredentialModeTests.test_only_mode_0600_is_accepted)
+M31          KILLED      69s  safe_errno: key-bearing errno no longer screened
+             FAIL: test_ha01_an_errno_carrying_key_digits_is_dropped_and_the_label_kept (adapter_tests.test_v05_r2_transport_boundary.ExceptionLabelTests.test_ha01
+M32          KILLED       7s  emit: conflicting PIT row under same record_id tolerated
+             FAIL: test_f33_a_pit_record_that_differs_from_the_intended_one_halts_and_is_never_replaced (adapter_tests.test_v05_emit.ConflictTests.test_f33_a_pit_r
+M33          KILLED      10s  emit: resume re-stamps T3 instead of reusing durable T3
+             ERROR: test_a3_a_crash_at_every_emission_checkpoint_resumes_to_the_same_durable_history (adapter_tests.test_v05_emit_crash.CrashResumeTests.test_a3_a_
+M34          KILLED      86s  quiescence: pending invalidation not a blocker
+             FAIL: test_ha05_a_pending_invalidation_leaves_nothing_readable_until_a_start_completes_it (adapter_tests.test_v05_r4_pit_recovery.PendingInvalidationT
+M35          KILLED      97s  authority: validity end exclusive
+             FAIL: test_a_g1_record_is_valid_through_its_last_instant_inclusive (adapter_tests.test_v05_r6_low_findings.GateWindowBoundaryTests.test_a_g1_record_is
+M36          KILLED       1s  quota: RESERVE budget class used
+             FAIL: test_a2_a_reconciled_orphan_is_retried_only_under_a_fresh_identity_and_debit (adapter_tests.test_v05_acquisition.CrashAndRestartTests.test_a2_a_
+M37          BAD_SPEC     0s  verify: observation metadata not compared (valid_to)
+             
+
+=== round 2 (M38-M51)
+M38          KILLED      86s  approve: stated-granted_at bound widened WITHOUT a numeric literal (re-do o
+             FAIL: test_p013_approve_stamps_granted_at_with_the_trusted_clock_and_refuses_a_chosen_one (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p
+M39          KILLED      69s  raw: response header NAMES no longer screened
+             FAIL: test_ha07_a_non_ascii_key_echoed_in_a_header_name_is_a_secret_echo (adapter_tests.test_v05_r2_transport_boundary.HeaderOctetTests.test_ha07_a_no
+M40          KILLED     100s  raw: quarantine metadata not re-scanned (defence in depth)
+             FAIL: test_a_key_spanning_fields_of_the_record_leaves_no_optional_metadata (adapter_tests.test_v05_r6_low_findings.QuarantineMetadataScanTests.test_a_
+M41          KILLED      86s  reset: an AUTH_REJECTED circuit is cleared without any later G1
+             FAIL: test_p014_an_auth_rejection_is_cleared_only_after_a_new_g1 (adapter_tests.test_v05_r5_operator.SecurityResetTests.test_p014_an_auth_rejection_is
+M42          KILLED      21s  reader: published_at > D no longer refused
+             ERROR: test_fm39_a_head_published_after_the_cutoff_is_unusable_with_no_fallback (adapter_tests.test_v05_failure_matrix.FailureMatrixTests.test_fm39_a_
+M43          KILLED       7s  emit: an existing observation with different content is reused
+             FAIL: test_f32_an_observation_that_contradicts_the_derivation_halts_and_publishes_nothing_more (adapter_tests.test_v05_emit.ConflictTests.test_f32_an_
+M44          KILLED     686s  quiescence: run lock blocks instead of refusing (LOCK_NB removed)
+             FAIL: test_ha06_a_cli_run_is_refused_while_another_process_holds_the_lock (adapter_tests.test_v05_r4_pit_recovery.RunLockTests.test_ha06_a_cli_run_is_
+M45          KILLED       6s  credential: files inside the repo / runtime root allowed
+             FAIL: test_f04_a_file_inside_the_repository_or_the_runtime_root_is_refused (adapter_tests.test_v05_credential.CredentialTests.test_f04_a_file_inside_t
+M46          KILLED      93s  authority: duplicate request hashes in a G2 record allowed
+             FAIL: test_a_g2_record_pins_distinct_request_hashes (adapter_tests.test_v05_r6_low_findings.GateWindowBoundaryTests.test_a_g2_record_pins_distinct_req
+M47          KILLED      86s  run: G2R no longer anchors the source UNKNOWN
+             FAIL: test_p013_a_g2r_cli_start_anchors_the_running_source_unknown_once (adapter_tests.test_v05_r5_operator.OperatorTimeTests.test_p013_a_g2r_cli_star
+M48          KILLED      73s  acquisition: a secret-bearing persisted error record is kept
+             FAIL: test_ha01_the_record_is_scanned_again_exactly_as_it_will_be_persisted (adapter_tests.test_v05_r2_transport_boundary.PersistedRecordTests.test_ha
+M49          KILLED       2s  acquisition: a 429 circuit for one role blocks nothing
+             FAIL: test_f09_429_opens_the_role_circuit_until_the_next_utc_day (adapter_tests.test_v05_acquisition.HttpFailureTests.test_f09_429_opens_the_role_circ
+M50          KILLED       3s  live gate: time-sync attestation not required
+             FAIL: test_g01_without_every_gate_element_nothing_is_sent (adapter_tests.test_v05_authority.LiveGateTests.test_g01_without_every_gate_element_nothing_
+M51          KILLED     145s  live: sending allowed without a secret scanner
+             FAIL: test_f04_live_mode_without_a_secret_scanner_halts_before_any_quota_call (adapter_tests.test_v05_secret_capture.LiveScannerRequirementTests.test_
+
+=== re-anchored M15 and M37 (their text moved with R6's rewritten lines)
+M15-adapted  KILLED      18s  provider usage divergence threshold loosened (the audit's M15 re-anchored o
+             FAIL: test_fm37_and_q09_provider_usage_above_the_genesis_debit_halts (adapter_tests.test_v05_failure_matrix.FailureMatrixTests.test_fm37_and_q09_provi
+M37-adapted  KILLED     102s  verify: observation metadata not compared (valid_to) (the audit's M37 re-an
+             FAIL: test_every_alteration_of_the_observation_metadata_is_rejected (adapter_tests.test_v05_r6_low_findings.VerifyDerivationMetadataTests.test_every_a
+
+TOTAL {'KILLED': 51, 'SURVIVED': 1, 'BAD_SPEC': 2}. M00 is the no-op control and must survive (it did). M15 and M37 report BAD_SPEC on the original specs because R6 rewrote the lines they anchor on; their re-anchored forms are killed. No other mutant survived; the audit's 14 survivors (M03 M04 M07 M08 M09 M22 M26 M27 M28 M30 M35 M37 M40 M46) are all KILLED. Note M03/M04 still apply to R6 (the transport's own remaining-time checks were kept).

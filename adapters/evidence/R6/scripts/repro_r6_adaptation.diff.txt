@@ -1,0 +1,14 @@
+--- <SCRATCH>/repro_controlling_final.py	2026-10-03 15:43:37.033690673 +0000
++++ <SCRATCH>/repro_controlling_final_r6.py	2026-10-03 15:46:49.242060465 +0000
+@@ -424,7 +424,10 @@
+         seam = True
+     except SystemExit:
+         seam = False
+-    report("C:HA-13/P:HA-006 test key + CA seam", seam or exported,
++    # R6 adaptation (disclosed): the key is exposed in source archives only if it is TRACKED and not export-ignored. R6
++    # deleted the key and the export-ignore rule that protected it (RA5-003: no key material is committed at all), so
++    # "no export-ignore" no longer implies "a key is shipped".
++    report("C:HA-13/P:HA-006 test key + CA seam", seam or (tracked and exported),
+            f"key tracked={tracked}; key in source archives (no export-ignore)={exported}; "
+            f"production run accepts --connect/--ca-file={seam}")
+ 

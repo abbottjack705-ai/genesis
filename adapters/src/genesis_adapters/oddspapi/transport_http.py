@@ -10,7 +10,10 @@ Security properties, each tested (TX-01, BND-04, SEC-*):
   loopback-only test context themselves); redirects are never followed (a 3xx is just a status);
 * the whole attempt is bounded by the hard deadline ``Tq + request_timeout_seconds``: every blocking
   operation gets the remaining time as its socket timeout, T0 is read immediately before the first request
-  byte, and no request byte is written at or after the deadline (HA-03);
+  byte, and no request byte is written at or after the deadline (HA-03). The connection enforces ONE absolute,
+  never-extended deadline on every connect attempt, the TLS handshake, every send and EVERY receive - the bytes
+  of a slow-drip head or body included - because a per-call socket timeout is re-armed by each byte a peer
+  paces just inside it (hostile audit RA5-004);
 * ordinary failures (every ``Exception``) become a sanitized result carrying only a safe class label (a
   plain bounded identifier with no section-7.6 form of the key, else a fixed placeholder, HA-01) and an
   integer errno; warnings raised inside the send path are captured and discarded;
@@ -23,6 +26,8 @@ Security properties, each tested (TX-01, BND-04, SEC-*):
 from __future__ import annotations
 
 import http.client
+import io
+import os
 import socket
 import ssl
 import time
@@ -43,25 +48,127 @@ class TransportConfigurationError(ValueError):
     """A transport that would weaken TLS or talk to a host other than the pinned one."""
 
 
+class _BoundedReader(io.RawIOBase):
+    """The raw receive side ``http.client`` buffers. Every receive goes through the owner, which arms the socket
+    timeout from the attempt's absolute deadline first, however the peer paces its bytes (RA5-004)."""
+
+    def __init__(self, owner: "_BoundedSocket"):
+        super().__init__()
+        self._owner = owner
+
+    def readable(self) -> bool:
+        return True
+
+    def readinto(self, buffer) -> int:
+        return self._owner.recv_into(buffer)
+
+    def close(self) -> None:
+        if not self.closed:
+            try:
+                super().close()
+            finally:
+                self._owner.reader_closed()
+
+
+class _BoundedSocket:
+    """The TLS socket as ``http.client`` uses it (``makefile``, ``sendall``, ``close``), every blocking send and
+    receive armed from the absolute deadline.
+
+    ``close`` keeps the standard-library contract that ``http.client`` relies on: a ``Connection: close`` response
+    closes the connection object as soon as it begins and keeps reading through its ``makefile`` reader, so the real
+    close is deferred until the last reader is closed."""
+
+    def __init__(self, tls, arm: Callable[[], None]):
+        self._tls = tls
+        self._arm = arm
+        self._open_readers = 0
+        self._close_requested = False
+
+    def recv_into(self, buffer) -> int:
+        self._arm()
+        return self._tls.recv_into(buffer)
+
+    def makefile(self, mode="rb", buffering=None, **_ignored):
+        self._open_readers += 1
+        return io.BufferedReader(_BoundedReader(self))
+
+    def sendall(self, data) -> None:
+        self._arm()
+        self._tls.sendall(data)
+
+    def reader_closed(self) -> None:
+        self._open_readers -= 1
+        self._finish()
+
+    def close(self) -> None:
+        self._close_requested = True
+        self._finish()
+
+    def _finish(self) -> None:
+        if self._close_requested and self._open_readers <= 0:
+            self._tls.close()
+
+
 class _Connection:
-    """One HTTPS exchange over a socket this object owns. The keyed request target is only ever an
-    argument of :meth:`write`; nothing here keeps it."""
+    """One HTTPS exchange over a socket this object owns, under ONE absolute deadline. The keyed request target is
+    only ever an argument of :meth:`write`; nothing here keeps it.
+
+    The transport hands the time left to the attempt to :meth:`open` and :meth:`settimeout`; each only ever moves the
+    absolute (monotonic) deadline EARLIER, never later. Every blocking operation then runs under what is left of it:
+    each connect attempt, the TLS handshake, the request send and every single receive (``http.client`` reads through
+    :class:`_BoundedSocket`). Name resolution is the one step the interpreter cannot bound."""
 
     def __init__(self, host: str, port: int, context: ssl.SSLContext, address: tuple[str, int] | None):
         self.host, self.port, self.context, self.address = host, port, context, address
         self.tls = None
         self.http = None
         self.response = None
+        self._deadline = None
 
+    # -- the absolute deadline ------------------------------------------------------------------
+    def _bound(self, timeout: float) -> None:
+        edge = time.monotonic() + timeout
+        self._deadline = edge if self._deadline is None else min(self._deadline, edge)
+
+    def _left(self) -> float:
+        left = self._deadline - time.monotonic()
+        if left <= 0:
+            raise TimeoutError("deadline")
+        return left
+
+    def _arm(self) -> None:
+        self.tls.settimeout(self._left())
+
+    def _connect(self) -> socket.socket:
+        """A connected socket: each resolved address is tried under the time that is left (``create_connection``
+        would grant every address a fresh full timeout)."""
+
+        host, port = self.address or (self.host, self.port)
+        failure: OSError | None = None
+        for family, kind, proto, _canonical, target in socket.getaddrinfo(host, port, type=socket.SOCK_STREAM):
+            attempt = socket.socket(family, kind, proto)
+            try:
+                attempt.settimeout(self._left())
+                attempt.connect(target)
+                return attempt
+            except OSError as exc:
+                failure = exc
+                attempt.close()
+        raise failure if failure is not None else OSError("no address to connect to")
+
+    # -- the exchange -----------------------------------------------------------------------------
     def open(self, timeout: float) -> None:
-        raw = socket.create_connection(self.address or (self.host, self.port), timeout=timeout)
+        self._bound(timeout)
+        raw = self._connect()
+        raw.settimeout(self._left())                       # the handshake gets only what the connect left
         self.tls = self.context.wrap_socket(raw, server_hostname=self.host)
         self.http = http.client.HTTPConnection(self.host, self.port)
         self.http.set_debuglevel(0)
-        self.http.sock = self.tls
+        self.http.sock = _BoundedSocket(self.tls, self._arm)
 
     def settimeout(self, timeout: float) -> None:
-        self.tls.settimeout(timeout)
+        self._bound(timeout)
+        self._arm()
 
     def write(self, method: str, target: str, headers) -> None:
         self.http.putrequest(method, target, skip_host=True, skip_accept_encoding=True)
@@ -87,10 +194,14 @@ class _Connection:
         return self.response is not None and self.response.isclosed()
 
     def close(self) -> None:
-        if self.http is not None:
-            self.http.close()
-        elif self.tls is not None:
-            self.tls.close()
+        try:
+            if self.response is not None:
+                self.response.close()                      # a will-close response owns the socket until it is closed
+        finally:
+            if self.http is not None:
+                self.http.close()
+            elif self.tls is not None:
+                self.tls.close()
 
 
 def _decode_headers(pairs) -> tuple[tuple[str, str], ...]:
@@ -132,10 +243,28 @@ def _reading_after(clock, earlier: str, budget_ms: int) -> str:
     return reading
 
 
-def tls_context() -> ssl.SSLContext:
-    """The system trust store with hostname verification. The production path never takes any other CA."""
+# Environment variables the interpreter's stock context would obey: ``SSL_CERT_FILE`` and ``SSL_CERT_DIR`` let the
+# ENVIRONMENT of the process choose which CAs the live transport trusts (a credential-theft primitive: whoever can set
+# them can impersonate the provider and read the keyed request line), and ``SSLKEYLOGFILE`` writes the session's TLS
+# secrets to a file. None of them may reach the production context (hostile audit RA5-003).
+_ENVIRONMENT_OVERRIDES = ("SSL_CERT_FILE", "SSL_CERT_DIR", "SSLKEYLOGFILE")
 
-    context = ssl.create_default_context()
+
+def tls_context() -> ssl.SSLContext:
+    """The platform's system trust store with hostname verification, and nothing the environment adds.
+
+    The context is the interpreter's stock one (the Windows certificate stores, or the compiled-in OpenSSL
+    locations) built while the variables in ``_ENVIRONMENT_OVERRIDES`` are hidden from it, so legitimate platform
+    trust is kept and an environment-chosen CA or key-log file is not. Production never takes any other CA: tests
+    inject their own context explicitly. The variables are restored before this returns, also on failure (the live
+    runner is single-threaded, and the window is the context construction only)."""
+
+    hidden = {name: os.environ.pop(name) for name in _ENVIRONMENT_OVERRIDES if name in os.environ}
+    try:
+        context = ssl.create_default_context()
+    finally:
+        os.environ.update(hidden)
+    context.keylog_filename = None
     context.check_hostname = True
     context.verify_mode = ssl.CERT_REQUIRED
     return context

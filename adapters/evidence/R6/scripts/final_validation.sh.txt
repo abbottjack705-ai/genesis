@@ -1,0 +1,13 @@
+#!/bin/bash
+SCR=<SCRATCH>
+cd /home/user/genesis
+: > $SCR/runs/final_validation_progress.txt
+echo "py3.11 verbose $(date -u +%H:%M:%S)" >> $SCR/runs/final_validation_progress.txt
+PYTHONPYCACHEPREFIX=$(mktemp -d) python3.11 -B -m unittest discover -s adapters/adapter_tests -t adapters -v > $SCR/runs/full_adapter_final.txt 2>&1; echo "exit=$?" >> $SCR/runs/full_adapter_final.txt
+echo "no-network $(date -u +%H:%M:%S)" >> $SCR/runs/final_validation_progress.txt
+{ echo "# no-network: full adapter suite under an independent in-process audit hook (probes/run_nonet.py)"; echo "# start: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; PYTHONPYCACHEPREFIX=$(mktemp -d) python3.11 -B $SCR/audit/independent_audits/v05_r5_sonnet55/probes/run_nonet.py /home/user/genesis 2>&1; echo "# exit: $?"; echo "# end: $(date -u +%Y-%m-%dT%H:%M:%SZ)"; } > $SCR/runs/no_network_final.txt 2>&1
+for v in 3.12 3.13; do
+  echo "py$v $(date -u +%H:%M:%S)" >> $SCR/runs/final_validation_progress.txt
+  PYTHONPYCACHEPREFIX=$(mktemp -d) python$v -B -m unittest discover -s adapters/adapter_tests -t adapters > $SCR/runs/full_adapter_final_py$v.txt 2>&1; echo "exit=$?" >> $SCR/runs/full_adapter_final_py$v.txt
+done
+echo "FINAL_VALIDATION_DONE $(date -u +%H:%M:%S)" >> $SCR/runs/final_validation_progress.txt

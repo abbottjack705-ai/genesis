@@ -1,0 +1,20 @@
+# R6 frozen tree SHAs
+# command: git rev-parse HEAD:<tree> for the six frozen trees; diffs vs v0.4-foundation-freeze; worktree status
+# python: Python 3.11.15
+# platform: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39
+# HEAD (base): b22263e582386f04e5b7939e511757940ffdfbe0
+----
+src        51cb635bc42b993815b6c02a23c4c3ceb7d98476
+tests      e90b298180068fec03ba7e2fa81957082e7fb3ce
+config     abd22db01ff482a8da84634ee740ba382b68c804
+tools      a0e3411edb4e068fd4708050516cb6870834e7ac
+DECISIONS  cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64
+v04_pack   3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12
+-- git diff --name-status v0.4-foundation-freeze HEAD -- <six trees> (must be empty):
+-- git diff --cached --name-status -- <six trees> (what this commit changes there; must be empty):
+-- git status --porcelain -- <six trees> (must be empty):
+-- files this commit changes outside adapters/ (must be empty):
+-- the audited commits are unchanged and ancestors of the working branch:
+b22263e582386f04e5b7939e511757940ffdfbe0 commit ancestor-of-HEAD=True
+9f846d8abcd7383d6acae78294f0aefaba08e630 commit ancestor-of-HEAD=True
+# end

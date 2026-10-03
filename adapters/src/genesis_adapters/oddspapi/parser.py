@@ -26,7 +26,7 @@ from genesis.repro import canonical_json
 from genesis.time import iso_utc
 
 from genesis_adapters import jsonstrict, schema
-from genesis_adapters.errors import AdapterFailure
+from genesis_adapters.errors import JSON_FAILURE, AdapterFailure
 from genesis_adapters.ids import IdentityTypeError, gid, native_id
 from genesis_adapters.oddspapi import identity_registry as registry
 from genesis_adapters.oddspapi.maps import AdapterMaps, Bookmaker, Competition, Family, MarketEntry
@@ -53,12 +53,6 @@ _PARTICIPANT_KEYS = (KEY_HOME, KEY_AWAY)
 _MISSING_OR_TYPE = ("WRONG_TYPE", "MISSING_REQUIRED")
 _DECIMAL = Context(prec=40, rounding=ROUND_HALF_EVEN)          # deterministic, ambient-independent
 _ZERO_OFFSET = timedelta(0)
-
-_JSON_FAILURES = {
-    "OVERSIZE": AdapterFailure.OVERSIZE_BODY, "INVALID_UTF8": AdapterFailure.INVALID_UTF8,
-    "EMPTY": AdapterFailure.NOT_JSON, "NOT_JSON": AdapterFailure.NOT_JSON,
-    "DUPLICATE_KEYS": AdapterFailure.DUPLICATE_KEYS, "NONFINITE_NUMBER": AdapterFailure.NONFINITE_NUMBER,
-}
 
 
 # --------------------------------------------------------------------------------------
@@ -280,10 +274,23 @@ def build_fixture_snapshot(raw: bytes, *, observation_id: str, retrieved_at: str
 
     Only fixtures of allowlisted competitions with a valid scheduled start are kept, and a fixture
     id that appears twice with different content is dropped (it can never be joined).
+
+    TOTAL (hostile audit RA5-001): every ODDS derivation joins the newest FIXTURES capture, so a snapshot that raised
+    would wedge every later derivation just as a poisoned ODDS capture did. Whatever the body does, the answer is a
+    snapshot or None (unusable as a join, which blocks the affected events as EVENT_METADATA_STALE).
     """
 
     try:
-        payload = jsonstrict.loads_strict(raw, max_bytes=policy.max_response_bytes)
+        return _fixture_snapshot(raw, observation_id, retrieved_at, maps, policy, fixtures_schema)
+    except Exception:                       # provider content must never leave the pure stage as an exception
+        return None
+
+
+def _fixture_snapshot(raw: bytes, observation_id: str, retrieved_at: str, maps: AdapterMaps, policy,
+                      fixtures_schema: schema.ClosedSchema) -> FixtureSnapshot | None:
+    try:
+        payload = jsonstrict.loads_strict(raw, max_bytes=policy.max_response_bytes, max_depth=policy.json_max_depth,
+                                          max_exponent=policy.json_max_number_exponent)
     except jsonstrict.StrictJsonError:
         return None
     if any(f.scope == "RESPONSE" for f in schema.validate_closed(payload, fixtures_schema)):
@@ -525,11 +532,16 @@ class _Parser:
     # -- identity ----------------------------------------------------------------------------
     @staticmethod
     def _participant(value: Any, blockers: set[AdapterFailure]) -> str | None:
-        if type(value) is not int or value < 0:
+        """A participant id is an int of the native-id grammar (design 8.1); anything else - a missing, mistyped or
+        negative id, or one too long for the grammar (RA5-001: a 65-digit int passed the type test and raised
+        ``IdentityTypeError`` out of the "pure" parser) - is an ambiguous identity (F-22), never an exception."""
+
+        try:
+            native = native_id(value, declared_type="int")
+        except IdentityTypeError:
             blockers.add(AdapterFailure.PARTICIPANT_AMBIGUOUS)
             return None
-        return gid("part", provider=PROVIDER, ns=PARTICIPANT_NS, native_type="int",
-                   native=native_id(value, declared_type="int")["value"])
+        return gid("part", provider=PROVIDER, ns=PARTICIPANT_NS, native_type="int", native=native["value"])
 
     def _identity(self, fixture, event_id, native, competition_id, home_id, away_id, blockers) -> None:
         """Registry rows for a clean first sight, or an IDENTITY_CONFLICT (never a row)."""
@@ -831,9 +843,11 @@ def parse_odds_response(raw: bytes, ctx: ParseContext) -> ParsedResponse:
     """Parse one ODDS response. Pure: the same bytes and context always give the same result."""
 
     try:
-        payload = jsonstrict.loads_strict(raw, max_bytes=ctx.policy.max_response_bytes)
+        payload = jsonstrict.loads_strict(raw, max_bytes=ctx.policy.max_response_bytes,
+                                          max_depth=ctx.policy.json_max_depth,
+                                          max_exponent=ctx.policy.json_max_number_exponent)
     except jsonstrict.StrictJsonError as exc:
-        return _rejected(_JSON_FAILURES[exc.code])
+        return _rejected(JSON_FAILURE[exc.code])
     findings = schema.validate_closed(payload, ctx.response_schema)
     envelope = [item for item in findings if item.scope == "RESPONSE"]
     if envelope:

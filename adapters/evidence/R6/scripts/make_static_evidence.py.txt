@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""DIFFCHECK.txt and TREES.txt for the staged candidate (run from the repository root after `git add -A`)."""
+import pathlib
+import platform
+import subprocess
+
+BASE = "b22263e582386f04e5b7939e511757940ffdfbe0"
+OUT = pathlib.Path("adapters/evidence/R6")
+
+
+def run(*cmd):
+    p = subprocess.run(cmd, capture_output=True, text=True)
+    return (p.stdout + p.stderr), p.returncode
+
+
+def hdr(title, cmd):
+    return (f"# R6 {title}\n# command: {cmd}\n# python: Python {platform.python_version()}\n# platform: {platform.platform()}\n"
+            f"# HEAD (base): {BASE}\n----\n")
+
+
+out1, rc1 = run("git", "diff", "--cached", "--check")
+out2, rc2 = run("git", "diff", "--check")
+(OUT / "DIFFCHECK.txt").write_text(hdr("git diff --check", "git diff --cached --check (everything staged, new files included); "
+                                       "git diff --check (worktree)")
+                                   + f"-- staged (exit {rc1}):\n{out1}-- worktree (exit {rc2}):\n{out2}# exit: {max(rc1, rc2)}\n")
+body = []
+SIX = ("src", "tests", "config", "tools", "DECISIONS", "v04_pack")
+for t in SIX:
+    body.append(f"{t:10s} {run('git', 'rev-parse', 'HEAD:' + t)[0].strip()}\n")
+body.append("-- git diff --name-status v0.4-foundation-freeze HEAD -- <six trees> (must be empty):\n")
+body.append(run("git", "diff", "--name-status", "v0.4-foundation-freeze", "HEAD", "--", *SIX)[0])
+body.append("-- git diff --cached --name-status -- <six trees> (what this commit changes there; must be empty):\n")
+body.append(run("git", "diff", "--cached", "--name-status", "--", *SIX)[0])
+body.append("-- git status --porcelain -- <six trees> (must be empty):\n")
+body.append(run("git", "status", "--porcelain", "--", *SIX)[0])
+body.append("-- files this commit changes outside adapters/ (must be empty):\n")
+body.append("".join(l + "\n" for l in run("git", "diff", "--cached", "--name-only")[0].splitlines() if not l.startswith("adapters/")))
+body.append("-- the audited commits are unchanged and ancestors of the working branch:\n")
+for sha in (BASE, "9f846d8abcd7383d6acae78294f0aefaba08e630"):
+    body.append(f"{sha} {run('git', 'cat-file', '-t', sha)[0].strip()} "
+                f"ancestor-of-HEAD={run('git', 'merge-base', '--is-ancestor', sha, 'HEAD')[1] == 0}\n")
+(OUT / "TREES.txt").write_text(hdr("frozen tree SHAs", "git rev-parse HEAD:<tree> for the six frozen trees; diffs vs "
+                                   "v0.4-foundation-freeze; worktree status") + "".join(body) + "# end\n")

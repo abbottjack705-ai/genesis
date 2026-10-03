@@ -32,7 +32,7 @@ from genesis.repro import ImmutableConflict, canonical_json
 from genesis.time import parse_utc
 
 from genesis_adapters import jsonstrict, schema
-from genesis_adapters.errors import AdapterFailure
+from genesis_adapters.errors import JSON_FAILURE, AdapterFailure
 from genesis_adapters.ids import gid
 from genesis_adapters.oddspapi.endpoints import PROVIDER_ID, RAW_CONTRACT_ID, RAW_URI_PATTERN, CanonicalRequest
 from genesis_adapters.oddspapi.transport import TransportResult
@@ -44,8 +44,8 @@ QUARANTINE_SCHEMA = "quarantine-v1"
 FALLBACK_CONTENT_TYPE = "application/octet-stream"
 _ALLOWED_HEADERS = frozenset({"date", "content-type", "content-length", "content-encoding", "etag",
                               "last-modified", "retry-after"})
-_ALLOWED_PATTERN = re.compile(r"^x-(ratelimit|requests)-[a-z-]{1,40}$")
-_NAME = re.compile(r"^[a-z0-9-]{1,64}$")
+_ALLOWED_PATTERN = re.compile(r"^x-(ratelimit|requests)-[a-z-]{1,40}\Z")
+_NAME = re.compile(r"^[a-z0-9-]{1,64}\Z")
 _JSON_TYPE = re.compile(r"^application/json\s*(;.*)?$", re.IGNORECASE)
 _GZIP = frozenset({"gzip", "x-gzip"})
 
@@ -78,6 +78,7 @@ class Captured:
     failure: AdapterFailure | None
     quarantine_id: str | None
     detection_classes: tuple[str, ...] = ()
+    date_dropped: bool = False                  # a Date header WAS sent but was too long to keep (RA5-002)
 
 
 @dataclass(frozen=True)
@@ -87,23 +88,21 @@ class ContentVerdict:
     findings: tuple = ()
 
 
-_JSON_FAILURES = {
-    "OVERSIZE": AdapterFailure.OVERSIZE_BODY, "INVALID_UTF8": AdapterFailure.INVALID_UTF8,
-    "EMPTY": AdapterFailure.NOT_JSON, "NOT_JSON": AdapterFailure.NOT_JSON,
-    "DUPLICATE_KEYS": AdapterFailure.DUPLICATE_KEYS, "NONFINITE_NUMBER": AdapterFailure.NONFINITE_NUMBER,
-}
-
-
 def parse_http_date(value: str):
-    """A UTC datetime from an RFC 7231 ``Date`` value, or None (naive, non-GMT or unparseable)."""
+    """A UTC datetime from an RFC 7231 ``Date`` value, or None (naive, non-GMT, unparseable or out of range).
+
+    TOTAL (hostile audit RA5-002): the value is provider-controlled text, and this runs after the raw evidence was
+    published and before the attempt's ``completed`` row, so no parse or conversion error may leave it - a year such as
+    ``99999999999`` raised ``OverflowError`` out of ``parsedate_to_datetime`` and orphaned the attempt. Whatever
+    cannot be read as an aware UTC instant is "unusable", and an unusable Date is a ``CLOCK_SKEW`` verdict."""
 
     try:
         moment = parsedate_to_datetime(value)
-    except (TypeError, ValueError, IndexError):
+        if moment.tzinfo is None or moment.utcoffset() != timedelta(0):
+            return None
+        return moment.astimezone(timezone.utc)
+    except Exception:                       # TypeError/ValueError/IndexError/OverflowError today; any other is unusable too
         return None
-    if moment.tzinfo is None or moment.utcoffset() != timedelta(0):
-        return None
-    return moment.astimezone(timezone.utc)
 
 
 def header_octet_forms(text: str) -> tuple[bytes, ...]:
@@ -260,15 +259,19 @@ class RawCapture:
                 upstream_version=request.api_version)
         except (ImmutableConflict, RegistryConflict, ValueError):
             raise CaptureConflict("evidence publication was refused") from None
+        # the allowlist drops a value longer than the cap; a Date that was sent but dropped is a present, unusable
+        # time claim, never "no Date header" (which capture without ``require_date`` accepts)
+        date_dropped = any(name.lower() == "date" for name, _ in result.headers) \
+            and not any(key == "date" for key, _ in headers)
         return Captured("STORED", observation.observation_id, decoded, headers,
                         None if encoding == "none" else encoding, len(decoded),
-                        AdapterFailure.OVERSIZE_BODY if oversize else None, None)
+                        AdapterFailure.OVERSIZE_BODY if oversize else None, None, date_dropped=date_dropped)
 
     # -- validate -------------------------------------------------------------------------------
-    def _skew_failure(self, headers, t1: str) -> AdapterFailure | None:
+    def _skew_failure(self, headers, t1: str, *, date_dropped: bool = False) -> AdapterFailure | None:
         values = [value for name, value in headers if name == "date"]
         if not values:
-            return AdapterFailure.CLOCK_SKEW if self.require_date else None
+            return AdapterFailure.CLOCK_SKEW if (self.require_date or date_dropped) else None
         moment = parse_http_date(values[0])
         if moment is None:
             return AdapterFailure.CLOCK_SKEW
@@ -292,16 +295,19 @@ class RawCapture:
     def validate(self, *, request: CanonicalRequest, captured: Captured, t1: str) -> ContentVerdict:
         """Clock skew, content type, strict JSON and the closed envelope, in that order."""
 
-        failure = self._skew_failure(captured.headers, t1)
+        failure = self._skew_failure(captured.headers, t1, date_dropped=captured.date_dropped)
         if failure is not None:
             return ContentVerdict(failure)
         content_type = next((v for k, v in captured.headers if k == "content-type"), "")
         if not _JSON_TYPE.match(content_type):
             return ContentVerdict(AdapterFailure.WRONG_CONTENT_TYPE)
+        policy = self.config.policy
         try:
-            parsed = jsonstrict.loads_strict(captured.decoded, max_bytes=self.config.policy.max_response_bytes)
+            parsed = jsonstrict.loads_strict(captured.decoded, max_bytes=policy.max_response_bytes,
+                                             max_depth=policy.json_max_depth,
+                                             max_exponent=policy.json_max_number_exponent)
         except jsonstrict.StrictJsonError as exc:
-            return ContentVerdict(_JSON_FAILURES[exc.code])
+            return ContentVerdict(JSON_FAILURE[exc.code])
         spec = self.config.endpoints[request.role]
         findings = schema.validate_closed(parsed, self.config.schemas[spec.response_schema_id])
         envelope = [f for f in findings if f.scope == "RESPONSE"]

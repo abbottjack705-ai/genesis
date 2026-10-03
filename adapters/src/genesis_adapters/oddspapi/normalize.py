@@ -27,7 +27,10 @@ from genesis_adapters.oddspapi.parser import (
 
 # Part of derivation_version (design 9.2: any change to code semantics creates a new source). 2: a requested
 # tournament the response does not show makes the response partial, so it is never tombstoned (hostile audit F-03).
-CODE_VERSION = "mb-normalize-2"
+# 3: the strict decoder bounds nesting depth and numeric magnitude and refuses unencodable text, a participant id
+# outside the native-id grammar is an ambiguous identity, and the whole pure stage is a total function whose failure
+# is a durable terminal verdict (hostile audit RA5-001).
+CODE_VERSION = "mb-normalize-3"
 DOCUMENT_SCHEMA = "genesis.adapters.oddspapi.market-book.v1"
 KIND_RESPONSE = "RESPONSE"
 SIDE_BACK = "BACK"

@@ -18,10 +18,15 @@ from typing import Any, Mapping
 from genesis.repro import canonical_json, sha256_bytes
 
 POLICY_CLASSIFICATION = "PROVISIONAL_SLICE1_POLICY"
+# Design 8.4 / MKT-02: the operational policy declares one to three bookmakers. This is an architecture-fixed set of
+# permitted counts, not a provisional tunable: it is deliberately NOT a policy field (a policy edit must not be able
+# to widen it; RA5-008). A test-only policy built with ``parse_policy`` may declare more (MKT-02); a configuration
+# loaded from files by ``load_adapter_config`` may not.
+OPERATIONAL_DECLARED_BOOKMAKERS = (1, 2, 3)
 CACHE_ROLES = ("FIXTURES", "META_BOOKMAKERS", "META_MARKETS", "META_SPORTS", "META_TOURNAMENTS")
 BUDGET_POOLS = ("conditional", "fixtures", "metadata", "scheduled_odds")
-_DAY_TIME = re.compile(r"^(MON|TUE|WED|THU|FRI|SAT|SUN) ([01]\d|2[0-3]):[0-5]\d$")
-_TIME = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
+_DAY_TIME = re.compile(r"^(MON|TUE|WED|THU|FRI|SAT|SUN) ([01]\d|2[0-3]):[0-5]\d\Z")
+_TIME = re.compile(r"^([01]\d|2[0-3]):[0-5]\d\Z")
 
 CONFIG_FILES = {
     "endpoint_spec_digest": "oddspapi_v4_endpoints.json",
@@ -82,6 +87,8 @@ class SlicePolicy:
     declared_bookmakers_max: int
     header_value_max_chars: int
     read_chunk_bytes: int
+    json_max_depth: int
+    json_max_number_exponent: int
 
     def to_dict(self) -> dict[str, Any]:
         result: dict[str, Any] = {}
@@ -107,7 +114,8 @@ _POSITIVE_INTS = (
     "retry_min_backoff_seconds", "conditional_refresh_min_lead_seconds", "schedule_cluster_hours",
     "schedule_prekick_offset_minutes", "schedule_matchday_offset_hours",
     "schedule_inventory_horizon_hours", "scheduled_daily_max", "g3_min_observation_days",
-    "declared_bookmakers_max", "header_value_max_chars", "read_chunk_bytes",
+    "declared_bookmakers_max", "header_value_max_chars", "read_chunk_bytes", "json_max_depth",
+    "json_max_number_exponent",
 )
 _NON_NEGATIVE_INTS = ("odds_max_fraction_digits", "max_retries_per_window", "conditional_daily_max")
 
@@ -264,6 +272,9 @@ def load_adapter_config(config_dir: str | Path, *, allow_fixture_only: bool = Fa
 
     root = Path(config_dir)
     policy = load_policy(root / POLICY_FILE)
+    if policy.declared_bookmakers_max not in OPERATIONAL_DECLARED_BOOKMAKERS:
+        raise PolicyError("declared_bookmakers_max is outside the architecture's operational bookmaker counts "
+                          "(design 8.4)")
     identity = _load_json(root / CONFIG_FILES["identity_map_digest"])
     market = _load_json(root / CONFIG_FILES["market_map_digest"])
     status = _load_json(root / CONFIG_FILES["status_map_digest"])

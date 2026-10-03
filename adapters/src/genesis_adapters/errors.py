@@ -40,6 +40,10 @@ class AdapterFailure(StrEnum):
     NONFINITE_NUMBER = "NONFINITE_NUMBER"
     WRONG_CONTENT_TYPE = "WRONG_CONTENT_TYPE"
     ENVELOPE_SCHEMA_MISMATCH = "ENVELOPE_SCHEMA_MISMATCH"
+    # additive F-13/F-14 detail codes (R6, hostile audit RA5-001): valid JSON the later stages cannot be allowed to meet
+    NESTING_TOO_DEEP = "NESTING_TOO_DEEP"
+    NUMBER_OUT_OF_RANGE = "NUMBER_OUT_OF_RANGE"
+    DERIVATION_FAULT = "DERIVATION_FAULT"
     # F-15 .. F-24: content
     PARTIAL_RESPONSE = "PARTIAL_RESPONSE"
     OUT_OF_SCOPE_COMPETITION = "OUT_OF_SCOPE_COMPETITION"
@@ -167,6 +171,9 @@ REASON_CODE_MAP: dict[AdapterFailure, ReasonCode] = {
     AdapterFailure.NONFINITE_NUMBER: R.SCHEMA_REJECTED,
     AdapterFailure.WRONG_CONTENT_TYPE: R.SCHEMA_REJECTED,
     AdapterFailure.ENVELOPE_SCHEMA_MISMATCH: R.SCHEMA_REJECTED,
+    AdapterFailure.NESTING_TOO_DEEP: R.SCHEMA_REJECTED,
+    AdapterFailure.NUMBER_OUT_OF_RANGE: R.SCHEMA_REJECTED,
+    AdapterFailure.DERIVATION_FAULT: R.SCHEMA_REJECTED,
     AdapterFailure.PARTIAL_RESPONSE: R.MISSING_EVIDENCE,
     AdapterFailure.OUT_OF_SCOPE_COMPETITION: R.UNSUPPORTED_MARKET,
     AdapterFailure.OUT_OF_SCOPE_BOOKMAKER: R.UNSUPPORTED_MARKET,
@@ -220,6 +227,20 @@ REASON_CODE_MAP: dict[AdapterFailure, ReasonCode] = {
     AdapterFailure.ABSENT: R.ACCEPTED,
     AdapterFailure.BLOCKED: R.CRITICAL_UNCERTAINTY,
     AdapterFailure.ROLE_NOT_USABLE: R.CONFIGURATION_MISMATCH,
+}
+
+# The strict JSON decoder's stable error codes (``jsonstrict.CODES``) and the F-13 outcome each one is. One mapping for
+# every caller (capture-time checks, the parser): a code that existed in one place only would be an uncaught KeyError
+# on provider content, and a test asserts the two sets are equal.
+JSON_FAILURE: dict[str, AdapterFailure] = {
+    "OVERSIZE": AdapterFailure.OVERSIZE_BODY,
+    "INVALID_UTF8": AdapterFailure.INVALID_UTF8,
+    "EMPTY": AdapterFailure.NOT_JSON,
+    "NOT_JSON": AdapterFailure.NOT_JSON,
+    "DUPLICATE_KEYS": AdapterFailure.DUPLICATE_KEYS,
+    "NONFINITE_NUMBER": AdapterFailure.NONFINITE_NUMBER,
+    "TOO_DEEP": AdapterFailure.NESTING_TOO_DEEP,
+    "NUMBER_OUT_OF_RANGE": AdapterFailure.NUMBER_OUT_OF_RANGE,
 }
 
 # What a decision-time consumer records when the reader returns ``Unusable(<code>)``

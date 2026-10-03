@@ -12,8 +12,8 @@ HA-07 (7.6): header names and values are screened as the ORIGINAL wire octets (`
     Latin-1 decoded), so a non-ASCII key echoed in a header is caught; nothing of such a response is kept.
 HA-08 (7.6, F-06, F-11): every received body byte - including the cap+1 probe byte - is screened before any
     retention decision, for identity and content-encoded bodies alike.
-HA-13 / P:HA-006 (7.6, 19 S7): the production ``run`` command has no CA or connect-address seam; the test TLS
-    material is export-ignored and referenced by no production module.
+HA-13 / P:HA-006 (7.6, 19 S7): the production ``run`` command has no CA or connect-address seam; no test TLS
+    material is committed (R6 / RA5-003: it is minted per run) and none is referenced by a production module.
 
 No failure message of these tests ever prints a form of the (public, test-only) sentinel.
 """
@@ -504,11 +504,11 @@ class ProductionTrustBoundaryTests(SafeAsserts):
             for marker in ("fixtures/tls", "test-ca", "server.key", "server.pem", "ca_file", "cafile"):
                 self.assertFalse(marker in text, f"{path.name} mentions {marker}")
 
-    def test_ha13_the_test_tls_material_is_export_ignored(self):
-        for name in ("server.key", "server.pem", "test-ca.pem"):
-            out = subprocess.run(["git", "check-attr", "export-ignore", f"adapters/adapter_tests/fixtures/tls/{name}"],
-                                 capture_output=True, text=True, cwd=REPO).stdout.strip()
-            self.assertTrue(out.endswith(": set"), name)
+    def test_ha13_no_test_tls_material_is_committed_at_all(self):
+        """R6 / RA5-003: ``export-ignore`` only ever protected ``git archive``; the material is now generated per run
+        (``tls_support``) and nothing - no CA, certificate or key - is committed (see ``test_v05_r6_tls_boundary``)."""
+
+        self.assertFalse((REPO / "adapters" / "adapter_tests" / "fixtures" / "tls").exists())
 
 
 if __name__ == "__main__":

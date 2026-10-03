@@ -1,0 +1,12 @@
+# R6 frozen-suite count comparison
+# command: verify.parse_unittest_summary / verify.compare_frozen_transcripts
+# python: Python 3.11.15
+# platform: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39
+# HEAD (base): b22263e582386f04e5b7939e511757940ffdfbe0
+# note: build host is Linux, not Windows; no Windows result is claimed anywhere here
+----
+R6 candidate (Linux)       {'ran': 493, 'failures': 0, 'errors': 0, 'skipped': 19, 'ok': True}
+pre-R6 baseline (Linux)    {'ran': 493, 'failures': 0, 'errors': 0, 'skipped': 19, 'ok': True}
+S0 baseline (Windows)      {'ran': 493, 'failures': 0, 'errors': 0, 'skipped': 1, 'ok': True}
+IDENTICAL to the Linux pre-R6 baseline: True
+vs the Windows S0 baseline: not identical ( FreezeViolation frozen-suite counts differ: baseline={'ran': 493, 'failures': 0, 'errors': 0, 'skipped': 1, 'ok': True} current={'ran': 493, 'failures': 0, 'errors': 0, 'skipped': 19, 'ok': True} ) - skip counts differ by platform (design 21 A11)

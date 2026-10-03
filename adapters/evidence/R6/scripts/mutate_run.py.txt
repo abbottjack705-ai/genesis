@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""Apply ONE textual mutation to ONE source file, run selected adapter test modules, ALWAYS restore the file.
+
+usage: mutate_run.py <label> <relative-file> <old-text-file-or-literal> <new-text-file-or-literal> <pattern> [<pattern> ...]
+Text arguments beginning with '@' are read from that file (exact bytes); otherwise they are literals.
+Prints one line: KILLED / SURVIVED, the failing test names (first few), and the elapsed seconds.
+"""
+import os, subprocess, sys, tempfile, time, pathlib, re
+
+REPO = pathlib.Path("/home/user/genesis")
+
+
+def text(arg):
+    return pathlib.Path(arg[1:]).read_text() if arg.startswith("@") else arg
+
+
+def main():
+    label, rel, old, new, *patterns = sys.argv[1:]
+    path = REPO / rel
+    original = path.read_bytes()
+    old_t, new_t = text(old), text(new)
+    source = original.decode("utf-8")
+    if source.count(old_t) != 1:
+        print(f"{label}: ERROR old text occurs {source.count(old_t)} times in {rel}")
+        sys.exit(3)
+    started = time.time()
+    failing = []
+    ran = 0
+    try:
+        path.write_text(source.replace(old_t, new_t))
+        for pattern in patterns:
+            env = dict(os.environ)
+            env.pop("PYTHONPATH", None)
+            env["PYTHONPYCACHEPREFIX"] = tempfile.mkdtemp()
+            proc = subprocess.run(
+                [sys.executable, "-B", "-m", "unittest", "discover", "-s", "adapters/adapter_tests", "-t", "adapters",
+                 "-p", pattern], cwd=str(REPO), env=env, capture_output=True, text=True, timeout=1500)
+            out = proc.stdout + proc.stderr
+            m = re.search(r"Ran (\d+) tests?", out)
+            ran += int(m.group(1)) if m else 0
+            failing += re.findall(r"^(?:FAIL|ERROR): (\S+)", out, re.M)
+            if proc.returncode != 0 and not m:
+                failing.append(f"<harness failure in {pattern}: {out[-200:]!r}>")
+    finally:
+        path.write_bytes(original)
+    verdict = "KILLED" if failing else "SURVIVED"
+    print(f"{label}: {verdict} ran={ran} failing={len(failing)} {sorted(set(failing))[:6]} ({time.time()-started:.0f}s)")
+    sys.exit(0 if failing else 1)
+
+
+main()

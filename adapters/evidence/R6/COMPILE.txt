@@ -1,0 +1,9 @@
+# R6 compileall
+# command: python3 -B -m compileall -q src tests adapters/src adapters/adapter_tests
+# python: Python 3.11.15
+# platform: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39
+# HEAD (base): b22263e582386f04e5b7939e511757940ffdfbe0
+# note: build host is Linux, not Windows; no Windows result is claimed anywhere here
+----
+exit=0
+(no output: every module compiles)

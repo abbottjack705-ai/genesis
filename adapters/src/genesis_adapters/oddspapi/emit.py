@@ -348,14 +348,16 @@ def _completed_row(stores: AdapterStores, acquisition_id: str) -> dict[str, Any]
 
 
 def emit_response(parsed: ParsedResponse, ctx: ParseContext, *, stores: AdapterStores, clock: TrustedClock,
-                  checkpoint: Callable[[str], None] | None = None) -> EmitResult:
-    """Publish everything one parsed response produces; safe to run again after a crash (see the module doc)."""
+                  checkpoint: Callable[[str], None] | None = None,
+                  documents: Sequence[NormalizedDocument] | None = None) -> EmitResult:
+    """Publish everything one parsed response produces; safe to run again after a crash (see the module doc).
+    ``documents`` are the already built documents of ``parsed`` (the pipeline builds them inside its total boundary)."""
 
     if ctx.derivation_version != stores.derivation_version:
         raise EmitConflict(AdapterFailure.CONFIG_DIGEST_MISMATCH, "the parse context is not this derivation")
     if parsed.failure is not None:
         raise EmitConflict(parsed.failure, "a response rejected as a whole emits nothing")
-    documents = build_documents(parsed, ctx)
+    documents = build_documents(parsed, ctx) if documents is None else documents
     t1 = iso_utc(ctx.response_received_at)
     state = stores.acquisition.attempts().get(ctx.acquisition_id)
     completed = _completed_row(stores, ctx.acquisition_id)

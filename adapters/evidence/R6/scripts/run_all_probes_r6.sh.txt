@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Re-run every audit probe against a candidate tree and capture transcripts in ../evidence/.
+# Usage: CAND_DIR=<path to a checkout of b22263e> AUDIT_SCRATCH=<scratch dir> ./run_all_probes.sh
+# Needs: python3 (3.11+), git, openssl (p70 only), unshare (netns_run only). No network, no credential.
+set -u
+HERE="$(cd "$(dirname "$0")" && pwd)"
+export CAND_DIR="${CAND_DIR:-$(cd "$HERE/../../.." && pwd)}"
+export AUDIT_SCRATCH="${AUDIT_SCRATCH:-/tmp/v05_audit_scratch}"
+OUT="$HERE/../evidence_r6_probes"; mkdir -p "$OUT" "$AUDIT_SCRATCH/out"
+cd "$HERE"
+run() {   # run <probe> [args...]  -> evidence/<probe>.txt
+  local name="$1"; shift
+  export PYTHONPYCACHEPREFIX="$(mktemp -d)"
+  ( time python3 -B "$name.py" "$@" ) > "$OUT/$name.txt" 2>&1 || echo "[exit $?]" >> "$OUT/$name.txt"
+}
+for p in p00_smoke p10_deadline p12_runner_deadline p20_quota_replay p30_completeness p40_emit_crash p41_pit_head p42_stale p43_invalidation_crash \
+         p50_secret_echo p51_secret_echo2 p52_transport_exc p53_nonascii p54_secret_specials p55_secret_form_only p60_operator p61_reset p70_tls_env p80_provenance \
+         p90_derivation p95_f44 p100_static_evasion p110_regex_nl p111_num_dos p112_overflow_trace p113_poison p118_poison3 \
+         p119b_no_remedy p120_which_fields p122_headers p123_date_overflow p124_deep p130_replay p131_guard_oracle \
+         p140_rejected_restart p150_usage p170_dev7; do run "$p"; done
+run p11_slowdrip                     # ~40 s
+run p114_fuzz_parser                 # writes $AUDIT_SCRATCH/out/fuzz_*.json
+run p115_minimize                    # needs the p114 outputs
+run p116_fuzz2 11 10000
+run p117_fuzz_fixtures
+run p119_fuzz3 23 8000
+run p121_fuzz_pipeline 3 250
+export AUDIT_P70_CONTROL=1; export PYTHONPYCACHEPREFIX="$(mktemp -d)"; ( python3 -B p70_tls_env.py ) > "$OUT/p70_tls_env_control.txt" 2>&1; unset AUDIT_P70_CONTROL
+# p160 needs TWO trees: pristine ($CAND_DIR) and one with the single mutation applied (see REPRO_COMMANDS.md)
+run p160_equiv_mutant
+echo "transcripts in $OUT"

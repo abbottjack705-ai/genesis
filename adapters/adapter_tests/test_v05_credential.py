@@ -117,7 +117,17 @@ class CredentialTests(unittest.TestCase):
             path = self.key_file(base)
             link_mode = stat.S_IFLNK | 0o600
             fake = os.stat_result((link_mode, 1, 1, 1, 0, 0, len(SENTINEL_KEY) + 1, 0, 0, 0))
-            with mock.patch("genesis_adapters.credential.os.lstat", return_value=fake):
+            real_lstat = os.lstat
+
+            def lstat_reporting_a_link(candidate, *args, **kwargs):
+                # only the credential path reports a link: ``os.lstat`` is the process-wide function, and the path
+                # resolution that builds the source (``Path.resolve`` on POSIX) calls it for every parent directory
+                # (hostile audit RA5-013: patching it for all paths made this test error on Linux)
+                if os.fspath(candidate) == os.fspath(path):
+                    return fake
+                return real_lstat(candidate, *args, **kwargs)
+
+            with mock.patch("genesis_adapters.credential.os.lstat", side_effect=lstat_reporting_a_link):
                 self.refused(self.source(base, path), "CREDENTIAL_PERMISSIONS")
 
     def test_f04_a_file_with_a_second_hard_link_name_is_refused(self):

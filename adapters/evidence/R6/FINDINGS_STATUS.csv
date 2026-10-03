@@ -1,0 +1,20 @@
+ID,severity,R6 status,what changed / why not,evidence
+RA5-001,BLOCKER,FIXED (candidate),"Invariant: every syntactically valid 200 body ends in a durable, restart-stable state. Strict-decoder bounds (depth, numeric exponent, unencodable text), participant-id ambiguity, total derive() boundary (DERIVATION_FAULT), durable terminal verdict acq_derivation_rejected + REJECTED coverage; successful_capture/resume/pending_work consistent; raw evidence untouched. Also fixed: fixtureId wedge (5th class), decimal.InvalidOperation escape in the decoder.","test_v05_r6_poison_pill.py (27), test_v05_jsonstrict.py StrictJsonBoundTests (17); mutants J01-J17 E01-E04 A01-A13 D01-D05 P01-P03 R01-R03 killed; fuzz 42000+ iterations no escape"
+RA5-002,MEDIUM,FIXED (candidate),"parse_http_date total; unusable or length-dropped Date is a deterministic CLOCK_SKEW verdict, durable in the completed row; no orphan.",test_v05_r6_date_header.py (12); mutants H01-H07 (H03 equivalent)
+RA5-003,MEDIUM,FIXED (candidate),tls_context() hides SSL_CERT_FILE/SSL_CERT_DIR/SSLKEYLOGFILE while building the stock platform context and asserts its own properties; no certificate or key committed (per-run PKI); retired CA pinned as a negative vector.,"test_v05_r6_tls_boundary.py (26); p70 history attack: defect on base, NO_RESPONSE on R6 with the full old attacker material; mutants S01-S09"
+RA5-004,MEDIUM,FIXED (candidate),"One absolute monotonic deadline per connection arms every connect attempt, the handshake, the send and every receive; wrapper keeps the http.client close contract; residual: name resolution not bounded by socket timeouts.",test_v05_r6_deadline.py (30); p11 40.63 s -> 3.0 s; mutants T01-T14 M07 M08 M09
+RA5-005,LOW,FIXED,Two unguarded clock reads and the replay-broken halt stamp end in a durable CLOCK_FAULT halt.,ClockFaultInsideAnAttemptTests; mutants RA5-005-a..e
+RA5-006,LOW,FIXED,All identifier grammars end in \Z.,TrailingNewlineGrammarTests; mutants RA5-006-* (_DATE equivalent)
+RA5-007,LOW,FIXED at the credential loader,Printable ASCII without a space only; Secret itself unchanged.,CredentialGrammarTests; mutants RA5-007-a..e
+RA5-008,LOW,FIXED,"OPERATIONAL_DECLARED_BOOKMAKERS = (1, 2, 3) enforced by load_adapter_config in both modes; not a policy field.",OperationalBookmakerCeilingTests; mutants RA5-008-a..e
+RA5-009,LOW,FIXED,verify_response_derivation compares upstream_version and content_type.,VerifyDerivationMetadataTests; mutants RA5-009-omit-* (parser_version equivalent)
+RA5-010,LOW,UNCHANGED (authority ambiguity),Needs G2 evidence of provider completeness or an ADR.,-
+RA5-011,LOW,FIXED,Present but unreadable usage header halts as QUOTA_DIVERGENCE; presence from headers as received; all occurrences judged.,UnreadableUsageHeaderTests; mutants RA5-011-a..k
+RA5-012,LOW,FIXED,All 14 audit survivors killed; R3 equivalent label withdrawn; M40 killed.,"GateWindowBoundaryTests, SecretFormTests, CredentialModeTests, ExactSizeBodyTests, QuarantineMetadataScanTests, UnpinnedScopeTests + test_v05_r6_deadline.py"
+RA5-013,LOW,FIXED,Credential link test patches os.lstat for the credential path only.,test_v05_credential.py; suite green on Linux/3.11
+RA5-014,INFO,UNCHANGED,Static scanners are lint.,-
+RA5-015,INFO,UNCHANGED (authority ambiguity),Durable T0 is the write-ahead reading.,-
+RA5-016,INFO,UNCHANGED (authority ambiguity),reset authority surface for non-security halts.,-
+RA5-017,INFO,UNCHANGED (as instructed),F-44 raw-publish failure model not redesigned.,-
+RA5-018,INFO,OPEN,Real Windows symlink certification; see WINDOWS_RECERTIFICATION.md. Not marked passed.,-
+RA5-019,INFO,UNCHANGED,invalidate_if_underivable catches Exception.,-

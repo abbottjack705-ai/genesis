@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+"""Sequential single-line mutation campaign #2: the secondary findings (RA5-005..009, 011) and the survivors of the audit's
+RA5-012 list. Same mechanics as r6_campaign.py: one textual change, named adapter test modules, file always restored."""
+import os
+import pathlib
+import subprocess
+import sys
+
+SCR = pathlib.Path("<SCRATCH>")
+SRC = "adapters/src/genesis_adapters/"
+OUT = pathlib.Path(os.environ.get("CAMPAIGN_OUT", str(SCR / "runs" / "mutation_r6_low.txt")))
+LOW = ["test_v05_r6_low_findings.py"]
+
+M = []
+
+
+def add(label, rel, old, new, tests=LOW):
+    M.append((label, SRC + rel, old, new, tests))
+
+
+# ---- RA5-008: the operational bookmaker ceiling ---------------------------------------------------------------------------
+C = "config.py"
+add("RA5-008-a count set widened to 4", C, "OPERATIONAL_DECLARED_BOOKMAKERS = (1, 2, 3)", "OPERATIONAL_DECLARED_BOOKMAKERS = (1, 2, 3, 4)")
+add("RA5-008-b count set narrowed to 2", C, "OPERATIONAL_DECLARED_BOOKMAKERS = (1, 2, 3)", "OPERATIONAL_DECLARED_BOOKMAKERS = (1, 2)")
+add("RA5-008-c count set loses 1", C, "OPERATIONAL_DECLARED_BOOKMAKERS = (1, 2, 3)", "OPERATIONAL_DECLARED_BOOKMAKERS = (2, 3)")
+add("RA5-008-d ceiling check removed", C, "    if policy.declared_bookmakers_max not in OPERATIONAL_DECLARED_BOOKMAKERS:",
+    "    if False and policy.declared_bookmakers_max not in OPERATIONAL_DECLARED_BOOKMAKERS:")
+add("RA5-008-e ceiling only in the operational mode", C, "    if policy.declared_bookmakers_max not in OPERATIONAL_DECLARED_BOOKMAKERS:",
+    "    if not allow_fixture_only and policy.declared_bookmakers_max not in OPERATIONAL_DECLARED_BOOKMAKERS:")
+
+# ---- RA5-011: an unreadable usage header ----------------------------------------------------------------------------------
+A = "oddspapi/acquisition.py"
+add("RA5-011-a unreadable no longer halts", A, 'if usage is not None and (usage["reported"] is None or usage["reported"] > usage["genesis_debited"]):',
+    'if usage is not None and usage["reported"] is not None and usage["reported"] > usage["genesis_debited"]:')
+add("RA5-011-b presence judged from the kept headers", A,
+    "        values = [value for name, value in result.headers\n                  if type(name) is str and name.lower() == PROVIDER_USAGE_HEADER]",
+    "        values = [value for name, value in captured.headers\n                  if type(name) is str and name.lower() == PROVIDER_USAGE_HEADER]")
+add("RA5-011-c only the first occurrence judged", A, "        figures = [self._usage_figure(value) for value in values]",
+    "        figures = [self._usage_figure(values[0])]")
+add("RA5-011-d header name matched case-sensitively", A, "if type(name) is str and name.lower() == PROVIDER_USAGE_HEADER]",
+    "if type(name) is str and name == PROVIDER_USAGE_HEADER]")
+add("RA5-011-e the smallest figure is the reported one", A, "        reported = None if None in figures else max(figures)",
+    "        reported = None if None in figures else min(figures)")
+add("RA5-011-f no length bound on the figure", A,
+    "        if len(text) > self.config.policy.header_value_max_chars or not (text.isascii() and text.isdigit()):",
+    "        if not (text.isascii() and text.isdigit()):")
+add("RA5-011-g non-ASCII digits accepted", A,
+    "        if len(text) > self.config.policy.header_value_max_chars or not (text.isascii() and text.isdigit()):",
+    "        if len(text) > self.config.policy.header_value_max_chars or not text.isdigit():")
+add("RA5-011-h usage read from any capture kind", A,
+    '        if captured is None or captured.kind != "STORED":      # only a stored (secret-clean) capture carries headers',
+    "        if captured is None:      # only a stored (secret-clean) capture carries headers")
+add("RA5-011-i surrounding blanks make a value unreadable", A, "        text = value.strip()\n        if len(text)", "        text = value\n        if len(text)")
+add("RA5-011-j an unreadable occurrence is ignored beside a readable one", A,
+    "        reported = None if None in figures else max(figures)",
+    "        reported = max((f for f in figures if f is not None), default=None)")
+add("RA5-011-k divergence above the debit not halting", A,
+    'usage["reported"] is None or usage["reported"] > usage["genesis_debited"]',
+    'usage["reported"] is None or usage["reported"] >= usage["genesis_debited"] + 1 and False')
+
+# ---- RA5-009: every metadata field the verifier compares ------------------------------------------------------------------
+D = "oddspapi/derivation.py"
+old_tuple = '''    if (observation.source_uri, observation.retrieved_at, observation.first_seen_at, observation.valid_from,
+            observation.valid_to, observation.publisher_timestamp, observation.parser_version,
+            observation.upstream_version, observation.content_type) != (
+            wanted_uri, iso_utc(inputs.ctx.response_received_at), iso_utc(inputs.ctx.response_received_at),
+            iso_utc(inputs.ctx.response_received_at), item.valid_to, item.publisher_timestamp,
+            stores.derivation_version, emit.UPSTREAM_VERSION, emit.NORMALIZED_CONTENT_TYPE):'''
+left = ["observation.source_uri", "observation.retrieved_at", "observation.first_seen_at", "observation.valid_from",
+        "observation.valid_to", "observation.publisher_timestamp", "observation.parser_version",
+        "observation.upstream_version", "observation.content_type"]
+right = ["wanted_uri", "iso_utc(inputs.ctx.response_received_at)", "iso_utc(inputs.ctx.response_received_at)",
+         "iso_utc(inputs.ctx.response_received_at)", "item.valid_to", "item.publisher_timestamp",
+         "stores.derivation_version", "emit.UPSTREAM_VERSION", "emit.NORMALIZED_CONTENT_TYPE"]
+names = ["source_uri", "retrieved_at", "first_seen_at", "valid_from", "valid_to", "publisher_timestamp",
+         "parser_version", "upstream_version", "content_type"]
+for index, name in enumerate(names):
+    new_tuple = "    if (" + ", ".join(left[:index] + left[index + 1:]) + ") != (" + ", ".join(right[:index] + right[index + 1:]) + "):"
+    tag = " (EQUIVALENT: the source contract pins it at publish)" if name == "parser_version" else ""
+    add(f"RA5-009-omit-{name}{tag}", D, old_tuple, new_tuple)
+
+# ---- RA5-005: clock faults inside an attempt -------------------------------------------------------------------------------
+add("RA5-005-a decision stamp unguarded", A,
+    "        try:\n            now = self._stamp()\n        except ClockFault:                                  # the reservation stands; it is reconciled on restart\n            self._halt(aid, request, AdapterFailure.CLOCK_FAULT, self.ledger.last_recorded_at() or tq,\n                       refused=False)\n",
+    "        now = self._stamp()\n")
+add("RA5-005-b T0 read unguarded", A,
+    "        try:\n            t0 = self._stamp()\n        except ClockFault:                                  # nothing was sent: the open attempt is reconciled on restart\n            self._halt(aid, request, AdapterFailure.CLOCK_FAULT, self.ledger.last_recorded_at() or tq,\n                       refused=False)\n",
+    "        t0 = self._stamp()\n")
+add("RA5-005-c replay-broken halt stamped with a raw read", A,
+    "            self._halt(aid, request, AdapterFailure.QUOTA_REPLAY_BROKEN,\n                       self._safe_stamp(self.ledger.last_recorded_at() or tq), refused=True)",
+    "            self._halt(aid, request, AdapterFailure.QUOTA_REPLAY_BROKEN, self._stamp(), refused=True)")
+add("RA5-005-d the halt row is not stamped", A,
+    "            self._halt(aid, request, AdapterFailure.CLOCK_FAULT, self.ledger.last_recorded_at() or tq,\n                       refused=False)\n        self._record(\"acq_quota_decided\"",
+    "            self._halt(aid, request, AdapterFailure.CLOCK_FAULT, \"\",\n                       refused=False)\n        self._record(\"acq_quota_decided\"")
+add("RA5-005-e the T0 halt names another reason", A,
+    "        except ClockFault:                                  # nothing was sent: the open attempt is reconciled on restart\n            self._halt(aid, request, AdapterFailure.CLOCK_FAULT,",
+    "        except ClockFault:                                  # nothing was sent: the open attempt is reconciled on restart\n            self._halt(aid, request, AdapterFailure.CLOCK_SKEW,")
+
+# ---- RA5-006: every identifier grammar ends in \Z ----------------------------------------------------------------------------
+grammars = {
+    "ids.py": ['_KIND = re.compile(r"^[a-z]+\\Z")', '_NATIVE_STR = re.compile(r"^[A-Za-z0-9_.:-]{1,64}\\Z")'],
+    "config.py": ['_DAY_TIME = re.compile(r"^(MON|TUE|WED|THU|FRI|SAT|SUN) ([01]\\d|2[0-3]):[0-5]\\d\\Z")',
+                  '_TIME = re.compile(r"^([01]\\d|2[0-3]):[0-5]\\d\\Z")'],
+    "schema.py": ['_MAP_KEY = re.compile(r"^[A-Za-z0-9_.:-]{1,64}\\Z")'],
+    "oddspapi/invalidation.py": ['_HEX64 = re.compile(r"^[0-9a-f]{64}\\Z")'],
+    "oddspapi/maps.py": ['_BOOKMAKER_ID = re.compile(r"^bk\\.[a-z0-9][a-z0-9-]{0,39}\\Z")',
+                         '_NATIVE_STR = re.compile(r"^[A-Za-z0-9_.:-]{1,64}\\Z")',
+                         '_SLUG = re.compile(r"^[a-z0-9][a-z0-9.-]{0,63}\\Z")',
+                         '_LINE_SOURCE = re.compile(r"^(none|market_definition|outcome_field:[A-Za-z][A-Za-z0-9_]{0,40})\\Z")'],
+    "oddspapi/raw_capture.py": ['_ALLOWED_PATTERN = re.compile(r"^x-(ratelimit|requests)-[a-z-]{1,40}\\Z")',
+                                '_NAME = re.compile(r"^[a-z0-9-]{1,64}\\Z")'],
+    "oddspapi/endpoints.py": ['_TEXT = re.compile(r"^[A-Za-z0-9_.:-]{1,64}\\Z")', '_DATE = re.compile(r"^\\d{4}-\\d{2}-\\d{2}\\Z")',
+                              '_HOST = re.compile(r"^[a-z0-9]([a-z0-9.-]*[a-z0-9])?\\Z")'],
+}
+for rel, lines in grammars.items():
+    for anchored in lines:
+        name = anchored.split(" =")[0]
+        tag = " (EQUIVALENT: fromisoformat re-checks the text)" if name == "_DATE" else ""
+        add(f"RA5-006-{name}-{pathlib.Path(rel).stem}{tag}", rel, anchored, anchored.replace('\\Z")', '$")'))
+
+# ---- RA5-007: the credential grammar -----------------------------------------------------------------------------------------
+K = "credential.py"
+add("RA5-007-a octet check removed", K, " or text.translate(None, _KEY_OCTETS):", ":")
+add("RA5-007-b space allowed", K, '_KEY_OCTETS = (string.digits + string.ascii_letters + string.punctuation).encode("ascii")',
+    '_KEY_OCTETS = (string.digits + string.ascii_letters + string.punctuation + " ").encode("ascii")')
+add("RA5-007-c punctuation refused", K, '_KEY_OCTETS = (string.digits + string.ascii_letters + string.punctuation).encode("ascii")',
+    '_KEY_OCTETS = (string.digits + string.ascii_letters).encode("ascii")')
+add("RA5-007-d letters refused", K, '_KEY_OCTETS = (string.digits + string.ascii_letters + string.punctuation).encode("ascii")',
+    '_KEY_OCTETS = (string.digits + string.punctuation).encode("ascii")')
+add("RA5-007-e high octets allowed", K, "text.translate(None, _KEY_OCTETS)", "text.translate(None, _KEY_OCTETS + bytes(range(128, 256)))")
+
+# ---- RA5-012: the survivors of the audit's mutation list ------------------------------------------------------------------
+T = ["test_v05_r6_deadline.py"]
+add("M07 runner: T0 at the deadline still sends (>= -> >)", A, "        if parse_utc(t0) >= deadline:                       # not written: the deadline already passed",
+    "        if parse_utc(t0) > deadline:                       # not written: the deadline already passed", T)
+add("M08 runner: a late response is accepted", A, "        if parse_utc(t1) >= deadline:                       # past the hard deadline: the body is discarded",
+    "        if False:                       # past the hard deadline: the body is discarded", T)
+add("M09 runner: T1 == deadline accepted (>= -> >)", A, "        if parse_utc(t1) >= deadline:                       # past the hard deadline: the body is discarded",
+    "        if parse_utc(t1) > deadline:                       # past the hard deadline: the body is discarded", T)
+R = "oddspapi/raw_capture.py"
+add("M22 raw: exact-size body treated as oversize", R, "        oversize = len(wire) > policy.max_response_bytes", "        oversize = len(wire) >= policy.max_response_bytes")
+add("M22b strict decoder: exact-size body treated as oversize", "jsonstrict.py", "    if len(data) > max_bytes:", "    if len(data) >= max_bytes:")
+S = "secrets.py"
+add("M26 secrets: percent decoded once only", S, "        for _ in range(3):\n            nxt = _percent_decode(decoded)", "        for _ in range(1):\n            nxt = _percent_decode(decoded)")
+add("M26b secrets: percent decoded twice only", S, "        for _ in range(3):\n            nxt = _percent_decode(decoded)", "        for _ in range(2):\n            nxt = _percent_decode(decoded)")
+add("M27 secrets: JSON slash escape not normalised", S, '    return data.replace(b"\\\\/", b"/")', "    return data")
+add("M27b secrets: JSON unicode escapes not normalised", S,
+    '    data = _JSON_U.sub(lambda m: chr(int(m.group(1), 16)).encode("utf-8", "replace"), data)', "    data = data")
+add("M28 secrets: base64 core of exactly the minimum ignored", S, "        if len(core) >= minimum:", "        if len(core) > minimum:")
+add("M30 credential: a 0400 key file accepted", K, "if stat.S_IMODE(info.st_mode) != _OWNER_ONLY or info.st_uid != os.getuid():",
+    "if (stat.S_IMODE(info.st_mode) & 0o077) != 0 or info.st_uid != os.getuid():")
+AU = "oddspapi/authority.py"
+add("M35 authority: validity end exclusive", AU, "(end is None or moment <= parse_utc(end))", "(end is None or moment < parse_utc(end))")
+add("M35b authority: grant instant exclusive", AU, 'if parse_utc(row["granted_at"]) <= moment and start <= moment and',
+    'if parse_utc(row["granted_at"]) < moment and start <= moment and')
+add("M35c authority: window start exclusive", AU, 'if parse_utc(row["granted_at"]) <= moment and start <= moment and',
+    'if parse_utc(row["granted_at"]) <= moment and start < moment and')
+add("M35d authority: grant instant ignored", AU, 'if parse_utc(row["granted_at"]) <= moment and start <= moment and', "if start <= moment and")
+add("M40 raw: quarantine metadata not re-scanned", R, "        if self._hit(canonical_json(meta)):                    # defence in depth: nothing optional survives",
+    "        if False:                    # defence in depth: nothing optional survives")
+add("M46 authority: duplicate request hashes allowed", AU, "                    or len(set(hashes)) != len(hashes):", "                    or False:")
+add("R3 derivation: a scope not pinned before the send accepted", D,
+    '    if scope_hash is None or rows.get("acq_sent", {}).get("expected_scope_hash") != scope_hash:', "    if scope_hash is None:")
+add("R3b derivation: a missing scope hash tolerated (EQUIVALENT: normalization refuses to derive without a pinned scope)", D,
+    '    if scope_hash is None or rows.get("acq_sent", {}).get("expected_scope_hash") != scope_hash:',
+    '    if rows.get("acq_sent", {}).get("expected_scope_hash") != scope_hash:')
+add("RA5-013 credential: a link reported by lstat accepted", K, "        if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode):", "        if False:",
+    ["test_v05_credential.py"])
+
+
+def run(label, rel, old, new, tests):
+    (SCR / "camp_old.txt").write_text(old)
+    (SCR / "camp_new.txt").write_text(new)
+    proc = subprocess.run(["python3", str(SCR / "mutate_run.py"), label, rel, "@" + str(SCR / "camp_old.txt"),
+                           "@" + str(SCR / "camp_new.txt"), *tests], capture_output=True, text=True)
+    return (proc.stdout.strip() or proc.stderr.strip()[-300:]).replace("\n", " ")
+
+
+def main():
+    bad = 0
+    for label, rel, old, new, tests in M:
+        text = pathlib.Path(rel).read_text() if pathlib.Path(rel).exists() else ""
+        if text.count(old) != 1 or old == new:
+            bad += 1
+            print("PROBLEM", label, text.count(old))
+    if bad:
+        sys.exit(f"{bad} mutant specifications do not match the source exactly once")
+    only = sys.argv[1:] or None
+    with open(OUT, "a") as out:
+        for label, rel, old, new, tests in M:
+            if only and not any(label.startswith(prefix) for prefix in only):
+                continue
+            out.write(run(label, rel, old, new, tests) + "\n")
+            out.flush()
+        out.write("DONE\n")
+
+
+main()

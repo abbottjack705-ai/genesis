@@ -36,7 +36,7 @@ from genesis_adapters.oddspapi.authority import AdapterAuthorityLedger, load_gat
 from genesis_adapters.secrets import Secret, SecretScanner
 
 from . import parser_support as ps
-from .loopback_support import TEST_CA, LoopbackHttps, Reply
+from .loopback_support import LoopbackHttps, Reply, test_ca_file
 from .pipeline_support import SPECS
 from .support import CONFIG, REPO, SENTINEL_KEY, read_jsonl, scratch_root
 from genesis_adapters.oddspapi import endpoints as ep
@@ -328,7 +328,7 @@ class LoopbackRunTests(unittest.TestCase):
             harness, result = base / "harness.py", base / "result.json"
             harness.write_text(HARNESS, encoding="utf-8")
             args = ["run", "--root", str(root), "--plan", str(plan), "--mode", "G2"]
-            env.update({"GENESIS_TEST_LOOPBACK_CA": str(TEST_CA), "GENESIS_TEST_LOOPBACK_PORT": str(self.server.port)})
+            env.update({"GENESIS_TEST_LOOPBACK_CA": str(test_ca_file()), "GENESIS_TEST_LOOPBACK_PORT": str(self.server.port)})
             proc = subprocess.run([sys.executable, "-B", str(harness), str(result), "loopback", "NONE", SENTINEL_KEY,
                                    json.dumps(args)], env=env, cwd=str(REPO), capture_output=True, timeout=180)
             self.assertEqual(proc.returncode, 0, proc.stderr[-800:])

@@ -17,7 +17,7 @@ from genesis.repro import canonical_json, sha256_bytes
 SCOPES = ("BOOK", "EVENT_BOOKMAKER", "EVENT", "RESPONSE")
 TYPE_NAMES = frozenset({"int", "str", "bool", "number", "null", "object", "object_map", "array"})
 _FIELD_KEYS = frozenset({"type", "required", "inert", "identity", "timestamp", "ref", "values"})
-_MAP_KEY = re.compile(r"^[A-Za-z0-9_.:-]{1,64}$")
+_MAP_KEY = re.compile(r"^[A-Za-z0-9_.:-]{1,64}\Z")
 _CONTAINER_TYPES = frozenset({"object", "object_map", "array"})
 
 Kind = Literal["UNKNOWN_KEY", "WRONG_TYPE", "MISSING_REQUIRED", "UNKNOWN_ENUM"]

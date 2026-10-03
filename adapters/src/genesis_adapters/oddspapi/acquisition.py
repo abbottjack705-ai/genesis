@@ -44,7 +44,8 @@ TOO_MANY_REQUESTS = 429
 PURPOSES = ("SCHEDULED", "CONDITIONAL", "RETRY", "METADATA", "G2_VERIFICATION")
 LIVE_SEND = "LIVE_SEND"             # the one gate check before any live send (authority.LiveGate)
 # Provisional (design 21 A12, verified at G2): the provider's count of requests used in its current
-# accounting window, reported in an allowlisted response header. Absent -> nothing to reconcile.
+# accounting window, reported in an allowlisted response header. Absent -> nothing to reconcile. Present but not
+# readable as one non-negative integer -> uncertainty about the budget, which is treated as a divergence (RA5-011).
 PROVIDER_USAGE_HEADER = "x-requests-used"
 # The refusal detail from the next UTC day after a CLOCK_SKEW until a clean Date check re-arms sends (14.6 rule 5).
 CLOCK_CHECK_PENDING = "CLOCK_SKEW_DATE_CHECK_PENDING"
@@ -177,6 +178,8 @@ _ROW_KEYS: dict[str, frozenset[str]] = {
                                  "expected_scope_hash", "identity_registry_head",
                                  "normalized_observation_ids", "pit_record_ids", "coverage_entry_ids"}),
     "acq_quarantined": frozenset({"acquisition_id", "quarantine_id"}),
+    # the terminal verdict of a completed capture whose pure derivation cannot produce documents (RA5-001)
+    "acq_derivation_rejected": frozenset({"acquisition_id", "failure", "detail", "derivation_version"}),
     "acq_reconciled": frozenset({"acquisition_id", "outcome", "quota_row_found", "send_state"}),
     "acq_circuit_opened": frozenset({"scope", "role", "reason", "until"}),
     "acq_halted": frozenset({"reason"}),
@@ -340,6 +343,17 @@ def _apply(kind: str, row: Mapping[str, Any], item: _Attempt, recorded: datetime
         if state != "COMPLETED":
             _fail("quarantine only after completed")
         item.state = "QUARANTINED"
+    elif kind == "acq_derivation_rejected":
+        # a derived (NORMALIZED) or already rejected capture can never be rejected: the derivation is deterministic
+        if state != "COMPLETED" or item.t1 is None or item.failure is not None:
+            _fail("a derivation verdict needs a completed, content-checked response that was not yet derived")
+        try:
+            AdapterFailure(row["failure"])
+        except ValueError:
+            _fail("a derivation verdict names an unknown failure")
+        if row["detail"] is not None and type(row["detail"]) is not str:
+            _fail("a derivation verdict detail must be text")
+        item.state, item.failure = "DERIVATION_REJECTED", row["failure"]
     elif kind == "acq_reconciled":
         if state not in _OPEN_STATES or row["outcome"] not in _RECONCILE_OUTCOMES:
             _fail("reconciliation only for an open attempt")
@@ -485,6 +499,9 @@ _COVERAGE_STATUS = {
     AdapterFailure.NONFINITE_NUMBER: CoverageStatus.REJECTED,
     AdapterFailure.WRONG_CONTENT_TYPE: CoverageStatus.REJECTED,
     AdapterFailure.ENVELOPE_SCHEMA_MISMATCH: CoverageStatus.REJECTED,
+    AdapterFailure.NESTING_TOO_DEEP: CoverageStatus.REJECTED,
+    AdapterFailure.NUMBER_OUT_OF_RANGE: CoverageStatus.REJECTED,
+    AdapterFailure.DERIVATION_FAULT: CoverageStatus.REJECTED,
     AdapterFailure.SCHEMA_DRIFT: CoverageStatus.REJECTED,
     AdapterFailure.CLOCK_SKEW: CoverageStatus.QUARANTINED,
     AdapterFailure.SECRET_ECHO: CoverageStatus.QUARANTINED,
@@ -516,6 +533,8 @@ def verdict_effects(verdict: Mapping[str, Any], item: _Attempt, ledger: "Acquisi
     list an uninterrupted run applied."""
 
     kind = verdict["record_type"]
+    if kind == "acq_derivation_rejected":                   # one coverage entry; nothing else is blocked by one response
+        return [_coverage_effect(AdapterFailure(verdict["failure"]), CoverageStatus.REJECTED)]
     if kind == "acq_refused":
         reason = AdapterFailure(verdict["reason"])
         if reason in _HALTING_REFUSALS:
@@ -557,8 +576,9 @@ def verdict_effects(verdict: Mapping[str, Any], item: _Attempt, ledger: "Acquisi
     elif verdict["raw_observation_id"] is not None and config.endpoints[item.role].cacheable:
         effects.append(("cache",))                          # only a response that passed every check is cached
     usage = verdict["provider_reported_usage"]
-    if usage is not None and usage["reported"] is not None and usage["reported"] > usage["genesis_debited"]:
-        # the provider counted more than Genesis debited: the budget can no longer be trusted (F-37)
+    if usage is not None and (usage["reported"] is None or usage["reported"] > usage["genesis_debited"]):
+        # the provider counted more than Genesis debited, or reported a figure that cannot be read (a present header
+        # is never "absent"): the budget can no longer be trusted (F-37; hostile audit RA5-011)
         effects += [("halted", AdapterFailure.QUOTA_DIVERGENCE), _coverage_effect(AdapterFailure.QUOTA_DIVERGENCE)]
     return effects
 
@@ -738,9 +758,14 @@ class AcquisitionRunner:
             charge = self.quota.reserve(request=request, request_id=request_id, occurred_at=tq,
                                         billable_units=spec.genesis_debit_units)
         except RegistryConflict:
-            self._halt(aid, request, AdapterFailure.QUOTA_REPLAY_BROKEN, self._stamp(), refused=True)
+            self._halt(aid, request, AdapterFailure.QUOTA_REPLAY_BROKEN,
+                       self._safe_stamp(self.ledger.last_recorded_at() or tq), refused=True)
         self._mark("after_quota")
-        now = self._stamp()
+        try:
+            now = self._stamp()
+        except ClockFault:                                  # the reservation stands; it is reconciled on restart
+            self._halt(aid, request, AdapterFailure.CLOCK_FAULT, self.ledger.last_recorded_at() or tq,
+                       refused=False)
         self._record("acq_quota_decided", now, acquisition_id=aid, Tq=tq,
                      frozen_ledger_reason=charge.reason, allowed=charge.allowed,
                      genesis_units_debited=charge.billable_units, cache_entry_id=charge.cache_entry_id,
@@ -764,7 +789,11 @@ class AcquisitionRunner:
         # immutably BEFORE the send; its hash goes on the sent row, and normalization reads exactly that scope
         scope_hash = self.scope_pinner(request, tq) if self.scope_pinner is not None else None
         self._mark("after_scope")
-        t0 = self._stamp()
+        try:
+            t0 = self._stamp()
+        except ClockFault:                                  # nothing was sent: the open attempt is reconciled on restart
+            self._halt(aid, request, AdapterFailure.CLOCK_FAULT, self.ledger.last_recorded_at() or tq,
+                       refused=False)
         if parse_utc(t0) >= deadline:                       # not written: the deadline already passed
             error = {"class": "DeadlineElapsedBeforeSend", "errno": None}
             return self._finish_no_response(aid, request_id, request, charge, t0, error, sent=False)
@@ -881,7 +910,7 @@ class AcquisitionRunner:
         length = captured.byte_length if captured is not None else (
             len(result.body) if result.body is not None else None)
         at = self._safe_stamp(t1)
-        usage = self._provider_usage(captured, t1)
+        usage = self._provider_usage(captured, result, t1)
         self._record("acq_completed", at, acquisition_id=aid, T1=t1, outcome=result.outcome,
                      http_status=result.http_status,
                      headers=[list(pair) for pair in captured.headers] if captured is not None else [],
@@ -904,18 +933,35 @@ class AcquisitionRunner:
                                   else AttemptOutcome.TRUNCATED, failure, charge=charge, result=result,
                                   parsed=parsed, captured=captured)
 
-    def _provider_usage(self, captured: Captured | None, t1: str) -> dict | None:
-        """The provider-reported usage (provisional header) next to the Genesis debit of the same UTC month."""
+    def _provider_usage(self, captured: Captured | None, result: TransportResult, t1: str) -> dict | None:
+        """The provider-reported usage (provisional header) next to the Genesis debit of the same UTC month.
 
-        if captured is None:
+        Presence is judged from the headers as received, not from the ones the capture kept: a value too long to be
+        retained is no less a report. ``reported`` is the figure when every occurrence is one readable non-negative
+        integer (the largest, should several arrive) and None when any occurrence is not - which is uncertainty about
+        the budget, never absence (hostile audit RA5-011); ``verdict_effects`` halts on it."""
+
+        if captured is None or captured.kind != "STORED":      # only a stored (secret-clean) capture carries headers
             return None
-        values = [value for name, value in captured.headers if name == PROVIDER_USAGE_HEADER]
+        values = [value for name, value in result.headers
+                  if type(name) is str and name.lower() == PROVIDER_USAGE_HEADER]
         if not values:
             return None
-        text = values[0].strip()
-        reported = int(text) if text.isascii() and text.isdigit() else None
+        figures = [self._usage_figure(value) for value in values]
+        reported = None if None in figures else max(figures)
         return {"header": PROVIDER_USAGE_HEADER, "reported": reported,
                 "genesis_debited": self.quota.ledger.usage(t1)[1], "window": "utc_month"}
+
+    def _usage_figure(self, value: object) -> int | None:
+        """One usage header value as a non-negative integer, or None when it is not exactly that (ASCII digits only,
+        within the header length the capture itself allows)."""
+
+        if type(value) is not str:
+            return None
+        text = value.strip()
+        if len(text) > self.config.policy.header_value_max_chars or not (text.isascii() and text.isdigit()):
+            return None
+        return int(text)
 
     # -- the side effects of a durable verdict (design 11.1, 14.3, 14.4, 14.6, 15; hostile audit HA-04) ------------
     def settle_last(self) -> None:
@@ -940,7 +986,8 @@ class AcquisitionRunner:
         position = None
         for index, row in enumerate(rows):
             if row.get("acquisition_id") == aid and (
-                    row["record_type"] in ("acq_refused", "acq_completed", "acq_reconciled")
+                    row["record_type"] in ("acq_refused", "acq_completed", "acq_reconciled",
+                                           "acq_derivation_rejected")
                     or (row["record_type"] == "acq_quota_decided" and not row["allowed"])):
                 position = index
         if position is None:
@@ -999,6 +1046,23 @@ class AcquisitionRunner:
                     (self.root / "requests" / f"{item.request_hash}.json").read_bytes(), item.request_hash)
             payload = decoded if decoded is not None else self.capture.stored_bytes(verdict["raw_observation_id"])
             self.quota.publish_cache(request, payload, captured_at=verdict["T1"], ttl_seconds=spec.cache_ttl_seconds)
+
+    def reject_derivation(self, aid: str, failure: AdapterFailure, derivation_version: str,
+                          detail: str | None = None) -> None:
+        """Record the TERMINAL verdict of a completed capture whose pure derivation cannot produce documents (hostile
+        audit RA5-001; design 11.1, 14.4, 15 D13). One durable row, settled right away into one coverage entry
+        (REJECTED); from then on the capture is no longer a successful capture, so no restart re-derives it, nothing
+        is pending because of it, reads are not refused for it and no operator action is needed. The raw evidence
+        stays exactly as published. Idempotent across a crash: before the row, a restart re-derives deterministically
+        to the same verdict; after it, ``settle_last`` completes the coverage entry."""
+
+        if detail is not None:                              # a code-defined class name, screened like every record
+            detail = self._scanned_error({"class": detail, "errno": None})["class"]
+        at = self._safe_stamp(self.ledger.last_recorded_at() or "")
+        self._record("acq_derivation_rejected", at, acquisition_id=aid, failure=failure.value, detail=detail,
+                     derivation_version=derivation_version)
+        self._mark("after_derivation_rejected")
+        self.settle(aid)
 
     # -- the retry state machine (design 14.3; hostile audit HA-10) ------------------------------
     def _check_retry(self, item: PlanItem, spec, now: str) -> None:

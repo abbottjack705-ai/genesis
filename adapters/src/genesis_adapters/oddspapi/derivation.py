@@ -48,9 +48,14 @@ def acquisition_rows(ledger, acquisition_id: str) -> dict[str, dict[str, Any]]:
 
 
 def successful_capture(rows: Mapping[str, Mapping[str, Any]]) -> bool:
+    """A 200 response whose content checks passed AND whose derivation was not refused: the only kind of capture that
+    can still be derived (or that still has documents). A capture whose pure derivation was rejected carries a durable
+    terminal ``acq_derivation_rejected`` verdict (hostile audit RA5-001) and is never derived again."""
+
     completed = rows.get("acq_completed")
     return (completed is not None and completed["outcome"] == "RESPONSE" and completed["http_status"] == HTTP_OK
-            and completed["failure"] is None and completed["raw_observation_id"] is not None)
+            and completed["failure"] is None and completed["raw_observation_id"] is not None
+            and "acq_derivation_rejected" not in rows)
 
 
 def load_request(root: Path, request_hash: str) -> dict[str, Any]:
@@ -130,6 +135,38 @@ def expected_scope_at(stores, maps: AdapterMaps, request: Mapping[str, Any], *, 
 class DerivationInputs:
     raw: bytes
     ctx: parser.ParseContext
+
+
+@dataclass(frozen=True)
+class Derived:
+    """The outcome of the pure derivation stage of one ODDS response: its documents, or the one reason there are
+    none (``failure``). ``detail`` is the exception class name of a ``DERIVATION_FAULT`` (a code-defined name, never
+    provider text); the runner screens it again before it is persisted."""
+
+    parsed: parser.ParsedResponse | None
+    documents: tuple
+    failure: AdapterFailure | None
+    detail: str | None = None
+
+
+def derive(raw: bytes, ctx: parser.ParseContext) -> Derived:
+    """The whole PURE stage of one ODDS response - parse, then build every document - as a TOTAL function.
+
+    Hostile audit RA5-001: the parser and normalizer were documented as pure and total, but four classes of
+    schema-valid provider content raised out of them after the capture was already recorded as a success, and every
+    restart re-derived and re-raised. The known classes now have precise outcomes (the strict decoder's bounds, an
+    ambiguous participant id); this boundary is what makes totality an invariant rather than a list of classes: any
+    exception that provider content could still provoke ends here as one defined rejection, ``DERIVATION_FAULT``
+    (design 15: no usable observation, coverage REJECTED), which the caller records as a durable terminal verdict.
+    ``except Exception`` cannot swallow ``KeyboardInterrupt`` or ``SystemExit`` (FRZ-11)."""
+
+    try:
+        parsed = parser.parse_odds_response(raw, ctx)
+        if parsed.failure is not None:
+            return Derived(parsed, (), parsed.failure)
+        return Derived(parsed, normalize.build_documents(parsed, ctx), None)
+    except Exception as exc:                 # RecursionError, MemoryError, UnicodeEncodeError, anything else
+        return Derived(None, (), AdapterFailure.DERIVATION_FAULT, type(exc).__name__)
 
 
 def odds_inputs(stores, config, maps: AdapterMaps, acquisition_id: str, *, identity_prefix,
@@ -218,11 +255,14 @@ def verify_response_derivation(observation_id: str, *, stores, config, maps: Ada
     if item is None or item.data != data:
         _fail("the re-derived document differs from the stored bytes")
     wanted_uri = emit.response_source_uri(stores.derivation_version, item.entity_id, inputs.ctx.raw_observation_id)
+    # every field the emitter sets that the source contract does not itself pin (hostile audit RA5-009: the upstream
+    # version and the content type used to pass by omission)
     if (observation.source_uri, observation.retrieved_at, observation.first_seen_at, observation.valid_from,
-            observation.valid_to, observation.publisher_timestamp, observation.parser_version) != (
+            observation.valid_to, observation.publisher_timestamp, observation.parser_version,
+            observation.upstream_version, observation.content_type) != (
             wanted_uri, iso_utc(inputs.ctx.response_received_at), iso_utc(inputs.ctx.response_received_at),
             iso_utc(inputs.ctx.response_received_at), item.valid_to, item.publisher_timestamp,
-            stores.derivation_version):
+            stores.derivation_version, emit.UPSTREAM_VERSION, emit.NORMALIZED_CONTENT_TYPE):
         _fail("the observation metadata is not the derivation's")
 
 

@@ -181,14 +181,20 @@ record, granted after the halt, for a key no G1 named before it (a rotated key, 
 
 ## Test-only material
 
-`adapter_tests/fixtures/tls/` holds a throwaway loopback test CA certificate (`test-ca.pem`) and one server
-certificate and key (`server.pem`, `server.key`) for the pinned host name; the CA's private key was destroyed
-after signing, so no further certificate can be minted from it. They are trusted only by a client that injects
-`test-ca.pem`, and only test code can do that: tests construct the transport with a test-CA context and a
-loopback address themselves (`loopback_support.test_ca_context`, the TX-01 harness); no production module
-references this material and the operator CLI has no CA or address option. The directory is `export-ignore`d
-(`adapters/.gitattributes`), so it is never part of a source archive or release. It exists only so the dormant
-HTTPS transport can be exercised against 127.0.0.1; the suite's audit hook refuses any non-loopback contact.
+No certificate, CA or private key is committed anywhere under `adapters/` (hostile audit RA5-003). The loopback HTTPS
+tests mint a throwaway PKI on every run with the standard library alone (`adapter_tests/tls_support.py`: ECDSA P-256 and
+a minimal DER writer, verified by OpenSSL itself in `test_v05_r6_tls_boundary.py`): a CA and a leaf for the pinned host
+name, kept in memory and in one temporary directory (the loopback server's key file, mode 0600) that is removed at exit.
+A test client trusts that CA only through an explicit `cadata=` context
+(`loopback_support.test_ca_context`); no production module can take it, and the operator CLI has no CA or address
+option.
+
+The production trust boundary is the platform's system trust store and nothing the environment adds: `tls_context()`
+builds the stock context with `SSL_CERT_FILE`, `SSL_CERT_DIR` and `SSLKEYLOGFILE` hidden from it, so those variables
+can neither add a trusted CA nor write TLS secrets to a file. A TLS-inspecting proxy's CA must therefore be installed in
+the system trust store (the intended boundary), never named by an environment variable. The CA that was committed
+before R6 is retired; it remains in Git history only (its private key was destroyed) and the suite pins that it cannot
+be injected into the production trust store.
 
 ## Mutation smoke (optional, evidence in `evidence/S<n>/MUTATION.txt`)
 

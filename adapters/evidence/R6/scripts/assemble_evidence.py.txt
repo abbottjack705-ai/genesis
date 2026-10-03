@@ -1,0 +1,186 @@
+#!/usr/bin/env python3
+"""Assemble adapters/evidence/R6/ from the raw run transcripts kept outside the repository."""
+import pathlib
+import platform
+import re
+import subprocess
+import sys
+
+SCR = pathlib.Path("<SCRATCH>")
+RUNS = SCR / "runs"
+PROBES = SCR / "audit/independent_audits/v05_r5_sonnet55/evidence_r6_probes"
+OUT = pathlib.Path("/home/user/genesis/adapters/evidence/R6")
+BASE = "b22263e582386f04e5b7939e511757940ffdfbe0"
+PY = platform.python_version()
+
+
+def header(title, command, start="(see transcript)"):
+    return (f"# R6 {title}\n# command: {command}\n# python: Python {PY}\n# platform: {platform.platform()}\n"
+            f"# HEAD (base): {BASE}\n# note: build host is Linux, not Windows; no Windows result is claimed anywhere here\n----\n")
+
+
+def read(path):
+    return pathlib.Path(path).read_text(encoding="utf-8", errors="replace")
+
+
+def write(name, text):
+    (OUT / name).write_text(text, encoding="utf-8", newline="\n")
+
+
+# ---- RED ---------------------------------------------------------------------------------------------------------------------
+red = [header("RED: the R6 tests against the UNMODIFIED production code of b22263e",
+              "git archive b22263e (src, config, old tests), then the R6 adapter_tests overlaid; "
+              "python -B -m unittest discover -s adapters/adapter_tests -t adapters -p <module>")]
+red.append("Production code and config are exactly b22263e's. Counts include sub-tests as separate failing checks. "
+           "RA5-013's RED is the baseline suite on this host (section at the end).\n\n")
+for path in sorted((RUNS / "red_final").glob("*.txt")):
+    text = read(path)
+    ran = re.search(r"^Ran (\d+) tests? in ([\d.]+)s", text, re.M)
+    verdict = re.search(r"^(OK.*|FAILED.*)$", text, re.M)
+    red.append(f"== {path.stem}: ran {ran.group(1) if ran else '?'}; {verdict.group(1) if verdict else '?'}\n")
+    ids = []
+    for line in text.splitlines():
+        m = re.match(r"^(FAIL|ERROR): (\S+) \(", line)
+        if m:
+            ids.append(f"   {m.group(1)}: {m.group(2)}")
+    seen = []
+    for item in ids:
+        if item not in seen:
+            seen.append(item)
+    red.extend(item + "\n" for item in seen)
+    red.append("\n")
+red.append("== RA5-013: the baseline adapter suite at b22263e on this host (Linux/CPython 3.11.15)\n")
+red.append(read(RUNS / "baseline_adapter.txt")[-700:] + "\n")
+red.append("\n== first-run RED transcripts written while each finding was reproduced (raw, unedited; the earliest versions of some "
+           "tests had helper mistakes that were fixed before the final RED above, which is the authoritative one)\n")
+for name in ("RED_ra5_002.txt", "RED_ra5_003.txt", "RED_ra5_004.txt", "RED_ra5_008.txt"):
+    text = read(RUNS / name)
+    red.append(f"\n--- {name}\n" + "\n".join(l for l in text.splitlines() if re.match(r"^(FAIL|ERROR):|^Ran |^FAILED|^OK", l))[:6000] + "\n")
+write("RED.txt", "".join(red))
+
+# ---- GREEN / FROZEN -----------------------------------------------------------------------------------------------------------
+write("GREEN.txt", header("GREEN: complete adapter suite on the candidate",
+                          'PYTHONPYCACHEPREFIX="$(mktemp -d)" python3 -B -m unittest discover -s adapters/adapter_tests -t adapters -v')
+      + read(RUNS / "full_adapter_final.txt"))
+write("FROZEN.txt", header("frozen V0.4 suite on the candidate",
+                           "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -t . -v")
+      + read(RUNS / "frozen_final.txt"))
+write("FROZEN_COMPARE.txt", header("frozen-suite count comparison",
+                                   "verify.parse_unittest_summary / verify.compare_frozen_transcripts") + read(RUNS / "frozen_compare.txt"))
+
+# ---- static / guards ---------------------------------------------------------------------------------------------------------------
+write("COMPILE.txt", header("compileall", "python3 -B -m compileall -q src tests adapters/src adapters/adapter_tests")
+      + "exit=0\n(no output: every module compiles)\n")
+write("GUARDS.txt", header("freeze guard + module-provenance guard",
+                           "verify_frozen_trees / verify_frozen_worktree_clean / verify_loaded_genesis_modules")
+      + read(RUNS / "guards.txt"))
+
+# ---- no network / repro / fuzz ------------------------------------------------------------------------------------------------------
+write("NO_NETWORK.txt", read(RUNS / "no_network_final.txt"))
+write("REPRO17.txt", header("the prior rounds' 17 controlling-audit reproduction probes on the candidate",
+                            "PYTHONPATH=adapters python3 -B repro_controlling_final(_r6).py")
+      + "### A. the R5 script UNCHANGED\n" + read(RUNS / "repro17.txt")
+      + "\n### B. the same script with ONE disclosed adaptation (scripts/repro_r6_adaptation.diff.txt): the HA-13 probe's "
+        "premise (a tracked key file whose export-ignore protects it) no longer exists because R6 deleted both\n"
+      + read(RUNS / "repro17_adapted.txt"))
+write("FUZZ.txt", header("the audit's fuzzers against the candidate (no ESCAPE line may appear)",
+                         "p116_fuzz2.py 11 10000; p119_fuzz3.py 23 8000; p116_fuzz2.py 101 12000; p119_fuzz3.py 777 12000; "
+                         "p114_fuzz_parser.py; p117_fuzz_fixtures.py; p121_fuzz_pipeline.py 3 250")
+      + read(RUNS / "fuzz_final.txt"))
+
+# ---- mutation --------------------------------------------------------------------------------------------------------------------------
+def lines(name):
+    return [l for l in read(RUNS / name).splitlines() if l and l != "DONE"]
+
+
+main, again, low = lines("mutation_r6.txt"), lines("mutation_r6_survivors_rerun.txt"), lines("mutation_r6_low.txt")
+mut = [header("MUTATION: single-line mutants of the R6 invariants and the audit's survivors",
+              "scripts/r6_campaign.py, scripts/r6_campaign_low.py (each mutant: one textual change, the named test modules, "
+              "the file always restored; scripts/mutate_run.py)")]
+mut.append(f"Campaign 1 (RA5-001..004 code): {len(main)} mutants; first pass {sum(': KILLED' in l for l in main)} killed, "
+           f"{sum(': SURVIVED' in l for l in main)} survived (test gaps). After 17 tests were added the survivors were re-run: "
+           f"{sum(': KILLED' in l for l in again)} killed, {sum(': SURVIVED' in l for l in again)} equivalent (H03).\n"
+           f"Campaign 2 (RA5-005..009, 011 and the audit's RA5-012 survivors): {len(low)} mutants, "
+           f"{sum(': KILLED' in l for l in low)} killed, {sum(': SURVIVED' in l for l in low)} survived - all three marked "
+           f"EQUIVALENT, with the argument in SUMMARY.md section 5.\n"
+           "Audit survivors M03/M04 target transport text that RA5-004 replaced; the same branch classes are mutants T01-T14 "
+           "(all killed). M07, M08, M09, M22, M26, M27, M28, M30, M35, M37 (RA5-009-omit-valid_to), M40, M46 and the R3 survivor: killed.\n\n")
+mut.append("=== campaign 1, first pass\n" + "\n".join(main) + "\n\n=== campaign 1, survivors re-run after the added tests\n" + "\n".join(again)
+           + "\n\n=== campaign 2\n" + "\n".join(low) + "\n")
+write("MUTATION.txt", "".join(mut))
+
+# ---- the audit's own mutation harness on the candidate --------------------------------------------------------------------------
+import json
+ah = [header("AUDIT HARNESS MUTATION: the audit's independent 51-mutant list (probes/mutate.py, full adapter suite fail-fast) on a clone of the candidate",
+             "AUDIT_SCRATCH=<clone> python3 mutate.py mutants.json|mutants_round2.json|mutants_r6_adapted.json <out.jsonl>")]
+total = {"KILLED": 0, "SURVIVED": 0, "BAD_SPEC": 0}
+for label, name in (("round 1 (M00-M37)", "audit_mutation_round1.jsonl"), ("round 2 (M38-M51)", "audit_mutation_round2.jsonl"),
+                    ("re-anchored M15 and M37 (their text moved with R6's rewritten lines)", "audit_mutation_adapted.jsonl")):
+    ah.append(f"\n=== {label}\n")
+    for line in read(RUNS / name).splitlines():
+        r = json.loads(line)
+        total[r["result"]] = total.get(r["result"], 0) + 1
+        killer = (r.get("killed_by") or [""])[0]
+        ah.append(f"{r['id']:12s} {r['result']:9s} {r.get('secs', 0):4d}s  {r['desc'][:75]}\n             {killer[:150]}\n")
+ah.append(f"\nTOTAL {total}. M00 is the no-op control and must survive (it did). M15 and M37 report BAD_SPEC on the original specs "
+          "because R6 rewrote the lines they anchor on; their re-anchored forms are killed. No other mutant survived; the "
+          "audit's 14 survivors (M03 M04 M07 M08 M09 M22 M26 M27 M28 M30 M35 M37 M40 M46) are all KILLED. Note M03/M04 still apply "
+          "to R6 (the transport's own remaining-time checks were kept).\n")
+write("AUDIT_HARNESS_MUTATION.txt", "".join(ah))
+
+def tail_of(path, n=6):
+    return "\n".join(read(path).strip().splitlines()[-n:])
+
+pm = [header("PYTHON MATRIX: the complete adapter suite on three interpreters of this host (Linux; none is Windows)",
+             "PYTHONPYCACHEPREFIX=<fresh> python3.1X -B -m unittest discover -s adapters/adapter_tests -t adapters")]
+for label, path in (("CPython 3.11.15 (the build host's default)", RUNS / "full_adapter_final.txt"),
+                    ("CPython 3.12", RUNS / "full_adapter_final_py3.12.txt"), ("CPython 3.13", RUNS / "full_adapter_final_py3.13.txt")):
+    pm.append(f"\n=== {label}\n{tail_of(path)}\n")
+write("PYTHON_MATRIX.txt", "".join(pm))
+
+# ---- probes -------------------------------------------------------------------------------------------------------------------------------
+pr = [header("PROBES: the audit's probes against the candidate, and the same probes against the unmodified base for contrast",
+             "probes/run_all_probes.sh with CAND_DIR=<candidate>; BASE_* = the same probe with CAND_DIR=<git archive b22263e>")]
+for name in ("p118_poison3", "p124_deep", "p119b_no_remedy", "p122_headers", "p123_date_overflow", "p11_slowdrip", "p12_runner_deadline",
+             "p110_regex_nl", "p60_operator", "p90_derivation", "p150_usage"):
+    for label, prefix in (("BASE b22263e (defect expected)", "BASE_"), ("R6 CANDIDATE (defect must be gone)", "")):
+        path = PROBES / f"{prefix}{name}.txt"
+        if path.exists():
+            pr.append(f"\n===== {name} :: {label}\n" + read(path))
+pr.append("\n===== p70_tls_env (RA5-003): see p70_history_attack below; the unmodified-harness run on the candidate is not meaningful "
+          "because the candidate no longer contains the old fixtures\n")
+pr.append("\n===== p70_history_attack\n" + read(PROBES / "p70_history_attack.txt"))
+pr.append("\n===== note: p115_minimize reads the escape files that p114_fuzz_parser writes when something escapes; on the candidate "
+          "nothing escapes, so there is nothing to minimize and p115 reports FileNotFoundError (expected, not a defect)\n")
+pr.append("\n===== every other audit probe on the candidate (run_all_probes.sh transcripts; p114..p121 are in FUZZ.txt)\n")
+for path in sorted(PROBES.glob("p*.txt")):
+    if path.name.startswith("BASE_") or path.stem in ("p118_poison3", "p124_deep", "p119b_no_remedy", "p122_headers", "p123_date_overflow",
+                                                      "p11_slowdrip", "p12_runner_deadline", "p110_regex_nl", "p60_operator",
+                                                      "p90_derivation", "p150_usage", "p70_history_attack"):
+        continue
+    pr.append(f"\n--- {path.stem}\n" + read(path))
+write("PROBES.txt", "".join(pr))
+
+# ---- scripts -----------------------------------------------------------------------------------------------------------------------------------
+for src, dst in ((SCR / "mutate_run.py", "mutate_run.py.txt"), (SCR / "r6_campaign.py", "r6_campaign.py.txt"),
+                 (SCR / "r6_campaign_low.py", "r6_campaign_low.py.txt"), (SCR / "final_chain.sh", "final_chain.sh.txt"),
+                 (SCR / "assemble_evidence.py", "assemble_evidence.py.txt"),
+                 (SCR / "repro_controlling_final_r6.py", "repro_controlling_final_r6.py.txt"),
+                 (SCR / "final_validation.sh", "final_validation.sh.txt"),
+                 (SCR / "audit/independent_audits/v05_r5_sonnet55/probes/mutants_r6_adapted.json", "mutants_r6_adapted.json.txt"),
+                 (SCR / "repro_r6_adaptation.diff", "repro_r6_adaptation.diff.txt"),
+                 (SCR / "audit/independent_audits/v05_r5_sonnet55/probes/run_all_probes_r6.sh", "run_all_probes_r6.sh.txt")):
+    (OUT / "scripts" / dst).write_text(read(src), encoding="utf-8", newline="\n")
+# the environment's scratch directory is not part of the evidence: name it as a placeholder
+PREFIX = "<SCRATCH>"
+for path in OUT.rglob("*"):
+    if path.is_file() and path.name not in ("SUMMARY.md", "WINDOWS_RECERTIFICATION.md", "FINDINGS_STATUS.csv"):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if PREFIX in text:
+            path.write_text(text.replace(PREFIX, "<SCRATCH>"), encoding="utf-8", newline="\n")
+(OUT / "scripts" / "README.txt").write_text(
+    "These scripts are the exact programs that produced the R6 transcripts, kept as .txt. <SCRATCH> stands for the build "
+    "session's scratch directory (the audit's probe tree, the run transcripts and a git-archive copy of b22263e); edit it "
+    "to re-run them elsewhere. mutate_run.py applies ONE textual mutation to ONE source file, runs the named adapter test "
+    "modules and always restores the file.\n", encoding="utf-8", newline="\n")
+print("assembled")

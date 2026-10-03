@@ -181,7 +181,9 @@ class DocumentLevelDriftTests(unittest.TestCase):
     def test_the_closed_validator_reports_stable_trails_for_every_finding(self):
         payload = odds_payload()
         add_key(price_of(payload, "pinnacle", "1010", "2001"))
-        decoded = jsonstrict.loads_strict(ps.dump(payload), max_bytes=ps.POLICY.max_response_bytes)
+        decoded = jsonstrict.loads_strict(ps.dump(payload), max_bytes=ps.POLICY.max_response_bytes,
+                                          max_depth=ps.POLICY.json_max_depth,
+                                          max_exponent=ps.POLICY.json_max_number_exponent)
         findings = schema.validate_closed(decoded, ps.ODDS_SCHEMA)
         self.assertEqual(len(findings), 1)
         finding = findings[0]

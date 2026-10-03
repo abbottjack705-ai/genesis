@@ -1,0 +1,5 @@
+# no-network: full adapter suite under an independent in-process audit hook (probes/run_nonet.py)
+# start: 2026-10-03T16:59:28Z
+{"ran": 859, "errors": [], "failures": [], "skipped": 0, "total_net_events": 60, "nonloopback_events": [["getaddrinfo", "('192.0.2.1', 443)"], ["getaddrinfo", "('genesis.example.invalid', 443)"]], "n_nonloopback": 2}
+# exit: 0
+# end: 2026-10-03T17:02:07Z

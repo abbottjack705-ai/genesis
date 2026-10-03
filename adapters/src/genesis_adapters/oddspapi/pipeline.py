@@ -12,6 +12,7 @@ mode; the dormant live transport only after G1/G2, design 16).
 
 from __future__ import annotations
 
+import dataclasses
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -105,6 +106,9 @@ class AdapterRuntime:
             if item.request.role == derivation.ROLE_ODDS and outcome.outcome == AttemptOutcome.RESPONSE \
                     and outcome.failure is None and captured is not None and captured.kind == "STORED":
                 emitted = self.normalize(outcome.acquisition_id)
+                if emitted is None:                         # its derivation was refused: the durable verdict says why
+                    refused = self.stores.acquisition.attempts()[outcome.acquisition_id]
+                    outcome = dataclasses.replace(outcome, failure=AdapterFailure(refused.failure))
             return PipelineResult(outcome, emitted)
 
     def _inputs(self, acquisition_id: str) -> derivation.DerivationInputs:
@@ -130,17 +134,29 @@ class AdapterRuntime:
                                       expected_scope=expected, expected_scope_hash=scope_hash, fixture_join=join,
                                       request_root=self.root)
 
-    def normalize(self, acquisition_id: str) -> emit.EmitResult:
+    def normalize(self, acquisition_id: str) -> emit.EmitResult | None:
+        """Derive one successful ODDS capture and publish it, or - when its pure derivation cannot produce documents -
+        record the durable TERMINAL verdict and return None (hostile audit RA5-001).
+
+        The pure stage runs inside the total boundary :func:`derivation.derive`, so provider content can never raise
+        out of it. A capture that fails there is refused exactly once, durably (``reject_derivation``): afterwards it
+        is not a successful capture, no restart re-derives it and nothing is pending. The one exception is a capture
+        that was ALREADY normalized: its derivation was deterministic, so a failure now is a changed derivation or
+        damaged evidence, an integrity halt (never a silent rewrite of what the documents were derived from)."""
+
         with quiescence.run_lock(self.root):
             self.check_configuration()
             inputs = self._inputs(acquisition_id)
-            parsed = parser.parse_odds_response(inputs.raw, inputs.ctx)
-            if parsed.failure is not None:
-                # the envelope was checked at capture time; a parse-level rejection here is a derivation fault
-                self._halt(parsed.failure, inputs.ctx.provider_request_hash)
+            derived = derivation.derive(inputs.raw, inputs.ctx)
+            if derived.failure is not None:
+                if self.stores.acquisition.attempts()[acquisition_id].state != "COMPLETED":
+                    self._halt(derived.failure, inputs.ctx.provider_request_hash)
+                self.runner.reject_derivation(acquisition_id, derived.failure, self.config.derivation_version,
+                                              derived.detail)
+                return None
             try:
-                return emit.emit_response(parsed, inputs.ctx, stores=self.stores, clock=self.clock,
-                                          checkpoint=self.checkpoint)
+                return emit.emit_response(derived.parsed, inputs.ctx, stores=self.stores, clock=self.clock,
+                                          checkpoint=self.checkpoint, documents=derived.documents)
             except emit.EmitConflict as conflict:
                 self._halt(conflict.failure, inputs.ctx.provider_request_hash)
 
@@ -180,7 +196,9 @@ class AdapterRuntime:
             for aid in odds:
                 rows = derivation.acquisition_rows(self.stores.acquisition, aid)
                 if attempts[aid].state == "COMPLETED" and derivation.successful_capture(rows):
-                    results.append(self.normalize(aid))
+                    emitted = self.normalize(aid)
+                    if emitted is not None:                 # None: refused, durably (it is not derived again)
+                        results.append(emitted)
             return reconciled, tuple(results)
 
     # -- consumption and verification ----------------------------------------------------------

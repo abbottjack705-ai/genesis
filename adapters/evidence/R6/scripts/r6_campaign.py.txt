@@ -1,0 +1,251 @@
+#!/usr/bin/env python3
+"""Sequential single-line mutation campaign over the R6 code. Each mutant: apply ONE textual change to ONE file, run the
+named adapter test modules, ALWAYS restore the file (mutate_run.py does the restoring). Appends one line per mutant to
+the results file; a final DONE line marks completion."""
+import os
+import pathlib
+import subprocess
+import sys
+
+SCR = pathlib.Path("<SCRATCH>")
+SRC = "adapters/src/genesis_adapters/"
+OUT = pathlib.Path(os.environ.get("CAMPAIGN_OUT", str(SCR / "runs" / "mutation_r6.txt")))
+
+JSON_T = ["test_v05_jsonstrict.py", "test_v05_r6_poison_pill.py", "test_v05_parser_schema.py"]
+ERR_T = ["test_v05_errors.py", "test_v05_r6_poison_pill.py", "test_v05_jsonstrict.py"]
+ACQ_T = ["test_v05_r6_poison_pill.py", "test_v05_acquisition.py"]
+DER_T = ["test_v05_r6_poison_pill.py", "test_v05_pipeline.py"]
+PAR_T = ["test_v05_r6_poison_pill.py", "test_v05_parser_identity.py"]
+TRN_T = ["test_v05_r6_deadline.py", "test_v05_transport_http.py", "test_v05_tx01.py", "test_v05_r2_transport_boundary.py"]
+TLS_T = ["test_v05_r6_tls_boundary.py", "test_v05_transport_http.py"]
+DATE_T = ["test_v05_r6_date_header.py", "test_v05_raw_capture.py"]
+
+M = []
+
+
+def add(label, rel, old, new, tests):
+    M.append((label, SRC + rel, old, new, tests))
+
+
+# ---- jsonstrict (RA5-001: the bounds and encodable-text rules) --------------------------------------------------
+add("J01 exponent > becomes >=", "jsonstrict.py", "        if abs(value.adjusted()) > max_exponent:",
+    "        if abs(value.adjusted()) >= max_exponent:", JSON_T)
+add("J02 negative exponent not bounded", "jsonstrict.py", "        if abs(value.adjusted()) > max_exponent:",
+    "        if value.adjusted() > max_exponent:", JSON_T)
+add("J03 exponent bound + 1", "jsonstrict.py", "        if abs(value.adjusted()) > max_exponent:",
+    "        if abs(value.adjusted()) > max_exponent + 1:", JSON_T)
+add("J04 ArithmeticError no longer mapped", "jsonstrict.py", "        except ArithmeticError:", "        except ValueError:", JSON_T)
+add("J05 int digits bound off by one (>)", "jsonstrict.py", "        if digits - 1 > max_exponent:",
+    "        if digits > max_exponent:", JSON_T)
+add("J06 int digits bound off by one (>=)", "jsonstrict.py", "        if digits - 1 > max_exponent:",
+    "        if digits - 1 >= max_exponent:", JSON_T)
+add("J07 negative sign counted as a digit", "jsonstrict.py",
+    '        digits = len(text) - 1 if text.startswith("-") else len(text)', "        digits = len(text)", JSON_T)
+add("J08 dict depth > instead of >=", "jsonstrict.py",
+    '        elif type(node) is dict:\n            if len(stack) >= max_depth:',
+    '        elif type(node) is dict:\n            if len(stack) > max_depth:', JSON_T)
+add("J09 list depth > instead of >=", "jsonstrict.py",
+    '        elif type(node) is list:\n            if len(stack) >= max_depth:',
+    '        elif type(node) is list:\n            if len(stack) > max_depth:', JSON_T)
+add("J10 string values not screened for surrogates", "jsonstrict.py",
+    "            if not node.isascii() and _SURROGATE.search(node):",
+    "            if False and _SURROGATE.search(node):", JSON_T)
+add("J11 keys not screened for surrogates", "jsonstrict.py",
+    "                if not key.isascii() and _SURROGATE.search(key):",
+    "                if False and _SURROGATE.search(key):", JSON_T)
+add("J12 only high surrogates screened", "jsonstrict.py", '_SURROGATE = re.compile("[\\ud800-\\udfff]")',
+    '_SURROGATE = re.compile("[\\ud800-\\udbff]")', JSON_T)
+add("J13 only low surrogates screened", "jsonstrict.py", '_SURROGATE = re.compile("[\\ud800-\\udfff]")',
+    '_SURROGATE = re.compile("[\\udc00-\\udfff]")', JSON_T)
+add("J14 RecursionError not mapped", "jsonstrict.py", "    except RecursionError:", "    except KeyError:", JSON_T)
+add("J15 structure check skipped", "jsonstrict.py", "    _check_structure(value, max_depth)", "    pass", JSON_T)
+add("J16 structure check skips non-ASCII shortcut inverted (strings)", "jsonstrict.py",
+    "            if not node.isascii() and _SURROGATE.search(node):",
+    "            if node.isascii() and _SURROGATE.search(node):", JSON_T)
+add("J17 duplicate-key hook order", "jsonstrict.py", "        if key in seen:\n            raise _Duplicate()",
+    "        if False:\n            raise _Duplicate()", JSON_T)
+
+# ---- errors (the taxonomy of the new outcomes) -----------------------------------------------------------------------
+add("E01 TOO_DEEP maps to NOT_JSON", "errors.py", '    "TOO_DEEP": AdapterFailure.NESTING_TOO_DEEP,',
+    '    "TOO_DEEP": AdapterFailure.NOT_JSON,', ERR_T)
+add("E02 NUMBER_OUT_OF_RANGE maps to NOT_JSON", "errors.py",
+    '    "NUMBER_OUT_OF_RANGE": AdapterFailure.NUMBER_OUT_OF_RANGE,', '    "NUMBER_OUT_OF_RANGE": AdapterFailure.NOT_JSON,', ERR_T)
+add("E03 DERIVATION_FAULT reason code", "errors.py", "    AdapterFailure.DERIVATION_FAULT: R.SCHEMA_REJECTED,",
+    "    AdapterFailure.DERIVATION_FAULT: R.CONFIGURATION_MISMATCH,", ERR_T)
+add("E04 NESTING_TOO_DEEP reason code", "errors.py", "    AdapterFailure.NESTING_TOO_DEEP: R.SCHEMA_REJECTED,",
+    "    AdapterFailure.NESTING_TOO_DEEP: R.CONFIGURATION_MISMATCH,", ERR_T)
+
+# ---- acquisition ledger: the terminal verdict ------------------------------------------------------------------------
+add("A01 verdict allowed without a completed attempt", "oddspapi/acquisition.py",
+    '        if state != "COMPLETED" or item.t1 is None or item.failure is not None:',
+    '        if item.t1 is None or item.failure is not None:', ACQ_T)
+add("A02 verdict allowed without T1", "oddspapi/acquisition.py",
+    '        if state != "COMPLETED" or item.t1 is None or item.failure is not None:',
+    '        if state != "COMPLETED" or item.failure is not None:', ACQ_T)
+add("A03 verdict allowed after a content verdict", "oddspapi/acquisition.py",
+    '        if state != "COMPLETED" or item.t1 is None or item.failure is not None:',
+    '        if state != "COMPLETED" or item.t1 is None:', ACQ_T)
+add("A04 unknown failure code accepted", "oddspapi/acquisition.py", '            AdapterFailure(row["failure"])\n        except ValueError:\n            _fail("a derivation verdict names an unknown failure")',
+    '            pass\n        except ValueError:\n            _fail("a derivation verdict names an unknown failure")', ACQ_T)
+add("A05 non-text detail accepted", "oddspapi/acquisition.py",
+    '        if row["detail"] is not None and type(row["detail"]) is not str:', "        if False:", ACQ_T)
+add("A06 verdict forgets its failure", "oddspapi/acquisition.py",
+    '        item.state, item.failure = "DERIVATION_REJECTED", row["failure"]',
+    '        item.state, item.failure = "DERIVATION_REJECTED", None', ACQ_T)
+add("A07 verdict coverage status", "oddspapi/acquisition.py",
+    '        return [_coverage_effect(AdapterFailure(verdict["failure"]), CoverageStatus.REJECTED)]',
+    '        return [_coverage_effect(AdapterFailure(verdict["failure"]), CoverageStatus.QUARANTINED)]', ACQ_T)
+add("A08 settle ignores the verdict row", "oddspapi/acquisition.py",
+    '                    row["record_type"] in ("acq_refused", "acq_completed", "acq_reconciled",\n                                           "acq_derivation_rejected")',
+    '                    row["record_type"] in ("acq_refused", "acq_completed", "acq_reconciled")', ACQ_T)
+add("A09 reject_derivation does not settle", "oddspapi/acquisition.py",
+    '        self._mark("after_derivation_rejected")\n        self.settle(aid)', '        self._mark("after_derivation_rejected")', ACQ_T)
+add("A10 verdict detail not screened", "oddspapi/acquisition.py",
+    '        if detail is not None:                              # a code-defined class name, screened like every record\n            detail = self._scanned_error({"class": detail, "errno": None})["class"]',
+    '        if False:\n            detail = self._scanned_error({"class": detail, "errno": None})["class"]', ACQ_T)
+add("A11 NESTING_TOO_DEEP coverage status", "oddspapi/acquisition.py",
+    "    AdapterFailure.NESTING_TOO_DEEP: CoverageStatus.REJECTED,", "    AdapterFailure.NESTING_TOO_DEEP: CoverageStatus.MISSING,", ACQ_T)
+add("A12 DERIVATION_FAULT coverage status", "oddspapi/acquisition.py",
+    "    AdapterFailure.DERIVATION_FAULT: CoverageStatus.REJECTED,", "    AdapterFailure.DERIVATION_FAULT: CoverageStatus.MISSING,", ACQ_T)
+add("A13 NUMBER_OUT_OF_RANGE coverage status", "oddspapi/acquisition.py",
+    "    AdapterFailure.NUMBER_OUT_OF_RANGE: CoverageStatus.REJECTED,", "    AdapterFailure.NUMBER_OUT_OF_RANGE: CoverageStatus.MISSING,", ACQ_T)
+
+# ---- derivation / pipeline ---------------------------------------------------------------------------------------------
+add("D01 a rejected capture is still 'successful'", "oddspapi/derivation.py",
+    '            and "acq_derivation_rejected" not in rows)', "            )", DER_T)
+add("D02 derive() catches only ValueError", "oddspapi/derivation.py", "    except Exception as exc:                 # RecursionError",
+    "    except ValueError as exc:                 # RecursionError", DER_T)
+add("D03 derive() reports another failure", "oddspapi/derivation.py",
+    "        return Derived(None, (), AdapterFailure.DERIVATION_FAULT, type(exc).__name__)",
+    "        return Derived(None, (), AdapterFailure.NOT_JSON, type(exc).__name__)", DER_T)
+add("D04 derive() loses the exception class", "oddspapi/derivation.py",
+    "        return Derived(None, (), AdapterFailure.DERIVATION_FAULT, type(exc).__name__)",
+    "        return Derived(None, (), AdapterFailure.DERIVATION_FAULT, None)", DER_T)
+add("D05 a parse failure is no longer returned as such", "oddspapi/derivation.py",
+    "        if parsed.failure is not None:\n            return Derived(parsed, (), parsed.failure)",
+    "        if False:\n            return Derived(parsed, (), parsed.failure)", DER_T)
+add("P01 a normalized capture may be rejected", "oddspapi/pipeline.py",
+    '                if self.stores.acquisition.attempts()[acquisition_id].state != "COMPLETED":',
+    "                if False:", DER_T)
+add("P02 the refused outcome keeps no failure", "oddspapi/pipeline.py",
+    "                    outcome = dataclasses.replace(outcome, failure=AdapterFailure(refused.failure))",
+    "                    pass", DER_T)
+add("P03 resume appends refused captures", "oddspapi/pipeline.py",
+    "                    if emitted is not None:                 # None: refused, durably (it is not derived again)",
+    "                    if True:", DER_T)
+
+# ---- parser ------------------------------------------------------------------------------------------------------------------
+add("R01 a bad participant id raises", "oddspapi/parser.py", "        except IdentityTypeError:\n            blockers.add(AdapterFailure.PARTICIPANT_AMBIGUOUS)",
+    "        except KeyError:\n            blockers.add(AdapterFailure.PARTICIPANT_AMBIGUOUS)", PAR_T)
+add("R02 a bad participant id blocks as another reason", "oddspapi/parser.py",
+    "            blockers.add(AdapterFailure.PARTICIPANT_AMBIGUOUS)\n            return None\n        return gid(",
+    "            blockers.add(AdapterFailure.INCOMPLETE_SELECTIONS)\n            return None\n        return gid(", PAR_T)
+add("R03 the fixture snapshot may raise", "oddspapi/parser.py",
+    "    except Exception:                       # provider content must never leave the pure stage as an exception\n        return None",
+    "    except KeyError:                       # provider content must never leave the pure stage as an exception\n        return None", PAR_T)
+
+# ---- transport: the absolute deadline (RA5-004) -------------------------------------------------------------------
+add("T01 a later deadline may replace an earlier one", "oddspapi/transport_http.py",
+    "        self._deadline = edge if self._deadline is None else min(self._deadline, edge)",
+    "        self._deadline = edge if self._deadline is None else max(self._deadline, edge)", TRN_T)
+add("T02 the deadline is replaced, not bounded", "oddspapi/transport_http.py",
+    "        self._deadline = edge if self._deadline is None else min(self._deadline, edge)",
+    "        self._deadline = edge", TRN_T)
+add("T03 exact equality is not a timeout", "oddspapi/transport_http.py", "        if left <= 0:\n            raise TimeoutError(\"deadline\")",
+    "        if left < 0:\n            raise TimeoutError(\"deadline\")", TRN_T)
+add("T04 every receive gets five spare seconds", "oddspapi/transport_http.py",
+    "        self.tls.settimeout(self._left())", "        self.tls.settimeout(self._left() + 5)", TRN_T)
+add("T05 connect attempts get five spare seconds", "oddspapi/transport_http.py",
+    "                attempt.settimeout(self._left())", "                attempt.settimeout(self._left() + 5)", TRN_T)
+add("T06 the handshake gets five spare seconds", "oddspapi/transport_http.py",
+    "        raw.settimeout(self._left())                       # the handshake gets only what the connect left",
+    "        raw.settimeout(self._left() + 5)                       # the handshake gets only what the connect left", TRN_T)
+add("T07 settimeout does not bound the connection deadline", "oddspapi/transport_http.py",
+    "    def settimeout(self, timeout: float) -> None:\n        self._bound(timeout)\n        self._arm()",
+    "    def settimeout(self, timeout: float) -> None:\n        self._arm()", TRN_T)
+add("T08 receives are not armed", "oddspapi/transport_http.py",
+    "    def recv_into(self, buffer) -> int:\n        self._arm()\n", "    def recv_into(self, buffer) -> int:\n", TRN_T)
+add("T09 sends are not armed", "oddspapi/transport_http.py",
+    "    def sendall(self, data) -> None:\n        self._arm()\n", "    def sendall(self, data) -> None:\n", TRN_T)
+add("T10 the socket closes under its readers", "oddspapi/transport_http.py",
+    "        if self._close_requested and self._open_readers <= 0:", "        if self._close_requested:", TRN_T)
+add("T11 a reader that closes never releases the socket", "oddspapi/transport_http.py",
+    "            finally:\n                self._owner.reader_closed()", "            finally:\n                pass", TRN_T)
+add("T12 a requested close is forgotten", "oddspapi/transport_http.py",
+    "        self._close_requested = True\n        self._finish()", "        self._finish()", TRN_T)
+add("T13 only the first resolved address is tried", "oddspapi/transport_http.py",
+    "            except OSError as exc:\n                failure = exc\n                attempt.close()",
+    "            except OSError as exc:\n                attempt.close()\n                raise", TRN_T)
+add("T14 the response is not closed before the connection", "oddspapi/transport_http.py",
+    "            if self.response is not None:\n                self.response.close()                      # a will-close response owns the socket until it is closed",
+    "            if False:\n                self.response.close()", TRN_T)
+
+# ---- TLS trust (RA5-003) ------------------------------------------------------------------------------------------------
+add("S01 SSL_CERT_FILE no longer hidden", "oddspapi/transport_http.py",
+    '_ENVIRONMENT_OVERRIDES = ("SSL_CERT_FILE", "SSL_CERT_DIR", "SSLKEYLOGFILE")',
+    '_ENVIRONMENT_OVERRIDES = ("SSL_CERT_DIR", "SSLKEYLOGFILE")', TLS_T)
+add("S02 SSL_CERT_DIR no longer hidden", "oddspapi/transport_http.py",
+    '_ENVIRONMENT_OVERRIDES = ("SSL_CERT_FILE", "SSL_CERT_DIR", "SSLKEYLOGFILE")',
+    '_ENVIRONMENT_OVERRIDES = ("SSL_CERT_FILE", "SSLKEYLOGFILE")', TLS_T)
+add("S03 SSLKEYLOGFILE no longer hidden", "oddspapi/transport_http.py",
+    '_ENVIRONMENT_OVERRIDES = ("SSL_CERT_FILE", "SSL_CERT_DIR", "SSLKEYLOGFILE")',
+    '_ENVIRONMENT_OVERRIDES = ("SSL_CERT_FILE", "SSL_CERT_DIR")', TLS_T)
+add("S04 the environment is not restored", "oddspapi/transport_http.py", "        os.environ.update(hidden)", "        pass", TLS_T)
+add("S05 the hidden variables are only read, never removed", "oddspapi/transport_http.py",
+    "    hidden = {name: os.environ.pop(name) for name in _ENVIRONMENT_OVERRIDES if name in os.environ}",
+    "    hidden = {name: os.environ[name] for name in _ENVIRONMENT_OVERRIDES if name in os.environ}", TLS_T)
+add("S06 a key-log file may be set", "oddspapi/transport_http.py", "    context.keylog_filename = None", "    pass", TLS_T)
+add("S07 hostname check off", "oddspapi/transport_http.py", "    context.check_hostname = True", "    context.check_hostname = False", TLS_T)
+add("S08 verification off", "oddspapi/transport_http.py", "    context.verify_mode = ssl.CERT_REQUIRED",
+    "    context.verify_mode = ssl.CERT_NONE", TLS_T)
+add("S09 only the first override restored", "oddspapi/transport_http.py", "        os.environ.update(hidden)",
+    "        os.environ.update(dict(list(hidden.items())[:1]))", TLS_T)
+
+# ---- the Date header (RA5-002) ------------------------------------------------------------------------------------------
+add("H01 a parse error escapes", "oddspapi/raw_capture.py",
+    "    except Exception:                       # TypeError/ValueError/IndexError/OverflowError today; any other is unusable too",
+    "    except ValueError:                       # TypeError/ValueError/IndexError/OverflowError today; any other is unusable too", DATE_T)
+add("H02 a non-GMT zone is accepted", "oddspapi/raw_capture.py",
+    "        if moment.tzinfo is None or moment.utcoffset() != timedelta(0):\n            return None",
+    "        if moment.tzinfo is None:\n            return None", DATE_T)
+add("H03 a naive date is accepted", "oddspapi/raw_capture.py",
+    "        if moment.tzinfo is None or moment.utcoffset() != timedelta(0):\n            return None",
+    "        if moment.utcoffset() != timedelta(0):\n            return None", DATE_T)
+add("H04 a dropped Date is not an unusable Date", "oddspapi/raw_capture.py",
+    "        return AdapterFailure.CLOCK_SKEW if (self.require_date or date_dropped) else None",
+    "        return AdapterFailure.CLOCK_SKEW if self.require_date else None", DATE_T)
+add("H05 a Date that was sent is not recorded as dropped", "oddspapi/raw_capture.py",
+    '        date_dropped = any(name.lower() == "date" for name, _ in result.headers) \\\n            and not any(key == "date" for key, _ in headers)',
+    '        date_dropped = False', DATE_T)
+add("H06 the dropped-Date flag is not passed on", "oddspapi/raw_capture.py",
+    "date_dropped=captured.date_dropped", "date_dropped=False", DATE_T)
+add("H07 skew compared with >= (a skew of exactly the limit)", "oddspapi/raw_capture.py",
+    "        return AdapterFailure.CLOCK_SKEW if abs(moment - parse_utc(t1)) > limit else None",
+    "        return AdapterFailure.CLOCK_SKEW if abs(moment - parse_utc(t1)) >= limit else None", DATE_T)
+
+# ---- the policy fields ----------------------------------------------------------------------------------------------------
+add("C01 json_max_depth not a positive int", "config.py", '"declared_bookmakers_max", "header_value_max_chars", "read_chunk_bytes", "json_max_depth",\n    "json_max_number_exponent",',
+    '"declared_bookmakers_max", "header_value_max_chars", "read_chunk_bytes",\n    "json_max_number_exponent",', ["test_v05_config.py", "test_v05_r6_poison_pill.py"])
+
+
+def run(label, rel, old, new, tests):
+    (SCR / "camp_old.txt").write_text(old)
+    (SCR / "camp_new.txt").write_text(new)
+    proc = subprocess.run(["python3", str(SCR / "mutate_run.py"), label, rel, "@" + str(SCR / "camp_old.txt"),
+                           "@" + str(SCR / "camp_new.txt"), *tests], capture_output=True, text=True)
+    return (proc.stdout.strip() or proc.stderr.strip()[-300:]).replace("\n", " ")
+
+
+def main():
+    only = sys.argv[1:] or None
+    with open(OUT, "a") as out:
+        for label, rel, old, new, tests in M:
+            if only and not any(label.startswith(prefix) for prefix in only):
+                continue
+            line = run(label, rel, old, new, tests)
+            out.write(line + "\n")
+            out.flush()
+        out.write("DONE\n")
+
+
+main()

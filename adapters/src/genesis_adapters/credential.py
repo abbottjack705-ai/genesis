@@ -4,8 +4,9 @@ The path comes from ``GENESIS_ODDSPAPI_CREDENTIAL_FILE``; no environment variabl
 The file must be a regular file with exactly one name (no symbolic link, no second hard-link name that could
 lie elsewhere) outside the repository worktree and outside the adapter runtime root, readable only by the
 runner user (POSIX ``0600`` owned by the user; on Windows an ACL that names only the user), and hold exactly
-one line: the key. The bytes are read from the very file that was checked (same device and file id). Its
-fingerprint must equal the one pinned in the G1 record. Every refusal is a ``CredentialProblem`` whose code is an AdapterFailure name; no message ever
+one line: the key, in printable ASCII without a space (hostile audit RA5-007: a non-ASCII key has Latin-1 and
+UTF-8-as-Latin-1 forms that only the header scan looks for). The bytes are read from the very file that was checked
+(same device and file id). Its fingerprint must equal the one pinned in the G1 record. Every refusal is a ``CredentialProblem`` whose code is an AdapterFailure name; no message ever
 carries any part of the key or the file content.
 """
 
@@ -13,6 +14,7 @@ from __future__ import annotations
 
 import os
 import stat
+import string
 import subprocess
 import sys
 from pathlib import Path
@@ -23,6 +25,9 @@ from genesis_adapters.secrets import Secret, contains_raw
 
 ENV_VAR = "GENESIS_ODDSPAPI_CREDENTIAL_FILE"
 _OWNER_ONLY = stat.S_IRUSR | stat.S_IWUSR
+# the only octets a key may hold: printable ASCII except the space (a deletion set for ``bytes.translate``, so the
+# check never makes a second copy of the key)
+_KEY_OCTETS = (string.digits + string.ascii_letters + string.punctuation).encode("ascii")
 
 
 def _inside(path: Path, root: Path) -> bool:
@@ -101,7 +106,7 @@ class CredentialSource:
         if not same:
             raise CredentialProblem(AdapterFailure.CREDENTIAL_PERMISSIONS.value)
         text = data[:-1] if data.endswith(b"\n") else data
-        if not text or b"\n" in text or b"\r" in text:
+        if not text or b"\n" in text or b"\r" in text or text.translate(None, _KEY_OCTETS):
             raise CredentialProblem(AdapterFailure.CREDENTIAL_MISSING.value)      # exactly one line, the key
         try:
             secret = Secret(text)

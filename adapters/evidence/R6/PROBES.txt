@@ -1,0 +1,1213 @@
+# R6 PROBES: the audit's probes against the candidate, and the same probes against the unmodified base for contrast
+# command: probes/run_all_probes.sh with CAND_DIR=<candidate>; BASE_* = the same probe with CAND_DIR=<git archive b22263e>
+# python: Python 3.11.15
+# platform: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39
+# HEAD (base): b22263e582386f04e5b7939e511757940ffdfbe0
+# note: build host is Linux, not Windows; no Windows result is claimed anywhere here
+----
+
+===== p118_poison3 :: BASE b22263e (defect expected)
+A_changedAt_1E+999999999 (decimal.Overflow @parser.py:204)
+    acquire = RAISED Overflow
+    completed_row = ('RESPONSE', 200, None, 'raw_stored=True')
+    restart_resume = RAISED Overflow
+    later_healthy_capture = ok
+    reader_after_later_healthy_capture = Unusable:DATA_CAPABILITY_NOT_READY | adapter work is unfinished: a successful ODDS capture is not normalize
+B_active_lone_surrogate (UnicodeEncodeError @repro.py:29)
+    acquire = RAISED UnicodeEncodeError
+    completed_row = ('RESPONSE', 200, None, 'raw_stored=True')
+    restart_resume = RAISED UnicodeEncodeError
+    later_healthy_capture = ok
+    reader_after_later_healthy_capture = Unusable:DATA_CAPABILITY_NOT_READY | adapter work is unfinished: a successful ODDS capture is not normalize
+C_participant1Id_70_digits (IdentityTypeError @ids.py:58)
+    acquire = RAISED IdentityTypeError
+    completed_row = ('RESPONSE', 200, None, 'raw_stored=True')
+    restart_resume = RAISED IdentityTypeError
+    later_healthy_capture = ok
+    reader_after_later_healthy_capture = Unusable:DATA_CAPABILITY_NOT_READY | adapter work is unfinished: a successful ODDS capture is not normalize
+
+real	0m1.961s
+user	0m1.323s
+sys	0m0.193s
+
+===== p118_poison3 :: R6 CANDIDATE (defect must be gone)
+A_changedAt_1E+999999999 (decimal.Overflow @parser.py:204)
+    acquire = returned
+    completed_row = ('RESPONSE', 200, 'NUMBER_OUT_OF_RANGE', 'raw_stored=True')
+    restart_resume = ok
+    later_healthy_capture = ok
+    reader_after_later_healthy_capture = UsableBook: | 
+B_active_lone_surrogate (UnicodeEncodeError @repro.py:29)
+    acquire = returned
+    completed_row = ('RESPONSE', 200, 'INVALID_UTF8', 'raw_stored=True')
+    restart_resume = ok
+    later_healthy_capture = ok
+    reader_after_later_healthy_capture = UsableBook: | 
+C_participant1Id_70_digits (IdentityTypeError @ids.py:58)
+    acquire = returned
+    completed_row = ('RESPONSE', 200, None, 'raw_stored=True')
+    restart_resume = ok
+    later_healthy_capture = ok
+    reader_after_later_healthy_capture = UsableBook: | 
+
+real	0m2.064s
+user	0m1.341s
+sys	0m0.305s
+
+===== p124_deep :: BASE b22263e (defect expected)
+recursionlimit 1000
+depth 50 parsed failure=None
+depth 200 parsed failure=None
+depth 400 parsed failure=None
+depth 480 parsed failure=None
+depth 600 ESCAPED RecursionError
+depth 900 ESCAPED RecursionError
+depth 990 parsed failure=NOT_JSON
+
+real	0m0.491s
+user	0m0.455s
+sys	0m0.036s
+
+===== p124_deep :: R6 CANDIDATE (defect must be gone)
+recursionlimit 1000
+depth 50 parsed failure=NESTING_TOO_DEEP
+depth 200 parsed failure=NESTING_TOO_DEEP
+depth 400 parsed failure=NESTING_TOO_DEEP
+depth 480 parsed failure=NESTING_TOO_DEEP
+depth 600 parsed failure=NESTING_TOO_DEEP
+depth 900 parsed failure=NESTING_TOO_DEEP
+depth 990 parsed failure=NESTING_TOO_DEEP
+
+real	0m0.485s
+user	0m0.469s
+sys	0m0.016s
+
+===== p119b_no_remedy :: BASE b22263e (defect expected)
+poison acquire: Overflow
+operator `reset` rc: 0 reset
+resume after reset: RAISED Overflow
+reader after reset: Unusable DATA_CAPABILITY_NOT_READY | adapter work is unfinished: a successful ODDS capture is not normalize
+pending_work: ('a successful ODDS capture is not normalized yet',)
+
+real	0m0.727s
+user	0m0.607s
+sys	0m0.039s
+
+===== p119b_no_remedy :: R6 CANDIDATE (defect must be gone)
+operator `reset` rc: 0 reset
+resume after reset: ok
+reader after reset: Unusable MISSING_OR_STALE | 
+pending_work: ()
+
+real	0m0.743s
+user	0m0.616s
+sys	0m0.051s
+
+===== p122_headers :: BASE b22263e (defect expected)
+parse_http_date escapes: {'OverflowError': 'Mon, 01 Jan 99999999999 00:00:00 GMT'}
+
+real	0m0.602s
+user	0m0.582s
+sys	0m0.020s
+
+===== p122_headers :: R6 CANDIDATE (defect must be gone)
+parse_http_date escapes: none
+
+real	0m0.578s
+user	0m0.553s
+sys	0m0.024s
+
+===== p123_date_overflow :: BASE b22263e (defect expected)
+acquire                                    RAISED OverflowError
+rows                                       ['acq_planned', 'acq_quota_decided', 'acq_sent']
+raw_evidence_published_but_unrecorded      True
+after_restart                              ['acq_sent', 'acq_reconciled']
+debits                                     1
+pit_rows                                   0
+
+real	0m0.522s
+user	0m0.490s
+sys	0m0.016s
+
+===== p123_date_overflow :: R6 CANDIDATE (defect must be gone)
+acquire                                    returned
+rows                                       ['acq_planned', 'acq_quota_decided', 'acq_sent', 'acq_completed', 'acq_quarantined', 'acq_sends_suspended']
+raw_evidence_published_but_unrecorded      True
+after_restart                              ['acq_quarantined', 'acq_sends_suspended']
+debits                                     1
+pit_rows                                   0
+
+real	0m0.529s
+user	0m0.480s
+sys	0m0.030s
+
+===== p11_slowdrip :: BASE b22263e (defect expected)
+{"deadline_after_s": 3, "send_returned_after_s": 40.63, "outcome": "RESPONSE", "bytes": 59, "T1": "2026-10-03T15:26:53.162551Z", "deadline": "2026-10-03T15:26:15.537158Z", "T1_after_deadline": true}
+
+real	0m41.835s
+user	0m0.512s
+sys	0m0.024s
+
+===== p11_slowdrip :: R6 CANDIDATE (defect must be gone)
+{"deadline_after_s": 3, "send_returned_after_s": 3.0, "outcome": "TRUNCATED", "bytes": 0, "T1": "2026-10-03T15:20:09.262309Z", "deadline": "2026-10-03T15:20:09.260919Z", "T1_after_deadline": true}
+
+real	0m4.818s
+user	0m0.607s
+sys	0m0.012s
+
+===== p12_runner_deadline :: BASE b22263e (defect expected)
+{
+ "1_slow_scope_61s": {
+  "sent_calls": 0,
+  "outcome": "NO_RESPONSE",
+  "detail": "DeadlineElapsedBeforeSend",
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_completed"
+  ]
+ },
+ "1b_slow_scope_59.9s": {
+  "sent_calls": 1,
+  "deadline_at": "2026-10-01T12:01:00.001000Z",
+  "outcome": "RESPONSE"
+ },
+ "2_t1_eq_deadline": {
+  "outcome": "NO_RESPONSE",
+  "failure": "NO_RESPONSE",
+  "detail": "DeadlineExceeded"
+ },
+ "2_t1_deadline_minus_1us": {
+  "outcome": "RESPONSE",
+  "failure": "None",
+  "detail": null
+ },
+ "2_t1_deadline_plus_1us": {
+  "outcome": "NO_RESPONSE",
+  "failure": "NO_RESPONSE",
+  "detail": "DeadlineExceeded"
+ },
+ "3_clockfault_on_read_2": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [],
+  "transport_calls": 0
+ },
+ "3_clockfault_on_read_3": {
+  "result": [
+   "RAW ClockFault escaped",
+   "WALL_CLOCK_JUMP"
+  ],
+  "rows": [
+   "acq_planned"
+  ],
+  "transport_calls": 0
+ },
+ "3_clockfault_on_read_4": {
+  "result": [
+   "RAW ClockFault escaped",
+   "WALL_CLOCK_JUMP"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided"
+  ],
+  "transport_calls": 0
+ },
+ "3_clockfault_on_read_5": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed",
+   "acq_halted"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_6": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed",
+   "acq_halted"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_7": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_8": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_9": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_10": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_11": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_12": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_13": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ }
+}
+
+real	0m1.036s
+user	0m0.740s
+sys	0m0.119s
+
+===== p12_runner_deadline :: R6 CANDIDATE (defect must be gone)
+{
+ "1_slow_scope_61s": {
+  "sent_calls": 0,
+  "outcome": "NO_RESPONSE",
+  "detail": "DeadlineElapsedBeforeSend",
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_completed"
+  ]
+ },
+ "1b_slow_scope_59.9s": {
+  "sent_calls": 1,
+  "deadline_at": "2026-10-01T12:01:00.001000Z",
+  "outcome": "RESPONSE"
+ },
+ "2_t1_eq_deadline": {
+  "outcome": "NO_RESPONSE",
+  "failure": "NO_RESPONSE",
+  "detail": "DeadlineExceeded"
+ },
+ "2_t1_deadline_minus_1us": {
+  "outcome": "RESPONSE",
+  "failure": "None",
+  "detail": null
+ },
+ "2_t1_deadline_plus_1us": {
+  "outcome": "NO_RESPONSE",
+  "failure": "NO_RESPONSE",
+  "detail": "DeadlineExceeded"
+ },
+ "3_clockfault_on_read_2": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [],
+  "transport_calls": 0
+ },
+ "3_clockfault_on_read_3": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_halted"
+  ],
+  "transport_calls": 0
+ },
+ "3_clockfault_on_read_4": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_halted"
+  ],
+  "transport_calls": 0
+ },
+ "3_clockfault_on_read_5": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed",
+   "acq_halted"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_6": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed",
+   "acq_halted"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_7": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_8": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_9": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_10": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_11": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_12": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_13": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ }
+}
+
+real	0m1.132s
+user	0m0.773s
+sys	0m0.179s
+
+===== p110_regex_nl :: BASE b22263e (defect expected)
+native_id 'abc' ACCEPTED {'native_type': 'str', 'value': 'abc'}
+native_id 'abc\n' ACCEPTED {'native_type': 'str', 'value': 'abc\n'}
+native_id 'abc\r\n' rejected IdentityTypeError
+native_id 'abc\n\n' rejected IdentityTypeError
+build_request bookmaker 'pinnacle' ACCEPTED; query (('bookmaker', 'pinnacle'), ('oddsFormat', 'decimal'), ('tournamentIds', '17')) hash 7a23a5121d2c
+build_request bookmaker 'pinnacle\n' ACCEPTED; query (('bookmaker', 'pinnacle\n'), ('oddsFormat', 'decimal'), ('tournamentIds', '17')) hash fc917e18a1b7
+
+real	0m0.443s
+user	0m0.439s
+sys	0m0.005s
+
+===== p110_regex_nl :: R6 CANDIDATE (defect must be gone)
+native_id 'abc' ACCEPTED {'native_type': 'str', 'value': 'abc'}
+native_id 'abc\n' rejected IdentityTypeError
+native_id 'abc\r\n' rejected IdentityTypeError
+native_id 'abc\n\n' rejected IdentityTypeError
+build_request bookmaker 'pinnacle' ACCEPTED; query (('bookmaker', 'pinnacle'), ('oddsFormat', 'decimal'), ('tournamentIds', '17')) hash 7a23a5121d2c
+build_request bookmaker 'pinnacle\n' rejected RequestError INVALID_VALUE: bookmaker is outside the permitted grammar
+
+real	0m0.450s
+user	0m0.438s
+sys	0m0.012s
+
+===== p60_operator :: BASE b22263e (defect expected)
+J1_approve_granted_at_one_day_back                         (2, 'refused: granted_at is stamped by the trusted clock at approval, not c')
+J2_approve_within_skew_overwritten_with_trusted_now        (0, 100.001437)
+J2b_future_dated                                           2
+J2c_approve_with_no_granted_at_key_then_ledger_has_stamp   (0, '')
+J3_approve_ready_rc                                        (0, '')
+J3_ready_row_recorded_at_vs_now                            ('2026-10-03T15:26:10.127693Z', '2026-10-03T15:26')
+J4_D_between_capture_and_approval                          Unusable:DATA_CAPABILITY_NOT_READY
+J4_D_just_before_approval                                  Unusable:DATA_CAPABILITY_NOT_READY
+J4_D_at_approval                                           UsableBook:
+J4_D_after_approval                                        UsableBook:
+K0_secret_echo_halt_recorded                               ['SECRET_ECHO']
+K1_reset_without_any_G1                                    2
+K2_reset_after_G1_for_SAME_key                             0
+K2b_reset_after_G1_same_key_UPPERCASE_fingerprint          0
+K3_reset_after_G1_for_different_fingerprint                0
+L1_edited_limits_file_6_requests                           ('EXC', 'AuthorityRecordInvalid: the gate limits file is not the pinn')
+L2_pristine_limits_6_requests                              ('EXC', 'AuthorityRecordInvalid: G2 pins a bounded list of distinct r')
+L3_pristine_5_requests_73h                                 ('EXC', 'AuthorityRecordInvalid: the G2 window is too long')
+L4_pristine_g2r_36d                                        ('EXC', 'AuthorityRecordInvalid: the G2R window is too long')
+L5_policy_declared_bookmakers_max_50_loads                 ('loads', 50, 3)
+
+real	0m0.822s
+user	0m0.648s
+sys	0m0.096s
+
+===== p60_operator :: R6 CANDIDATE (defect must be gone)
+J1_approve_granted_at_one_day_back                         (2, 'refused: granted_at is stamped by the trusted clock at approval, not c')
+J2_approve_within_skew_overwritten_with_trusted_now        (0, 100.001404)
+J2b_future_dated                                           2
+J2c_approve_with_no_granted_at_key_then_ledger_has_stamp   (0, '')
+J3_approve_ready_rc                                        (0, '')
+J3_ready_row_recorded_at_vs_now                            ('2026-10-03T15:19:39.614146Z', '2026-10-03T15:19')
+J4_D_between_capture_and_approval                          Unusable:DATA_CAPABILITY_NOT_READY
+J4_D_just_before_approval                                  Unusable:DATA_CAPABILITY_NOT_READY
+J4_D_at_approval                                           UsableBook:
+J4_D_after_approval                                        UsableBook:
+K0_secret_echo_halt_recorded                               ['SECRET_ECHO']
+K1_reset_without_any_G1                                    2
+K2_reset_after_G1_for_SAME_key                             0
+K2b_reset_after_G1_same_key_UPPERCASE_fingerprint          0
+K3_reset_after_G1_for_different_fingerprint                0
+L1_edited_limits_file_6_requests                           ('EXC', 'AuthorityRecordInvalid: the gate limits file is not the pinn')
+L2_pristine_limits_6_requests                              ('EXC', 'AuthorityRecordInvalid: G2 pins a bounded list of distinct r')
+L3_pristine_5_requests_73h                                 ('EXC', 'AuthorityRecordInvalid: the G2 window is too long')
+L4_pristine_g2r_36d                                        ('EXC', 'AuthorityRecordInvalid: the G2R window is too long')
+L5_policy_declared_bookmakers_max_50_loads                 refused PolicyError
+
+real	0m0.823s
+user	0m0.663s
+sys	0m0.070s
+
+===== p90_derivation :: BASE b22263e (defect expected)
+0_control_verifies                     ok
+H_retrieved_at_1h_earlier              verifier rejects: DerivationError the observation metadata is not the derivation's
+H_valid_to_plus_10_days                verifier rejects: DerivationError the observation metadata is not the derivation's
+H_valid_to_removed                     verifier rejects: DerivationError the observation metadata is not the derivation's
+H_publisher_timestamp_changed          verifier rejects: DerivationError the observation metadata is not the derivation's
+H_upstream_version_changed             VERIFIER PASSED (accepts altered metadata)
+H_content_type_changed                 VERIFIER PASSED (accepts altered metadata)
+H_parse_ready_at_earlier_than_T1       publish refused: ValueError parse_ready_at cannot precede retrieved_at
+H_unknown_kind                         verifier rejects: DerivationError unknown derivation kind: 'BOGUS'
+H_missing_scope_file                   verifier rejects: FileNotFoundError
+H_missing_request_file                 verifier rejects: FileNotFoundError
+H_scope_bytes_altered                  verifier rejects: ScopeError
+H_raw_tamper_api                       n/a
+
+real	0m0.754s
+user	0m0.591s
+sys	0m0.072s
+
+===== p90_derivation :: R6 CANDIDATE (defect must be gone)
+0_control_verifies                     ok
+H_retrieved_at_1h_earlier              verifier rejects: DerivationError the observation metadata is not the derivation's
+H_valid_to_plus_10_days                verifier rejects: DerivationError the observation metadata is not the derivation's
+H_valid_to_removed                     verifier rejects: DerivationError the observation metadata is not the derivation's
+H_publisher_timestamp_changed          verifier rejects: DerivationError the observation metadata is not the derivation's
+H_upstream_version_changed             verifier rejects: DerivationError the observation metadata is not the derivation's
+H_content_type_changed                 verifier rejects: DerivationError the observation metadata is not the derivation's
+H_parse_ready_at_earlier_than_T1       publish refused: ValueError parse_ready_at cannot precede retrieved_at
+H_unknown_kind                         verifier rejects: DerivationError unknown derivation kind: 'BOGUS'
+H_missing_scope_file                   verifier rejects: FileNotFoundError
+H_missing_request_file                 verifier rejects: FileNotFoundError
+H_scope_bytes_altered                  verifier rejects: ScopeError
+H_raw_tamper_api                       n/a
+
+real	0m0.753s
+user	0m0.550s
+sys	0m0.100s
+
+===== p150_usage :: BASE b22263e (defect expected)
+99999                ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': 99999, 'window': 'utc_month'}
+1e5                  ('returned', 'RESPONSE', 'None') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+99,999               ('returned', 'RESPONSE', 'None') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+-5                   ('returned', 'RESPONSE', 'None') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+fullwidth 99999      ('returned', 'RESPONSE', 'None') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+'99999 units'        ('returned', 'RESPONSE', 'None') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+0x1869F              ('returned', 'RESPONSE', 'None') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+
+real	0m1.567s
+user	0m0.923s
+sys	0m0.231s
+
+===== p150_usage :: R6 CANDIDATE (defect must be gone)
+99999                ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': 99999, 'window': 'utc_month'}
+1e5                  ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+99,999               ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+-5                   ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+fullwidth 99999      ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+'99999 units'        ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+0x1869F              ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+
+real	0m0.775s
+user	0m0.616s
+sys	0m0.081s
+
+===== p70_tls_env (RA5-003): see p70_history_attack below; the unmodified-harness run on the candidate is not meaningful because the candidate no longer contains the old fixtures
+
+===== p70_history_attack
+### p70 against the UNMODIFIED base tree b22263e (the audit's defect; fixtures restored from history because git archive export-ignores them)
+with SSL_CERT_FILE=test-ca.pem -> production tls_context() outcome: RESPONSE 200 | server saw keyed request line: True
+### p70 control against the base tree (no SSL_CERT_FILE)
+CONTROL (no SSL_CERT_FILE) -> production tls_context() outcome: NO_RESPONSE None | server saw keyed request line: None
+### p70 against R6 production code (src+config) with the FULL old attacker material (old CA + old leaf key, from b22263e history)
+with SSL_CERT_FILE=test-ca.pem -> production tls_context() outcome: NO_RESPONSE None | server saw keyed request line: None
+### p70 control against the hybrid tree (no SSL_CERT_FILE)
+CONTROL (no SSL_CERT_FILE) -> production tls_context() outcome: NO_RESPONSE None | server saw keyed request line: None
+
+===== note: p115_minimize reads the escape files that p114_fuzz_parser writes when something escapes; on the candidate nothing escapes, so there is nothing to minimize and p115 reports FileNotFoundError (expected, not a defect)
+
+===== every other audit probe on the candidate (run_all_probes.sh transcripts; p114..p121 are in FUZZ.txt)
+
+--- p00_smoke
+outcome RESPONSE None emitted True
+pit rows 12
+UsableBook None
+['acq_planned', 'acq_quota_decided', 'acq_sent', 'acq_completed', 'acq_normalized']
+
+real	0m0.658s
+user	0m0.549s
+sys	0m0.036s
+
+--- p100_static_evasion
+== FRZ-11
+plain except BaseException               FLAGGED
+alias name                               not flagged
+tuple variable                           not flagged
+builtins attribute                       FLAGGED
+except* (TryStar) BaseException          FLAGGED
+except* KeyboardInterrupt                FLAGGED
+suppress(KeyboardInterrupt)              FLAGGED
+from contextlib import suppress as s     not flagged
+suppress(*tuple)                         not flagged
+finally: return                          FLAGGED
+finally: continue                        FLAGGED
+finally: break                           FLAGGED
+signal ignore SIGINT                     not flagged
+except GeneratorExit                     FLAGGED
+bare except                              FLAGGED
+except Exception clean                   not flagged
+== FRZ-06 (production module that is not transport_http)
+import socket                            FLAGGED
+__import__('socket')                     not flagged
+importlib.import_module('ssl')           not flagged
+from http import client                  FLAGGED
+import http.client                       FLAGGED
+from urllib import request               FLAGGED
+import asyncio; open_connection          not flagged
+import ftplib                            not flagged
+import smtplib                           not flagged
+import xmlrpc.client                     not flagged
+subprocess curl                          not flagged
+import socketserver                      not flagged
+reveal_for_transport elsewhere           FLAGGED
+getattr reveal                           not flagged
+== FRZ-10
+time.sleep(5)                            FLAGGED
+sleep(2+3)                               not flagged
+timeout=30                               FLAGGED
+settimeout(30)                           FLAGGED
+named constant used as sleep             not flagged
+timedelta(seconds=3600)                  FLAGGED
+hex literal 0x1c                         not flagged
+60 * 60                                  not flagged
+float 0.5 sleep                          FLAGGED
+== FRZ-07
+RESERVE                                  FLAGGED
+getattr RESERVE                          not flagged
+BudgetClass['RESERVE']                   not flagged
+grant_authorization                      FLAGGED
+alias import                             FLAGGED
+== FRZ-08
+READY attr                               FLAGGED
+getattr READY                            not flagged
+OperationalStatus('ready')               FLAGGED
+string 'READY' status in SourceCapability not flagged
+
+real	0m0.456s
+user	0m0.440s
+sys	0m0.016s
+
+--- p10_deadline
+{
+ "a_at_deadline_entry_no_open": [
+  true,
+  "NO_RESPONSE"
+ ],
+ "b_deadline_minus_1us_writes": [
+  true,
+  "RESPONSE"
+ ],
+ "c_slow_connect_to_deadline_no_write": [
+  false,
+  "NO_RESPONSE"
+ ],
+ "d_deadline_in_settimeout_no_write": [
+  false,
+  "NO_RESPONSE"
+ ],
+ "e_deadline_crossed_during_write": [
+  true,
+  "NO_RESPONSE",
+  {
+   "class": "TimeoutError",
+   "errno": null
+  }
+ ],
+ "f_deadline_during_read_head": [
+  "TRUNCATED",
+  200,
+  {
+   "class": "TimeoutError",
+   "errno": null
+  }
+ ],
+ "g_last_chunk_after_deadline": [
+  "RESPONSE",
+  "2026-10-03T10:01:02.000000Z",
+  "2026-10-03T10:01:00.000000Z"
+ ]
+}
+
+real	0m1.659s
+user	0m0.983s
+sys	0m0.031s
+
+--- p111_num_dos
+price 1E+999999999 parsed OK in 0.0 s; []
+price 1E-999999999 parsed OK in 0.0 s; []
+price 999999999999999999999999999999999999999999 parsed OK in 0.0 s; []
+price 1.0000000000000000000000000000000001 parsed OK in 0.0 s; ['OPEN', 'OPEN', 'OPEN', 'OPEN']
+price -0 parsed OK in 0.0 s; ['OPEN', 'OPEN', 'OPEN', 'OPEN']
+price 1e0 parsed OK in 0.0 s; ['OPEN', 'OPEN', 'OPEN', 'OPEN']
+
+real	0m0.476s
+user	0m0.451s
+sys	0m0.024s
+
+--- p112_overflow_trace
+
+real	0m0.459s
+user	0m0.435s
+sys	0m0.024s
+
+--- p113_poison
+healthy_before                     UsableBook
+poison_acquire                     returned
+acq_rows                           ['acq_planned', 'acq_quota_decided', 'acq_sent', 'acq_completed:NUMBER_OUT_OF_RANGE']
+restart_1_resume                   ok
+restart_2_resume                   ok
+reader_after_restart               UsableBook: 
+next_healthy_capture_after_wedge   RESPONSE
+
+real	0m1.000s
+user	0m0.761s
+sys	0m0.108s
+
+--- p114_fuzz_parser
+iterations 6000
+no exception escaped
+
+real	0m28.147s
+user	0m28.123s
+sys	0m0.020s
+
+--- p115_minimize
+Traceback (most recent call last):
+  File "<SCRATCH>/audit/independent_audits/v05_r5_sonnet55/probes/p115_minimize.py", line 39, in <module>
+    raw = open(OUT + f"fuzz_{name}.json", "rb").read()
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '<SCRATCH>/auditscratch/out/fuzz_Overflow.json'
+
+real	0m0.469s
+user	0m0.445s
+sys	0m0.024s
+[exit 1]
+
+--- p116_fuzz2
+iterations 10000 seed ['11', '10000']
+
+real	0m50.349s
+user	0m50.310s
+sys	0m0.028s
+
+--- p117_fuzz_fixtures
+fixtures-fuzz escapes: none
+
+real	0m1.150s
+user	0m1.124s
+sys	0m0.026s
+
+--- p119_fuzz3
+iterations 8000 seed ['23', '8000']
+
+real	0m45.269s
+user	0m45.249s
+sys	0m0.016s
+
+--- p120_which_fields
+leaf count 1134
+
+real	0m3.338s
+user	0m3.306s
+sys	0m0.032s
+
+--- p121_fuzz_pipeline
+pipeline fuzz iterations 250
+none
+
+real	2m37.296s
+user	1m34.037s
+sys	0m27.206s
+
+--- p130_replay
+files run A: 174 run B: 174 | differing: none
+
+real	0m1.725s
+user	0m1.099s
+sys	0m0.243s
+
+--- p131_guard_oracle
+checked 21200 mismatches 0
+
+real	0m0.910s
+user	0m0.882s
+sys	0m0.028s
+
+--- p140_rejected_restart
+wrong content-type                       first=('RESPONSE', 'WRONG_CONTENT_TYPE')             newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+malformed JSON                           first=('RESPONSE', 'NOT_JSON')                       newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+empty body                               first=('RESPONSE', 'NOT_JSON')                       newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+duplicate keys                           first=('RESPONSE', 'DUPLICATE_KEYS')                 newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+NaN                                      first=('RESPONSE', 'NONFINITE_NUMBER')               newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+invalid UTF-8                            first=('RESPONSE', 'INVALID_UTF8')                   newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+envelope wrong type (object not list)    first=('RESPONSE', 'ENVELOPE_SCHEMA_MISMATCH')       newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+oversize body                            first=('RESPONSE', 'OVERSIZE_BODY')                  newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+clock skew (Date -1h)                    first=('RESPONSE', 'CLOCK_SKEW')                     newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+secret echo                              first=('HALT', 'SECRET_ECHO')                        newPIT=0 newNormalized=0 pending=False resume=ok reader=Unusable:DATA_CAPABILITY_NOT_READY
+nested content-encoding                  first=('RESPONSE', 'UNINSPECTABLE_BODY')             newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+HTTP 301                                 first=('RESPONSE', 'REDIRECT_REFUSED')               newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+HTTP 401                                 first=('RESPONSE', 'AUTH_REJECTED')                  newPIT=0 newNormalized=0 pending=False resume=ok reader=Unusable:DATA_CAPABILITY_NOT_READY
+HTTP 429                                 first=('RESPONSE', 'RATE_LIMITED')                   newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+HTTP 500 w/ valid body                   first=('RESPONSE', 'PROVIDER_ERROR')                 newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+TRUNCATED transport                      first=('TRUNCATED', 'TRUNCATED_BODY')                newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+
+real	0m5.747s
+user	0m3.589s
+sys	0m0.870s
+
+--- p160_equiv_mutant
+alt-scope derivation produced an extra ABSENT document; pinned-scope hash differs: True
+RESULT: verify_derivation REJECTED: DerivationError the document's expected scope is not the one pinned before the send (design 12.4)
+
+real	0m0.731s
+user	0m0.551s
+sys	0m0.109s
+
+--- p170_dev7
+startTime absent, no join      -> (None, {('OPEN', ()): 6, ('BLOCKED', ('EVENT_METADATA_STALE',)): 6})
+startTime null, no join        -> (None, {('OPEN', ()): 6, ('BLOCKED', ('EVENT_START_INVALID',)): 6})
+startTime +01:00 offset        -> (None, {('OPEN', ()): 6, ('BLOCKED', ('EVENT_START_INVALID',)): 6})
+ACTIVE outcome price null      -> (None, {('OPEN', ()): 11, ('BLOCKED', ('CONTRADICTORY_STATUS',)): 1})
+INACTIVE outcome price null    -> (None, {('OPEN', ()): 11, ('SUSPENDED', ('OUTCOME_INACTIVE',)): 1})
+bookmakerIsActive false        -> (None, {('OPEN', ()): 10, ('SUSPENDED', ('MARKET_SUSPENDED',)): 2})
+bookmakerIsActive 'yes'        -> (None, {('OPEN', ()): 10, ('BLOCKED', ('UNKNOWN_MARKET_STATUS',)): 2})
+bookmakerIsActive absent       -> (None, {('OPEN', ()): 10, ('BLOCKED', ('UNKNOWN_MARKET_STATUS',)): 2})
+
+real	0m0.519s
+user	0m0.496s
+sys	0m0.022s
+
+--- p20_quota_replay
+before_quota {"crashed": true, "sends_before_crash": 0, "reconciled": ["f1aead"], "resent_by_same_item": 0, "same_item_result": ["DUPLICATE", "None", null], "retry_result": ["RESPONSE", "None", null], "total_sends": 1, "quota_rows": [["quota_billable_call", "901b71a4", 1]]}
+after_quota {"crashed": true, "sends_before_crash": 0, "reconciled": ["f1aead"], "resent_by_same_item": 0, "same_item_result": ["REFUSED", "ORPHANED_RESERVATION", "NOT_SENT"], "retry_result": ["RESPONSE", "None", null], "total_sends": 1, "quota_rows": [["quota_billable_call", "b825fcc6", 1], ["quota_billable_call", "901b71a4", 1]]}
+after_quota_decided {"crashed": true, "sends_before_crash": 0, "reconciled": ["f1aead"], "resent_by_same_item": 0, "same_item_result": ["REFUSED", "ORPHANED_RESERVATION", "NOT_SENT"], "retry_result": ["RESPONSE", "None", null], "total_sends": 1, "quota_rows": [["quota_billable_call", "b825fcc6", 1], ["quota_billable_call", "901b71a4", 1]]}
+after_scope {"crashed": true, "sends_before_crash": 0, "reconciled": ["f1aead"], "resent_by_same_item": 0, "same_item_result": ["REFUSED", "ORPHANED_RESERVATION", "NOT_SENT"], "retry_result": ["RESPONSE", "None", null], "total_sends": 1, "quota_rows": [["quota_billable_call", "b825fcc6", 1], ["quota_billable_call", "901b71a4", 1]]}
+after_sent {"crashed": true, "sends_before_crash": 0, "reconciled": ["f1aead"], "resent_by_same_item": 0, "same_item_result": ["REFUSED", "ORPHANED_RESERVATION", "MAY_HAVE_BEEN_SENT"], "retry_result": ["RESPONSE", "None", null], "total_sends": 1, "quota_rows": [["quota_billable_call", "b825fcc6", 1], ["quota_billable_call", "901b71a4", 1]]}
+after_raw {"crashed": true, "sends_before_crash": 1, "reconciled": ["f1aead"], "resent_by_same_item": 0, "same_item_result": ["REFUSED", "ORPHANED_RESERVATION", "MAY_HAVE_BEEN_SENT"], "retry_result": ["RESPONSE", "None", null], "total_sends": 2, "quota_rows": [["quota_billable_call", "b825fcc6", 1], ["quota_billable_call", "901b71a4", 1]]}
+after_completed {"crashed": true, "sends_before_crash": 1, "reconciled": [], "resent_by_same_item": 0, "same_item_result": ["DUPLICATE", "None", null], "retry_result": ["PlanRefused", "NOT_RETRYABLE"], "total_sends": 1, "quota_rows": [["quota_billable_call", "b825fcc6", 1]]}
+
+real	0m2.238s
+user	0m1.197s
+sys	0m0.365s
+
+--- p30_completeness
+V1_requested_tournament_8_omitted {"after1": {"OPEN": 12}, "after2": {"OPEN": 18}, "outcome": ["RESPONSE", "None"], "absent_cov": ["PARTIAL_RESPONSE:1"], "pit_rows": 18}
+V2_all_omitted_empty_list {"after1": {"OPEN": 12}, "after2": {"OPEN": 12}, "outcome": ["RESPONSE", "None"], "absent_cov": ["PARTIAL_RESPONSE:1"], "pit_rows": 12}
+V5_tournament_8_present_but_empty {"after1": {"OPEN": 12}, "after2": {"OPEN": 18, "ABSENT": 6}, "outcome": ["RESPONSE", "None"], "absent_cov": ["BOOK_ABSENT"], "pit_rows": 24}
+V6_tournament_8_wrong_sport {"after1": {"OPEN": 12}, "after2": {"OPEN": 18}, "outcome": ["RESPONSE", "None"], "absent_cov": ["PARTIAL_RESPONSE:1"], "pit_rows": 18}
+V7_tournament_8_id_as_string {"after1": {"OPEN": 12}, "after2": {"OPEN": 18, "BLOCKED": 6}, "outcome": ["RESPONSE", "None"], "absent_cov": ["PARTIAL_RESPONSE:1"], "pit_rows": 24}
+V4_fixture_level_omission_inside_present_tournament {"after1": {"OPEN": 18}, "after2": {"OPEN": 30, "ABSENT": 6}, "outcome": ["RESPONSE", "None"], "absent_cov": ["BOOK_ABSENT"], "pit_rows": 36}
+
+real	0m2.782s
+user	0m1.589s
+sys	0m0.411s
+
+--- p40_emit_crash
+REF 24 2 12
+after_normalized_row crashed | pre-restart reader: ['UsableBook:'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_identity crashed | pre-restart reader: ['UsableBook:'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_t2 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_observation:1 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_observation:7 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_structured:3 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_t3 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_pit:1 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_pit:6 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_pit:12 NO-CRASH(step not reached) | pre-restart reader: ['UsableBook:'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_coverage crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+
+real	0m7.581s
+user	0m4.924s
+sys	0m1.204s
+
+--- p41_pit_head
+1_two_open_captures_cutoffs                  {'D<T3_new': 'UsableBook', 'D=T3_new': 'UsableBook', 'D>T3_new': 'UsableBook'}
+1b_ttl_edges                                 {'vt-1us': 'UsableBook', 'vt': 'Unusable:MISSING_OR_STALE', 'vt+1us': 'Unusable:MISSING_OR_STALE'}
+2_newer_valid_to                             ('2026-10-01T13:10:00.114000Z', 'older_valid_to', '2026-10-01T13:00:00.055000Z')
+2_older_usable_newer_expired                 {'D=newer.valid_to+1s (older still in TTL)': 'Unusable:MISSING_OR_STALE'}
+3_newer_blocked_event_not_prematch           ({'after': 'Unusable:BLOCKED'}, ['OPEN', 'BLOCKED'])
+4_invalidated_head_effect                    INVALIDATED_HEAD_EMITTED
+4_after_restart_new_head                     {'D>T3_inv': 'Unusable:INVALIDATED', 'D=just after first capture T3 (history)': 'UsableBook', 'D between newer.T3 and T3_inv (history)': 'UsableBook'}
+4_older_price_never_revives_within_ttl       {'D=T3_inv+1s': 'Unusable:INVALIDATED'}
+
+real	0m2.293s
+user	0m1.245s
+sys	0m0.500s
+
+--- p42_stale
+states: ['OPEN', 'OPEN'] valid_to: ['2026-10-01T13:00:00.055000Z', '2026-10-01T12:15:00.000000Z']
+D in newer window UsableBook 
+D after newer.valid_to, older still in TTL Unusable STALE
+
+real	0m0.993s
+user	0m0.676s
+sys	0m0.174s
+
+--- p43_invalidation_crash
+crash1=after_recorded                   crash2=None                             preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_recorded                   crash2=after_recorded                   preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_recorded                   crash2=after_invalidation_observation   preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_recorded                   crash2=after_invalidation_pit           preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_observation   crash2=None                             preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_observation   crash2=after_recorded                   preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_observation   crash2=after_invalidation_observation   preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_observation   crash2=after_invalidation_pit           preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_pit           crash2=None                             preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_pit           crash2=after_recorded                   preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_pit           crash2=after_invalidation_observation   preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_pit           crash2=after_invalidation_pit           preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+
+real	0m4.460s
+user	0m2.299s
+sys	0m1.170s
+
+--- p50_secret_echo
+raw                      ('halt', "('SECRET_ECHO',)") clean
+lower                    ('halt', "('SECRET_ECHO',)") clean
+pct_upper                ('halt', "('SECRET_ECHO',)") clean
+pct_lower                ('halt', "('SECRET_ECHO',)") clean
+double_pct               ('halt', "('SECRET_ECHO',)") clean
+json_u                   ('returned', 'RESPONSE', 'None') clean
+json_u_mixed             ('returned', 'RESPONSE', 'None') clean
+hex                      ('halt', "('SECRET_ECHO',)") clean
+HEX                      ('halt', "('SECRET_ECHO',)") clean
+b64_0                    ('halt', "('SECRET_ECHO',)") clean
+b64_1                    ('halt', "('SECRET_ECHO',)") clean
+b64_2                    ('halt', "('SECRET_ECHO',)") clean
+b64url_0                 ('halt', "('SECRET_ECHO',)") clean
+fragment_exact           ('halt', "('SECRET_ECHO',)") clean
+fragment_one_shorter     ('returned', 'RESPONSE', 'None') clean
+body_utf-16              ('halt', "('SECRET_ECHO',)") clean
+body_utf-16-le           ('halt', "('SECRET_ECHO',)") clean
+body_utf-16-be           ('halt', "('SECRET_ECHO',)") clean
+body_utf-32-le           ('halt', "('SECRET_ECHO',)") clean
+gzip_decoded             ('returned', 'RESPONSE', 'UNINSPECTABLE_BODY') clean
+header_value_etag        ('halt', "('SECRET_ECHO',)") clean
+header_value_nonallow    ('halt', "('SECRET_ECHO',)") clean
+header_name              ('halt', "('SECRET_ECHO',)") clean
+content_type_dirty       ('halt', "('SECRET_ECHO',)") clean
+mixed_case_in_body       ('halt', "('SECRET_ECHO',)") clean
+
+real	0m7.562s
+user	0m6.452s
+sys	0m0.526s
+
+--- p51_secret_echo2
+json_u_all                 ('halt', "('SECRET_ECHO',)") clean
+json_u_mixed               ('halt', "('SECRET_ECHO',)") clean
+json_u_upperhex            ('halt', "('SECRET_ECHO',)") clean
+split_two_halves_len_w-1   ('returned', 'RESPONSE', 'None') clean
+gzip sizes 35904 90213 ratio 2.5
+gzip_key_in_decoded_only   ('halt', "('SECRET_ECHO',)") clean
+gzip_key_in_wire_only      ('halt', "('SECRET_ECHO',)") clean
+
+real	0m2.439s
+user	0m2.081s
+sys	0m0.184s
+
+--- p52_transport_exc
+ordinary_open                              LEAK=False result=('NO_RESPONSE', {'class': 'OSError', 'errno': 7}) raised=None
+ordinary_write                             LEAK=False result=('NO_RESPONSE', {'class': 'OSError', 'errno': 7}) raised=None
+ordinary_head                              LEAK=False result=('NO_RESPONSE', {'class': 'OSError', 'errno': 7}) raised=None
+ordinary_body                              LEAK=False result=('TRUNCATED', {'class': 'OSError', 'errno': 7}) raised=None
+ordinary_close                             LEAK=False result=('RESPONSE', None) raised=None
+class_named_as_key                         LEAK=False result=('NO_RESPONSE', {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}) raised=None
+errno_is_key_digits                        LEAK=False result=('NO_RESPONSE', {'class': 'E2', 'errno': None}) raised=None
+chained_cause_context                      LEAK=False result=('NO_RESPONSE', {'class': 'RuntimeError', 'errno': None}) raised=None
+warning_with_url                           LEAK=False result=('NO_RESPONSE', {'class': 'OSError', 'errno': None}) raised=None
+KeyboardInterrupt_open                     LEAK=False result=None raised=('KeyboardInterrupt', (), '-', True, True, False)
+KeyboardInterrupt_write                    LEAK=False result=None raised=('KeyboardInterrupt', (), '-', True, True, False)
+KeyboardInterrupt_head                     LEAK=False result=None raised=('KeyboardInterrupt', (), '-', True, True, False)
+KeyboardInterrupt_body                     LEAK=False result=None raised=('KeyboardInterrupt', (), '-', True, True, False)
+KeyboardInterrupt_close                    LEAK=False result=None raised=('KeyboardInterrupt', (), '-', True, True, False)
+SystemExit_int_37                          LEAK=False result=None raised=('SystemExit', (37,), 37, True, True, False)
+SystemExit_NoneType_None                   LEAK=False result=None raised=('SystemExit', (), None, True, True, False)
+SystemExit_str_https://api.                LEAK=False result=None raised=('SystemExit', (1,), 1, True, True, False)
+SystemExit_bool_True                       LEAK=False result=None raised=('SystemExit', (1,), 1, True, True, False)
+SystemExit_float_3.5                       LEAK=False result=None raised=('SystemExit', (1,), 1, True, True, False)
+SystemExit_int_118059162071                LEAK=False result=None raised=('SystemExit', (1180591620717411303424,), 1180591620717411303424, True, True, False)
+SystemExit_int_-1                          LEAK=False result=None raised=('SystemExit', (-1,), -1, True, True, False)
+KeyboardInterrupt_in_errno_property        LEAK=False result=None raised=('KeyboardInterrupt', (), '-', True, True, False)
+Odd_BaseException                          LEAK=False result=None raised=('SystemExit', (1,), 1, True, True, False)
+GeneratorExit                              LEAK=False result=None raised=('GeneratorExit', (), '-', True, True, False)
+
+real	0m1.103s
+user	0m1.061s
+sys	0m0.042s
+
+--- p53_nonascii
+body UTF-8 echo                    ('halt', "('SECRET_ECHO',)") | stored forms: none
+body Latin-1 echo                  ('returned', 'RESPONSE', 'INVALID_UTF8') | stored forms: {'latin1': True}
+body mojibake (UTF-8 read as Latin-1) ('returned', 'RESPONSE', 'NOT_JSON') | stored forms: {'mojibake_utf8_of_utf8_as_latin1': True}
+body JSON \u escapes               ('halt', "('SECRET_ECHO',)") | stored forms: none
+header etag UTF-8 octets           ('halt', "('SECRET_ECHO',)") | stored forms: none
+
+real	0m1.351s
+user	0m1.237s
+sys	0m0.048s
+
+--- p54_secret_specials
+raw                        ('halt', 'SECRET_ECHO') clean
+json_escaped_slash(\/)     ('halt', 'SECRET_ECHO') clean
+pct_all                    ('halt', 'SECRET_ECHO') clean
+pct_slash_only             ('halt', 'SECRET_ECHO') clean
+plus_as_space_in_form      ('halt', 'SECRET_ECHO') clean
+double_pct                 ('halt', 'SECRET_ECHO') clean
+b64_off0                   ('halt', 'SECRET_ECHO') clean
+b64_off1                   ('halt', 'SECRET_ECHO') clean
+b64_off2                   ('halt', 'SECRET_ECHO') clean
+b64url_off0                ('halt', 'SECRET_ECHO') clean
+hex                        ('halt', 'SECRET_ECHO') clean
+json_u_all                 ('halt', 'SECRET_ECHO') clean
+json_u_slash_only          ('halt', 'SECRET_ECHO') clean
+
+real	0m2.637s
+user	0m2.298s
+sys	0m0.142s
+
+--- p55_secret_form_only
+raw                  ('halt', 'SECRET_ECHO') nothing-persisted
+single_pct           ('halt', 'SECRET_ECHO') nothing-persisted
+double_pct           ('halt', 'SECRET_ECHO') nothing-persisted
+json_escaped_slash   ('halt', 'SECRET_ECHO') nothing-persisted
+
+real	0m0.660s
+user	0m0.547s
+sys	0m0.057s
+
+--- p61_reset
+SECRET_ECHO_ledger                         [('acq_halted', 'SECRET_ECHO')]
+SECRET_ECHO_reset_before_any_new_G1        (2, 'refused: a SECRET_ECHO halt is cleared only after a new G1 record for a rotated key (desig')
+SECRET_ECHO_reset_after_G1_same_key        (2, 'refused: a SECRET_ECHO halt is cleared only after a new G1 record for a rotated key (desig')
+SECRET_ECHO_reset_after_G1_rotated_key     (0, '')
+AUTH_REJECTED_ledger                       [('acq_circuit_opened', 'AUTH_REJECTED')]
+AUTH_REJECTED_reset_before_any_new_G1      (2, 'refused: an AUTH_REJECTED circuit is cleared only after a new G1 record (design 14.3)')
+AUTH_REJECTED_reset_after_G1_same_key      (0, '')
+AUTH_REJECTED_reset_after_G1_rotated_key   (0, '')
+
+real	0m0.662s
+user	0m0.587s
+sys	0m0.034s
+
+--- p70_tls_env
+with SSL_CERT_FILE=test-ca.pem -> production tls_context() outcome: NO_RESPONSE None | server saw keyed request line: None
+
+real	0m0.761s
+user	0m0.544s
+sys	0m0.016s
+
+--- p70_tls_env_control
+CONTROL (no SSL_CERT_FILE) -> production tls_context() outcome: NO_RESPONSE None | server saw keyed request line: None
+
+--- p80_provenance
+0_control_clean_copy                         PASS 13
+1_CRLF_one_frozen_module                     genesis_adapters.provenance_guard.ModuleProvenanceError: MODULE_HASH_MISMATCH: module bytes differ from the frozen blob
+2_extra_trailing_newline                     genesis_adapters.provenance_guard.ModuleProvenanceError: MODULE_HASH_MISMATCH: module bytes differ from the frozen blob
+3_same_length_byte_swap                      SyntaxError: invalid syntax
+4_unlisted_module_file_never_imported        PASS 13
+5_shadow_genesis_on_PYTHONPATH               genesis_adapters.provenance_guard.ModuleProvenanceError: COMPETING_GENESIS: a second genesis is importable
+6_pth_file_in_site                           PASS 13
+7_competing_genesis_lower_precedence         genesis_adapters.provenance_guard.ModuleProvenanceError: COMPETING_GENESIS: a second genesis is importable
+8_without_-B_stale_pyc_flag                  (covered by suite FRZ-09 pyc test; see cli startup)
+9_mtime_only_change_must_PASS                PASS 13
+
+real	0m2.898s
+user	0m2.639s
+sys	0m0.262s
+
+--- p95_f44
+exception                                  OSError:[Errno 28] No space left on device
+rows_after_failure                         ['acq_planned', 'acq_quota_decided', 'acq_sent']
+coverage_rows_after_failure                []
+sends                                      1
+after_restart_rows                         ['acq_planned', 'acq_quota_decided', 'acq_sent', 'acq_reconciled']
+after_restart_coverage                     [('missing', 'ORPHANED_RESERVATION')]
+resend_on_same_item                        ('REFUSED', 1)
+pit_rows                                   0
+quota_debits                               1
+completed_row_recorded_any_status_or_T1    False
+
+real	0m0.531s
+user	0m0.482s
+sys	0m0.036s

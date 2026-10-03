@@ -23,10 +23,10 @@ STATE_VOCABULARY = {
 }
 JSON_TYPES = ("int", "str", "bool")
 MARKET_LEVEL_ABSENT = "DECLARED_ABSENT"
-_BOOKMAKER_ID = re.compile(r"^bk\.[a-z0-9][a-z0-9-]{0,39}$")
-_NATIVE_STR = re.compile(r"^[A-Za-z0-9_.:-]{1,64}$")
-_SLUG = re.compile(r"^[a-z0-9][a-z0-9.-]{0,63}$")
-_LINE_SOURCE = re.compile(r"^(none|market_definition|outcome_field:[A-Za-z][A-Za-z0-9_]{0,40})$")
+_BOOKMAKER_ID = re.compile(r"^bk\.[a-z0-9][a-z0-9-]{0,39}\Z")
+_NATIVE_STR = re.compile(r"^[A-Za-z0-9_.:-]{1,64}\Z")
+_SLUG = re.compile(r"^[a-z0-9][a-z0-9.-]{0,63}\Z")
+_LINE_SOURCE = re.compile(r"^(none|market_definition|outcome_field:[A-Za-z][A-Za-z0-9_]{0,40})\Z")
 
 _IDENTITY_KEYS = {"schema", "competitions", "bookmakers", "provider_sport"}
 _COMPETITION_KEYS = {"provider_tournament_id", "native_type", "genesis_competition_id", "sport",

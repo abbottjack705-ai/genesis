@@ -28,9 +28,9 @@ ROLES = ("META_SPORTS", "META_TOURNAMENTS", "META_BOOKMAKERS", "META_MARKETS", "
 CREDENTIAL_ALIASES = frozenset({"apikey", "api_key", "key", "token", "access_token", "secret"})
 PARAM_TYPES = ("int", "str", "date", "csv_set")
 
-_TEXT = re.compile(r"^[A-Za-z0-9_.:-]{1,64}$")
-_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-_HOST = re.compile(r"^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$")
+_TEXT = re.compile(r"^[A-Za-z0-9_.:-]{1,64}\Z")
+_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}\Z")
+_HOST = re.compile(r"^[a-z0-9]([a-z0-9.-]*[a-z0-9])?\Z")
 _ENDPOINT_KEYS = frozenset({
     "cache_ttl_source", "cacheable", "credential_param", "doc_reference", "genesis_debit_units",
     "host", "method", "params", "path", "provider_documented_billable", "provider_metering",

@@ -1,0 +1,14 @@
+# R6 freeze guard + module-provenance guard
+# command: verify_frozen_trees / verify_frozen_worktree_clean / verify_loaded_genesis_modules
+# python: Python 3.11.15
+# platform: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39
+# HEAD (base): b22263e582386f04e5b7939e511757940ffdfbe0
+# note: build host is Linux, not Windows; no Windows result is claimed anywhere here
+----
+freeze guard (six tree SHAs @ HEAD): PASS
+frozen worktree clean: PASS
+module-provenance guard: PASS
+manifest sha256: 9a50e370cb27919ee6b13e85a2b325cdaf6691c3b1168a2bc1294f1604e22fdf
+genesis origin: /home/user/genesis/src/genesis/__init__.py
+flags: {"dont_write_bytecode": true, "isolated": false, "pycache_prefix": "/tmp/tmp.QXk3UrBiio", "safe_path": false}
+genesis modules verified: 15 ; adapter modules loaded: 4

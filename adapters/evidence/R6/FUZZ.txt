@@ -1,0 +1,24 @@
+# R6 the audit's fuzzers against the candidate (no ESCAPE line may appear)
+# command: p116_fuzz2.py 11 10000; p119_fuzz3.py 23 8000; p116_fuzz2.py 101 12000; p119_fuzz3.py 777 12000; p114_fuzz_parser.py; p117_fuzz_fixtures.py; p121_fuzz_pipeline.py 3 250
+# python: Python 3.11.15
+# platform: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39
+# HEAD (base): b22263e582386f04e5b7939e511757940ffdfbe0
+# note: build host is Linux, not Windows; no Windows result is claimed anywhere here
+----
+### p116_fuzz2.py 11 10000
+iterations 10000 seed ['11', '10000']
+### p119_fuzz3.py 23 8000
+iterations 8000 seed ['23', '8000']
+### p116_fuzz2.py 101 12000
+iterations 12000 seed ['101', '12000']
+### p119_fuzz3.py 777 12000
+iterations 12000 seed ['777', '12000']
+### p114_fuzz_parser.py
+iterations 6000
+no exception escaped
+### p117_fuzz_fixtures.py
+fixtures-fuzz escapes: none
+### p121_fuzz_pipeline.py 3 250
+pipeline fuzz iterations 250
+none
+FUZZ_DONE

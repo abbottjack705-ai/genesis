@@ -43,32 +43,44 @@ def priced(over, under):
 class HeadSelectionTests(unittest.TestCase):
     """A-4: the head is chosen by the adapter, never taken from the frozen query's result order."""
 
+    # A record id is a hash over the derivation, so WHERE the newest record falls in record-id order changes with every
+    # derivation version (any policy or code change). The test needs it strictly inside - both naive picks, the first
+    # and the last of the query's order, must be wrong - so it takes the first newest price that puts it there instead
+    # of hoping the current hashes do (R6: a new version had made the single fixed choice land first).
+    OLDER = [(1.91, 1.95), (1.9, 1.96), (1.92, 1.94), (1.93, 1.93)]
+    NEWEST_CANDIDATES = [(1.89, 1.97), (1.88, 1.98), (1.87, 1.99), (1.86, 2.0), (1.85, 2.01), (1.84, 2.02),
+                         (1.83, 2.03), (1.82, 2.04), (1.81, 2.05), (1.8, 2.06)]
+
     def test_the_head_is_the_unique_latest_admissible_record_not_the_first_by_record_id(self):
-        with scratch_root() as root:
-            stores = build_stores(root)
-            prices = [(1.91, 1.95), (1.9, 1.96), (1.92, 1.94), (1.93, 1.93), (1.89, 1.97)]
-            entity = None
-            for index, (over, under) in enumerate(prices):
-                parsed, _, _ = capture(stores, priced(over, under), t1=iso(CAPTURE_1, seconds=60 * index))
-                entity = head_book(parsed).entity_id
-            decision_at = iso(CAPTURE_1, seconds=60 * len(prices))
-            admissible = stores.pit.as_of_query(entity, decision_at, source_id=stores.source_id)
-            self.assertEqual(len(admissible), len(prices))
-            self.assertEqual([r.record_id for r in admissible], sorted(r.record_id for r in admissible))
-            newest = max(admissible, key=lambda record: record.valid_from)
-            position = [r.record_id for r in admissible].index(newest.record_id)
-            self.assertNotIn(position, (0, len(prices) - 1))       # both naive picks ([0], [-1]) would be wrong
-            result = admissible_head(entity, decision_at, stores=stores, derivation_check=derivation_accepted)
-            self.assertIsInstance(result, UsableBook)
-            self.assertEqual(result.record, newest)
-            self.assertEqual(result.document["selections"]["OVER"]["odds_decimal"], "1.89")
-            accepted, why = verifier_verdict(stores, [(newest, "OVER")], decision_at=decision_at, scratch=root)
-            self.assertTrue(accepted, why)
-            for other in admissible:
-                if other != newest:
-                    accepted, _ = verifier_verdict(stores, [(other, "OVER")], decision_at=decision_at, scratch=root,
-                                                   label=other.record_id[-8:])
-                    self.assertFalse(accepted)
+        for newest_prices in self.NEWEST_CANDIDATES:
+            with scratch_root() as root:
+                stores = build_stores(root)
+                prices = self.OLDER + [newest_prices]
+                entity = None
+                for index, (over, under) in enumerate(prices):
+                    parsed, _, _ = capture(stores, priced(over, under), t1=iso(CAPTURE_1, seconds=60 * index))
+                    entity = head_book(parsed).entity_id
+                decision_at = iso(CAPTURE_1, seconds=60 * len(prices))
+                admissible = stores.pit.as_of_query(entity, decision_at, source_id=stores.source_id)
+                self.assertEqual(len(admissible), len(prices))
+                self.assertEqual([r.record_id for r in admissible], sorted(r.record_id for r in admissible))
+                newest = max(admissible, key=lambda record: record.valid_from)
+                position = [r.record_id for r in admissible].index(newest.record_id)
+                if position in (0, len(prices) - 1):               # a naive pick ([0] or [-1]) would be right: next
+                    continue
+                result = admissible_head(entity, decision_at, stores=stores, derivation_check=derivation_accepted)
+                self.assertIsInstance(result, UsableBook)
+                self.assertEqual(result.record, newest)
+                self.assertEqual(result.document["selections"]["OVER"]["odds_decimal"], str(newest_prices[0]))
+                accepted, why = verifier_verdict(stores, [(newest, "OVER")], decision_at=decision_at, scratch=root)
+                self.assertTrue(accepted, why)
+                for other in admissible:
+                    if other != newest:
+                        accepted, _ = verifier_verdict(stores, [(other, "OVER")], decision_at=decision_at,
+                                                       scratch=root, label=other.record_id[-8:])
+                        self.assertFalse(accepted)
+                return
+        self.fail("no candidate newest price puts the newest record strictly inside the record-id order")
 
     def test_f39_and_rdr02_a_head_published_after_the_cutoff_is_unusable_with_no_fallback(self):
         with scratch_root() as root:

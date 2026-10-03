@@ -1,0 +1,210 @@
+# R6 RED: the R6 tests against the UNMODIFIED production code of b22263e
+# command: git archive b22263e (src, config, old tests), then the R6 adapter_tests overlaid; python -B -m unittest discover -s adapters/adapter_tests -t adapters -p <module>
+# python: Python 3.11.15
+# platform: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39
+# HEAD (base): b22263e582386f04e5b7939e511757940ffdfbe0
+# note: build host is Linux, not Windows; no Windows result is claimed anywhere here
+----
+Production code and config are exactly b22263e's. Counts include sub-tests as separate failing checks. RA5-013's RED is the baseline suite on this host (section at the end).
+
+== test_v05_credential.py: ran 15; OK
+
+== test_v05_jsonstrict.py: ran 25; FAILED (failures=1, errors=133)
+   ERROR: test_a_bound_error_carries_no_payload_text
+   ERROR: test_a_chain_beyond_the_decoders_own_recursion_limit_is_too_deep_not_a_crash
+   ERROR: test_a_container_chain_of_exactly_max_depth_is_accepted_and_one_more_is_too_deep
+   ERROR: test_a_decimal_literal_is_bounded_by_its_adjusted_exponent_in_both_directions
+   ERROR: test_a_lone_surrogate_anywhere_is_invalid_text
+   ERROR: test_an_exponent_beyond_what_a_decimal_can_represent_is_out_of_range_never_an_arithmetic_error
+   ERROR: test_an_integer_literal_is_bounded_by_the_same_measure
+   ERROR: test_depth_counts_every_container_whatever_its_kind_and_content
+   ERROR: test_every_code_has_exactly_one_taxonomy_outcome
+   ERROR: test_in_range_numbers_stay_exact_decimals
+   ERROR: test_numbers_are_bounded_wherever_they_sit
+   ERROR: test_the_depth_check_sees_a_deep_branch_that_is_not_the_first_child
+   ERROR: test_the_depth_walk_agrees_with_an_independent_recursive_depth_on_random_structures
+   ERROR: test_the_size_cap_is_still_checked_before_anything_else
+   ERROR: test_the_text_walk_reaches_every_string_not_only_the_first
+   ERROR: test_well_formed_text_is_accepted
+   ERROR: test_duplicate_keys_are_rejected_at_every_depth
+   ERROR: test_encoding_and_shape_failures
+   ERROR: test_error_carries_no_payload_text
+   ERROR: test_mkt07_numbers_are_exact_decimals_never_floats
+   ERROR: test_non_finite_numbers_are_rejected
+   ERROR: test_pathological_nesting_and_huge_integers_fail_closed
+   ERROR: test_size_cap_is_exact
+   ERROR: test_valid_documents_round_trip_types
+   FAIL: test_the_bounds_have_no_defaults_so_no_caller_can_forget_them
+
+== test_v05_parser_schema.py: ran 15; FAILED (errors=1)
+   ERROR: test_the_closed_validator_reports_stable_trails_for_every_finding
+
+== test_v05_r6_date_header.py: ran 12; FAILED (failures=5, errors=9)
+   ERROR: test_a_seeded_fuzz_over_date_shaped_strings_never_raises
+   ERROR: test_every_unusable_value_is_none
+   ERROR: test_no_hostile_value_raises
+   ERROR: test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too
+   ERROR: test_every_unusable_value_is_a_clock_skew_quarantine_in_live_mode
+   FAIL: test_an_over_long_date_header_is_present_not_missing
+   FAIL: test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too
+
+== test_v05_r6_deadline.py: ran 30; FAILED (failures=4, errors=15)
+   ERROR: test_a_close_waits_for_every_reader_and_then_happens_exactly_once
+   ERROR: test_a_close_with_no_reader_closes_the_connection_at_once
+   ERROR: test_a_reader_that_closes_first_releases_nothing_until_the_connection_is_closed
+   ERROR: test_a_send_and_a_receive_are_armed_before_they_block
+   ERROR: test_closing_a_reader_twice_releases_it_once
+   ERROR: test_each_resolved_address_is_tried_under_the_time_that_is_left
+   ERROR: test_every_blocking_operation_is_armed_with_exactly_the_time_left
+   ERROR: test_no_address_is_tried_once_an_earlier_attempt_used_up_the_deadline
+   ERROR: test_nothing_is_connected_when_the_deadline_has_already_passed
+   ERROR: test_settimeout_can_only_pull_the_deadline_in
+   ERROR: test_the_last_failure_is_the_one_raised_when_every_address_fails
+   ERROR: test_time_left_is_the_distance_to_the_deadline_and_zero_is_already_a_timeout
+   ERROR: test_a_connection_deadline_only_ever_shrinks
+   ERROR: test_an_exhausted_deadline_arms_nothing
+   ERROR: test_reads_are_bounded_by_the_deadline_however_the_writer_paces_its_bytes
+   FAIL: test_closing_the_connection_closes_the_response_first_and_always_the_connection
+   FAIL: test_a_slow_drip_body_cannot_hold_the_transport_past_the_deadline
+   FAIL: test_a_slow_drip_response_head_cannot_hold_the_transport_past_the_deadline
+   FAIL: test_a_slow_drip_is_a_recorded_deadline_exceeded_and_the_writer_is_released
+
+== test_v05_r6_low_findings.py: ran 57; FAILED (failures=65, errors=7)
+   ERROR: test_a_clock_fault_while_halting_for_a_broken_quota_replay_keeps_that_halt
+   ERROR: test_a_fault_before_the_send_sends_nothing
+   ERROR: test_every_read_index_of_an_attempt
+   ERROR: test_the_strict_decoder_accepts_exactly_the_cap_and_refuses_one_byte_more
+   ERROR: test_the_ceiling_is_architecture_fixed_not_a_policy_field
+   FAIL: test_every_read_index_of_an_attempt
+   FAIL: test_every_other_octet_is_refused_as_not_a_key
+   FAIL: test_a_policy_above_the_architecture_limit_is_refused_by_the_operational_loader
+   FAIL: test_the_committed_fixture_configuration_cannot_be_widened_either
+   FAIL: test_the_refusal_names_no_provider_text_and_changes_nothing_on_disk
+   FAIL: test_the_verification_mode_loader_refuses_it_too
+   FAIL: test_a_header_name_with_a_line_feed_is_not_listed_in_a_quarantine_record
+   FAIL: test_a_response_header_name_with_a_line_feed_is_never_kept
+   FAIL: test_endpoint_specifications
+   FAIL: test_invalidation_digests
+   FAIL: test_native_ids_and_identity_kinds
+   FAIL: test_policy_schedule_strings
+   FAIL: test_request_values
+   FAIL: test_response_schema_map_keys
+   FAIL: test_the_maps
+   FAIL: test_a_crash_between_the_completed_row_and_the_halt_still_halts_after_restart
+   FAIL: test_every_occurrence_is_judged_not_only_the_first
+   FAIL: test_every_unreadable_value_halts_as_a_quota_divergence
+   FAIL: test_the_completed_row_records_a_present_but_unreadable_header_apart_from_an_absent_one
+   FAIL: test_the_halt_blocks_every_later_send_and_survives_a_restart
+   FAIL: test_the_halt_is_one_coverage_entry_the_evidence_is_kept_and_nothing_is_lost_or_rewritten
+   FAIL: test_the_header_name_is_matched_without_regard_to_case
+   FAIL: test_every_alteration_of_the_observation_metadata_is_rejected
+   FAIL: test_verify_all_covers_an_altered_observation_that_has_no_pit_record
+
+== test_v05_r6_poison_pill.py: ran 27; FAILED (failures=15, errors=55)
+   ERROR: test_no_operator_action_is_needed_afterwards
+   ERROR: test_the_published_raw_evidence_is_immutable_and_still_retrievable
+   ERROR: test_a_seeded_mutation_fuzz_with_the_hostile_pool
+   ERROR: test_a_seeded_sample_of_leaves_with_each_numeric_and_structural_literal
+   ERROR: test_every_leaf_with_a_lone_surrogate
+   ERROR: test_the_snapshot_builder_turns_any_exception_into_an_unusable_join
+   ERROR: test_a_duplicate_plan_item_reports_why_the_attempt_was_rejected
+   ERROR: test_a_normalized_attempt_cannot_be_rejected_and_a_rejected_one_cannot_be_normalized
+   ERROR: test_a_rejected_capture_is_not_a_successful_capture_for_any_reader_of_the_ledger
+   ERROR: test_a_retry_plan_item_for_a_rejected_attempt_is_not_retryable
+   ERROR: test_a_second_verdict_for_an_already_rejected_attempt_is_refused
+   ERROR: test_a_verdict_detail_is_text_or_nothing
+   ERROR: test_a_verdict_is_only_for_a_response_that_passed_its_content_checks
+   ERROR: test_every_content_rejection_the_decoder_and_the_derivation_can_raise_is_a_rejected_coverage_status
+   ERROR: test_the_verdict_detail_is_screened_like_every_record_before_it_is_persisted
+   ERROR: test_neighbouring_cases_are_defined_too
+   ERROR: test_the_derive_boundary_is_total_and_reports_a_rejection
+   ERROR: test_the_four_classes_never_raise_out_of_parse_or_build_documents
+   ERROR: test_a_normalized_capture_that_stops_deriving_is_an_integrity_halt_not_a_rejection
+   ERROR: test_a_policy_change_between_capture_and_normalization_cannot_wedge_the_pipeline
+   ERROR: test_every_exception_family_from_parse_is_a_terminal_verdict
+   FAIL: test_a_participant_id_outside_the_grammar_blocks_only_that_fixtures_books
+   FAIL: test_a_rejection_is_a_durable_verdict_with_coverage_and_no_observation
+   FAIL: test_every_class_ends_in_a_defined_restart_stable_state
+   FAIL: test_every_exception_family_from_document_building_is_a_terminal_verdict
+
+== test_v05_r6_tls_boundary.py: ran 26; FAILED (failures=11, errors=2)
+   ERROR: test_no_tracked_file_is_key_material_according_to_git
+   ERROR: test_the_variables_are_hidden_while_the_context_is_built_and_restored_afterwards
+   FAIL: test_every_variable_at_once_does_not_authorize_the_production_context
+   FAIL: test_ssl_cert_dir_naming_the_attacker_ca_does_not_authorize_the_production_context
+   FAIL: test_ssl_cert_file_naming_the_attacker_ca_does_not_authorize_the_production_context
+   FAIL: test_the_variable_set_before_the_interpreter_starts_does_not_authorize_the_production_context
+   FAIL: test_no_certificate_or_key_file_exists_anywhere_under_adapters
+   FAIL: test_no_private_key_block_exists_anywhere_under_adapters
+   FAIL: test_the_old_tls_fixture_directory_is_gone_and_no_attribute_rule_remains_for_it
+   FAIL: test_the_context_is_asserted_not_trusted
+   FAIL: test_the_key_log_file_named_by_the_environment_is_never_written
+   FAIL: test_the_retired_committed_ca_cannot_be_injected_into_the_production_trust_store
+
+== test_v05_reader.py: ran 16; OK
+
+== RA5-013: the baseline adapter suite at b22263e on this host (Linux/CPython 3.11.15)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/genesis/adapters/src/genesis_adapters/credential.py", line 61, in __init__
+    self.repo = Path(repo).resolve()
+                ^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/pathlib.py", line 993, in resolve
+    s = os.path.realpath(self, strict=strict)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen posixpath>", line 413, in realpath
+  File "<frozen posixpath>", line 480, in _joinrealpath
+OSError: [Errno 22] Invalid argument: '/home'
+
+----------------------------------------------------------------------
+Ran 690 tests in 100.758s
+
+FAILED (errors=1)
+exit=1
+
+
+== first-run RED transcripts written while each finding was reproduced (raw, unedited; the earliest versions of some tests had helper mistakes that were fixed before the final RED above, which is the authoritative one)
+
+--- RED_ra5_002.txt
+ERROR: test_a_seeded_fuzz_over_date_shaped_strings_never_raises (adapter_tests.test_v05_r6_date_header.ParseHttpDateIsTotalTests.test_a_seeded_fuzz_over_date_shaped_strings_never_raises)
+ERROR: test_every_unusable_value_is_none (adapter_tests.test_v05_r6_date_header.ParseHttpDateIsTotalTests.test_every_unusable_value_is_none) [huge_year]
+ERROR: test_every_unusable_value_is_none (adapter_tests.test_v05_r6_date_header.ParseHttpDateIsTotalTests.test_every_unusable_value_is_none) [year_just_over_c_int]
+ERROR: test_no_hostile_value_raises (adapter_tests.test_v05_r6_date_header.ParseHttpDateIsTotalTests.test_no_hostile_value_raises) [huge_year]
+ERROR: test_no_hostile_value_raises (adapter_tests.test_v05_r6_date_header.ParseHttpDateIsTotalTests.test_no_hostile_value_raises) [year_just_over_c_int]
+ERROR: test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too (adapter_tests.test_v05_r6_date_header.PathologicalDateIsAQuarantineVerdictTests.test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too) [huge_year]
+ERROR: test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too (adapter_tests.test_v05_r6_date_header.PathologicalDateIsAQuarantineVerdictTests.test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too) [year_just_over_c_int]
+ERROR: test_every_unusable_value_is_a_clock_skew_quarantine_in_live_mode (adapter_tests.test_v05_r6_date_header.PathologicalDateIsAQuarantineVerdictTests.test_every_unusable_value_is_a_clock_skew_quarantine_in_live_mode) [huge_year]
+ERROR: test_every_unusable_value_is_a_clock_skew_quarantine_in_live_mode (adapter_tests.test_v05_r6_date_header.PathologicalDateIsAQuarantineVerdictTests.test_every_unusable_value_is_a_clock_skew_quarantine_in_live_mode) [year_just_over_c_int]
+FAIL: test_every_unusable_value_is_none (adapter_tests.test_v05_r6_date_header.ParseHttpDateIsTotalTests.test_every_unusable_value_is_none) [very_long]
+FAIL: test_an_over_long_date_header_is_present_not_missing (adapter_tests.test_v05_r6_date_header.PathologicalDateIsAQuarantineVerdictTests.test_an_over_long_date_header_is_present_not_missing) (require_date=False)
+FAIL: test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too (adapter_tests.test_v05_r6_date_header.PathologicalDateIsAQuarantineVerdictTests.test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too) [digits_5000_year]
+FAIL: test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too (adapter_tests.test_v05_r6_date_header.PathologicalDateIsAQuarantineVerdictTests.test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too) [digits_5000_day]
+FAIL: test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too (adapter_tests.test_v05_r6_date_header.PathologicalDateIsAQuarantineVerdictTests.test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too) [digits_5000_time]
+FAIL: test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too (adapter_tests.test_v05_r6_date_header.PathologicalDateIsAQuarantineVerdictTests.test_every_present_but_unusable_value_is_a_clock_skew_quarantine_in_fixture_mode_too) [very_long]
+Ran 12 tests in 2.765s
+FAILED (failures=6, errors=9)
+
+--- RED_ra5_003.txt
+
+
+--- RED_ra5_004.txt
+ERROR: test_a_connection_deadline_only_ever_shrinks (adapter_tests.test_v05_r6_deadline.SocketPairWrapperTests.test_a_connection_deadline_only_ever_shrinks)
+ERROR: test_an_exhausted_deadline_arms_nothing (adapter_tests.test_v05_r6_deadline.SocketPairWrapperTests.test_an_exhausted_deadline_arms_nothing)
+ERROR: test_reads_are_bounded_by_the_deadline_however_the_writer_paces_its_bytes (adapter_tests.test_v05_r6_deadline.SocketPairWrapperTests.test_reads_are_bounded_by_the_deadline_however_the_writer_paces_its_bytes)
+FAIL: test_a_slow_drip_body_cannot_hold_the_transport_past_the_deadline (adapter_tests.test_v05_r6_deadline.SlowPeerOnRealSocketsTests.test_a_slow_drip_body_cannot_hold_the_transport_past_the_deadline)
+FAIL: test_a_slow_drip_response_head_cannot_hold_the_transport_past_the_deadline (adapter_tests.test_v05_r6_deadline.SlowPeerOnRealSocketsTests.test_a_slow_drip_response_head_cannot_hold_the_transport_past_the_deadline)
+FAIL: test_a_slow_drip_is_a_recorded_deadline_exceeded_and_the_writer_is_released (adapter_tests.test_v05_r6_deadline.SlowPeerThroughTheRunnerTests.test_a_slow_drip_is_a_recorded_deadline_exceeded_and_the_writer_is_released)
+Ran 17 tests in 19.172s
+FAILED (failures=3, errors=3)
+
+--- RED_ra5_008.txt
+ERROR: test_the_ceiling_is_architecture_fixed_not_a_policy_field (adapter_tests.test_v05_r6_low_findings.OperationalBookmakerCeilingTests.test_the_ceiling_is_architecture_fixed_not_a_policy_field)
+FAIL: test_a_policy_above_the_architecture_limit_is_refused_by_the_operational_loader (adapter_tests.test_v05_r6_low_findings.OperationalBookmakerCeilingTests.test_a_policy_above_the_architecture_limit_is_refused_by_the_operational_loader) (declared_bookmakers_max=4)
+FAIL: test_a_policy_above_the_architecture_limit_is_refused_by_the_operational_loader (adapter_tests.test_v05_r6_low_findings.OperationalBookmakerCeilingTests.test_a_policy_above_the_architecture_limit_is_refused_by_the_operational_loader) (declared_bookmakers_max=5)
+FAIL: test_a_policy_above_the_architecture_limit_is_refused_by_the_operational_loader (adapter_tests.test_v05_r6_low_findings.OperationalBookmakerCeilingTests.test_a_policy_above_the_architecture_limit_is_refused_by_the_operational_loader) (declared_bookmakers_max=50)
+FAIL: test_a_policy_above_the_architecture_limit_is_refused_by_the_operational_loader (adapter_tests.test_v05_r6_low_findings.OperationalBookmakerCeilingTests.test_a_policy_above_the_architecture_limit_is_refused_by_the_operational_loader) (declared_bookmakers_max=1000000000)
+FAIL: test_the_committed_fixture_configuration_cannot_be_widened_either (adapter_tests.test_v05_r6_low_findings.OperationalBookmakerCeilingTests.test_the_committed_fixture_configuration_cannot_be_widened_either)
+FAIL: test_the_refusal_names_no_provider_text_and_changes_nothing_on_disk (adapter_tests.test_v05_r6_low_findings.OperationalBookmakerCeilingTests.test_the_refusal_names_no_provider_text_and_changes_nothing_on_disk)
+FAIL: test_the_verification_mode_loader_refuses_it_too (adapter_tests.test_v05_r6_low_findings.OperationalBookmakerCeilingTests.test_the_verification_mode_loader_refuses_it_too) (declared_bookmakers_max=4)
+FAIL: test_the_verification_mode_loader_refuses_it_too (adapter_tests.test_v05_r6_low_findings.OperationalBookmakerCeilingTests.test_the_verification_mode_loader_refuses_it_too) (declared_bookmakers_max=50)
+Ran 9 tests in 0.055s
+FAILED (failures=8, errors=1)

@@ -7,8 +7,8 @@ import re
 from genesis.repro import canonical_json, sha256_bytes
 
 IDENTITY_DOMAIN = "genesis.adapters.identity.v1"
-_KIND = re.compile(r"^[a-z]+$")
-_NATIVE_STR = re.compile(r"^[A-Za-z0-9_.:-]{1,64}$")
+_KIND = re.compile(r"^[a-z]+\Z")
+_NATIVE_STR = re.compile(r"^[A-Za-z0-9_.:-]{1,64}\Z")
 
 
 class IdentityError(ValueError):

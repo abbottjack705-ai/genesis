@@ -1,0 +1,9 @@
+body UTF-8 echo                    ('halt', "('SECRET_ECHO',)") | stored forms: none
+body Latin-1 echo                  ('returned', 'RESPONSE', 'INVALID_UTF8') | stored forms: {'latin1': True}
+body mojibake (UTF-8 read as Latin-1) ('returned', 'RESPONSE', 'NOT_JSON') | stored forms: {'mojibake_utf8_of_utf8_as_latin1': True}
+body JSON \u escapes               ('halt', "('SECRET_ECHO',)") | stored forms: none
+header etag UTF-8 octets           ('halt', "('SECRET_ECHO',)") | stored forms: none
+
+real	0m1.426s
+user	0m1.205s
+sys	0m0.147s

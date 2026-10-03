@@ -1,0 +1,5 @@
+fixtures-fuzz escapes: none
+
+real	0m1.082s
+user	0m1.062s
+sys	0m0.020s

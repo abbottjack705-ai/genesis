@@ -1,0 +1,5 @@
+parse_http_date escapes: none
+
+real	0m0.577s
+user	0m0.551s
+sys	0m0.026s

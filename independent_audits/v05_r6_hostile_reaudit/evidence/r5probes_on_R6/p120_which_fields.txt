@@ -1,0 +1,5 @@
+leaf count 1134
+
+real	0m3.413s
+user	0m3.341s
+sys	0m0.068s

@@ -1,0 +1,14 @@
+CONTROL poisoned capture is the newest attempt
+    crashed = True
+    rows_for_poisoned_attempt_after_crash = ['acq_planned', 'acq_quota_decided', 'acq_sent', 'acq_completed', 'acq_derivation_rejected']
+    final_state = DERIVATION_REJECTED
+    rejection_coverage_entries = [('ENVELOPE_SCHEMA_MISMATCH', 'rejected')]
+    pending_work = []
+    => HELD
+ATTACK  a newer attempt follows the poisoned capture (G2 -> G2R)
+    crashed = True
+    rows_for_poisoned_attempt_after_crash = ['acq_planned', 'acq_quota_decided', 'acq_sent', 'acq_completed', 'acq_derivation_rejected']
+    final_state = DERIVATION_REJECTED
+    rejection_coverage_entries = []
+    pending_work = []
+    => DEFECT: rejection row durable, REJECTED coverage entry never written

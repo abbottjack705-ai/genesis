@@ -1,0 +1,14 @@
+F
+======================================================================
+FAIL: test_t6_concurrent_writers_through_a_toggled_hard_link_keep_one_valid_chain (tests.test_astra_t6_risk_log_integrity.T6HardLinkAliasTests.test_t6_concurrent_writers_through_a_toggled_hard_link_keep_one_valid_chain)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "$AUDIT_WORK/cand/tests/test_astra_t6_risk_log_integrity.py", line 635, in test_t6_concurrent_writers_through_a_toggled_hard_link_keep_one_valid_chain
+    self.assertEqual(
+AssertionError: Items in the first set but not the second:
+'alias-0-12' : F-3b: the real risk log holds a row that was not written through its own name
+
+----------------------------------------------------------------------
+Ran 1 test in 1.196s
+
+FAILED (failures=1)

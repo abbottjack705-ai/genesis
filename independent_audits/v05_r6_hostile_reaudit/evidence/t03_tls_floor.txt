@@ -1,0 +1,6 @@
+{"python": "3.11.15", "OPENSSL_CONF": null, "minimum_version": "771", "tls1_0_only_server": "protocol refused (TLSV1_ALERT_PROTOCOL_VERSION)"}
+{"python": "3.11.15", "OPENSSL_CONF": "$AUDIT_WORK/ascratch/lowfloor.cnf", "minimum_version": "771", "tls1_0_only_server": "protocol refused (TLSV1_ALERT_PROTOCOL_VERSION)"}
+{"python": "3.12.3", "OPENSSL_CONF": null, "minimum_version": "-2", "tls1_0_only_server": "protocol refused (TLSV1_ALERT_PROTOCOL_VERSION)"}
+{"python": "3.12.3", "OPENSSL_CONF": "$AUDIT_WORK/ascratch/lowfloor.cnf", "minimum_version": "769", "tls1_0_only_server": "negotiated, then certificate refused (unable to get local issuer certificate)"}
+{"python": "3.13.14", "OPENSSL_CONF": null, "minimum_version": "771", "tls1_0_only_server": "protocol refused (TLSV1_ALERT_PROTOCOL_VERSION)"}
+{"python": "3.13.14", "OPENSSL_CONF": "$AUDIT_WORK/ascratch/lowfloor.cnf", "minimum_version": "771", "tls1_0_only_server": "protocol refused (TLSV1_ALERT_PROTOCOL_VERSION)"}

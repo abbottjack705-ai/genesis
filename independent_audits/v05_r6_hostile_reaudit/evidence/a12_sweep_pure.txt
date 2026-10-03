@@ -1,0 +1,9 @@
+A12 exhaustive single-substitution sweep: 121330 bodies (1668 leaf paths)
+    119438  ('PASS', 'DOCS:')
+      1668  ('REJECT:TOO_DEEP', 'FAIL:NESTING_TOO_DEEP')
+       206  ('REJECT:ENVELOPE', 'FAIL:ENVELOPE_SCHEMA_MISMATCH')
+        18  ('PASS', 'FAIL:ENVELOPE_SCHEMA_MISMATCH')
+safety net (DERIVATION_FAULT) caught: nothing
+capture PASS -> terminal derivation rejection (failure, kind, field):
+      18  ('FAIL:ENVELOPE_SCHEMA_MISMATCH', 'leaf', 'fixtureId')
+defects: none

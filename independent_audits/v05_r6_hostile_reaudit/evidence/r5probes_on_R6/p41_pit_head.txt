@@ -1,0 +1,12 @@
+1_two_open_captures_cutoffs                  {'D<T3_new': 'UsableBook', 'D=T3_new': 'UsableBook', 'D>T3_new': 'UsableBook'}
+1b_ttl_edges                                 {'vt-1us': 'UsableBook', 'vt': 'Unusable:MISSING_OR_STALE', 'vt+1us': 'Unusable:MISSING_OR_STALE'}
+2_newer_valid_to                             ('2026-10-01T13:10:00.114000Z', 'older_valid_to', '2026-10-01T13:00:00.055000Z')
+2_older_usable_newer_expired                 {'D=newer.valid_to+1s (older still in TTL)': 'Unusable:MISSING_OR_STALE'}
+3_newer_blocked_event_not_prematch           ({'after': 'Unusable:BLOCKED'}, ['OPEN', 'BLOCKED'])
+4_invalidated_head_effect                    INVALIDATED_HEAD_EMITTED
+4_after_restart_new_head                     {'D>T3_inv': 'Unusable:INVALIDATED', 'D=just after first capture T3 (history)': 'UsableBook', 'D between newer.T3 and T3_inv (history)': 'UsableBook'}
+4_older_price_never_revives_within_ttl       {'D=T3_inv+1s': 'Unusable:INVALIDATED'}
+
+real	0m2.394s
+user	0m1.302s
+sys	0m0.543s

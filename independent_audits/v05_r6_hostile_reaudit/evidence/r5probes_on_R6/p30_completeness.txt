@@ -1,0 +1,10 @@
+V1_requested_tournament_8_omitted {"after1": {"OPEN": 12}, "after2": {"OPEN": 18}, "outcome": ["RESPONSE", "None"], "absent_cov": ["PARTIAL_RESPONSE:1"], "pit_rows": 18}
+V2_all_omitted_empty_list {"after1": {"OPEN": 12}, "after2": {"OPEN": 12}, "outcome": ["RESPONSE", "None"], "absent_cov": ["PARTIAL_RESPONSE:1"], "pit_rows": 12}
+V5_tournament_8_present_but_empty {"after1": {"OPEN": 12}, "after2": {"OPEN": 18, "ABSENT": 6}, "outcome": ["RESPONSE", "None"], "absent_cov": ["BOOK_ABSENT"], "pit_rows": 24}
+V6_tournament_8_wrong_sport {"after1": {"OPEN": 12}, "after2": {"OPEN": 18}, "outcome": ["RESPONSE", "None"], "absent_cov": ["PARTIAL_RESPONSE:1"], "pit_rows": 18}
+V7_tournament_8_id_as_string {"after1": {"OPEN": 12}, "after2": {"OPEN": 18, "BLOCKED": 6}, "outcome": ["RESPONSE", "None"], "absent_cov": ["PARTIAL_RESPONSE:1"], "pit_rows": 24}
+V4_fixture_level_omission_inside_present_tournament {"after1": {"OPEN": 18}, "after2": {"OPEN": 30, "ABSENT": 6}, "outcome": ["RESPONSE", "None"], "absent_cov": ["BOOK_ABSENT"], "pit_rows": 36}
+
+real	0m3.315s
+user	0m1.497s
+sys	0m0.987s

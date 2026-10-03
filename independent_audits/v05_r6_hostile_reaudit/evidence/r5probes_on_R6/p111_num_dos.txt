@@ -1,0 +1,10 @@
+price 1E+999999999 parsed OK in 0.0 s; []
+price 1E-999999999 parsed OK in 0.0 s; []
+price 999999999999999999999999999999999999999999 parsed OK in 0.0 s; []
+price 1.0000000000000000000000000000000001 parsed OK in 0.0 s; ['OPEN', 'OPEN', 'OPEN', 'OPEN']
+price -0 parsed OK in 0.0 s; ['OPEN', 'OPEN', 'OPEN', 'OPEN']
+price 1e0 parsed OK in 0.0 s; ['OPEN', 'OPEN', 'OPEN', 'OPEN']
+
+real	0m0.547s
+user	0m0.447s
+sys	0m0.099s

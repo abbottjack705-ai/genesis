@@ -1,0 +1,52 @@
+=== old_test_v05_reader (OLD assertions at b22263e, run against R6 code 4ed66de)
+FAIL: test_the_head_is_the_unique_latest_admissible_record_not_the_first_by_record_id (adapter_tests.old_test_v05_reader.HeadSelectionTests.test_the_head_is_the_unique_latest_admissible_record_not_the_first_by_record_id)
+    self.assertNotIn(position, (0, len(prices) - 1))       # both naive picks ([0], [-1]) would be wrong
+AssertionError: 0 unexpectedly found in (0, 4)
+Ran 16 tests in 1.937s
+FAILED (failures=1)
+=== old_test_v05_jsonstrict (OLD assertions at b22263e, run against R6 code 4ed66de)
+ERROR: test_duplicate_keys_are_rejected_at_every_depth (adapter_tests.old_test_v05_jsonstrict.StrictJsonTests.test_duplicate_keys_are_rejected_at_every_depth)
+    self.assertEqual(self._code(b'{"a": 1, "a": 2}'), "DUPLICATE_KEYS")
+TypeError: loads_strict() missing 2 required keyword-only arguments: 'max_depth' and 'max_exponent'
+ERROR: test_encoding_and_shape_failures (adapter_tests.old_test_v05_jsonstrict.StrictJsonTests.test_encoding_and_shape_failures)
+    self.assertEqual(self._code(b"\xef\xbb\xbf[1]"), "NOT_JSON")          # UTF-8 BOM
+TypeError: loads_strict() missing 2 required keyword-only arguments: 'max_depth' and 'max_exponent'
+ERROR: test_error_carries_no_payload_text (adapter_tests.old_test_v05_jsonstrict.StrictJsonTests.test_error_carries_no_payload_text)
+TypeError: loads_strict() missing 2 required keyword-only arguments: 'max_depth' and 'max_exponent'
+ERROR: test_mkt07_numbers_are_exact_decimals_never_floats (adapter_tests.old_test_v05_jsonstrict.StrictJsonTests.test_mkt07_numbers_are_exact_decimals_never_floats)
+TypeError: loads_strict() missing 2 required keyword-only arguments: 'max_depth' and 'max_exponent'
+ERROR: test_non_finite_numbers_are_rejected (adapter_tests.old_test_v05_jsonstrict.StrictJsonTests.test_non_finite_numbers_are_rejected)
+    self.assertEqual(self._code(text), "NONFINITE_NUMBER", text)
+TypeError: loads_strict() missing 2 required keyword-only arguments: 'max_depth' and 'max_exponent'
+ERROR: test_pathological_nesting_and_huge_integers_fail_closed (adapter_tests.old_test_v05_jsonstrict.StrictJsonTests.test_pathological_nesting_and_huge_integers_fail_closed)
+=== old_test_v05_parser_schema (OLD assertions at b22263e, run against R6 code 4ed66de)
+ERROR: test_the_closed_validator_reports_stable_trails_for_every_finding (adapter_tests.old_test_v05_parser_schema.DocumentLevelDriftTests.test_the_closed_validator_reports_stable_trails_for_every_finding)
+TypeError: loads_strict() missing 2 required keyword-only arguments: 'max_depth' and 'max_exponent'
+Ran 15 tests in 0.225s
+FAILED (errors=1)
+=== old_test_v05_credential (OLD assertions at b22263e, run against R6 code 4ed66de)
+ERROR: test_f04_a_link_reported_by_lstat_is_refused_on_every_platform (adapter_tests.old_test_v05_credential.CredentialTests.test_f04_a_link_reported_by_lstat_is_refused_on_every_platform)
+OSError: [Errno 22] Invalid argument: '/tmp'
+Ran 15 tests in 0.046s
+FAILED (errors=1)
+=== old_test_v05_tx01 (OLD assertions at b22263e, run against R6 code 4ed66de)
+ERROR: adapter_tests.old_test_v05_tx01 (unittest.loader._FailedTest.adapter_tests.old_test_v05_tx01)
+ImportError: Failed to import test module: adapter_tests.old_test_v05_tx01
+ImportError: cannot import name 'TEST_CA' from 'adapter_tests.loopback_support' ($AUDIT_WORK/oldtests/adapters/adapter_tests/loopback_support.py)
+Ran 1 test in 0.000s
+FAILED (errors=1)
+=== old_test_v05_r2_transport_boundary (OLD assertions at b22263e, run against R6 code 4ed66de)
+FAIL: test_ha13_the_test_tls_material_is_export_ignored (adapter_tests.old_test_v05_r2_transport_boundary.ProductionTrustBoundaryTests.test_ha13_the_test_tls_material_is_export_ignored)
+    self.assertTrue(out.endswith(": set"), name)
+AssertionError: False is not true : server.key
+Ran 33 tests in 2.664s
+FAILED (failures=1)
+=== oldshim_test_v05_jsonstrict (OLD assertions + signature shim, R6 code)
+FAIL: test_pathological_nesting_and_huge_integers_fail_closed (adapter_tests.oldshim_test_v05_jsonstrict.StrictJsonTests.test_pathological_nesting_and_huge_integers_fail_closed)
+    self.assertEqual(self._code(b"[" * 200000 + b"]" * 200000), "NOT_JSON")
+AssertionError: 'TOO_DEEP' != 'NOT_JSON'
+Ran 8 tests in 0.002s
+FAILED (failures=1)
+=== oldshim_test_v05_parser_schema (OLD assertions + signature shim, R6 code)
+Ran 15 tests in 0.192s
+OK

@@ -1,0 +1,12 @@
+recursionlimit 1000
+depth 50 parsed failure=NESTING_TOO_DEEP
+depth 200 parsed failure=NESTING_TOO_DEEP
+depth 400 parsed failure=NESTING_TOO_DEEP
+depth 480 parsed failure=NESTING_TOO_DEEP
+depth 600 parsed failure=NESTING_TOO_DEEP
+depth 900 parsed failure=NESTING_TOO_DEEP
+depth 990 parsed failure=NESTING_TOO_DEEP
+
+real	0m0.481s
+user	0m0.457s
+sys	0m0.024s

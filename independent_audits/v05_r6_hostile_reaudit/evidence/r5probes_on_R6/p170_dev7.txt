@@ -1,0 +1,12 @@
+startTime absent, no join      -> (None, {('OPEN', ()): 6, ('BLOCKED', ('EVENT_METADATA_STALE',)): 6})
+startTime null, no join        -> (None, {('OPEN', ()): 6, ('BLOCKED', ('EVENT_START_INVALID',)): 6})
+startTime +01:00 offset        -> (None, {('OPEN', ()): 6, ('BLOCKED', ('EVENT_START_INVALID',)): 6})
+ACTIVE outcome price null      -> (None, {('OPEN', ()): 11, ('BLOCKED', ('CONTRADICTORY_STATUS',)): 1})
+INACTIVE outcome price null    -> (None, {('OPEN', ()): 11, ('SUSPENDED', ('OUTCOME_INACTIVE',)): 1})
+bookmakerIsActive false        -> (None, {('OPEN', ()): 10, ('SUSPENDED', ('MARKET_SUSPENDED',)): 2})
+bookmakerIsActive 'yes'        -> (None, {('OPEN', ()): 10, ('BLOCKED', ('UNKNOWN_MARKET_STATUS',)): 2})
+bookmakerIsActive absent       -> (None, {('OPEN', ()): 10, ('BLOCKED', ('UNKNOWN_MARKET_STATUS',)): 2})
+
+real	0m0.510s
+user	0m0.471s
+sys	0m0.038s

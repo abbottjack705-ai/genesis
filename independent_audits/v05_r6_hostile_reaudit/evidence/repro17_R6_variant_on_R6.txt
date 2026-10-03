@@ -1,0 +1,26 @@
+C:HA-01 class name persisted       NOT REPRODUCED  key form in TransportResult=False; runtime files carrying a key form=0
+C:HA-02 close() process control    NOT REPRODUCED  KeyboardInterrupt:fresh:unsafe=False; SystemExit:fresh:unsafe=False
+C:HA-03 write at deadline          NOT REPRODUCED  writes at/after the deadline=0; outcome=NO_RESPONSE
+C:HA-04 rejected content revived   NOT REPRODUCED  wrong content type: WRONG_CONTENT_TYPE, PIT 0->0, resumed; not JSON: NOT_JSON, PIT 0->0, resumed; envelope mismatch: ENVELOPE_SCHEMA_MISMATCH, PIT 0->0, resumed
+C:HA-05 pending invalidation       NOT REPRODUCED  pending ledger rows=1; old price usable at T_inv+2s=False
+C:HA-06 mixed T3 after crash       NOT REPRODUCED  distinct PIT ready_at values in one response=1
+C:HA-07 non-ASCII key in header    NOT REPRODUCED  verdict=halted SECRET_ECHO; completed-row failure=SECRET_ECHO; etag retained=False; key bytes recoverable from it=False; files with a key form: scanner=0, raw bytes=0
+C:HA-08 cap+1 byte not screened    NOT REPRODUCED  33-byte wire at cap 32 -> SECRET
+C:HA-09 skew rearm by date alone   NOT REPRODUCED  provider sends=1 (1 = only the skewed one)
+C:HA-10 retry policy bypassed      NOT REPRODUCED  sends for one window after a 4xx=1
+C:HA-11 scope not pinned pre-send  NOT REPRODUCED  at the send checkpoint: scope hash on a row=True; scope artifacts=1
+C:HA-12 derivation check optional  NOT REPRODUCED  default derivation_check=<class 'inspect._empty'>; underivable=True; reader without a checker says usable=False
+usage: genesis-adapters-oddspapi [-h] [--config CONFIG]
+                                 {plan,report,verify,approve,reset,run,approve-ready}
+                                 ...
+genesis-adapters-oddspapi: error: unrecognized arguments: --connect 127.0.0.1:1 --ca-file test-ca.pem
+C:HA-13/P:HA-006 test key + CA seam NOT REPRODUCED  key tracked=False; key in source archives (no export-ignore)=True; production run accepts --connect/--ca-file=False
+refused: granted_at is stamped by the trusted clock at approval, not chosen in the record
+refused: no G3 record for this source
+P:HA-013 READY back-dated          NOT REPRODUCED  G3 granted_at stored as supplied=False; approve-ready exit=2; usable at a cutoff before the approval=False
+refused: a SECRET_ECHO halt is cleared only after a new G1 record for a rotated key (design 7.6)
+P:HA-014 reset clears SECRET_ECHO  NOT REPRODUCED  reset exit=2 with no new G1; next attempt still blocked=True
+A:F-02/P:HA-015 limits editable    NOT REPRODUCED  a 500-request limits file accepted=False
+A:F-03 omitted tournament ABSENT   NOT REPRODUCED  ABSENT tombstones from an omitted tournament=0
+
+SUMMARY reproduced=0 not_reproduced=17 probe_errors=0

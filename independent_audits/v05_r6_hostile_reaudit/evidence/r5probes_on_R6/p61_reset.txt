@@ -1,0 +1,12 @@
+SECRET_ECHO_ledger                         [('acq_halted', 'SECRET_ECHO')]
+SECRET_ECHO_reset_before_any_new_G1        (2, 'refused: a SECRET_ECHO halt is cleared only after a new G1 record for a rotated key (desig')
+SECRET_ECHO_reset_after_G1_same_key        (2, 'refused: a SECRET_ECHO halt is cleared only after a new G1 record for a rotated key (desig')
+SECRET_ECHO_reset_after_G1_rotated_key     (0, '')
+AUTH_REJECTED_ledger                       [('acq_circuit_opened', 'AUTH_REJECTED')]
+AUTH_REJECTED_reset_before_any_new_G1      (2, 'refused: an AUTH_REJECTED circuit is cleared only after a new G1 record (design 14.3)')
+AUTH_REJECTED_reset_after_G1_same_key      (0, '')
+AUTH_REJECTED_reset_after_G1_rotated_key   (0, '')
+
+real	0m0.733s
+user	0m0.582s
+sys	0m0.095s

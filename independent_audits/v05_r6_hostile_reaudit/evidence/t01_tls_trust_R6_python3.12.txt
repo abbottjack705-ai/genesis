@@ -1,0 +1,16 @@
+retired material sha256: {'test-ca.pem': '00b5b8fc306d395e', 'server.pem': '9d6271bd69fd2153', 'server.key': '8c50a7b19e2ec30e'}
+[R6 python3.12] S1 SSL_CERT_FILE before start: held
+       {"outcome": "NO_RESPONSE", "status": null, "error": {"class": "SSLCertVerificationError", "errno": 1}, "check_hostname": true, "verify_mode": 2, "keylog_filename": null, "retired_ca_in_store": false, "ca_count": 127, "env_restored": true, "server_events": [["handshake_failed", "SSLError"]]}
+[R6 python3.12] S2 SSL_CERT_DIR before start: held
+       {"outcome": "NO_RESPONSE", "status": null, "error": {"class": "SSLCertVerificationError", "errno": 1}, "check_hostname": true, "verify_mode": 2, "keylog_filename": null, "retired_ca_in_store": false, "ca_count": 127, "env_restored": true, "server_events": [["handshake_failed", "SSLError"]]}
+[R6 python3.12] S3 all three before start: held
+       {"outcome": "NO_RESPONSE", "status": null, "error": {"class": "SSLCertVerificationError", "errno": 1}, "check_hostname": true, "verify_mode": 2, "keylog_filename": null, "retired_ca_in_store": false, "ca_count": 127, "env_restored": true, "server_events": [["handshake_failed", "SSLError"]], "keylog_file_written": false}
+[R6 python3.12] S4 all three set after import: held
+       {"outcome": "NO_RESPONSE", "status": null, "error": {"class": "SSLCertVerificationError", "errno": 1}, "check_hostname": true, "verify_mode": 2, "keylog_filename": null, "retired_ca_in_store": false, "ca_count": 127, "env_restored": true, "server_events": [["handshake_failed", "SSLError"]], "keylog_file_written": false}
+[R6 python3.12] S5 lower/mixed case names: held
+       {"outcome": "NO_RESPONSE", "status": null, "error": {"class": "SSLCertVerificationError", "errno": 1}, "check_hostname": true, "verify_mode": 2, "keylog_filename": null, "retired_ca_in_store": false, "ca_count": 127, "env_restored": true, "server_events": [["handshake_failed", "SSLError"]]}
+[R6 python3.12] S6 OPENSSL_CONF system_default VerifyCAFile: held
+       {"outcome": "NO_RESPONSE", "status": null, "error": {"class": "SSLCertVerificationError", "errno": 1}, "check_hostname": true, "verify_mode": 2, "keylog_filename": null, "retired_ca_in_store": false, "ca_count": 127, "env_restored": true, "server_events": [["handshake_failed", "SSLError"]]}
+[R6 python3.12] S7 no variable (control): held
+       {"outcome": "NO_RESPONSE", "status": null, "error": {"class": "SSLCertVerificationError", "errno": 1}, "check_hostname": true, "verify_mode": 2, "keylog_filename": null, "retired_ca_in_store": false, "ca_count": 127, "env_restored": true, "server_events": [["handshake_failed", "SSLError"]]}
+[R6 python3.12] SUMMARY {"S1 SSL_CERT_FILE before start": false, "S2 SSL_CERT_DIR before start": false, "S3 all three before start": false, "S4 all three set after import": false, "S5 lower/mixed case names": false, "S6 OPENSSL_CONF system_default VerifyCAFile": false, "S7 no variable (control)": false}

@@ -1,0 +1,16 @@
+REF 24 2 12
+after_normalized_row crashed | pre-restart reader: ['UsableBook:'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_identity crashed | pre-restart reader: ['UsableBook:'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_t2 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_observation:1 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_observation:7 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_structured:3 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_t3 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_pit:1 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_pit:6 crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_pit:12 NO-CRASH(step not reached) | pre-restart reader: ['UsableBook:'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+after_coverage crashed | pre-restart reader: ['Unusable:DATA_CAPABILITY_NOT_READY'] | converged_states= True payloads= True | pit 24 uniq 24 norm_rows 2 T3s 2 cov 28 / 28
+
+real	0m9.038s
+user	0m5.091s
+sys	0m1.972s

@@ -1,0 +1,16 @@
+crash1=after_recorded                   crash2=None                             preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_recorded                   crash2=after_recorded                   preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_recorded                   crash2=after_invalidation_observation   preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_recorded                   crash2=after_invalidation_pit           preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_observation   crash2=None                             preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_observation   crash2=after_recorded                   preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_observation   crash2=after_invalidation_observation   preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_observation   crash2=after_invalidation_pit           preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_pit           crash2=None                             preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_pit           crash2=after_recorded                   preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_pit           crash2=after_invalidation_observation   preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+crash1=after_invalidation_pit           crash2=after_invalidation_pit           preRestartReader=['Unusable', 'Unusable'] final=Unusable:INVALIDATED history=UsableBook pit_rows_for_entity=2 invalidations=1
+
+real	0m4.136s
+user	0m2.357s
+sys	0m0.731s

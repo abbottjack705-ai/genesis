@@ -1,0 +1,25 @@
+PART 1 pure parse_http_date: corpus=55 fuzz=20000 seed=7 outcomes={'None': 20037, 'aware': 18}
+   escapes / non-UTC results: none
+PART 2 runner (T1 = 2026-10-01T12:00:00Z + transport stamps; the good value is within skew):
+   require_date=True dates=['Fri, 31 Dec 9999 23:59:59 GMT'] -> {'result': 'returned:CLOCK_SKEW', 'completed_failure': 'CLOCK_SKEW', 'quarantined': True, 'suspended': True, 'reconciled_on_restart': 0}
+   require_date=True dates=['Thu, 01 Oct 2026 12:00:30 GMT'] -> {'result': 'returned:None', 'completed_failure': None, 'quarantined': False, 'suspended': False, 'reconciled_on_restart': 0}
+   require_date=True dates=['Thu, 01 Oct 2026 12:00:30 GMT', 'garbage'] -> {'result': 'returned:None', 'completed_failure': None, 'quarantined': False, 'suspended': False, 'reconciled_on_restart': 0}
+   require_date=True dates=['garbage', 'Thu, 01 Oct 2026 12:00:30 GMT'] -> {'result': 'returned:CLOCK_SKEW', 'completed_failure': 'CLOCK_SKEW', 'quarantined': True, 'suspended': True, 'reconciled_on_restart': 0}
+   require_date=True dates=['XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', 'Thu, 01 Oct 2026 12:00:30 GMT'] -> {'result': 'returned:None', 'completed_failure': None, 'quarantined': False, 'suspended': False, 'reconciled_on_restart': 0}
+   require_date=True dates=['Thu, 01 Oct 2026 12:00:30 GMT', 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'] -> {'result': 'returned:None', 'completed_failure': None, 'quarantined': False, 'suspended': False, 'reconciled_on_restart': 0}
+   require_date=True dates=['Thu, 01 Oct 2026 12:00:30 GMT', 'Mon, 01 Jan 99999999999 00:00:00 GMT'] -> {'result': 'returned:None', 'completed_failure': None, 'quarantined': False, 'suspended': False, 'reconciled_on_restart': 0}
+   require_date=True dates=['Mon, 01 Jan 2001 00:00:00 GMT', 'Thu, 01 Oct 2026 12:00:30 GMT'] -> {'result': 'returned:CLOCK_SKEW', 'completed_failure': 'CLOCK_SKEW', 'quarantined': True, 'suspended': True, 'reconciled_on_restart': 0}
+   require_date=False dates=['Fri, 31 Dec 9999 23:59:59 GMT'] -> {'result': 'returned:CLOCK_SKEW', 'completed_failure': 'CLOCK_SKEW', 'quarantined': True, 'suspended': True, 'reconciled_on_restart': 0}
+   require_date=False dates=['Thu, 01 Oct 2026 12:00:30 GMT'] -> {'result': 'returned:None', 'completed_failure': None, 'quarantined': False, 'suspended': False, 'reconciled_on_restart': 0}
+   require_date=False dates=['Thu, 01 Oct 2026 12:00:30 GMT', 'garbage'] -> {'result': 'returned:None', 'completed_failure': None, 'quarantined': False, 'suspended': False, 'reconciled_on_restart': 0}
+   require_date=False dates=['garbage', 'Thu, 01 Oct 2026 12:00:30 GMT'] -> {'result': 'returned:CLOCK_SKEW', 'completed_failure': 'CLOCK_SKEW', 'quarantined': True, 'suspended': True, 'reconciled_on_restart': 0}
+   require_date=False dates=['XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX', 'Thu, 01 Oct 2026 12:00:30 GMT'] -> {'result': 'returned:None', 'completed_failure': None, 'quarantined': False, 'suspended': False, 'reconciled_on_restart': 0}
+   require_date=False dates=['Thu, 01 Oct 2026 12:00:30 GMT', 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'] -> {'result': 'returned:None', 'completed_failure': None, 'quarantined': False, 'suspended': False, 'reconciled_on_restart': 0}
+   require_date=False dates=['Thu, 01 Oct 2026 12:00:30 GMT', 'Mon, 01 Jan 99999999999 00:00:00 GMT'] -> {'result': 'returned:None', 'completed_failure': None, 'quarantined': False, 'suspended': False, 'reconciled_on_restart': 0}
+   require_date=False dates=['Mon, 01 Jan 2001 00:00:00 GMT', 'Thu, 01 Oct 2026 12:00:30 GMT'] -> {'result': 'returned:CLOCK_SKEW', 'completed_failure': 'CLOCK_SKEW', 'quarantined': True, 'suspended': True, 'reconciled_on_restart': 0}
+   outcome classes (require_date, failure, quarantined, suspended, reconciled):
+       45  (False, 'CLOCK_SKEW', True, True, 0)
+       16  (False, None, False, False, 0)
+       45  (True, 'CLOCK_SKEW', True, True, 0)
+       16  (True, None, False, False, 0)
+   escapes / orphaned attempts: none

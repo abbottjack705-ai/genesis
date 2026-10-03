@@ -1,0 +1,28 @@
+ordinary_open                              LEAK=False result=('NO_RESPONSE', {'class': 'OSError', 'errno': 7}) raised=None
+ordinary_write                             LEAK=False result=('NO_RESPONSE', {'class': 'OSError', 'errno': 7}) raised=None
+ordinary_head                              LEAK=False result=('NO_RESPONSE', {'class': 'OSError', 'errno': 7}) raised=None
+ordinary_body                              LEAK=False result=('TRUNCATED', {'class': 'OSError', 'errno': 7}) raised=None
+ordinary_close                             LEAK=False result=('RESPONSE', None) raised=None
+class_named_as_key                         LEAK=False result=('NO_RESPONSE', {'class': 'REDACTED_EXCEPTION_CLASS', 'errno': None}) raised=None
+errno_is_key_digits                        LEAK=False result=('NO_RESPONSE', {'class': 'E2', 'errno': None}) raised=None
+chained_cause_context                      LEAK=False result=('NO_RESPONSE', {'class': 'RuntimeError', 'errno': None}) raised=None
+warning_with_url                           LEAK=False result=('NO_RESPONSE', {'class': 'OSError', 'errno': None}) raised=None
+KeyboardInterrupt_open                     LEAK=False result=None raised=('KeyboardInterrupt', (), '-', True, True, False)
+KeyboardInterrupt_write                    LEAK=False result=None raised=('KeyboardInterrupt', (), '-', True, True, False)
+KeyboardInterrupt_head                     LEAK=False result=None raised=('KeyboardInterrupt', (), '-', True, True, False)
+KeyboardInterrupt_body                     LEAK=False result=None raised=('KeyboardInterrupt', (), '-', True, True, False)
+KeyboardInterrupt_close                    LEAK=False result=None raised=('KeyboardInterrupt', (), '-', True, True, False)
+SystemExit_int_37                          LEAK=False result=None raised=('SystemExit', (37,), 37, True, True, False)
+SystemExit_NoneType_None                   LEAK=False result=None raised=('SystemExit', (), None, True, True, False)
+SystemExit_str_https://api.                LEAK=False result=None raised=('SystemExit', (1,), 1, True, True, False)
+SystemExit_bool_True                       LEAK=False result=None raised=('SystemExit', (1,), 1, True, True, False)
+SystemExit_float_3.5                       LEAK=False result=None raised=('SystemExit', (1,), 1, True, True, False)
+SystemExit_int_118059162071                LEAK=False result=None raised=('SystemExit', (1180591620717411303424,), 1180591620717411303424, True, True, False)
+SystemExit_int_-1                          LEAK=False result=None raised=('SystemExit', (-1,), -1, True, True, False)
+KeyboardInterrupt_in_errno_property        LEAK=False result=None raised=('KeyboardInterrupt', (), '-', True, True, False)
+Odd_BaseException                          LEAK=False result=None raised=('SystemExit', (1,), 1, True, True, False)
+GeneratorExit                              LEAK=False result=None raised=('GeneratorExit', (), '-', True, True, False)
+
+real	0m1.079s
+user	0m1.052s
+sys	0m0.024s

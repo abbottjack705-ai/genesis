@@ -1,0 +1,316 @@
+[
+ {
+  "id": "M00",
+  "file": "adapters/src/genesis_adapters/clock.py",
+  "desc": "CONTROL: no-op edit must SURVIVE (suite green on the mutation worktree)",
+  "old": "class ClockFault(RuntimeError):",
+  "new": "class ClockFault(RuntimeError):",
+  "expect_count": 1
+ },
+ {
+  "id": "M01",
+  "file": "adapters/src/genesis_adapters/oddspapi/transport_http.py",
+  "desc": "transport entry deadline >= -> >",
+  "old": "        if parse_utc(started) >= deadline:                    # at/after the deadline: nothing is even opened",
+  "new": "        if parse_utc(started) > deadline:                    # at/after the deadline: nothing is even opened",
+  "expect_count": 1
+ },
+ {
+  "id": "M02",
+  "file": "adapters/src/genesis_adapters/oddspapi/transport_http.py",
+  "desc": "transport T0-before-write deadline >= -> >",
+  "old": "                    if parse_utc(started) >= deadline:\n                        raise TimeoutError(\"deadline\")        # no request byte",
+  "new": "                    if parse_utc(started) > deadline:\n                        raise TimeoutError(\"deadline\")        # no request byte",
+  "expect_count": 1
+ },
+ {
+  "id": "M03",
+  "file": "adapters/src/genesis_adapters/oddspapi/transport_http.py",
+  "desc": "transport: no remaining check after connect/TLS (HA-03 slow connect)",
+  "old": "                    connection.open(remaining)                # connect and TLS, bounded by the remaining time\n                    remaining = self._remaining(clock, deadline)\n                    if remaining <= 0:\n                        raise TimeoutError(\"deadline\")\n",
+  "new": "                    connection.open(remaining)                # connect and TLS, bounded by the remaining time\n                    remaining = self._remaining(clock, deadline)\n",
+  "expect_count": 1
+ },
+ {
+  "id": "M04",
+  "file": "adapters/src/genesis_adapters/oddspapi/transport_http.py",
+  "desc": "transport: read loop ignores deadline",
+  "old": "                        remaining = self._remaining(clock, deadline)\n                        if remaining <= 0:\n                            raise TimeoutError(\"deadline\")\n                        connection.settimeout(remaining)\n                        chunk",
+  "new": "                        remaining = self._remaining(clock, deadline)\n                        connection.settimeout(max(remaining, 0.001))\n                        chunk",
+  "expect_count": 1
+ },
+ {
+  "id": "M05",
+  "file": "adapters/src/genesis_adapters/oddspapi/transport_http.py",
+  "desc": "transport: process-control SystemExit keeps raw code (text leak)",
+  "old": "        return SystemExit(code if type(code) is int else 1)          # text is never kept, status is",
+  "new": "        return SystemExit(code)          # text is never kept, status is",
+  "expect_count": 1
+ },
+ {
+  "id": "M06",
+  "file": "adapters/src/genesis_adapters/oddspapi/transport_http.py",
+  "desc": "transport: re-raise the ORIGINAL control exception, not a fresh one",
+  "old": "                control = _fresh_process_control(exc)         # the exchange AND closing the connection (HA-02)",
+  "new": "                control = exc         # the exchange AND closing the connection (HA-02)",
+  "expect_count": 1
+ },
+ {
+  "id": "M07",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "runner: T0 before send >= -> >",
+  "old": "        if parse_utc(t0) >= deadline:                       # not written: the deadline already passed",
+  "new": "        if parse_utc(t0) > deadline:                       # not written: the deadline already passed",
+  "expect_count": 1
+ },
+ {
+  "id": "M08",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "runner: late response (T1>=deadline) accepted",
+  "old": "        if parse_utc(t1) >= deadline:                       # past the hard deadline: the body is discarded",
+  "new": "        if False:                       # past the hard deadline: the body is discarded",
+  "expect_count": 1
+ },
+ {
+  "id": "M09",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "runner: T1 == deadline accepted (>= -> >)",
+  "old": "        if parse_utc(t1) >= deadline:                       # past the hard deadline: the body is discarded",
+  "new": "        if parse_utc(t1) > deadline:                       # past the hard deadline: the body is discarded",
+  "expect_count": 1
+ },
+ {
+  "id": "M10",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "guard W1 strict -> non-strict",
+  "old": "    if not reach < next_day:",
+  "new": "    if not reach <= next_day:",
+  "expect_count": 1
+ },
+ {
+  "id": "M11",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "guard W3 >= -> >",
+  "old": "    if not moment - skew >= day_start:",
+  "new": "    if not moment - skew > day_start:",
+  "expect_count": 1
+ },
+ {
+  "id": "M12",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "guard W2 (month) removed",
+  "old": "    if not reach < next_month:",
+  "new": "    if False:",
+  "expect_count": 1
+ },
+ {
+  "id": "M13",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "guard W4 (month start) removed",
+  "old": "    if not moment - skew >= month_start:",
+  "new": "    if False:",
+  "expect_count": 1
+ },
+ {
+  "id": "M14",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "retry limit off by one",
+  "old": "    if attempt - 1 >= policy.max_retries_per_window:",
+  "new": "    if attempt - 1 > policy.max_retries_per_window:",
+  "expect_count": 1
+ },
+ {
+  "id": "M15",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "provider usage divergence threshold loosened",
+  "old": "reported\"] > usage[\"genesis_debited\"]:",
+  "new": "reported\"] > usage[\"genesis_debited\"] + 1000000:",
+  "expect_count": 1
+ },
+ {
+  "id": "M16",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "3xx treated as success",
+  "old": "            return AdapterFailure.REDIRECT_REFUSED",
+  "new": "            return None",
+  "expect_count": 1
+ },
+ {
+  "id": "M17",
+  "file": "adapters/src/genesis_adapters/cli.py",
+  "desc": "reset: any later G1 clears SECRET_ECHO (no rotation required)",
+  "old": "            if not any(grant[\"credential_fingerprint\"] not in approved for grant in after):",
+  "new": "            if not after:",
+  "expect_count": 1
+ },
+ {
+  "id": "M18",
+  "file": "adapters/src/genesis_adapters/cli.py",
+  "desc": "approve: stated granted_at skew bound becomes 10 years",
+  "old": "        if off is None or off > timedelta(seconds=policy.clock_skew_max_seconds):",
+  "new": "        if off is None or off > timedelta(days=3650):",
+  "expect_count": 1
+ },
+ {
+  "id": "M19",
+  "file": "adapters/src/genesis_adapters/cli.py",
+  "desc": "approve-ready: no capability floor",
+  "old": "                             floor=iso_utc(history[-1].recorded_at) if history else None).now()",
+  "new": "                             floor=None).now()",
+  "expect_count": 1
+ },
+ {
+  "id": "M20",
+  "file": "adapters/src/genesis_adapters/oddspapi/reader.py",
+  "desc": "reader: no STALE refusal when a newer capture expired",
+  "old": "    if _newer_capture_exists(stores, entity_id, source, head, point):",
+  "new": "    if False:",
+  "expect_count": 1
+ },
+ {
+  "id": "M21",
+  "file": "adapters/src/genesis_adapters/oddspapi/parser.py",
+  "desc": "parser: omitted requested tournaments no longer make a response partial",
+  "old": "            or bool(self._omitted_competitions(payload))",
+  "new": "            or False",
+  "expect_count": 1
+ },
+ {
+  "id": "M22",
+  "file": "adapters/src/genesis_adapters/oddspapi/raw_capture.py",
+  "desc": "raw: exact-size body treated as oversize",
+  "old": "        oversize = len(wire) > policy.max_response_bytes",
+  "new": "        oversize = len(wire) >= policy.max_response_bytes",
+  "expect_count": 1
+ },
+ {
+  "id": "M23",
+  "file": "adapters/src/genesis_adapters/oddspapi/raw_capture.py",
+  "desc": "raw: unsupported/nested content-encoding treated as identity",
+  "old": "        return \"unsupported\"\n\n    def _decode",
+  "new": "        return \"none\"\n\n    def _decode",
+  "expect_count": 1
+ },
+ {
+  "id": "M24",
+  "file": "adapters/src/genesis_adapters/oddspapi/raw_capture.py",
+  "desc": "raw: wire body not scanned (decoded only)",
+  "old": "            for label, data in ((\"BODY_\", wire), (\"BODY_\", decoded)):",
+  "new": "            for label, data in ((\"BODY_\", decoded),):",
+  "expect_count": 1
+ },
+ {
+  "id": "M25",
+  "file": "adapters/src/genesis_adapters/oddspapi/raw_capture.py",
+  "desc": "raw: gzip trailing/second member tolerated",
+  "old": "            if len(out) > limit or stream.unconsumed_tail or not stream.eof or stream.unused_data:",
+  "new": "            if len(out) > limit or stream.unconsumed_tail or not stream.eof:",
+  "expect_count": 1
+ },
+ {
+  "id": "M26",
+  "file": "adapters/src/genesis_adapters/secrets.py",
+  "desc": "secrets: double-encoded percent not decoded twice",
+  "old": "        for _ in range(3):\n            nxt = _percent_decode(decoded)",
+  "new": "        for _ in range(1):\n            nxt = _percent_decode(decoded)",
+  "expect_count": 1
+ },
+ {
+  "id": "M27",
+  "file": "adapters/src/genesis_adapters/secrets.py",
+  "desc": "secrets: JSON \\/ escape not normalised",
+  "old": "    return data.replace(b\"\\\\/\", b\"/\")",
+  "new": "    return data",
+  "expect_count": 1
+ },
+ {
+  "id": "M28",
+  "file": "adapters/src/genesis_adapters/secrets.py",
+  "desc": "secrets: base64 core min length off by one",
+  "old": "        if len(core) >= minimum:",
+  "new": "        if len(core) > minimum:",
+  "expect_count": 1
+ },
+ {
+  "id": "M29",
+  "file": "adapters/src/genesis_adapters/credential.py",
+  "desc": "credential: hard-link count not required to be 1",
+  "old": "opened.st_nlink == 1",
+  "new": "opened.st_nlink >= 1",
+  "expect_count": 1
+ },
+ {
+  "id": "M30",
+  "file": "adapters/src/genesis_adapters/credential.py",
+  "desc": "credential: group/other bits only (0400 accepted)",
+  "old": "            if stat.S_IMODE(info.st_mode) != _OWNER_ONLY or info.st_uid != os.getuid():",
+  "new": "            if (stat.S_IMODE(info.st_mode) & 0o077) != 0 or info.st_uid != os.getuid():",
+  "expect_count": 1
+ },
+ {
+  "id": "M31",
+  "file": "adapters/src/genesis_adapters/oddspapi/transport.py",
+  "desc": "safe_errno: key-bearing errno no longer screened",
+  "old": "    if len(text) > max_chars or (hit is not None and hit(text.encode(\"ascii\"))):",
+  "new": "    if len(text) > max_chars:",
+  "expect_count": 1
+ },
+ {
+  "id": "M32",
+  "file": "adapters/src/genesis_adapters/oddspapi/emit.py",
+  "desc": "emit: conflicting PIT row under same record_id tolerated",
+  "old": "            if existing != record:",
+  "new": "            if False:",
+  "expect_count": 1
+ },
+ {
+  "id": "M33",
+  "file": "adapters/src/genesis_adapters/oddspapi/emit.py",
+  "desc": "emit: resume re-stamps T3 instead of reusing durable T3",
+  "old": "    t3 = durable_t3 if durable_t3 is not None else clock.now()",
+  "new": "    t3 = clock.now()",
+  "expect_count": 1
+ },
+ {
+  "id": "M34",
+  "file": "adapters/src/genesis_adapters/oddspapi/quiescence.py",
+  "desc": "quiescence: pending invalidation not a blocker",
+  "old": "        if entry[\"applied\"] is None:",
+  "new": "        if False:",
+  "expect_count": 1
+ },
+ {
+  "id": "M35",
+  "file": "adapters/src/genesis_adapters/oddspapi/authority.py",
+  "desc": "authority: validity end exclusive",
+  "old": "(end is None or moment <= parse_utc(end))",
+  "new": "(end is None or moment < parse_utc(end))",
+  "expect_count": 1
+ },
+ {
+  "id": "M36",
+  "file": "adapters/src/genesis_adapters/oddspapi/quota_gate.py",
+  "desc": "quota: RESERVE budget class used",
+  "old": "            budget_class=BudgetClass.NORMAL, authorization_id=None, cache=reference,",
+  "new": "            budget_class=BudgetClass.RESERVE, authorization_id=None, cache=reference,",
+  "expect_count": 1
+ },
+ {
+  "id": "M37",
+  "file": "adapters/src/genesis_adapters/oddspapi/derivation.py",
+  "desc": "verify: observation metadata not compared (valid_to)",
+  "old": "            observation.valid_to, observation.publisher_timestamp, observation.parser_version) != (",
+  "new": "            observation.publisher_timestamp, observation.publisher_timestamp, observation.parser_version) != (",
+  "expect_count": 1,
+  "edits": [
+   [
+    "            observation.valid_to, observation.publisher_timestamp, observation.parser_version) != (",
+    "            observation.publisher_timestamp, observation.publisher_timestamp, observation.parser_version) != ("
+   ],
+   [
+    "            iso_utc(inputs.ctx.response_received_at), item.valid_to, item.publisher_timestamp,",
+    "            iso_utc(inputs.ctx.response_received_at), item.publisher_timestamp, item.publisher_timestamp,"
+   ]
+  ]
+ }
+]

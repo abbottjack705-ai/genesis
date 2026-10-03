@@ -1,0 +1,5 @@
+iterations 8000 seed ['23', '8000']
+
+real	0m44.497s
+user	0m44.459s
+sys	0m0.030s

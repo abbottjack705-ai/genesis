@@ -1,0 +1,11 @@
+healthy_before                     UsableBook
+poison_acquire                     returned
+acq_rows                           ['acq_planned', 'acq_quota_decided', 'acq_sent', 'acq_completed:NUMBER_OUT_OF_RANGE']
+restart_1_resume                   ok
+restart_2_resume                   ok
+reader_after_restart               UsableBook: 
+next_healthy_capture_after_wedge   RESPONSE
+
+real	0m1.086s
+user	0m0.773s
+sys	0m0.141s

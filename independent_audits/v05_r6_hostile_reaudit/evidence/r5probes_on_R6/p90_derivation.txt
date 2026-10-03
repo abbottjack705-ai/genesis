@@ -1,0 +1,17 @@
+0_control_verifies                     ok
+H_retrieved_at_1h_earlier              verifier rejects: DerivationError the observation metadata is not the derivation's
+H_valid_to_plus_10_days                verifier rejects: DerivationError the observation metadata is not the derivation's
+H_valid_to_removed                     verifier rejects: DerivationError the observation metadata is not the derivation's
+H_publisher_timestamp_changed          verifier rejects: DerivationError the observation metadata is not the derivation's
+H_upstream_version_changed             verifier rejects: DerivationError the observation metadata is not the derivation's
+H_content_type_changed                 verifier rejects: DerivationError the observation metadata is not the derivation's
+H_parse_ready_at_earlier_than_T1       publish refused: ValueError parse_ready_at cannot precede retrieved_at
+H_unknown_kind                         verifier rejects: DerivationError unknown derivation kind: 'BOGUS'
+H_missing_scope_file                   verifier rejects: FileNotFoundError
+H_missing_request_file                 verifier rejects: FileNotFoundError
+H_scope_bytes_altered                  verifier rejects: ScopeError
+H_raw_tamper_api                       n/a
+
+real	0m0.783s
+user	0m0.585s
+sys	0m0.112s

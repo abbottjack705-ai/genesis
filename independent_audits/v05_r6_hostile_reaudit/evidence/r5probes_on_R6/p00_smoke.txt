@@ -1,0 +1,8 @@
+outcome RESPONSE None emitted True
+pit rows 12
+UsableBook None
+['acq_planned', 'acq_quota_decided', 'acq_sent', 'acq_completed', 'acq_normalized']
+
+real	0m0.873s
+user	0m0.528s
+sys	0m0.250s

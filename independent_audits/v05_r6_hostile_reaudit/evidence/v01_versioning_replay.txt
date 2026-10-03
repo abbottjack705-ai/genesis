@@ -1,0 +1,12 @@
+A  base     : ['mb-normalize-2', 'mb1-5456effb3fe6701f', '56b64d2a699327bb90d9ed1fc17ac90408038a0218d0e3ee84a4378edd25611f']
+A  candidate: ['mb-normalize-3', 'mb1-eee12f31dd5c2597', '5f3676ab6383bebf21bd320ed99db52ca36691d7babd62431942c89f59f5f3d3']
+A  new derivation source: True
+B  stale G2R pin (base version) under the candidate's version: refused (GateMissing)
+B  control: the same record satisfies the BASE pins (the record itself is valid)
+C  base child: base wrote 24 PIT rows mb1-5456effb3fe6701f 
+C  candidate start on a base root: PipelineHalt(EVIDENCE_CONFLICT); durable halts=['EVIDENCE_CONFLICT']; coverage=[('EVIDENCE_CONFLICT', 'quarantined')]
+C  second start: PipelineHalt(EVIDENCE_CONFLICT) again (every start halts on the old root)
+D  two fresh roots, same script: 178 durable files, 0 differ []
+D  attempt verdicts: ['COMPLETED:NESTING_TOO_DEEP', 'DERIVATION_REJECTED:ENVELOPE_SCHEMA_MISMATCH', 'NORMALIZED:None', 'NORMALIZED:None', 'NORMALIZED:None']
+E  3 restarts: verdicts unchanged: True
+E  PIT-09 rebuild: 3 emissions; identical artifact set: True

@@ -1,0 +1,4 @@
+isolation: external unreachable (errno 101)
+resolv.conf: nameserver 127.0.0.1 | 
+{"scenario": "resolver never answers (stub defaults)", "deadline_s": 3.0, "held_s": 10.01, "overshoot_s": 7.01, "outcome": "NO_RESPONSE", "error": "gaierror", "dns_queries_seen": 4, "verdict": "VIOLATION (writer held past the deadline)"}
+{"scenario": "resolver answers NXDOMAIN after 4.5 s", "deadline_s": 3.0, "held_s": 4.5, "overshoot_s": 1.5, "outcome": "NO_RESPONSE", "error": "gaierror", "dns_queries_seen": 2, "verdict": "VIOLATION (writer held past the deadline)"}

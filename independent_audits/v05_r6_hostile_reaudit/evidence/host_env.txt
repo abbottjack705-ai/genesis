@@ -1,0 +1,10 @@
+audit host environment (recorded 2026-10-03T20:31:25Z)
+Linux 6.18.44-fc-v64 x86_64
+4
+3.11.15 OpenSSL 3.0.13 30 Jan 2024
+3.12.3 OpenSSL 3.0.13 30 Jan 2024
+3.13.14 OpenSSL 3.0.13 30 Jan 2024
+OpenSSL 3.0.13 30 Jan 2024 (Library: OpenSSL 3.0.13 30 Jan 2024)
+git 2.43.0
+transcript note: the scratch directory prefix was replaced by $AUDIT_WORK in every transcript before hashing; nothing else was edited.
+environment note: the host carries SSL_CERT_FILE (an egress-proxy CA bundle) and HTTPS_PROXY; no test or probe contacted any non-loopback address (n01, netns).

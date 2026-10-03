@@ -1,0 +1,1 @@
+{"ran": 859, "errors": [], "failures": [], "skipped": 0, "total_net_events": 60, "nonloopback_events": [["getaddrinfo", "('192.0.2.1', 443)"], ["getaddrinfo", "('genesis.example.invalid', 443)"]], "n_nonloopback": 2}

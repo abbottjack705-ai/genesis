@@ -1,0 +1,8 @@
+A11 seed=11 iterations=20000
+(capture verdict, derive outcome) classes:
+    19942  ('PASS', 'DOCS')
+       54  ('REJECT:ENVELOPE', 'FAIL:ENVELOPE_SCHEMA_MISMATCH')
+        4  ('PASS', 'FAIL:ENVELOPE_SCHEMA_MISMATCH')
+safety net (DERIVATION_FAULT) caught: nothing
+capture PASS -> terminal derivation rejection: {'FAIL:ENVELOPE_SCHEMA_MISMATCH': 4}
+defect classes: 0

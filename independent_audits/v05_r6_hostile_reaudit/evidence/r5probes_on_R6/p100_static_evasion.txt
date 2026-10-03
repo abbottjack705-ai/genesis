@@ -1,0 +1,57 @@
+== FRZ-11
+plain except BaseException               FLAGGED
+alias name                               not flagged
+tuple variable                           not flagged
+builtins attribute                       FLAGGED
+except* (TryStar) BaseException          FLAGGED
+except* KeyboardInterrupt                FLAGGED
+suppress(KeyboardInterrupt)              FLAGGED
+from contextlib import suppress as s     not flagged
+suppress(*tuple)                         not flagged
+finally: return                          FLAGGED
+finally: continue                        FLAGGED
+finally: break                           FLAGGED
+signal ignore SIGINT                     not flagged
+except GeneratorExit                     FLAGGED
+bare except                              FLAGGED
+except Exception clean                   not flagged
+== FRZ-06 (production module that is not transport_http)
+import socket                            FLAGGED
+__import__('socket')                     not flagged
+importlib.import_module('ssl')           not flagged
+from http import client                  FLAGGED
+import http.client                       FLAGGED
+from urllib import request               FLAGGED
+import asyncio; open_connection          not flagged
+import ftplib                            not flagged
+import smtplib                           not flagged
+import xmlrpc.client                     not flagged
+subprocess curl                          not flagged
+import socketserver                      not flagged
+reveal_for_transport elsewhere           FLAGGED
+getattr reveal                           not flagged
+== FRZ-10
+time.sleep(5)                            FLAGGED
+sleep(2+3)                               not flagged
+timeout=30                               FLAGGED
+settimeout(30)                           FLAGGED
+named constant used as sleep             not flagged
+timedelta(seconds=3600)                  FLAGGED
+hex literal 0x1c                         not flagged
+60 * 60                                  not flagged
+float 0.5 sleep                          FLAGGED
+== FRZ-07
+RESERVE                                  FLAGGED
+getattr RESERVE                          not flagged
+BudgetClass['RESERVE']                   not flagged
+grant_authorization                      FLAGGED
+alias import                             FLAGGED
+== FRZ-08
+READY attr                               FLAGGED
+getattr READY                            not flagged
+OperationalStatus('ready')               FLAGGED
+string 'READY' status in SourceCapability not flagged
+
+real	0m0.547s
+user	0m0.437s
+sys	0m0.108s

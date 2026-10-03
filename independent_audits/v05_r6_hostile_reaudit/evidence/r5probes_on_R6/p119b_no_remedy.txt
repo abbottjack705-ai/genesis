@@ -1,0 +1,8 @@
+operator `reset` rc: 0 reset
+resume after reset: ok
+reader after reset: Unusable MISSING_OR_STALE | 
+pending_work: ()
+
+real	0m0.800s
+user	0m0.623s
+sys	0m0.076s

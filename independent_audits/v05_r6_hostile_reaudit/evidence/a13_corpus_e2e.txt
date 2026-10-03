@@ -1,0 +1,30 @@
+R5-A changedAt 1E+999999999                        class=CAPTURE_REJECTED:NUMBER_OUT_OF_RANGE          later=returned:None reads_after={'UsableBook': 12} ok
+R5-B active lone high surrogate                    class=CAPTURE_REJECTED:INVALID_UTF8                 later=returned:None reads_after={'UsableBook': 12} ok
+R5-C participant1Id 70 digits                      class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+R5-D betslip 600 nested arrays                     class=CAPTURE_REJECTED:NESTING_TOO_DEEP             later=returned:None reads_after={'UsableBook': 12} ok
+fifth class fixtureId 'not a valid id'             class=DERIV_REJECTED:ENVELOPE_SCHEMA_MISMATCH       later=returned:None reads_after={'UsableBook': 12} ok
+fixtureId 64 chars                                 class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+fixtureId 65 chars                                 class=DERIV_REJECTED:ENVELOPE_SCHEMA_MISMATCH       later=returned:None reads_after={'UsableBook': 12} ok
+fixtureId trailing LF                              class=DERIV_REJECTED:ENVELOPE_SCHEMA_MISMATCH       later=returned:None reads_after={'UsableBook': 12} ok
+participant1Id 64 digits                           class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+participant1Id 65 digits                           class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+participant1Id negative                            class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+price 1E+1000 (at bound)                           class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+price 1E+1001 (one over)                           class=CAPTURE_REJECTED:NUMBER_OUT_OF_RANGE          later=returned:None reads_after={'UsableBook': 12} ok
+price 1E-1000 (at bound)                           class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+price 1E-1001 (one over)                           class=CAPTURE_REJECTED:NUMBER_OUT_OF_RANGE          later=returned:None reads_after={'UsableBook': 12} ok
+price int 1001 digits (at bound)                   class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+price int 1002 digits (one over)                   class=CAPTURE_REJECTED:NUMBER_OUT_OF_RANGE          later=returned:None reads_after={'UsableBook': 12} ok
+price 1.91 + 3000 zeros                            class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+price 1.9 + 3000 zeros + 1                         class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+price 1E+999999999999999999999 (beyond Decimal)    class=CAPTURE_REJECTED:NUMBER_OUT_OF_RANGE          later=returned:None reads_after={'UsableBook': 12} ok
+betslip depth exactly 50                           class=CAPTURE_REJECTED:NESTING_TOO_DEEP             later=returned:None reads_after={'UsableBook': 12} ok
+betslip depth 51                                   class=CAPTURE_REJECTED:NESTING_TOO_DEEP             later=returned:None reads_after={'UsableBook': 12} ok
+name with escaped surrogate PAIR (valid)           class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+name with lone LOW surrogate                       class=CAPTURE_REJECTED:INVALID_UTF8                 later=returned:None reads_after={'UsableBook': 12} ok
+name with reversed pair                            class=CAPTURE_REJECTED:INVALID_UTF8                 later=returned:None reads_after={'UsableBook': 12} ok
+key with lone surrogate                            class=CAPTURE_REJECTED:INVALID_UTF8                 later=returned:None reads_after={'UsableBook': 12} ok
+changedAt T1+5s (tolerance)                        class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+startTime +00:00 offset                            class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+broad array 200000 zeros in betslip                class=NORMALIZED                                    later=returned:None reads_after={'UsableBook': 12} ok
+A13 corpus: 29 cases, 0 with defects

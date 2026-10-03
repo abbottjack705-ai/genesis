@@ -1,0 +1,16 @@
+retired material sha256: {'test-ca.pem': '00b5b8fc306d395e', 'server.pem': '9d6271bd69fd2153', 'server.key': '8c50a7b19e2ec30e'}
+[BASE-b22263e python3.11] S1 SSL_CERT_FILE before start: BREACH: production trusted the retired CA
+       {"outcome": "RESPONSE", "status": 200, "error": null, "check_hostname": true, "verify_mode": 2, "keylog_filename": null, "retired_ca_in_store": true, "ca_count": 1, "env_restored": true, "server_events": [["HANDSHAKE_COMPLETED", true]]}
+[BASE-b22263e python3.11] S2 SSL_CERT_DIR before start: BREACH: production trusted the retired CA
+       {"outcome": "RESPONSE", "status": 200, "error": null, "check_hostname": true, "verify_mode": 2, "keylog_filename": null, "retired_ca_in_store": false, "ca_count": 127, "env_restored": true, "server_events": [["HANDSHAKE_COMPLETED", true]]}
+[BASE-b22263e python3.11] S3 all three before start: BREACH: production trusted the retired CA
+       {"outcome": "RESPONSE", "status": 200, "error": null, "check_hostname": true, "verify_mode": 2, "keylog_filename": "$AUDIT_WORK/ascratch/oldtls/keylog.txt", "retired_ca_in_store": true, "ca_count": 1, "env_restored": true, "server_events": [["HANDSHAKE_COMPLETED", true]], "keylog_file_written": true}
+[BASE-b22263e python3.11] S4 all three set after import: BREACH: production trusted the retired CA
+       {"outcome": "RESPONSE", "status": 200, "error": null, "check_hostname": true, "verify_mode": 2, "keylog_filename": "$AUDIT_WORK/ascratch/oldtls/keylog.txt", "retired_ca_in_store": true, "ca_count": 1, "env_restored": true, "server_events": [["HANDSHAKE_COMPLETED", true]], "keylog_file_written": true}
+[BASE-b22263e python3.11] S5 lower/mixed case names: held
+       {"outcome": "NO_RESPONSE", "status": null, "error": {"class": "SSLCertVerificationError", "errno": 1}, "check_hostname": true, "verify_mode": 2, "keylog_filename": null, "retired_ca_in_store": false, "ca_count": 127, "env_restored": true, "server_events": [["handshake_failed", "SSLError"]]}
+[BASE-b22263e python3.11] S6 OPENSSL_CONF system_default VerifyCAFile: held
+       {"outcome": "NO_RESPONSE", "status": null, "error": {"class": "SSLCertVerificationError", "errno": 1}, "check_hostname": true, "verify_mode": 2, "keylog_filename": null, "retired_ca_in_store": false, "ca_count": 127, "env_restored": true, "server_events": [["handshake_failed", "SSLError"]]}
+[BASE-b22263e python3.11] S7 no variable (control): held
+       {"outcome": "NO_RESPONSE", "status": null, "error": {"class": "SSLCertVerificationError", "errno": 1}, "check_hostname": true, "verify_mode": 2, "keylog_filename": null, "retired_ca_in_store": false, "ca_count": 127, "env_restored": true, "server_events": [["handshake_failed", "SSLError"]]}
+[BASE-b22263e python3.11] SUMMARY {"S1 SSL_CERT_FILE before start": true, "S2 SSL_CERT_DIR before start": true, "S3 all three before start": true, "S4 all three set after import": true, "S5 lower/mixed case names": false, "S6 OPENSSL_CONF system_default VerifyCAFile": false, "S7 no variable (control)": false}

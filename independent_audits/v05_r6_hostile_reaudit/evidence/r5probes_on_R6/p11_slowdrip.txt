@@ -1,0 +1,5 @@
+{"deadline_after_s": 3, "send_returned_after_s": 3.0, "outcome": "TRUNCATED", "bytes": 0, "T1": "2026-10-03T19:43:06.976103Z", "deadline": "2026-10-03T19:43:06.974933Z", "T1_after_deadline": true}
+
+real	0m4.753s
+user	0m0.532s
+sys	0m0.022s

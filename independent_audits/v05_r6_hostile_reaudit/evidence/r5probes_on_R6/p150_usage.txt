@@ -1,0 +1,11 @@
+99999                ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': 99999, 'window': 'utc_month'}
+1e5                  ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+99,999               ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+-5                   ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+fullwidth 99999      ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+'99999 units'        ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+0x1869F              ('HALT', 'QUOTA_DIVERGENCE') usage record: {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+
+real	0m0.804s
+user	0m0.586s
+sys	0m0.123s

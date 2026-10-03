@@ -1,0 +1,28 @@
+[
+ {
+  "id": "M15-adapted",
+  "file": "adapters/src/genesis_adapters/oddspapi/acquisition.py",
+  "desc": "provider usage divergence threshold loosened (the audit's M15 re-anchored on R6's rewritten condition)",
+  "old": "usage[\"reported\"] > usage[\"genesis_debited\"]):",
+  "new": "usage[\"reported\"] > usage[\"genesis_debited\"] + 1000000):",
+  "expect_count": 1
+ },
+ {
+  "id": "M37-adapted",
+  "file": "adapters/src/genesis_adapters/oddspapi/derivation.py",
+  "desc": "verify: observation metadata not compared (valid_to) (the audit's M37 re-anchored on R6's longer tuple)",
+  "old": "            observation.valid_to, observation.publisher_timestamp, observation.parser_version,\n",
+  "new": "            observation.publisher_timestamp, observation.publisher_timestamp, observation.parser_version,\n",
+  "expect_count": 1,
+  "edits": [
+   [
+    "            observation.valid_to, observation.publisher_timestamp, observation.parser_version,\n",
+    "            observation.publisher_timestamp, observation.publisher_timestamp, observation.parser_version,\n"
+   ],
+   [
+    "            iso_utc(inputs.ctx.response_received_at), item.valid_to, item.publisher_timestamp,",
+    "            iso_utc(inputs.ctx.response_received_at), item.publisher_timestamp, item.publisher_timestamp,"
+   ]
+  ]
+ }
+]

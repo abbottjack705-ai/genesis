@@ -1,0 +1,20 @@
+RA5-008 declared_bookmakers_max=0 -> refused: PolicyError: declared_bookmakers_max must be an integer >= 1
+RA5-008 declared_bookmakers_max=1 -> LOADED (declared_bookmakers_max=1)
+RA5-008 declared_bookmakers_max=3 -> LOADED (declared_bookmakers_max=3)
+RA5-008 declared_bookmakers_max=4 -> refused: PolicyError: declared_bookmakers_max is outside the architecture's operational bookmaker counts (design
+RA5-008 declared_bookmakers_max=50 -> refused: PolicyError: declared_bookmakers_max is outside the architecture's operational bookmaker counts (design
+RA5-008 declared_bookmakers_max=True -> refused: PolicyError: declared_bookmakers_max must be an integer >= 1
+RA5-008 declared_bookmakers_max=3.0 -> refused: PolicyError: policy files may not contain floating-point numbers
+RA5-008 declared_bookmakers_max='3' -> refused: PolicyError: declared_bookmakers_max must be an integer >= 1
+RA5-006 native_id('abc\n') -> rejected
+RA5-006 native_id('abc\r\n') -> rejected
+RA5-006 native_id('abc\x00') -> rejected
+RA5-006 native_id('aaaaaaaaaaaa') -> accepted
+RA5-006 native_id('aaaaaaaaaaaa') -> rejected
+RA5-006 native_id('a١') -> rejected
+RA5-006 native_id('ab c') -> rejected
+RA5-006 build_request({'bookmaker': ['pinnacle\n']}) -> rejected (RequestError)
+RA5-006 build_request({'bookmaker': ['pinnacle'], 'tournamentIds': [17]}) -> accepted
+RA5-006 build_request({'bookmaker': ['pinnacle١']}) -> rejected (RequestError)
+RA5-006 FIXTURES from='٢٠٢٦-١٠-٠١' -> rejected (RequestError)
+RA5-006 FIXTURES from='2026-10-01\n' -> rejected (RequestError)

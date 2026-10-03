@@ -1,0 +1,5 @@
+with SSL_CERT_FILE=test-ca.pem -> production tls_context() outcome: NO_RESPONSE None | server saw keyed request line: None
+
+real	0m0.865s
+user	0m0.577s
+sys	0m0.088s

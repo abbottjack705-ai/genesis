@@ -1,0 +1,6 @@
+iterations 6000
+no exception escaped
+
+real	0m26.694s
+user	0m26.669s
+sys	0m0.019s

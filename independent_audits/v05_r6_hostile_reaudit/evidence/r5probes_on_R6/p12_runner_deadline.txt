@@ -1,0 +1,193 @@
+{
+ "1_slow_scope_61s": {
+  "sent_calls": 0,
+  "outcome": "NO_RESPONSE",
+  "detail": "DeadlineElapsedBeforeSend",
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_completed"
+  ]
+ },
+ "1b_slow_scope_59.9s": {
+  "sent_calls": 1,
+  "deadline_at": "2026-10-01T12:01:00.001000Z",
+  "outcome": "RESPONSE"
+ },
+ "2_t1_eq_deadline": {
+  "outcome": "NO_RESPONSE",
+  "failure": "NO_RESPONSE",
+  "detail": "DeadlineExceeded"
+ },
+ "2_t1_deadline_minus_1us": {
+  "outcome": "RESPONSE",
+  "failure": "None",
+  "detail": null
+ },
+ "2_t1_deadline_plus_1us": {
+  "outcome": "NO_RESPONSE",
+  "failure": "NO_RESPONSE",
+  "detail": "DeadlineExceeded"
+ },
+ "3_clockfault_on_read_2": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [],
+  "transport_calls": 0
+ },
+ "3_clockfault_on_read_3": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_halted"
+  ],
+  "transport_calls": 0
+ },
+ "3_clockfault_on_read_4": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_halted"
+  ],
+  "transport_calls": 0
+ },
+ "3_clockfault_on_read_5": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed",
+   "acq_halted"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_6": {
+  "result": [
+   "AcquisitionHalt",
+   "('CLOCK_FAULT',)"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed",
+   "acq_halted"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_7": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_8": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_9": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_10": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_11": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_12": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ },
+ "3_clockfault_on_read_13": {
+  "result": [
+   "returned",
+   "RESPONSE",
+   "None"
+  ],
+  "rows": [
+   "acq_planned",
+   "acq_quota_decided",
+   "acq_sent",
+   "acq_completed"
+  ],
+  "transport_calls": 1
+ }
+}
+
+real	0m1.386s
+user	0m0.836s
+sys	0m0.303s

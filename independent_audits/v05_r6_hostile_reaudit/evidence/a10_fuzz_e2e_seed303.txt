@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "$AUDIT_WORK/probes/a10_fuzz_e2e.py", line 198, in <module>
+    raw, ops = mutate()
+               ^^^^^^^^
+  File "$AUDIT_WORK/probes/a10_fuzz_e2e.py", line 76, in mutate
+    parent = getp(p, path[:-1]) if len(path) > 1 else p
+             ^^^^^^^^^^^^^^^^^^
+  File "$AUDIT_WORK/probes/a10_fuzz_e2e.py", line 63, in getp
+    o = o[k]
+        ~^^^
+TypeError: string indices must be integers, not 'str'

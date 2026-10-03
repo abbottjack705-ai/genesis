@@ -1,0 +1,24 @@
+{
+ "ran": 859,
+ "failures": 0,
+ "errors": 0,
+ "skipped": 0,
+ "nonloopback_attempts": [
+  {
+   "event": "socket.getaddrinfo",
+   "target": "('192.0.2.1', 443)",
+   "test": "adapter_tests.test_v05_transport_http.ConnectionFailureTests.test_the_suite_refuses_any_non_loopback_contact",
+   "frames": [
+    "adapters/adapter_tests/test_v05_transport_http.py:173:test_the_suite_refuses_any_non_loopback_contact"
+   ]
+  },
+  {
+   "event": "socket.getaddrinfo",
+   "target": "('genesis.example.invalid', 443)",
+   "test": "adapter_tests.test_v05_transport_http.ConnectionFailureTests.test_the_suite_refuses_any_non_loopback_contact",
+   "frames": [
+    "adapters/adapter_tests/test_v05_transport_http.py:175:test_the_suite_refuses_any_non_loopback_contact"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,2 @@
+quiet: ok=10 fail=0
+under 4 busy loops: ok=9 fail=1

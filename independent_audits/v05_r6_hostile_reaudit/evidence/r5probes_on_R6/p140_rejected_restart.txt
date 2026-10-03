@@ -1,0 +1,20 @@
+wrong content-type                       first=('RESPONSE', 'WRONG_CONTENT_TYPE')             newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+malformed JSON                           first=('RESPONSE', 'NOT_JSON')                       newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+empty body                               first=('RESPONSE', 'NOT_JSON')                       newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+duplicate keys                           first=('RESPONSE', 'DUPLICATE_KEYS')                 newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+NaN                                      first=('RESPONSE', 'NONFINITE_NUMBER')               newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+invalid UTF-8                            first=('RESPONSE', 'INVALID_UTF8')                   newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+envelope wrong type (object not list)    first=('RESPONSE', 'ENVELOPE_SCHEMA_MISMATCH')       newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+oversize body                            first=('RESPONSE', 'OVERSIZE_BODY')                  newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+clock skew (Date -1h)                    first=('RESPONSE', 'CLOCK_SKEW')                     newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+secret echo                              first=('HALT', 'SECRET_ECHO')                        newPIT=0 newNormalized=0 pending=False resume=ok reader=Unusable:DATA_CAPABILITY_NOT_READY
+nested content-encoding                  first=('RESPONSE', 'UNINSPECTABLE_BODY')             newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+HTTP 301                                 first=('RESPONSE', 'REDIRECT_REFUSED')               newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+HTTP 401                                 first=('RESPONSE', 'AUTH_REJECTED')                  newPIT=0 newNormalized=0 pending=False resume=ok reader=Unusable:DATA_CAPABILITY_NOT_READY
+HTTP 429                                 first=('RESPONSE', 'RATE_LIMITED')                   newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+HTTP 500 w/ valid body                   first=('RESPONSE', 'PROVIDER_ERROR')                 newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+TRUNCATED transport                      first=('TRUNCATED', 'TRUNCATED_BODY')                newPIT=0 newNormalized=0 pending=False resume=ok reader=UsableBook:
+
+real	0m5.926s
+user	0m3.682s
+sys	0m0.847s

@@ -1,0 +1,43 @@
+{
+ "a_at_deadline_entry_no_open": [
+  true,
+  "NO_RESPONSE"
+ ],
+ "b_deadline_minus_1us_writes": [
+  true,
+  "RESPONSE"
+ ],
+ "c_slow_connect_to_deadline_no_write": [
+  false,
+  "NO_RESPONSE"
+ ],
+ "d_deadline_in_settimeout_no_write": [
+  false,
+  "NO_RESPONSE"
+ ],
+ "e_deadline_crossed_during_write": [
+  true,
+  "NO_RESPONSE",
+  {
+   "class": "TimeoutError",
+   "errno": null
+  }
+ ],
+ "f_deadline_during_read_head": [
+  "TRUNCATED",
+  200,
+  {
+   "class": "TimeoutError",
+   "errno": null
+  }
+ ],
+ "g_last_chunk_after_deadline": [
+  "RESPONSE",
+  "2026-10-03T10:01:02.000000Z",
+  "2026-10-03T10:01:00.000000Z"
+ ]
+}
+
+real	0m1.651s
+user	0m0.984s
+sys	0m0.021s

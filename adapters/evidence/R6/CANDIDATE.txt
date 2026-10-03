@@ -1,0 +1,21 @@
+# R6 candidate record (evidence only)
+
+R6 code + tests + evidence commit : 4ed66de4e2f3161464b9205583b3ee7a97133904
+its parent (audited evidence tip)  : b22263e582386f04e5b7939e511757940ffdfbe0
+audited code commit (unchanged)    : 9f846d8abcd7383d6acae78294f0aefaba08e630
+branch                             : ccr-689a0c12-vys6ag
+adapters/ tree at the candidate    : b0463d691bc60b18af15f03b28bee5f743ced7c4
+sha256 of evidence/R6/HASHES.sha256: aeb0a057bfa925c5cb5184701c1f3abc41a5393b55b83138ba7abdede0360a8f
+
+six frozen trees at the candidate (identical to the freeze):
+src        51cb635bc42b993815b6c02a23c4c3ceb7d98476
+tests      e90b298180068fec03ba7e2fa81957082e7fb3ce
+config     abd22db01ff482a8da84634ee740ba382b68c804
+tools      a0e3411edb4e068fd4708050516cb6870834e7ac
+DECISIONS  cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64
+v04_pack   3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12
+
+Status: R6 remediation CANDIDATE. Not self-certified. A fresh independent hostile re-audit is required.
+Windows certification is OPEN (evidence/R6/WINDOWS_RECERTIFICATION.md): no Windows result exists for this commit.
+Not done by design: no pull request, no merge, no provider call, no credential, no gate record, no change to
+audit/v05-r5-sonnet55 or its commit 472f2603b0ded3e0199609d59f19185f7c8e4294.

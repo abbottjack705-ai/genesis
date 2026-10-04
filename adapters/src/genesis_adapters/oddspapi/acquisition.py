@@ -51,6 +51,15 @@ PROVIDER_USAGE_HEADER = "x-requests-used"
 CLOCK_CHECK_PENDING = "CLOCK_SKEW_DATE_CHECK_PENDING"
 
 
+def usage_diverges(usage: Mapping[str, Any] | None) -> bool:
+    """Whether a ``provider_reported_usage`` record says the budget can no longer be trusted: the provider counted more
+    than Genesis debited, or reported a figure that cannot be read (a present header is never "absent"). The ONE
+    definition shared by the verdict (``_complete``, ``verdict_effects``) and by what may be derived or joined
+    (``derivation.usable_response``): design 14.2 and 15 F-37, hostile audits RA5-011 and RA6-002."""
+
+    return usage is not None and (usage["reported"] is None or usage["reported"] > usage["genesis_debited"])
+
+
 class AttemptOutcome:
     REFUSED = "REFUSED"
     QUOTA_BLOCKED = "QUOTA_BLOCKED"
@@ -198,6 +207,12 @@ OPEN_STATES = _OPEN_STATES                  # an attempt still in flight, or cut
 
 class LedgerInvariantError(RegistryConflict):
     """A row that would make the acquisition ledger unreadable or inconsistent."""
+
+
+class SettlementConflict(RegistryConflict):
+    """Durable evidence that contradicts the verdict whose side effects are being completed: a coverage entry under the
+    deterministic id of the entry the verdict calls for that says something else. It is never adopted, papered over or
+    overwritten; the start is refused (fail closed) until a human resolves it, and nothing is written meanwhile."""
 
 
 def _fail(message: str) -> None:
@@ -435,12 +450,28 @@ class AcquisitionLedger:
         return until
 
     def rate_limited_today(self, moment: datetime) -> int:
-        count = 0
-        for row in self.log.records():
-            if row["record_type"] == "acq_completed" and row["failure"] == AdapterFailure.RATE_LIMITED.value \
-                    and row["T1"] is not None and parse_utc(row["T1"]).date() == moment.date():
-                count += 1
-        return count
+        return _rate_limited_on(self.log.records(), moment)
+
+
+def _rate_limited_on(rows, moment: datetime) -> int:
+    count = 0
+    for row in rows:
+        if row["record_type"] == "acq_completed" and row["failure"] == AdapterFailure.RATE_LIMITED.value \
+                and row["T1"] is not None and parse_utc(row["T1"]).date() == moment.date():
+            count += 1
+    return count
+
+
+class _LedgerThrough:
+    """The acquisition ledger as it stood at one verdict row (the rows up to and including it): the only part of the ledger
+    a verdict's side effects may depend on. Settling an OLDER attempt later must judge it exactly as it was judged when it
+    was written (the day's rate-limit count at that verdict), never by what the ledger has gathered since."""
+
+    def __init__(self, rows):
+        self._rows = rows
+
+    def rate_limited_today(self, moment: datetime) -> int:
+        return _rate_limited_on(self._rows, moment)
 
 
 # --------------------------------------------------------------------------------------
@@ -527,6 +558,87 @@ def _coverage_effect(failure: AdapterFailure, status: CoverageStatus | None = No
     return ("coverage", status, failure, failure.value, failure.value)
 
 
+def _rejection_effect(verdict: Mapping[str, Any]) -> tuple:
+    """The one coverage effect of an ``acq_derivation_rejected`` row (REJECTED, whatever the failure's usual status)."""
+
+    return _coverage_effect(AdapterFailure(verdict["failure"]), CoverageStatus.REJECTED)
+
+
+def _coverage_entry(effect: tuple, aid: str, request_hash: str, at: str) -> CoverageEntry:
+    """The coverage entry a ``("coverage", ...)`` effect calls for: ONE construction, used to write it, to recognise it
+    again after a restart and to tell a conflicting entry from it. Its id is a function of the attempt and the effect."""
+
+    _, status, failure, note, id_note = effect
+    reasons = (reason_code(failure),) if status != CoverageStatus.AVAILABLE else ()
+    return CoverageEntry(
+        entry_id=gid("cov", acquisition_id=aid, note=id_note), entity_id=f"oddspapi-request:{request_hash}",
+        source_contract_id=RAW_CONTRACT_ID, status=status, recorded_at=at, reason_codes=reasons, note=note)
+
+
+def _stored(entry: CoverageEntry) -> dict[str, Any]:
+    """``entry`` as the coverage ledger stores it, minus the time and the chain fields."""
+
+    return {"entry_id": entry.entry_id, "entity_id": entry.entity_id, "source_contract_id": entry.source_contract_id,
+            "status": entry.status.value, "reason_codes": [code.value for code in entry.reason_codes],
+            "artifact_hash": entry.artifact_hash, "supersedes_entry_id": entry.supersedes_entry_id, "note": entry.note}
+
+
+def _says_the_same(row: Mapping[str, Any], entry: CoverageEntry) -> bool:
+    """Whether a stored coverage row is the entry a verdict calls for (its time and chain fields aside)."""
+
+    wanted = _stored(entry)
+    return all(row.get(key) == value for key, value in wanted.items())
+
+
+class _CoverageIndex:
+    """The coverage ledger by entry id, read when first needed and kept current as this settlement appends."""
+
+    def __init__(self, ledger: CoverageLedger):
+        self._ledger = ledger
+        self._by_id: dict[str, list[Mapping[str, Any]]] | None = None
+
+    def get(self, entry_id: str) -> list[Mapping[str, Any]]:
+        if self._by_id is None:
+            self._by_id = {}
+            for row in self._ledger.log.records():
+                self._by_id.setdefault(row.get("entry_id"), []).append(row)
+        return self._by_id.get(entry_id, [])
+
+    def appended(self, entry: CoverageEntry) -> None:
+        self._by_id.setdefault(entry.entry_id, []).append(_stored(entry))
+
+
+def unsettled_rejections(rows, coverage_records: Callable[[], list]) -> tuple[list[str], list[str]]:
+    """``(missing, conflicting)``: the attempts whose terminal ``acq_derivation_rejected`` row has no coverage entry yet,
+    and those whose entry under the deterministic id says something else. A pure function of the two ledgers' verified
+    records - what ``quiescence.pending_work`` reports, so the gap is never silent - and the exact test the restart's
+    settlement applies before it writes. ``coverage_records`` is called only when a rejection exists, so a root without
+    one never pays for reading the (large) coverage ledger."""
+
+    requests: dict[str, str] = {}
+    rejected = []
+    for row in rows:
+        if row["record_type"] == "acq_planned":
+            requests[row["acquisition_id"]] = row["provider_request_hash"]
+        elif row["record_type"] == "acq_derivation_rejected":
+            rejected.append(row)
+    missing, conflicting = [], []
+    if not rejected:
+        return missing, conflicting
+    stored: dict[str, list[Mapping[str, Any]]] = {}
+    for row in coverage_records():
+        stored.setdefault(row.get("entry_id"), []).append(row)
+    for row in rejected:
+        aid = row["acquisition_id"]
+        wanted = _coverage_entry(_rejection_effect(row), aid, requests[aid], row["recorded_at"])
+        found = stored.get(wanted.entry_id, [])
+        if not found:
+            missing.append(aid)
+        elif not all(_says_the_same(entry, wanted) for entry in found):
+            conflicting.append(aid)
+    return missing, conflicting
+
+
 def verdict_effects(verdict: Mapping[str, Any], item: _Attempt, ledger: "AcquisitionLedger", config) -> list[tuple]:
     """The side effects, in their order, that an attempt's durable verdict row (its refusal, blocked quota decision,
     completion or reconciliation) calls for. A pure function of durable facts, so a restart re-derives exactly the
@@ -534,7 +646,7 @@ def verdict_effects(verdict: Mapping[str, Any], item: _Attempt, ledger: "Acquisi
 
     kind = verdict["record_type"]
     if kind == "acq_derivation_rejected":                   # one coverage entry; nothing else is blocked by one response
-        return [_coverage_effect(AdapterFailure(verdict["failure"]), CoverageStatus.REJECTED)]
+        return [_rejection_effect(verdict)]
     if kind == "acq_refused":
         reason = AdapterFailure(verdict["reason"])
         if reason in _HALTING_REFUSALS:
@@ -568,6 +680,8 @@ def verdict_effects(verdict: Mapping[str, Any], item: _Attempt, ledger: "Acquisi
         effects += [_coverage_effect(failure), circuit]
     elif failure == AdapterFailure.EVIDENCE_CONFLICT:
         effects += [("halted", failure), _coverage_effect(failure)]
+    elif failure == AdapterFailure.QUOTA_DIVERGENCE:         # the divergence IS this response's verdict (F-37: none; halt)
+        effects += [("halted", failure), _coverage_effect(failure)]
     elif failure is not None:
         effects.append(_coverage_effect(failure))
         if failure == AdapterFailure.NO_RESPONSE and (verdict["sanitized_error"] or {}).get("class") \
@@ -575,12 +689,20 @@ def verdict_effects(verdict: Mapping[str, Any], item: _Attempt, ledger: "Acquisi
             effects += [("halted", AdapterFailure.CLOCK_FAULT), _coverage_effect(AdapterFailure.CLOCK_FAULT)]
     elif verdict["raw_observation_id"] is not None and config.endpoints[item.role].cacheable:
         effects.append(("cache",))                          # only a response that passed every check is cached
-    usage = verdict["provider_reported_usage"]
-    if usage is not None and (usage["reported"] is None or usage["reported"] > usage["genesis_debited"]):
-        # the provider counted more than Genesis debited, or reported a figure that cannot be read (a present header
-        # is never "absent"): the budget can no longer be trusted (F-37; hostile audit RA5-011)
+    if failure != AdapterFailure.QUOTA_DIVERGENCE and usage_diverges(verdict["provider_reported_usage"]):
+        # a response that failed for another reason while the provider's count or an unreadable figure says the budget
+        # can no longer be trusted (F-37; hostile audit RA5-011): the halt and its coverage entry, as for a clean one
         effects += [("halted", AdapterFailure.QUOTA_DIVERGENCE), _coverage_effect(AdapterFailure.QUOTA_DIVERGENCE)]
     return effects
+
+
+_VERDICT_ROWS = ("acq_refused", "acq_completed", "acq_reconciled", "acq_derivation_rejected")
+
+
+def _is_verdict(row: Mapping[str, Any]) -> bool:
+    """Whether a ledger row is an attempt's verdict (the row whose side effects ``settle`` completes)."""
+
+    return row["record_type"] in _VERDICT_ROWS or (row["record_type"] == "acq_quota_decided" and not row["allowed"])
 
 
 def _row_present(effect: tuple, aid: str, later: list[dict]) -> bool:
@@ -699,7 +821,7 @@ class AcquisitionRunner:
             return self._acquire(item, clock_check=clock_check)
 
     def _acquire(self, item: PlanItem, *, clock_check: bool) -> AcquisitionOutcome:
-        self.settle_last()                                  # a crash never skips the previous verdict's effects
+        self.settle_pending()                               # a crash never skips a verdict's effects (any attempt's)
         request = item.request
         aid = attempt_id(request.provider_request_hash, item.window_id, item.attempt)
         request_id = f"oddspapi-attempt:{aid}"
@@ -911,6 +1033,12 @@ class AcquisitionRunner:
             len(result.body) if result.body is not None else None)
         at = self._safe_stamp(t1)
         usage = self._provider_usage(captured, result, t1)
+        if failure is None and usage_diverges(usage):
+            # F-37 (hostile audit RA6-002): a response the provider's own count (or an unreadable count) calls into
+            # question yields no observation. That is decided HERE, before the row is written, so the completed row
+            # itself carries the verdict and no start - live, restarted, replayed or rebuilt - can mistake the
+            # response for a successful capture while the halt it triggers is in force (the HA-04 mechanism)
+            failure = AdapterFailure.QUOTA_DIVERGENCE
         self._record("acq_completed", at, acquisition_id=aid, T1=t1, outcome=result.outcome,
                      http_status=result.http_status,
                      headers=[list(pair) for pair in captured.headers] if captured is not None else [],
@@ -928,7 +1056,7 @@ class AcquisitionRunner:
                 and self.capture.clean_date_check(captured.headers, t1):
             # the probe's clean Date check re-arms sends after a CLOCK_SKEW suspension (design 14.6 rule 5)
             self._record("acq_clock_rearmed", self._safe_stamp(at), acquisition_id=aid)
-        parsed = verdict.parsed if verdict is not None and verdict.failure is None else None
+        parsed = verdict.parsed if verdict is not None and failure is None else None
         return AcquisitionOutcome(aid, request_id, AttemptOutcome.RESPONSE if result.outcome == "RESPONSE"
                                   else AttemptOutcome.TRUNCATED, failure, charge=charge, result=result,
                                   parsed=parsed, captured=captured)
@@ -963,49 +1091,71 @@ class AcquisitionRunner:
             return None
         return int(text)
 
-    # -- the side effects of a durable verdict (design 11.1, 14.3, 14.4, 14.6, 15; hostile audit HA-04) ------------
-    def settle_last(self) -> None:
-        """Complete the side effects of the newest attempt's verdict, if a crash cut them short (idempotent)."""
+    # -- the side effects of a durable verdict (design 11.1, 14.3, 14.4, 14.6, 15; hostile audits HA-04, RA6-001) ----
+    def settle_pending(self) -> None:
+        """Complete the side effects of EVERY attempt's durable verdict that a crash or an I/O error cut short (idempotent).
 
-        last = None
-        for row in self.ledger.rows():
-            if row["record_type"] == "acq_planned":
-                last = row["acquisition_id"]
-        if last is not None:
-            self.settle(last)
+        A verdict's effects are a pure function of the durable ledger as of its row, so a restart can always finish
+        them. Until R7 only the NEWEST planned attempt was settled, which was sound while a verdict could only be written
+        for the newest attempt; the terminal derivation rejection can be written for an OLDER one (the first G2R start
+        derives every G2 capture in ledger order), and an older rejection whose coverage entry was cut short was lost for
+        good, silently (hostile audit RA6-001). Every attempt is visited once, in ledger order, each effect is applied
+        only if its durable trace is absent, and evidence that contradicts a verdict is refused (``SettlementConflict``),
+        never adopted: so the pass is deterministic, bounded by the ledger, idempotent and restart stable."""
+
+        rows = self.ledger.rows()
+        last: dict[str, int] = {}
+        for index, row in enumerate(rows):
+            aid = row.get("acquisition_id")
+            if aid is not None and _is_verdict(row):
+                last[aid] = index
+        if not last:
+            return
+        attempts = _replay(rows)
+        coverage = _CoverageIndex(self.coverage)
+        for aid, position in sorted(last.items(), key=lambda pair: pair[1]):
+            if self._settle_at(aid, rows, position, attempts[aid], coverage)[1]:
+                rows = self.ledger.rows()                   # what was just written is part of what the next one is judged by
+
+    settle_last = settle_pending            # the name the call sites and probes that predate R7 use; it settles every attempt
 
     def settle(self, aid: str, *, request: CanonicalRequest | None = None,
                decoded: bytes | None = None) -> AdapterFailure | None:
         """Apply, in their fixed order and each exactly once, the side effects the durable verdict of ``aid`` calls
         for (quarantine, suspension, halt, circuit, capability block, coverage, metadata cache). The live path calls
-        this right after the verdict row; after a crash, ``settle_last`` calls it again before anything else can
+        this right after the verdict row; after a crash, ``settle_pending`` calls it again before anything else can
         happen, so a restart converges to the durable history of an uninterrupted run. Returns the halt the verdict
         calls for, if any (the caller raises it)."""
 
         rows = self.ledger.rows()
         position = None
         for index, row in enumerate(rows):
-            if row.get("acquisition_id") == aid and (
-                    row["record_type"] in ("acq_refused", "acq_completed", "acq_reconciled",
-                                           "acq_derivation_rejected")
-                    or (row["record_type"] == "acq_quota_decided" and not row["allowed"])):
+            if row.get("acquisition_id") == aid and _is_verdict(row):
                 position = index
         if position is None:
             return None
-        item = _replay(rows)[aid]
+        return self._settle_at(aid, rows, position, _replay(rows)[aid], _CoverageIndex(self.coverage),
+                               request=request, decoded=decoded)[0]
+
+    def _settle_at(self, aid: str, rows: list[dict], position: int, item: _Attempt, coverage: _CoverageIndex, *,
+                   request: CanonicalRequest | None = None,
+                   decoded: bytes | None = None) -> tuple[AdapterFailure | None, bool]:
+        """The effects of the verdict at ``rows[position]``: ``(the halt it calls for, whether anything was written)``."""
+
         verdict, later = rows[position], rows[position + 1:]
-        effects = verdict_effects(verdict, item, self.ledger, self.config)
-        at = max(verdict["recorded_at"], self.ledger.last_recorded_at() or verdict["recorded_at"])
-        entries = None
-        halt = None
+        effects = verdict_effects(verdict, item, _LedgerThrough(rows[:position + 1]), self.config)
+        at = max(verdict["recorded_at"], rows[-1]["recorded_at"])
+        halt, wrote = None, False
         for index, effect in enumerate(effects):
             name = effect[0]
             if name == "halted" and halt is None:
                 halt = effect[1]
             if name == "coverage":
-                if entries is None:
-                    entries = {row.get("entry_id") for row in self.coverage.log.records()}
-                if gid("cov", acquisition_id=aid, note=effect[4]) in entries:
+                entry = _coverage_entry(effect, aid, item.request_hash, at)
+                found = coverage.get(entry.entry_id)
+                if found:                                   # already recorded: it must be exactly what the verdict says
+                    if not all(_says_the_same(row, entry) for row in found):
+                        raise SettlementConflict("a coverage entry under a verdict's deterministic id says something else")
                     continue
             elif name == "capability":                      # applied iff the ledger row that follows it is there
                 if _row_present(effects[index + 1], aid, later) or self.capability_blocker is None:
@@ -1016,7 +1166,10 @@ class AcquisitionRunner:
             elif _row_present(effect, aid, later):
                 continue
             self._apply_effect(effect, aid, item, verdict, at, request=request, decoded=decoded)
-        return halt
+            if name == "coverage":
+                coverage.appended(entry)
+            wrote = True
+        return halt, wrote
 
     def _apply_effect(self, effect: tuple, aid: str, item: _Attempt, verdict: Mapping[str, Any], at: str, *,
                       request: CanonicalRequest | None, decoded: bytes | None) -> None:
@@ -1024,12 +1177,7 @@ class AcquisitionRunner:
         if name == "quarantined":
             self._record("acq_quarantined", at, acquisition_id=aid, quarantine_id=effect[1])
         elif name == "coverage":
-            _, status, failure, note, id_note = effect
-            reasons = (reason_code(failure),) if status != CoverageStatus.AVAILABLE else ()
-            self.coverage.append(CoverageEntry(
-                entry_id=gid("cov", acquisition_id=aid, note=id_note),
-                entity_id=f"oddspapi-request:{item.request_hash}", source_contract_id=RAW_CONTRACT_ID, status=status,
-                recorded_at=at, reason_codes=reasons, note=note))
+            self.coverage.append(_coverage_entry(effect, aid, item.request_hash, at))
         elif name == "capability":
             self.capability_blocker(effect[1].value)
         elif name == "halted":
@@ -1053,8 +1201,10 @@ class AcquisitionRunner:
         audit RA5-001; design 11.1, 14.4, 15 D13). One durable row, settled right away into one coverage entry
         (REJECTED); from then on the capture is no longer a successful capture, so no restart re-derives it, nothing
         is pending because of it, reads are not refused for it and no operator action is needed. The raw evidence
-        stays exactly as published. Idempotent across a crash: before the row, a restart re-derives deterministically
-        to the same verdict; after it, ``settle_last`` completes the coverage entry."""
+        stays exactly as published. Idempotent across a crash at every write: before the row, a restart re-derives
+        deterministically to the same verdict; after it, the restart's ``settle_pending`` completes the coverage entry
+        from the durable row alone, whichever attempt it is (R7, hostile audit RA6-001), and until it has,
+        ``quiescence.pending_work`` reports the gap and reads are refused."""
 
         if detail is not None:                              # a code-defined class name, screened like every record
             detail = self._scanned_error({"class": detail, "errno": None})["class"]
@@ -1119,7 +1269,7 @@ class AcquisitionRunner:
         return AcquisitionOutcome(aid, request_id, AttemptOutcome.DUPLICATE, failure)
 
     def reconcile_after_restart(self) -> tuple[str, ...]:
-        """Complete the newest verdict's side effects, then close every attempt left open by a crash. Debits
+        """Complete every durable verdict's side effects, then close every attempt left open by a crash. Debits
         stand; nothing is re-sent. Under the run lock (design 6.3)."""
 
         with quiescence.run_lock(self.root):
@@ -1128,7 +1278,7 @@ class AcquisitionRunner:
     def _reconcile_after_restart(self) -> tuple[str, ...]:
         now = self._stamp()
         require_not_before(now, *self._durable_heads())
-        self.settle_last()
+        self.settle_pending()
         reconciled: list[str] = []
         for aid, item in self.ledger.attempts().items():
             if item.state not in _OPEN_STATES:

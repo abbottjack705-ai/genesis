@@ -221,7 +221,9 @@ class UnreadableUsageHeaderTests(unittest.TestCase):
             completed = [r for r in acquisition_rows(rt) if r["record_type"] == "acq_completed"]
             self.assertEqual(completed[0]["provider_reported_usage"],
                              {"header": USAGE, "reported": None, "genesis_debited": 1, "window": "utc_month"})
-            self.assertIsNone(completed[0]["failure"])                      # the response itself passed its checks
+            # R7 (RA6-002): the divergence IS the response's verdict, written in the same row, so that no start can take the
+            # response for a successful capture while the halt is in force (it used to stay None: "passed its checks")
+            self.assertEqual(completed[0]["failure"], A.QUOTA_DIVERGENCE.value)
 
     def test_the_halt_is_one_coverage_entry_the_evidence_is_kept_and_nothing_is_lost_or_rewritten(self):
         with self.halted_by(usage_headers("1e5")) as (rt, _):

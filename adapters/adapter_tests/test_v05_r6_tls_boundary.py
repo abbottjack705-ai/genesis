@@ -148,26 +148,35 @@ class AttackerPkiCannotAuthorizeTheProductionPathTests(unittest.TestCase):
 
 
 class ProductionContextConstructionTests(unittest.TestCase):
-    def test_the_variables_are_hidden_while_the_context_is_built_and_restored_afterwards(self):
-        real = ssl.create_default_context
-        during = []
+    """R7 (hostile audit RA6-003) replaced the mechanism these tests first pinned. R6 hid the three variables by editing
+    ``os.environ`` around ``ssl.create_default_context()`` and restored them afterwards; that is not thread-safe, so R7
+    builds the context from scratch and never touches the environment (``test_v05_r7_tls_context``). The tests below keep
+    every INVARIANT the R6 versions protected - unset variables stay unset, unrelated variables are untouched, the
+    environment is unchanged even when the context cannot be built, the three properties are stated, verification and
+    host-name checking are required, the interpreter's protocol ceiling is kept - and no longer pin the mechanism."""
 
-        def spy(*args, **kwargs):
-            during.append({name: os.environ.get(name) for name in ENVIRONMENT_NAMES})
-            return real(*args, **kwargs)
-
+    def test_the_environment_is_unchanged_while_the_context_is_built_and_afterwards(self):
+        # was: "hidden while built, restored afterwards". Now there is nothing to hide and nothing to restore
         values = {"SSL_CERT_FILE": "/x/file.pem", "SSL_CERT_DIR": "/x/dir", "SSLKEYLOGFILE": "/x/keys.log"}
-        with mock.patch.dict(os.environ, values), mock.patch.object(ssl, "create_default_context", spy):
+        seen = []
+        real = ssl.SSLContext.load_verify_locations
+
+        def spy(this, *args, **kwargs):
+            seen.append({name: os.environ.get(name) for name in ENVIRONMENT_NAMES})
+            return real(this, *args, **kwargs)
+
+        with mock.patch.dict(os.environ, values), mock.patch.object(ssl.SSLContext, "load_verify_locations", spy):
             th.tls_context()
             self.assertEqual({name: os.environ.get(name) for name in ENVIRONMENT_NAMES}, values)
-        self.assertEqual(during, [{name: None for name in ENVIRONMENT_NAMES}])
+        self.assertTrue(seen, "the trust store was never loaded")
+        self.assertTrue(all(snapshot == values for snapshot in seen), "the environment changed while the context was built")
 
-    def test_the_environment_is_restored_even_when_the_context_cannot_be_built(self):
+    def test_the_environment_is_unchanged_even_when_the_context_cannot_be_built(self):
         def broken(*args, **kwargs):
             raise OSError("no trust store")
 
         values = {"SSL_CERT_FILE": "/x/file.pem", "SSL_CERT_DIR": "/x/dir", "SSLKEYLOGFILE": "/x/keys.log"}
-        with mock.patch.dict(os.environ, values), mock.patch.object(ssl, "create_default_context", broken):
+        with mock.patch.dict(os.environ, values), mock.patch.object(ssl.SSLContext, "load_verify_locations", broken):
             with self.assertRaises(OSError):
                 th.tls_context()
             self.assertEqual({name: os.environ.get(name) for name in ENVIRONMENT_NAMES}, values)
@@ -184,11 +193,14 @@ class ProductionContextConstructionTests(unittest.TestCase):
             th.tls_context()
             self.assertEqual(os.environ["GENESIS_R6_UNRELATED"], "kept")
 
-    def test_the_context_is_asserted_not_trusted(self):
-        # whatever the interpreter's factory hands back, the production context states its own three properties: a key-log
-        # file never set, host names always checked, a certificate always required
-        loose = SimpleNamespace(keylog_filename="/tmp/tls-secrets.log", check_hostname=False, verify_mode=ssl.CERT_NONE)
-        with mock.patch.object(th.ssl, "create_default_context", return_value=loose):
+    def test_the_stock_factory_is_never_consulted_so_what_it_would_hand_back_cannot_matter(self):
+        # was: "whatever the stock factory hands back, the production context states its own three properties". The
+        # factory is not used at all any more (it is what read the environment); the properties are stated on a context
+        # built from scratch
+        def forbidden(*args, **kwargs):
+            raise AssertionError("the stock factory was consulted")
+
+        with mock.patch.object(th.ssl, "create_default_context", forbidden):
             context = th.tls_context()
         self.assertEqual((context.keylog_filename, context.check_hostname, context.verify_mode),
                          (None, True, ssl.CERT_REQUIRED))
@@ -196,11 +208,14 @@ class ProductionContextConstructionTests(unittest.TestCase):
     def test_verification_and_host_name_checking_are_still_required(self):
         context = th.tls_context()
         self.assertEqual((context.verify_mode, context.check_hostname), (ssl.CERT_REQUIRED, True))
-        # the protocol floor and ceiling are the interpreter's own (they differ between builds: this host's 3.12 reports no
-        # floor where 3.11 and 3.13 report TLS 1.2): production neither lowers nor raises what the stock context sets
+        # the protocol ceiling is the interpreter's own; the floor is stated (it used to be inherited from the build:
+        # this host's 3.12 reports no floor where 3.11 and 3.13 report TLS 1.2) and is never below what the stock context
+        # sets
         stock = ssl.create_default_context()
-        self.assertEqual((context.minimum_version, context.maximum_version),
-                         (stock.minimum_version, stock.maximum_version))
+        self.assertEqual(context.maximum_version, stock.maximum_version)
+        self.assertEqual(context.minimum_version, ssl.TLSVersion.TLSv1_2)
+        if stock.minimum_version not in (ssl.TLSVersion.MINIMUM_SUPPORTED, ssl.TLSVersion.SSLv3):
+            self.assertGreaterEqual(context.minimum_version, stock.minimum_version)
 
     def test_the_key_log_file_named_by_the_environment_is_never_written(self):
         attacker = tls_support.new_pki(PINNED_HOST, authority_name="attacker CA")

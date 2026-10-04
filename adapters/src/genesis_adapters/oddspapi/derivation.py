@@ -19,6 +19,7 @@ from genesis.time import iso_utc, parse_utc
 from genesis_adapters.errors import AdapterFailure
 from genesis_adapters.oddspapi import identity_registry as identity_mod
 from genesis_adapters.oddspapi import normalize, parser, scope as scope_mod
+from genesis_adapters.oddspapi.acquisition import usage_diverges
 from genesis_adapters.oddspapi.maps import AdapterMaps
 
 ROLE_ODDS = "ODDS"
@@ -47,15 +48,28 @@ def acquisition_rows(ledger, acquisition_id: str) -> dict[str, dict[str, Any]]:
     return found
 
 
+def usable_response(completed: Mapping[str, Any]) -> bool:
+    """Whether a ``completed`` row is a response that may yield observations: a 200 whose content checks passed (its
+    verdict is no failure), whose raw evidence was kept, and that does not call the provider's usage count into question.
+
+    The last condition is the durable disposition of an acquisition-level QUOTA_DIVERGENCE (design 15 F-37: no
+    observation; halt; hostile audit RA6-002). The runner records it as the response's own verdict, so ``failure`` is
+    already set on every row it writes; reading the usage figure of the very same row as well keeps a row written
+    before that (halt present, verdict clean) just as unusable. The one predicate serves every consumer of a response:
+    the pipeline, a resume, a rebuild, the verifier and the fixture join."""
+
+    return (completed["outcome"] == "RESPONSE" and completed["http_status"] == HTTP_OK
+            and completed["failure"] is None and completed["raw_observation_id"] is not None
+            and not usage_diverges(completed["provider_reported_usage"]))
+
+
 def successful_capture(rows: Mapping[str, Mapping[str, Any]]) -> bool:
-    """A 200 response whose content checks passed AND whose derivation was not refused: the only kind of capture that
-    can still be derived (or that still has documents). A capture whose pure derivation was rejected carries a durable
-    terminal ``acq_derivation_rejected`` verdict (hostile audit RA5-001) and is never derived again."""
+    """A usable 200 response whose derivation was not refused: the only kind of capture that can still be derived (or
+    that still has documents). A capture whose pure derivation was rejected carries a durable terminal
+    ``acq_derivation_rejected`` verdict (hostile audit RA5-001) and is never derived again."""
 
     completed = rows.get("acq_completed")
-    return (completed is not None and completed["outcome"] == "RESPONSE" and completed["http_status"] == HTTP_OK
-            and completed["failure"] is None and completed["raw_observation_id"] is not None
-            and "acq_derivation_rejected" not in rows)
+    return (completed is not None and usable_response(completed) and "acq_derivation_rejected" not in rows)
 
 
 def load_request(root: Path, request_hash: str) -> dict[str, Any]:
@@ -89,7 +103,8 @@ def fixture_snapshot_for(stores, config, maps: AdapterMaps, *, at: str) -> parse
     """The newest successful FIXTURES capture received at or before ``at`` (or None).
 
     Selection reads only durable facts: the acquisition ledger (role, outcome, ``T1``) and the raw
-    observation. A verified cache hit creates no new capture, so it selects its original capture.
+    observation. A verified cache hit creates no new capture, so it selects its original capture. A response that
+    is not usable (:func:`usable_response`: a failed check, or a quota divergence) is never the join.
     """
 
     roles: dict[str, str] = {}
@@ -100,9 +115,7 @@ def fixture_snapshot_for(stores, config, maps: AdapterMaps, *, at: str) -> parse
         if kind == "acq_planned":
             roles[row["acquisition_id"]] = row["role"]
         elif kind == "acq_completed" and roles.get(row["acquisition_id"]) == ROLE_FIXTURES:
-            if row["outcome"] == "RESPONSE" and row["http_status"] == HTTP_OK and row["failure"] is None \
-                    and row["raw_observation_id"] is not None and row["T1"] is not None \
-                    and parse_utc(row["T1"]) <= moment:
+            if usable_response(row) and row["T1"] is not None and parse_utc(row["T1"]) <= moment:
                 if best is None or parse_utc(row["T1"]) >= parse_utc(best["T1"]):
                     best = row
     if best is None:

@@ -9,8 +9,8 @@ fail closed:
   (:func:`decision_phase`) while it takes its cutoff and reads. A second holder is refused, never queued. The lock
   belongs to its process, so a crash never leaves it held; re-entry within one process is counted.
 * :func:`pending_work` - the durable facts that say an adapter phase is unfinished: an attempt still open, a
-  credential or authorization verdict whose halt/circuit is missing, a successful ODDS capture not yet normalized, an
-  invalidation recorded but not applied. While any exists no decision is taken (the reader refuses), whether or not
+  credential or authorization verdict whose halt/circuit is missing, a successful ODDS capture not yet normalized, a
+  derivation rejection whose coverage entry is missing (or contradicted), an invalidation recorded but not applied. While any exists no decision is taken (the reader refuses), whether or not
   some process holds the lock: the durable state itself is the witness, and every start completes the work first
   (``resume``; ``emit.complete_pending_invalidations``). A completed invalidation then reads exactly as design 13.2
   says: unchanged for ``D < T3_inv`` (decisions inside ``[T_inv, T3_inv)`` were excluded by the lock its emission
@@ -90,7 +90,7 @@ def pending_work(stores) -> tuple[str, ...]:
     """What durable adapter work is unfinished (empty when the stores are quiescent)."""
 
     from genesis_adapters.errors import AdapterFailure
-    from genesis_adapters.oddspapi.acquisition import OPEN_STATES
+    from genesis_adapters.oddspapi.acquisition import OPEN_STATES, unsettled_rejections
     from genesis_adapters.oddspapi.derivation import ROLE_ODDS, successful_capture
 
     found: list[str] = []
@@ -118,6 +118,13 @@ def pending_work(stores) -> tuple[str, ...]:
             if not any(row["record_type"] == marker and row.get("reason") == completed["failure"]
                        for row in rows[position + 1:]):
                 found.append("a credential verdict's halt or circuit is not recorded yet")
+    # a terminal derivation rejection is complete only with its REJECTED coverage entry (hostile audit RA6-001): a crash
+    # between the two leaves the gap this reports, which every start closes and which no read may pass over
+    missing, conflicting = unsettled_rejections(rows, stores.coverage.log.records)
+    if missing:
+        found.append("a derivation rejection's coverage entry is not recorded yet")
+    if conflicting:
+        found.append("a derivation rejection's coverage entry conflicts with its verdict")
     for entry in stores.invalidations.state().values():
         if entry["applied"] is None:
             found.append("an invalidation is recorded but not applied")

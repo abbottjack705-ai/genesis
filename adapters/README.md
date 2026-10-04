@@ -139,7 +139,12 @@ whole duration and refuses (`refused: another adapter phase holds the run lock`)
 it; the OS releases it when its holder exits or dies. A run first completes what an interrupted one left
 durable - open attempts, verdict side effects, recorded but unapplied invalidations (HA-05) - and a resumed
 emission reuses that response's durable T2/T3. While any such work is unfinished, or while the lock is held
-elsewhere, every read refuses with `DATA_CAPABILITY_NOT_READY`. Every read re-derives the head it returns
+elsewhere, every read refuses with `DATA_CAPABILITY_NOT_READY`. A terminal derivation rejection whose REJECTED coverage
+entry is missing, or contradicted by an entry under its id, is such unfinished work too (R7, RA6-001): every start
+settles the side effects of EVERY attempt's durable verdict, not only the newest, and refuses (`SettlementConflict`)
+rather than adopt evidence that contradicts a verdict. A response that triggers `QUOTA_DIVERGENCE` carries that verdict
+in its own `completed` row (R7, RA6-002), so it yields no observation in any run order - live, restarted, replayed or
+rebuilt - while the halt, or after a `reset` of it, is in force. Every read re-derives the head it returns
 (`verify_derivation`, HA-12); a head that no longer re-derives is refused and invalidated automatically
 (`ADAPTER_AUTOMATIC`).
 
@@ -190,11 +195,30 @@ A test client trusts that CA only through an explicit `cadata=` context
 option.
 
 The production trust boundary is the platform's system trust store and nothing the environment adds: `tls_context()`
-builds the stock context with `SSL_CERT_FILE`, `SSL_CERT_DIR` and `SSLKEYLOGFILE` hidden from it, so those variables
-can neither add a trusted CA nor write TLS secrets to a file. A TLS-inspecting proxy's CA must therefore be installed in
-the system trust store (the intended boundary), never named by an environment variable. The CA that was committed
+builds the context from scratch, without reading or writing the process environment (R7, hostile audit RA6-003: R6
+hid the variables by editing `os.environ`, which is not thread-safe). It loads the platform's COMPILED-IN trust
+locations (`ssl.get_default_verify_paths().openssl_cafile` / `openssl_capath`, which no variable can redirect) and, on
+Windows, the `CA` and `ROOT` system stores, and states certificate verification, host-name checking, a key-log file of
+`None` and a TLS 1.2 floor itself (the flags `ssl.create_default_context()` adds from Python 3.13 are kept). So
+`SSL_CERT_FILE`, `SSL_CERT_DIR`, `SSLKEYLOGFILE` and `OPENSSL_CONF` can neither add a trusted CA, write TLS secrets to a
+file nor lower the floor, however many threads build a context. A TLS-inspecting proxy's CA must therefore be installed
+in the system trust store (the intended boundary), never named by an environment variable. The CA that was committed
 before R6 is retired; it remains in Git history only (its private key was destroyed) and the suite pins that it cannot
 be injected into the production trust store.
+
+Name resolution is inside the hard deadline (R7, RA6-004): the lookup runs in a helper thread joined with the deadline
+and abandoned if the resolver has not answered (the interpreter has no resolver timeout). The abandoned thread is a
+daemon that holds only the host name and port and ends when the resolver does.
+
+## Derivation sources and runtime roots (RA6-005, open)
+
+A runtime root belongs to ONE derivation source (`derivation_version` = code version + config digests + policy digest,
+design 9.2, 13.3). Any change to the code version, a pinned configuration file or the policy is a NEW source and needs a
+NEW runtime root; a G2R pin of the old `derivation_version`/`policy_digest` is stale and refused. Opening a root that
+was written under another source is NOT detected explicitly: its first start halts as `EVIDENCE_CONFLICT` (a tamper-class
+verdict that is, in this case, a false one) and appends a halt row per start. R7 leaves that classification open
+(`evidence/R7/SUMMARY.md`); until it is closed, never reuse a root across a derivation-source change. R7 itself did NOT
+change `CODE_VERSION`, so a root written by R6 opens under R7 (a quota-divergent response in it is read as unusable).
 
 ## Mutation smoke (optional, evidence in `evidence/S<n>/MUTATION.txt`)
 

@@ -501,8 +501,33 @@ class ProductionTrustBoundaryTests(SafeAsserts):
     def test_p006_no_production_module_references_the_test_tls_material(self):
         for path in (REPO / "adapters" / "src").rglob("*.py"):
             text = path.read_text(encoding="utf-8")
-            for marker in ("fixtures/tls", "test-ca", "server.key", "server.pem", "ca_file", "cafile"):
+            for marker in ("fixtures/tls", "test-ca", "server.key", "server.pem", "ca_file"):
                 self.assertFalse(marker in text, f"{path.name} mentions {marker}")
+
+    def test_p006_no_production_function_accepts_a_ca_or_trust_override(self):
+        """R7 (RA6-003): the substring ``cafile``, which this guard used to forbid as a proxy for "a seam that takes a CA
+        file", cannot tell such a seam from the standard library's own compiled-in default trust locations
+        (``ssl.get_default_verify_paths().openssl_cafile``) that ``tls_context`` now loads explicitly so as not to depend
+        on the environment. What the guard protects is the SEAM: no production function or lambda has a parameter that
+        names a CA file, directory, data blob or bundle, so no caller can choose what production trusts; and
+        ``tls_context`` takes no parameter at all."""
+
+        import ast
+
+        forbidden = {"cafile", "capath", "cadata", "ca_file", "ca_path", "ca_bundle", "ca_certs", "ca_data", "trust_store"}
+        for path in (REPO / "adapters" / "src").rglob("*.py"):
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
+                    continue
+                arguments = node.args
+                names = {arg.arg for arg in (*arguments.posonlyargs, *arguments.args, *arguments.kwonlyargs,
+                                             *filter(None, (arguments.vararg, arguments.kwarg)))}
+                self.assertEqual(sorted(names & forbidden), [], f"{path.name}: a production function takes a trust input")
+            if path.name == "transport_http.py":
+                (context,) = [node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+                              and node.name == "tls_context"]
+                self.assertEqual(ast.unparse(context.args), "")
 
     def test_ha13_no_test_tls_material_is_committed_at_all(self):
         """R6 / RA5-003: ``export-ignore`` only ever protected ``git archive``; the material is now generated per run

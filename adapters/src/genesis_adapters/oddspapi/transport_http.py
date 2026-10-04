@@ -30,6 +30,8 @@ import io
 import os
 import socket
 import ssl
+import sys
+import threading
 import time
 import warnings
 from datetime import datetime
@@ -116,7 +118,8 @@ class _Connection:
     The transport hands the time left to the attempt to :meth:`open` and :meth:`settimeout`; each only ever moves the
     absolute (monotonic) deadline EARLIER, never later. Every blocking operation then runs under what is left of it:
     each connect attempt, the TLS handshake, the request send and every single receive (``http.client`` reads through
-    :class:`_BoundedSocket`). Name resolution is the one step the interpreter cannot bound."""
+    :class:`_BoundedSocket`). Name resolution has no timeout in the interpreter, so it runs in a helper thread that is
+    joined with the deadline (:meth:`_resolve`)."""
 
     def __init__(self, host: str, port: int, context: ssl.SSLContext, address: tuple[str, int] | None):
         self.host, self.port, self.context, self.address = host, port, context, address
@@ -139,13 +142,43 @@ class _Connection:
     def _arm(self) -> None:
         self.tls.settimeout(self._left())
 
+    def _resolve(self, host: str, port: int) -> list:
+        """``socket.getaddrinfo`` under the time that is left (hostile audit RA6-004).
+
+        The interpreter has no timeout for name resolution: the call blocks in the system resolver for as long as it
+        likes (measured: 10 s with one unresponsive nameserver and 28 s with three, against a 3 s deadline), holding the
+        single writer and its run lock. So the lookup runs in a helper thread that is joined with the deadline and, if
+        the resolver has not answered by then, ABANDONED: the attempt fails at the deadline like every other phase, and
+        whatever the resolver answers later is discarded. The thread is given the host name and the port only (never the
+        credential), is started at most once per attempt, is a daemon and ends when the resolver does. A resolver that
+        fails answers in the attempt's own thread exactly as before."""
+
+        self._left()                                        # a deadline already gone starts nothing
+        outcome: list = []
+
+        def lookup() -> None:
+            try:
+                outcome.append((True, socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)))
+            except Exception as exc:                        # handed to the attempt's own thread below, never swallowed
+                outcome.append((False, exc))
+
+        worker = threading.Thread(target=lookup, name="genesis-adapters-resolve", daemon=True)
+        worker.start()
+        worker.join(self._left())
+        if not outcome:
+            raise TimeoutError("deadline")
+        answered, value = outcome[0]
+        if not answered:
+            raise value
+        return value
+
     def _connect(self) -> socket.socket:
         """A connected socket: each resolved address is tried under the time that is left (``create_connection``
         would grant every address a fresh full timeout)."""
 
         host, port = self.address or (self.host, self.port)
         failure: OSError | None = None
-        for family, kind, proto, _canonical, target in socket.getaddrinfo(host, port, type=socket.SOCK_STREAM):
+        for family, kind, proto, _canonical, target in self._resolve(host, port):
             attempt = socket.socket(family, kind, proto)
             try:
                 attempt.settimeout(self._left())
@@ -243,30 +276,62 @@ def _reading_after(clock, earlier: str, budget_ms: int) -> str:
     return reading
 
 
-# Environment variables the interpreter's stock context would obey: ``SSL_CERT_FILE`` and ``SSL_CERT_DIR`` let the
-# ENVIRONMENT of the process choose which CAs the live transport trusts (a credential-theft primitive: whoever can set
-# them can impersonate the provider and read the keyed request line), and ``SSLKEYLOGFILE`` writes the session's TLS
-# secrets to a file. None of them may reach the production context (hostile audit RA5-003).
-_ENVIRONMENT_OVERRIDES = ("SSL_CERT_FILE", "SSL_CERT_DIR", "SSLKEYLOGFILE")
+# The Windows certificate stores the interpreter's own stock context loads (``SSLContext._windows_cert_stores``).
+_WINDOWS_STORES = ("CA", "ROOT")
+
+
+def _load_windows_stores(context: ssl.SSLContext) -> None:
+    """The system certificate stores, exactly as the interpreter's stock context loads them (``ssl.enum_certificates``
+    is the public hook; a store that cannot be read, or a certificate in it that cannot be loaded, is a warning and a
+    smaller trust set - fail closed - never an exception)."""
+
+    for store in _WINDOWS_STORES:
+        try:
+            certificates = ssl.enum_certificates(store)
+            for certificate, encoding, trust in certificates:
+                if encoding == "x509_asn" and (trust is True or ssl.Purpose.SERVER_AUTH.oid in trust):
+                    try:
+                        context.load_verify_locations(cadata=certificate)
+                    except ssl.SSLError as exc:
+                        warnings.warn(f"Bad certificate in Windows certificate store: {exc.args[1]}")
+        except PermissionError:
+            warnings.warn("unable to enumerate Windows certificate store")
 
 
 def tls_context() -> ssl.SSLContext:
-    """The platform's system trust store with hostname verification, and nothing the environment adds.
+    """The platform's system trust store with certificate and host-name verification, a TLS 1.2 floor, and nothing the
+    environment adds - built without reading or writing the process environment.
 
-    The context is the interpreter's stock one (the Windows certificate stores, or the compiled-in OpenSSL
-    locations) built while the variables in ``_ENVIRONMENT_OVERRIDES`` are hidden from it, so legitimate platform
-    trust is kept and an environment-chosen CA or key-log file is not. Production never takes any other CA: tests
-    inject their own context explicitly. The variables are restored before this returns, also on failure (the live
-    runner is single-threaded, and the window is the context construction only)."""
+    Hostile audits RA5-003 and RA6-003. ``ssl.create_default_context()`` obeys ``SSL_CERT_FILE`` / ``SSL_CERT_DIR`` (an
+    environment-chosen CA is a credential-theft primitive: whoever can set one can impersonate the provider and read the
+    keyed request line) and ``SSLKEYLOGFILE`` (it writes the session's TLS secrets to a file). Hiding them by editing
+    ``os.environ`` while the stock context is built was correct for one thread and wrong for two: a race that raised
+    ``KeyError``, trusted an environment CA in about 1% of concurrent contexts and made every other thread's environment
+    flicker. Here nothing is hidden because nothing is consulted: the context is built from scratch, the trust is
+    loaded from the platform's COMPILED-IN locations (``openssl_cafile`` / ``openssl_capath``, which no variable can
+    redirect) and, on Windows, from the system stores, and the properties the stock factory would have set are stated
+    here. A context therefore depends on no process-global state and is the same whatever other threads do. Production
+    never takes any other CA: tests inject their own context explicitly.
 
-    hidden = {name: os.environ.pop(name) for name in _ENVIRONMENT_OVERRIDES if name in os.environ}
-    try:
-        context = ssl.create_default_context()
-    finally:
-        os.environ.update(hidden)
-    context.keylog_filename = None
-    context.check_hostname = True
+    What the stock factory adds that is kept: certificate verification and host-name checking (stated), the strict and
+    partial-chain verification flags it sets from Python 3.13 (the same flags, on the interpreter that sets them), and the
+    interpreter's own options. What is stated that it left to the build: the floor, TLS 1.2, which an environment
+    ``OPENSSL_CONF`` can no longer lower on a build whose stock floor is the library minimum."""
+
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
     context.verify_mode = ssl.CERT_REQUIRED
+    context.check_hostname = True
+    context.keylog_filename = None
+    if sys.version_info >= (3, 13):                         # what ``create_default_context`` sets from 3.13
+        context.verify_flags |= ssl.VERIFY_X509_STRICT | ssl.VERIFY_X509_PARTIAL_CHAIN
+    if sys.platform == "win32":
+        _load_windows_stores(context)
+    paths = ssl.get_default_verify_paths()                  # ``openssl_*`` are compiled in; ``cafile``/``capath`` are not used
+    cafile = paths.openssl_cafile if paths.openssl_cafile and os.path.isfile(paths.openssl_cafile) else None
+    capath = paths.openssl_capath if paths.openssl_capath and os.path.isdir(paths.openssl_capath) else None
+    if cafile is not None or capath is not None:
+        context.load_verify_locations(cafile=cafile, capath=capath)
     return context
 
 

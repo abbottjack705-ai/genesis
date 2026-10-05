@@ -232,6 +232,7 @@ class ProductionContextConstructionTests(unittest.TestCase):
             with mock.patch.dict(os.environ, {"SSLKEYLOGFILE": str(log)}):
                 stock = ssl.create_default_context()                                  # control: the env IS obeyed
             self.assertEqual(stock.keylog_filename, str(log))
+            stock.keylog_filename = None                                               # release the file before the temp root is removed on Windows
 
     def test_the_transport_without_an_injected_context_uses_the_production_factory(self):
         sentinel = ssl.create_default_context()

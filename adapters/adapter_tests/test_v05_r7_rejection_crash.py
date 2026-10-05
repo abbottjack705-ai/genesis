@@ -108,11 +108,12 @@ class Flow:
 
     KINDS = ("live-newest", "g2r-newest", "g2r-older")
 
-    def __init__(self, root, kind: str):
+    def __init__(self, root, kind: str, *, later_poisoned: bool = False):
         self.kind = kind
         self.aid = attempt("w2")
         self.clock = FixedClock(START, step_micros=1000)
-        script = [odds_response(), ok(poisoned_body(), headers=JSON)] + ([odds_response()] if kind == "g2r-older" else [])
+        later = ([ok(poisoned_body(), headers=JSON)] if later_poisoned else [odds_response()])
+        script = [odds_response(), ok(poisoned_body(), headers=JSON)] + (later if kind == "g2r-older" else [])
         self.rt = open_rt(root, clock=self.clock, script=script)
         self.rt.acquire(odds_item("w1"))
         approve(self.rt)
@@ -448,6 +449,43 @@ class EveryOlderVerdictIsSettledTests(unittest.TestCase):
             rt.runner.settle_last()
             self.assertEqual(durable_bytes(rt), before)
             self.assertEqual([r for r in acquisition_rows(rt) if r["record_type"] == "acq_circuit_opened"], circuits)
+
+    def test_older_unsettled_verdict_is_recovered_when_the_later_verdict_is_already_settled(self):
+        """The newest planned attempt can be fully settled while an older verdict still lacks its side effect.
+
+        This is the historical R6 failure shape: ``settle_last`` selected the newest planned attempt, saw no work (or
+        already-present coverage) for it, and never visited the older rejection whose coverage append had failed.
+        """
+
+        from genesis_adapters.errors import AdapterFailure
+
+        with scratch_root() as root:
+            flow = Flow(root, "g2r-older", later_poisoned=True)
+            later_aid = attempt("w3")
+            failure = AdapterFailure.ENVELOPE_SCHEMA_MISMATCH
+
+            with COVERAGE_IO_ERROR.armed(flow.aid) as state, self.assertRaises(OSError):
+                flow.rt.runner.reject_derivation(flow.aid, failure, flow.rt.config.derivation_version)
+            self.assertEqual(state["fired"], 1)
+            self.assertEqual(len(rejection_rows(flow.rt, flow.aid)), 1)
+            self.assertEqual(coverage_for(flow.rt, flow.aid), [])
+
+            # A later terminal verdict is then fully settled. Recovery must still find the older gap instead of
+            # treating the later row as evidence that settlement is complete.
+            flow.rt.normalize(later_aid)
+            self.assertEqual(len(rejection_rows(flow.rt, later_aid)), 1)
+            later_coverage = coverage_for(flow.rt, later_aid)
+            self.assertEqual(len(later_coverage), 1)
+            ordered = [row for row in acquisition_rows(flow.rt) if row["record_type"] == "acq_derivation_rejected"]
+            self.assertEqual([row["acquisition_id"] for row in ordered], [flow.aid, later_aid])
+            self.assertIn(GAP, quiescence.pending_work(flow.rt.stores))
+            settled_later_bytes = (flow.rt.root / "coverage.jsonl").read_bytes()
+
+            flow.rt.runner.settle_pending()
+
+            self.assertEqual(len(coverage_for(flow.rt, flow.aid)), 1)
+            self.assertEqual(len(coverage_for(flow.rt, later_aid)), 1)
+            self.assertTrue((flow.rt.root / "coverage.jsonl").read_bytes().startswith(settled_later_bytes))
 
 
 if __name__ == "__main__":

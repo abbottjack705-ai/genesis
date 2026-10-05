@@ -36,12 +36,14 @@ class StalledResolver:
 
     def __init__(self, answer=None, *, error=None):
         self.release = threading.Event()
+        self.entered = threading.Event()
         self.calls = []
         self.finished = []
         self.answer, self.error = answer, error
 
     def __call__(self, host, port, *args, **kwargs):
         self.calls.append((host, port, args, kwargs, threading.current_thread().name))
+        self.entered.set()
         self.release.wait(STALL_S)
         self.finished.append(True)
         if self.error is not None:
@@ -119,6 +121,7 @@ class ResolutionIsBoundedByTheDeadlineTests(unittest.TestCase):
         time.sleep(0.1)
         with self.assertRaises(TimeoutError):
             conn._resolve("api.oddspapi.io", 443)
+        self.assertFalse(resolver.entered.wait(0.2), "the expired lookup reached the resolver")
         self.assertEqual(resolver.calls, [])
 
     def test_the_lookup_is_joined_with_exactly_the_time_that_is_left_no_spare_second(self):

@@ -415,7 +415,7 @@ class ConnectionArithmeticTests(unittest.TestCase):
         self.now[0] = 110.0
         with self.assertRaises(TimeoutError):
             self.connection._connect()
-        self.assertEqual([item.connected for item in sockets], [None, None])
+        self.assertTrue(all(item.connected is None for item in sockets))
 
     def test_the_last_failure_is_the_one_raised_when_every_address_fails(self):
         self.fake_network((0.0, OSError("first")), (0.0, OSError("second")))

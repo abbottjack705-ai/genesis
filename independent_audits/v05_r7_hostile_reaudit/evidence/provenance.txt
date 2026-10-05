@@ -1,0 +1,8 @@
+test_frz03_frozen_worktree_is_clean_after_the_suite (adapter_tests.test_v05_zz_final_provenance.FinalProvenanceTests.test_frz03_frozen_worktree_is_clean_after_the_suite) ... ok
+test_frz09_every_loaded_genesis_module_matches_the_frozen_manifest (adapter_tests.test_v05_zz_final_provenance.FinalProvenanceTests.test_frz09_every_loaded_genesis_module_matches_the_frozen_manifest) ... ok
+test_no_test_contacted_a_non_loopback_address (adapter_tests.test_v05_zz_final_provenance.FinalProvenanceTests.test_no_test_contacted_a_non_loopback_address) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.308s
+
+OK

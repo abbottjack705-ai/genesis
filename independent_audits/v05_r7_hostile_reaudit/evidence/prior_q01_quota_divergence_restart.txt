@@ -1,0 +1,72 @@
+Traceback (most recent call last):
+x-requests-used='99999'
+    a_acquire = AcquisitionHalt(QUOTA_DIVERGENCE)
+    a_halts = ['QUOTA_DIVERGENCE']
+    a_new_pit_records_from_w2 = 0
+    a_pending_work = []
+    a_reader = UsableBook:
+    b_new_pit_records_from_w2_after_restart = 0
+    b_w2_state = COMPLETED
+    b_documents_from_w2 = 0
+    b_open_documents_from_w2 = 0
+    b_reader = UsableBook
+    b_halt_still_in_force = QUOTA_DIVERGENCE
+    => consistent
+x-requests-used='not a number'
+    a_acquire = AcquisitionHalt(QUOTA_DIVERGENCE)
+    a_halts = ['QUOTA_DIVERGENCE']
+    a_new_pit_records_from_w2 = 0
+    a_pending_work = []
+    a_reader = UsableBook:
+    b_new_pit_records_from_w2_after_restart = 0
+    b_w2_state = COMPLETED
+    b_documents_from_w2 = 0
+    b_open_documents_from_w2 = 0
+    b_reader = UsableBook
+    b_halt_still_in_force = QUOTA_DIVERGENCE
+    => consistent
+x-requests-used='1e5'
+    a_acquire = AcquisitionHalt(QUOTA_DIVERGENCE)
+    a_halts = ['QUOTA_DIVERGENCE']
+    a_new_pit_records_from_w2 = 0
+  File "C:\Users\abbot\fz\r7-audit\independent_audits\v05_r7_hostile_reaudit\probes\prior_q01_quota_divergence_restart.py", line 57, in <module>
+    a_pending_work = []
+    a_reader = UsableBook:
+    b_new_pit_records_from_w2_after_restart = 0
+    b_w2_state = COMPLETED
+    b_documents_from_w2 = 0
+    b_open_documents_from_w2 = 0
+    b_reader = UsableBook
+    b_halt_still_in_force = QUOTA_DIVERGENCE
+    => consistent
+x-requests-used='-5'
+    a_acquire = AcquisitionHalt(QUOTA_DIVERGENCE)
+    a_halts = ['QUOTA_DIVERGENCE']
+    a_new_pit_records_from_w2 = 0
+    a_pending_work = []
+    a_reader = UsableBook:
+    b_new_pit_records_from_w2_after_restart = 0
+    b_w2_state = COMPLETED
+    b_documents_from_w2 = 0
+    b_open_documents_from_w2 = 0
+    b_reader = UsableBook
+    b_halt_still_in_force = QUOTA_DIVERGENCE
+    => consistent
+x-requests-used='99,999'
+    a_acquire = AcquisitionHalt(QUOTA_DIVERGENCE)
+    a_halts = ['QUOTA_DIVERGENCE']
+    a_new_pit_records_from_w2 = 0
+    a_pending_work = []
+    a_reader = UsableBook:
+    b_new_pit_records_from_w2_after_restart = 0
+    b_w2_state = COMPLETED
+    b_documents_from_w2 = 0
+    b_open_documents_from_w2 = 0
+    b_reader = UsableBook
+    b_halt_still_in_force = QUOTA_DIVERGENCE
+    => consistent
+    print("x-requests-used=%r" % value[:20])
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 17-18: character maps to <undefined>

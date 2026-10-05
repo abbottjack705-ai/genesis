@@ -1,0 +1,6 @@
+acquire                                    returned
+rows                                       ['acq_planned', 'acq_quota_decided', 'acq_sent', 'acq_completed', 'acq_quarantined', 'acq_sends_suspended']
+raw_evidence_published_but_unrecorded      True
+after_restart                              ['acq_quarantined', 'acq_sends_suspended']
+debits                                     1
+pit_rows                                   0

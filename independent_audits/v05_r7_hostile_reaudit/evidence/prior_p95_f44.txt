@@ -1,0 +1,10 @@
+exception                                  OSError:[Errno 28] No space left on device
+rows_after_failure                         ['acq_planned', 'acq_quota_decided', 'acq_sent']
+coverage_rows_after_failure                []
+sends                                      1
+after_restart_rows                         ['acq_planned', 'acq_quota_decided', 'acq_sent', 'acq_reconciled']
+after_restart_coverage                     [('missing', 'ORPHANED_RESERVATION')]
+resend_on_same_item                        ('REFUSED', 1)
+pit_rows                                   0
+quota_debits                               1
+completed_row_recorded_any_status_or_T1    False

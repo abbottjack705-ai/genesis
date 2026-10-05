@@ -1,0 +1,7 @@
+test_a_replay_and_a_rebuild_never_derive_the_divergent_response (adapter_tests.test_v05_r7_quota_divergence.TheHaltAndItsRecoveryTests.test_a_replay_and_a_rebuild_never_derive_the_divergent_response) ... ok
+test_pit09_rebuilding_into_empty_stores_gives_identical_artifacts_and_record_ids (adapter_tests.test_v05_pipeline.RebuildTests.test_pit09_rebuilding_into_empty_stores_gives_identical_artifacts_and_record_ids) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 16.242s
+
+OK

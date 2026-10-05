@@ -1,0 +1,4 @@
+12 sequential 20ms deadlines: total_s=0.375 max_one_s=0.035
+resolver_calls=12 live_abandoned_workers=12 socket_calls_before_release=0
+expired_deadline_resolver_calls=12
+live_workers_after_release=0 socket_calls_after_release=0

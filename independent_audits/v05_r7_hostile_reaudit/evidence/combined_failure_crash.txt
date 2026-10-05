@@ -1,0 +1,4 @@
+after durable verdict before effects: NOT_JSON {'genesis_debited': 1, 'header': 'x-requests-used', 'reported': None, 'window': 'utc_month'}
+restart 1: halts=['QUOTA_DIVERGENCE'] coverage=['NOT_JSON', 'QUOTA_DIVERGENCE'] documents=0
+restart 2: halts=['QUOTA_DIVERGENCE'] coverage=['NOT_JSON', 'QUOTA_DIVERGENCE'] documents=0
+restart 3: halts=['QUOTA_DIVERGENCE'] coverage=['NOT_JSON', 'QUOTA_DIVERGENCE'] documents=0

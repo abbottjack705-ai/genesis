@@ -1,0 +1,7 @@
+branch_pin=b2eabac1da9ed3989de966583a51d97b3834aa9c
+candidate_head=b2eabac1da9ed3989de966583a51d97b3834aa9c clean=True
+code_parent=be898d3865685ac0261cdb255008db902b030521 ancestry=True
+evidence_only_files=22
+frozen_trees=6/6 match freeze
+R7_manifest_entries=21 coverage_complete=True hashes_match=True
+audit_production_tests_unchanged=True

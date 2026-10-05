@@ -1,0 +1,12 @@
+ID,Severity,Classification,R7 verdict,Evidence,Reason
+RA6-001,MEDIUM,R6 defect,CLOSED,prior_a01_settle_gap.txt;targeted_r7.txt;independent_mutations.txt,Older unsettled rejection coverage is restored despite later settled verdict
+RA6-002,MEDIUM,inherited defect broadened by R6,CLOSED,prior_q01_quota_divergence_restart_utf8.txt;combined_failure_crash.txt;replay.txt,Divergent response yields no documents after repeated restarts and rebuild
+RA6-003,LOW,R6 defect,CLOSED,prior_tls_trust.txt;tls_concurrency.txt,Hostile environment CA and keylog do not alter production context
+RA6-004,LOW,R6 residual,CLOSED WITH RA7-001 RESIDUAL,dns_exhaustion.txt;dns_shutdown.txt,Caller obeys absolute deadline and late DNS starts no socket
+RA7-001,LOW,new R7 operational residual,OPEN,dns_exhaustion.txt,Blocked system resolver leaves one daemon worker per attempted lookup until resolver returns
+RA6-005,LOW,inherited architecture question,OPEN,V05_ADAPTER_ARCHITECTURE.md 13.3;adapters/README.md,Old derivation source root misclassified as tamper if reused
+RA6-006,INFO,architecture question,OPEN,V05_ADAPTER_ARCHITECTURE.md 13.3;derivation.py,Version-blind rejection prevents later reuse of a retained capture unless policy changes
+RA6-007,INFO,inherited replay validation,OPEN,R6 audit;acquisition.py,Known consequence is denial of capture rather than usable evidence
+RA6-008,INFO,inherited raw Date handling,OPEN,R6 audit;unchanged R7 capture code,Multiple Date occurrences remain outside R7 changes
+RA6-009,INFO,R6 test gap,CLOSED,targeted_r7.txt;independent_mutations.txt,Crash recovery tests kill the old R01b algorithm
+RA6-010,INFO,frozen foundation,OUT OF R7 SCOPE,integrity.txt;frozen_v04.txt,Byte-identical frozen trees and passing quiet Windows suite

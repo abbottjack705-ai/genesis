@@ -1,0 +1,12 @@
+pin b2eabac1da9ed3989de966583a51d97b3834aa9c
+NOOP A01 settle only first historical verdict SURVIVED one test passed
+NOOP A02 lose divergence on an independently malformed response SURVIVED one test passed
+NOOP A03 allow mismatched hostname SURVIVED one test passed
+NOOP A04 grant resolver extra 100ms past absolute deadline SURVIVED one test passed
+NOOP A05 hide conflicting rejection coverage from quiescence SURVIVED one test passed
+KILLED A01 settle only first historical verdict named target test_older_unsettled_verdict_is_recovered_when_the_later_verdict_is_already_settled failed
+KILLED A02 lose divergence on an independently malformed response named target test_a_response_that_failed_for_another_reason_keeps_that_reason_and_still_halts failed
+KILLED A03 allow mismatched hostname named target test_verification_and_host_name_checking_are_still_required failed
+KILLED A04 grant resolver extra 100ms past absolute deadline named target test_the_lookup_is_joined_with_exactly_the_time_that_is_left_no_spare_second failed
+KILLED A05 hide conflicting rejection coverage from quiescence named target test_an_entry_with_the_intended_id_but_other_content_refuses_every_start failed
+summary 5/5 killed; 0 survivors/harness issues

@@ -1,0 +1,19 @@
+Traceback (most recent call last):
+  File "C:\Users\abbot\fz\r7-audit\independent_audits\v05_r7_hostile_reaudit\probes\prior_p80_provenance.py", line 34, in <module>
+    R["0_control_clean_copy"] = run_guard(fresh("clean"))
+                                ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\fz\r7-audit\independent_audits\v05_r7_hostile_reaudit\probes\prior_p80_provenance.py", line 25, in run_guard
+    env["PYTHONPYCACHEPREFIX"] = subprocess.check_output(["mktemp", "-d"]).decode().strip()
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 466, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 548, in run
+    with Popen(*popenargs, **kwargs) as process:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "C:\Users\abbot\AppData\Local\Programs\Python\Python312\Lib\subprocess.py", line 1538, in _execute_child
+    hp, ht, pid, tid = _winapi.CreateProcess(executable, args,
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [WinError 2] The system cannot find the file specified

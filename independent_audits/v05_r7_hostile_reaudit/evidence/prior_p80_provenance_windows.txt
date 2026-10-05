@@ -1,0 +1,10 @@
+0_control_clean_copy                         PASS 13
+1_CRLF_one_frozen_module                     genesis_adapters.provenance_guard.ModuleProvenanceError: MODULE_HASH_MISMATCH: module bytes differ from the frozen blob
+2_extra_trailing_newline                     genesis_adapters.provenance_guard.ModuleProvenanceError: MODULE_HASH_MISMATCH: module bytes differ from the frozen blob
+3_same_length_byte_swap                      SyntaxError: invalid syntax
+4_unlisted_module_file_never_imported        PASS 13
+5_shadow_genesis_on_PYTHONPATH               genesis_adapters.provenance_guard.ModuleProvenanceError: COMPETING_GENESIS: a second genesis is importable
+6_pth_file_in_site                           PASS 13
+7_competing_genesis_lower_precedence         genesis_adapters.provenance_guard.ModuleProvenanceError: COMPETING_GENESIS: a second genesis is importable
+8_without_-B_stale_pyc_flag                  (covered by suite FRZ-09 pyc test; see cli startup)
+9_mtime_only_change_must_PASS                PASS 13

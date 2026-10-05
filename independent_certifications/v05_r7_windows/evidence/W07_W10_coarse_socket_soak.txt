@@ -1,0 +1,27 @@
+CASE body tick_ms 1 rep 0 elapsed_ms 1009.135 overshoot_ms 9.135 outcome TRUNCATED
+CASE body tick_ms 1 rep 1 elapsed_ms 1013.752 overshoot_ms 13.752 outcome TRUNCATED
+CASE body tick_ms 4 rep 0 elapsed_ms 997.67 overshoot_ms -2.33 outcome TRUNCATED
+CASE body tick_ms 4 rep 1 elapsed_ms 996.84 overshoot_ms -3.16 outcome TRUNCATED
+CASE body tick_ms 16 rep 0 elapsed_ms 1002.005 overshoot_ms 2.005 outcome TRUNCATED
+CASE body tick_ms 16 rep 1 elapsed_ms 1002.942 overshoot_ms 2.942 outcome TRUNCATED
+CASE headers tick_ms 1 rep 0 elapsed_ms 1013.651 overshoot_ms 13.651 outcome NO_RESPONSE
+CASE headers tick_ms 1 rep 1 elapsed_ms 999.827 overshoot_ms -0.173 outcome NO_RESPONSE
+CASE headers tick_ms 4 rep 0 elapsed_ms 1010.134 overshoot_ms 10.134 outcome NO_RESPONSE
+CASE headers tick_ms 4 rep 1 elapsed_ms 1016.724 overshoot_ms 16.724 outcome NO_RESPONSE
+CASE headers tick_ms 16 rep 0 elapsed_ms 1013.452 overshoot_ms 13.452 outcome NO_RESPONSE
+CASE headers tick_ms 16 rep 1 elapsed_ms 1017.596 overshoot_ms 17.596 outcome NO_RESPONSE
+CASE handshake tick_ms 1 rep 0 elapsed_ms 1005.888 overshoot_ms 5.888 outcome NO_RESPONSE
+CASE handshake tick_ms 1 rep 1 elapsed_ms 1006.54 overshoot_ms 6.54 outcome NO_RESPONSE
+CASE handshake tick_ms 4 rep 0 elapsed_ms 1013.461 overshoot_ms 13.461 outcome NO_RESPONSE
+CASE handshake tick_ms 4 rep 1 elapsed_ms 1007.592 overshoot_ms 7.592 outcome NO_RESPONSE
+CASE handshake tick_ms 16 rep 0 elapsed_ms 1005.799 overshoot_ms 5.799 outcome NO_RESPONSE
+CASE handshake tick_ms 16 rep 1 elapsed_ms 997.78 overshoot_ms -2.22 outcome NO_RESPONSE
+DISTRIBUTION ('body', 1) min_ms 9.135 median_ms 11.444 max_ms 13.752
+DISTRIBUTION ('body', 4) min_ms -3.16 median_ms -2.745 max_ms -2.33
+DISTRIBUTION ('body', 16) min_ms 2.005 median_ms 2.474 max_ms 2.942
+DISTRIBUTION ('headers', 1) min_ms -0.173 median_ms 6.739 max_ms 13.651
+DISTRIBUTION ('headers', 4) min_ms 10.134 median_ms 13.429 max_ms 16.724
+DISTRIBUTION ('headers', 16) min_ms 13.452 median_ms 15.524 max_ms 17.596
+DISTRIBUTION ('handshake', 1) min_ms 5.888 median_ms 6.214 max_ms 6.54
+DISTRIBUTION ('handshake', 4) min_ms 7.592 median_ms 10.526 max_ms 13.461
+DISTRIBUTION ('handshake', 16) min_ms -2.22 median_ms 1.79 max_ms 5.799

@@ -1,0 +1,3 @@
+variant SSL_CERT_FILE canonical_present True attacker_trusted False ca_count 47 verify CERT_REQUIRED hostname True keylog None keylog_created False
+variant ssl_cert_file canonical_present True attacker_trusted False ca_count 47 verify CERT_REQUIRED hostname True keylog None keylog_created False
+variant SsL_CeRt_FiLe canonical_present True attacker_trusted False ca_count 47 verify CERT_REQUIRED hostname True keylog None keylog_created False

@@ -1,0 +1,4 @@
+contexts=80 workers=16 errors=0
+stock_ca_count=47 production_ca_count=47 parity=True
+hostname=True verify=CERT_REQUIRED floor=TLS1.2_or_higher keylog=None
+environment_unchanged=True keylog_file_absent=True

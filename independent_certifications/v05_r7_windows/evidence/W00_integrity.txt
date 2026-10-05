@@ -1,0 +1,17 @@
+candidate be898d3865685ac0261cdb255008db902b030521
+evidence b2eabac1da9ed3989de966583a51d97b3834aa9c
+audit 342d3e4a38634aad8abf7a93ff85f5ebf2012972
+evidence_parent be898d3865685ac0261cdb255008db902b030521
+audit_parent b2eabac1da9ed3989de966583a51d97b3834aa9c
+FROZEN src 51cb635bc42b993815b6c02a23c4c3ceb7d98476 MATCH True
+FROZEN tests e90b298180068fec03ba7e2fa81957082e7fb3ce MATCH True
+FROZEN config abd22db01ff482a8da84634ee740ba382b68c804 MATCH True
+FROZEN tools a0e3411edb4e068fd4708050516cb6870834e7ac MATCH True
+FROZEN DECISIONS cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64 MATCH True
+FROZEN v04_pack 3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12 MATCH True
+CODE_TEST_DIFF src EMPTY True
+CODE_TEST_DIFF tests EMPTY True
+CODE_TEST_DIFF adapters/src EMPTY True
+CODE_TEST_DIFF adapters/adapter_tests EMPTY True
+MANIFEST adapters/evidence/R7 listed 21 actual 21 coverage True wrong []
+MANIFEST independent_audits/v05_r7_hostile_reaudit listed 51 actual 51 coverage True wrong []

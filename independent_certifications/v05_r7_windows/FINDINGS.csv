@@ -1,0 +1,7 @@
+ID,Severity,Classification,Status,Item,Evidence,Description
+WC7-001,LOW,new test-fixture NTFS ACL failure,OPEN,W13,evidence/W13_pki_acl_corrected.txt,"Throwaway loopback leaf.key created with os.open mode 0600 inherited SYSTEM Administrators and OWNER RIGHTS ACLs; owner-only ACL requirement failed. Key was deleted; no real credential was involved."
+WC7-002,INFO,Windows Git deployment path limitation,OPEN,W8,evidence/W08_long_repo_checkout.txt; evidence/W08_long_clone_checkout.txt,"A 279-character linked worktree failed with GIT_DIR too big; a 285-character local clone was created but Git -C could not enter it (Filename too long), even with core.longpaths=true and LongPathsEnabled=1. Short deployment checkout path or an independently validated path strategy is required."
+RA7-001,LOW,known R7 operational residual,OPEN,W15,evidence/W15_real_dns_and_100_soak.txt,"One daemon resolver worker accumulated per 20 ms stalled lookup: 100 remained live for 15 seconds, then all exited after release. No late socket was opened."
+W1-PRIV,INFO,certification environment gap,OPEN,W1,evidence/W01_W02_W03_W08_ntfs.txt,"Current identity lacks real NTFS symlink privilege; os.symlink returned WinError 1314."
+W15-OS,INFO,protocol attribution limitation,REVIEWED,W15,evidence/W15_real_dns_and_100_soak.txt,"Actual randomized .invalid DNS lookups were measured, but no controlled DNS Client, LLMNR or NetBIOS stall was induced under this token."
+

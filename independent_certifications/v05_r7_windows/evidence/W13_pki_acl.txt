@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "C:\Users\abbot\a8\v05_prep\genesis_r7_windows_worktree\independent_certifications\v05_r7_windows\probes\pki_acl.py", line 11, in <module>
+    from adapter_tests import tls_support
+  File "C:\Users\abbot\a8\v05_prep\genesis_r7_candidate_lf\adapters\adapter_tests\__init__.py", line 28, in <module>
+    GUARD_VERDICT = _guard.verify_loaded_genesis_modules(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\abbot\a8\v05_prep\genesis_r7_candidate_lf\adapters\src\genesis_adapters\provenance_guard.py", line 170, in verify_loaded_genesis_modules
+    raise ModuleProvenanceError("BYTECODE_NOT_ISOLATED", "run with -B and PYTHONPYCACHEPREFIX")
+genesis_adapters.provenance_guard.ModuleProvenanceError: BYTECODE_NOT_ISOLATED: run with -B and PYTHONPYCACHEPREFIX

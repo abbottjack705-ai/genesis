@@ -1,0 +1,5 @@
+REAL_DNS [('TimeoutError', 44.297), ('gaierror', 22.784), ('gaierror', 30.668), ('gaierror', 41.194), ('gaierror', 30.725), ('gaierror', 38.225), ('gaierror', 21.152), ('TimeoutError', 56.824), ('gaierror', 54.638), ('gaierror', 16.834)]
+STALL_100 median_ms 30.209 max_ms 35.846 live 100 socket 0
+AFTER_15S live 100
+EXPIRED_DNS_COUNT 100
+AFTER_RELEASE live 0 socket 0 dns 100

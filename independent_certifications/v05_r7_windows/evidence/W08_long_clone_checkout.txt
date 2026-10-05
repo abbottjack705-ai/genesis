@@ -1,0 +1,1 @@
+fatal: cannot change to 'C:\Users\abbot\a8\v05_prep\rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\ssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt\candidate-clone': Filename too long

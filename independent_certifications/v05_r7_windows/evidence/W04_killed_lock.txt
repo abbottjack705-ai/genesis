@@ -1,0 +1,6 @@
+HOLDER_PID 4816 RUNTIME C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-lock-gjzlvh9x\runtime
+HOLDER_READY held
+CONTENTION REFUSED
+TASKKILL 0 SUCCESS: The process with PID 4816 has been terminated. 
+HOLDER_EXIT 1
+NEXT_PROCESS_ACQUIRED True

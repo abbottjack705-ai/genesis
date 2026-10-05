@@ -1,0 +1,33 @@
+
+Microsoft Windows [Version 10.0.26200.9457]
+Jack
+
+SystemManufacturer : LENOVO
+SystemProductName  : 20M5S09D00
+SystemFamily       : ThinkPad L380
+SystemVersion      : ThinkPad L380
+
+jack\abbot
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                          State   
+============================= ==================================== ========
+SeShutdownPrivilege           Shut down the system                 Disabled
+SeChangeNotifyPrivilege       Bypass traverse checking             Enabled 
+SeUndockPrivilege             Remove computer from docking station Disabled
+SeIncreaseWorkingSetPrivilege Increase a process working set       Disabled
+SeTimeZonePrivilege           Change the time zone                 Disabled
+
+Name      Status StartType
+----      ------ ---------
+Dnscache Running Automatic
+W32Time  Running Automatic
+ -V:3.12 *        C:\Users\abbot\AppData\Local\Programs\Python\Python312\python.exe
+file:C:/Users/abbot/a8/v05_prep/genesis_r7_windows_cert/.git/config	false
+
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem
+    LongPathsEnabled    REG_DWORD    0x1
+
+

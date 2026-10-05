@@ -1,0 +1,15 @@
+TEMP_KEY_PATH C:\Users\abbot\AppData\Local\Temp\genesis-adapter-tls-kyjylmo3\leaf.key
+KEY_FILE_EXISTS True
+MODE 0o666
+ICACLS_EXIT 0
+C:\Users\abbot\AppData\Local\Temp\genesis-adapter-tls-kyjylmo3\leaf.key NT AUTHORITY\SYSTEM:(I)(F)
+                                                                        BUILTIN\Administrators:(I)(F)
+                                                                        OWNER RIGHTS:(I)(F)
+
+Successfully processed 1 files; Failed processing 0 files
+
+
+OWNER_ONLY_ACL False
+PRINCIPALS ['builtin\\administrators', 'nt authority\\system', 'owner rights']
+SERVER_CONTEXT_LOADED CERT_NONE
+TEMP_KEY_REMOVED True

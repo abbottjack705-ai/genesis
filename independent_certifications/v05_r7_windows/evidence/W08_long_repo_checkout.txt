@@ -1,0 +1,2 @@
+Preparing worktree (detached HEAD be898d3)
+fatal: '$GIT_DIR' too big

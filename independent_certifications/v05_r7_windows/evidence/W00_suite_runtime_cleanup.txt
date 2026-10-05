@@ -1,0 +1,6 @@
+Before cleanup:
+?? work/
+C:\Users\abbot\a8\v05_prep\genesis_r7_candidate_lf\work\test_runtime\d243fabe51c64ef297a6fe8d62eb6a26\risk\strategy-output-bindings.jsonl 0
+C:\Users\abbot\a8\v05_prep\genesis_r7_candidate_lf\work\test_runtime\d243fabe51c64ef297a6fe8d62eb6a26\risk\strategy-output-bindings.jsonl.coordinator.sqlite3 0
+Removing only generated untracked work directory
+After cleanup:

@@ -26,6 +26,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import socket
 import ssl
 import subprocess
@@ -388,6 +389,59 @@ class PkiMinterTests(unittest.TestCase):
         self.addCleanup(server.close)
         self.assertEqual(send_through(test_ca_context(), server).outcome, "RESPONSE")
         self.assertEqual(send_through(th.tls_context(), server).sanitized_error["class"], "SSLCertVerificationError")
+
+
+@unittest.skipUnless(os.name == "nt", "NTFS ACLs are Windows-specific")
+class WindowsPkiAclTests(unittest.TestCase):
+    def test_directory_is_owner_only_before_key_creation_and_key_is_owner_only(self):
+        from genesis_adapters.credential import _windows_principals, _windows_user
+
+        owner = {_windows_user()}
+        real_open = tls_support.os.open
+        checked_key_creation = []
+
+        def open_after_acl(path, flags, mode=0o777):
+            if Path(path).name == "leaf.key":
+                self.assertEqual(_windows_principals(Path(path).parent), owner)
+                checked_key_creation.append(True)
+            return real_open(path, flags, mode)
+
+        with mock.patch.object(tls_support.os, "open", side_effect=open_after_acl):
+            pki = tls_support.new_pki(PINNED_HOST)
+        try:
+            self.assertEqual(checked_key_creation, [True])
+            self.assertEqual(_windows_principals(pki.key_file), owner)
+            self.assertIsInstance(pki.server_context(), ssl.SSLContext)
+        finally:
+            shutil.rmtree(pki.directory)
+        self.assertFalse(pki.key_file.exists())
+        self.assertFalse(pki.directory.exists())
+
+    def test_acl_failure_does_not_write_private_key_material(self):
+        real_mkdtemp = tls_support.tempfile.mkdtemp
+        real_secure = tls_support._secure_windows_acl
+        for fail_directory in (True, False):
+            with self.subTest(fail_directory=fail_directory):
+                created = []
+
+                def record_directory(*args, **kwargs):
+                    path = real_mkdtemp(*args, **kwargs)
+                    created.append(Path(path))
+                    return path
+
+                def fail_acl(path, *, directory):
+                    if directory == fail_directory:
+                        raise PermissionError("synthetic ACL failure")
+                    return real_secure(path, directory=directory)
+
+                with mock.patch.object(tls_support.tempfile, "mkdtemp", side_effect=record_directory), \
+                        mock.patch.object(tls_support, "_secure_windows_acl", side_effect=fail_acl), \
+                        mock.patch.object(tls_support.Leaf, "key_pem", new_callable=mock.PropertyMock) as key_pem:
+                    with self.assertRaisesRegex(PermissionError, "synthetic ACL failure"):
+                        tls_support.new_pki(PINNED_HOST)
+                    key_pem.assert_not_called()
+                self.assertEqual(len(created), 1)
+                self.assertFalse(created[0].exists())
 
 
 if __name__ == "__main__":

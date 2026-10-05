@@ -20,6 +20,7 @@ import os
 import secrets
 import shutil
 import ssl
+import subprocess
 import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -261,6 +262,45 @@ def issue_leaf(authority: Authority, hostname: str, *, valid_days: int = 1, now:
 _TEMP_DIRECTORIES: list[Path] = []
 
 
+def _secure_windows_acl(path: Path, *, directory: bool) -> None:
+    """Give only the runner access before a temporary private key is written.
+
+    Windows does not translate ``mkdir(0700)`` or ``open(0600)`` into an
+    owner-only NTFS DACL. In particular, ``mkdtemp`` can give its new directory
+    explicit SYSTEM, Administrators and OWNER RIGHTS entries even when its
+    parent is owner-only. The directory is empty when this is first called;
+    the second call checks the still-empty key file before its PEM is written.
+    """
+
+    user = subprocess.run(["whoami"], capture_output=True, text=True, check=False)
+    if user.returncode or not user.stdout.strip():
+        raise PermissionError("cannot identify the throwaway PKI owner")
+    owner = user.stdout.strip()
+
+    def icacls(*arguments: str) -> str:
+        result = subprocess.run(["icacls", str(path), *arguments], capture_output=True, text=True, check=False)
+        if result.returncode:
+            raise PermissionError("cannot secure the throwaway PKI path")
+        return result.stdout
+
+    icacls("/inheritance:r")
+    grant = f"{owner}:(OI)(CI)F" if directory else f"{owner}:F"
+    icacls("/grant:r", grant)
+    for sid in ("*S-1-5-18", "*S-1-5-32-544", "*S-1-3-4"):
+        icacls("/remove", sid)  # SYSTEM, Administrators, OWNER RIGHTS
+
+    listing = icacls()
+    aces = []
+    for number, line in enumerate(listing.splitlines()):
+        entry = line[len(str(path)):] if number == 0 else line
+        entry = entry.strip()
+        if ":(" in entry:
+            aces.append((entry.split(":(", 1)[0].lower(), entry))
+    if not aces or {principal for principal, _ in aces} != {owner.lower()} or any(
+            "(F)" not in entry or "(DENY)" in entry for _, entry in aces):
+        raise PermissionError("throwaway PKI path is not owner-only")
+
+
 def _remove_temporary_directories() -> None:
     for path in _TEMP_DIRECTORIES:
         shutil.rmtree(path, ignore_errors=True)
@@ -314,13 +354,27 @@ class Pki:
 def new_pki(hostname: str, *, authority_name: str = "Genesis TEST-ONLY throwaway CA",
             permitted_dns: tuple[str, ...] | None = None) -> Pki:
     directory = Path(tempfile.mkdtemp(prefix="genesis-adapter-tls-"))
-    _TEMP_DIRECTORIES.append(directory)
-    authority = new_authority(authority_name, permitted_dns=permitted_dns)
-    leaf = issue_leaf(authority, hostname)
-    (directory / "ca.pem").write_text(authority.cert_pem, encoding="ascii")
-    (directory / "leaf.pem").write_text(leaf.cert_pem, encoding="ascii")
-    key_path = directory / "leaf.key"
-    descriptor = os.open(key_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(descriptor, "w", encoding="ascii") as handle:
-        handle.write(leaf.key_pem)
-    return Pki(authority, leaf, hostname, directory)
+    try:
+        if os.name == "nt":
+            _secure_windows_acl(directory, directory=True)
+        authority = new_authority(authority_name, permitted_dns=permitted_dns)
+        leaf = issue_leaf(authority, hostname)
+        (directory / "ca.pem").write_text(authority.cert_pem, encoding="ascii")
+        (directory / "leaf.pem").write_text(leaf.cert_pem, encoding="ascii")
+        key_path = directory / "leaf.key"
+        descriptor = os.open(key_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        try:
+            if os.name == "nt":
+                _secure_windows_acl(key_path, directory=False)
+            with os.fdopen(descriptor, "w", encoding="ascii") as handle:
+                descriptor = -1
+                handle.write(leaf.key_pem)
+        finally:
+            if descriptor != -1:
+                os.close(descriptor)
+        pki = Pki(authority, leaf, hostname, directory)
+        _TEMP_DIRECTORIES.append(directory)
+        return pki
+    except BaseException:
+        shutil.rmtree(directory, ignore_errors=True)
+        raise

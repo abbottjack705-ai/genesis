@@ -1,0 +1,8 @@
+# R7 interpreter matrix
+# Host: Windows 11-10.0.26200-SP0
+# Python launcher discovery: py -0p
+# Result: only CPython 3.12.10 is installed/available (C:\Users\abbot\AppData\Local\Programs\Python\Python312\python.exe)
+# Complete adapter suite on 3.12.10: 917 tests, OK, skipped=2 (FULL_ADAPTER.txt)
+# CPython 3.11: unavailable on this host; not run
+# CPython 3.13: unavailable on this host; not run
+# This is not the Windows W1-W15 certification; status remains OPEN (WINDOWS_RECERTIFICATION.md).

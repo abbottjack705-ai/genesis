@@ -1,0 +1,5 @@
+# R7 RED evidence: historical settlement mutant R01b
+
+R01b restores the exact historical R6 behavior: remember only the acquisition ID from the last `acq_planned` row and call `settle(last)`. The R7 regression `EveryOlderVerdictIsSettledTests.test_older_unsettled_verdict_is_recovered_when_the_later_verdict_is_already_settled` builds two unsettled verdicts, leaves the older w2 rejection without coverage, settles the later w3 rejection completely, and then requires recovery to find the older gap. With R01b applied, the named test ran and failed; the mutation harness records it as `KILLED` only after observing that exact test method in unittest's failure output.
+
+The full focused campaign result and exact mutant-to-regression map are in `MUTATION.txt`; the restoring harness is `scripts/mutation_campaign.py`. Each mutation restores source bytes in a `finally` block. The production source files match checkpoint `c38df0f` byte-for-byte after the campaign. This is mutant-based RED evidence against the historical algorithm, not a claim that the regression fails against the R7 candidate.

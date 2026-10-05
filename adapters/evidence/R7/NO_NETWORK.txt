@@ -1,0 +1,5 @@
+# R7 network validation
+# source: complete adapter suite; audit hook installed at adapter_tests package import
+# the suite's final test asserts NON_LOOPBACK_ATTEMPTS == [] after every test has run
+# final sentinel observed: PASS
+# provider calls / credentials: none; loopback tests only

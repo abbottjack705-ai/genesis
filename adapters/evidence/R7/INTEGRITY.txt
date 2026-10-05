@@ -1,0 +1,21 @@
+# R7 integrity validation
+# branch: ccr-f8478091-s6i6d1
+# HEAD: be898d3865685ac0261cdb255008db902b030521
+# frozen tree object IDs:
+src        51cb635bc42b993815b6c02a23c4c3ceb7d98476 PASS
+tests      e90b298180068fec03ba7e2fa81957082e7fb3ce PASS
+config     abd22db01ff482a8da84634ee740ba382b68c804 PASS
+tools      a0e3411edb4e068fd4708050516cb6870834e7ac PASS
+DECISIONS  cc97ec6f841f1e3fbe6dbb57c9cb6e1ac24fdb64 PASS
+v04_pack   3c3c1c27d80ed6f10c32ac6605a5f438b2e7de12 PASS
+# diff vs v0.4-foundation-freeze (must be empty):
+(empty)
+# worktree status for six frozen trees (must be empty):
+(empty)
+# git diff --check:
+(clean)
+# prior R7 source preserved: adapters/src/genesis_adapters/oddspapi/acquisition.py: PASS
+# prior R7 source preserved: adapters/src/genesis_adapters/oddspapi/derivation.py: PASS
+# prior R7 source preserved: adapters/src/genesis_adapters/oddspapi/quiescence.py: PASS
+# prior R7 source preserved: adapters/src/genesis_adapters/oddspapi/transport_http.py: PASS
+# result: PASS

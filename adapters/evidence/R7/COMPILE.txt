@@ -1,0 +1,4 @@
+# R7 compileall; 3.12.10 (C:\Users\abbot\AppData\Local\Programs\Python\Python312\python.exe)
+# duration_seconds: 2.291
+# exit_code: 0
+----

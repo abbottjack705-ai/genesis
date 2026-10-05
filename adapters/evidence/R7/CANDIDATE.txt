@@ -1,0 +1,13 @@
+# R7 candidate record
+
+Code/tests candidate commit: be898d3865685ac0261cdb255008db902b030521
+Evidence-only commit: this commit (its full SHA is the branch tip recorded in the delivery handoff; the evidence cannot contain its own commit hash)
+Evidence commit parent: be898d3865685ac0261cdb255008db902b030521
+Starting R7 checkpoint: c38df0f92715b07c7dce971f05740024a7359248
+Code/tests commit parent: c38df0f92715b07c7dce971f05740024a7359248
+Branch: ccr-f8478091-s6i6d1
+Remote: origin / https://github.com/abbottjack705-ai/genesis.git
+
+The R7 production implementation from the starting checkpoint is preserved. This code/tests commit adds the historical R01b older-unsettled-verdict regression and deterministic deadline test behavior, plus two Windows test-harness corrections discovered by the full suite. Validation transcripts and findings are in this evidence-only commit under `adapters/evidence/R7/`.
+
+Status: implementation candidate for fresh independent hostile audit; not self-certified. Windows W1-W15 certification remains OPEN. No merge, pull request, live provider call, credential use, or betting activation was performed.

@@ -1,0 +1,14 @@
+# R7 validation summary
+# Python: 3.12.10 (C:\Users\abbot\AppData\Local\Programs\Python\Python312\python.exe)
+# platform: Windows-11-10.0.26200-SP0
+# interpreter discovery: only the active CPython 3.12 installation is available via the Python launcher
+# targeted R7: PASS (57 tests)
+# replay: PASS (2 tests)
+# provenance: PASS (3 tests)
+# full adapter: PASS
+# no-network final sentinel: PASS
+# frozen V0.4: PASS (493 tests, skipped=1)
+# compileall: PASS
+# integrity: PASS
+# Windows-only certification: OPEN (this run is not the complete W1-W15 certification)
+# overall: PASS

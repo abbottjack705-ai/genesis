@@ -1,0 +1,8 @@
+# R7 diff and scope checks
+
+- `git diff --check` on the code/tests candidate commit: PASS.
+- `git diff --quiet c38df0f -- adapters/src/genesis_adapters/oddspapi/acquisition.py adapters/src/genesis_adapters/oddspapi/derivation.py adapters/src/genesis_adapters/oddspapi/quiescence.py adapters/src/genesis_adapters/oddspapi/transport_http.py`: PASS; the previously implemented R7 production fixes are unchanged.
+- All changed test files are within `adapters/adapter_tests/`.
+- Evidence files are within `adapters/evidence/R7/`.
+- Frozen V0.4 tree IDs, worktree status, and diff against `v0.4-foundation-freeze`: PASS (`INTEGRITY.txt`).
+- `git diff --cached --check` on the evidence package: PASS before the evidence-only commit.

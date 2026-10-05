@@ -1,0 +1,16 @@
+# R7 GREEN evidence index
+
+All results are CPython 3.12.10 on Windows 11; see the raw transcripts for commands, elapsed time, skips, and unittest output.
+
+- Targeted R7 suite: 57 tests, OK — `TARGETED_R7.txt`.
+- Replay convergence: 2 tests, OK — `REPLAY.txt`.
+- Provenance and final sentinels: 3 tests, OK — `PROVENANCE.txt`.
+- Complete adapter suite: 917 tests, OK, 2 documented platform skips — `FULL_ADAPTER.txt`.
+- Frozen V0.4 suite: 493 tests, OK, 1 platform skip — `FROZEN.txt`.
+- Compileall: clean — `COMPILE.txt`.
+- Final suite network sentinel: PASS; loopback-only test activity, no provider calls or credentials — `NO_NETWORK.txt`.
+- Frozen tree and source integrity: PASS — `INTEGRITY.txt`.
+- Focused R7 mutation campaign: 16/16 killed, no survivor or harness/spec issue — `MUTATION.txt`.
+- Aggregated status: PASS, with Windows-only W1-W15 certification explicitly OPEN — `VALIDATION.txt`.
+
+The initial full-adapter run is preserved separately in `FULL_ADAPTER_INITIAL.txt`. It found two test harness portability issues; both were corrected without relaxing tested behavior, and the final complete suite passed.

@@ -1,0 +1,14 @@
+# R7 validation: REPLAY
+# command: C:\Users\abbot\AppData\Local\Programs\Python\Python312\python.exe -u -B -m unittest adapter_tests.test_v05_r7_quota_divergence.TheHaltAndItsRecoveryTests.test_a_replay_and_a_rebuild_never_derive_the_divergent_response adapter_tests.test_v05_pipeline.RebuildTests.test_pit09_rebuilding_into_empty_stores_gives_identical_artifacts_and_record_ids -v
+# python: 3.12.10
+# platform: Windows-11-10.0.26200-SP0
+# duration_seconds: 14.260
+# exit_code: 0
+----
+test_a_replay_and_a_rebuild_never_derive_the_divergent_response (adapter_tests.test_v05_r7_quota_divergence.TheHaltAndItsRecoveryTests.test_a_replay_and_a_rebuild_never_derive_the_divergent_response) ... ok
+test_pit09_rebuilding_into_empty_stores_gives_identical_artifacts_and_record_ids (adapter_tests.test_v05_pipeline.RebuildTests.test_pit09_rebuilding_into_empty_stores_gives_identical_artifacts_and_record_ids) ... ok
+
+----------------------------------------------------------------------
+Ran 2 tests in 12.792s
+
+OK

@@ -1,0 +1,6 @@
+test_f04_a_link_is_refused (adapter_tests.test_v05_credential.CredentialTests.test_f04_a_link_is_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.074s
+
+OK

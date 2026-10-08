@@ -1,0 +1,3 @@
+﻿W1 PASS: genuine NTFS symlink created and credential refused
+W5 PASS: synchronized Windows time source and healthy status
+W11 PASS: adapter 919 tests with only the Windows-inapplicable POSIX skip; frozen 493 with no skips

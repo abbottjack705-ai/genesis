@@ -1,0 +1,6 @@
+test_h3_directory_alias_is_the_same_owner_and_file_symlink_is_not (tests.test_astra_t5_hostile_preaudit.T5HostileOwnerTests.test_h3_directory_alias_is_the_same_owner_and_file_symlink_is_not) ... ok
+
+----------------------------------------------------------------------
+Ran 1 test in 0.867s
+
+OK

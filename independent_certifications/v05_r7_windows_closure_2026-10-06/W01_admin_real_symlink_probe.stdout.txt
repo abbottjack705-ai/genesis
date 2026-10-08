@@ -1,0 +1,92 @@
+TEMP_ROOT C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2 USER jack\abbot
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\synthetic.key /inheritance:r /grant:r jack\abbot:F EXIT 0
+processed file: C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\synthetic.key
+Successfully processed 1 files; Failed processing 0 files
+
+CASE plain_allowed PATH_LENGTH 85 EXPECTED LOADED ACTUAL LOADED MATCH True
+W1_REAL_SYMLINK CREATED is_symlink True
+CASE real_symlink_refused PATH_LENGTH 88 EXPECTED CREDENTIAL_PERMISSIONS ACTUAL CREDENTIAL_PERMISSIONS MATCH True
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\repo\inside\synthetic.key /inheritance:r /grant:r jack\abbot:F EXIT 0
+processed file: C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\repo\inside\synthetic.key
+Successfully processed 1 files; Failed processing 0 files
+
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\runtime\synthetic.key /inheritance:r /grant:r jack\abbot:F EXIT 0
+processed file: C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\runtime\synthetic.key
+Successfully processed 1 files; Failed processing 0 files
+
+COMMAND cmd /c mklink /J C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\j-allowed C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside EXIT 0
+Junction created for C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\j-allowed <<===>> C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside
+
+COMMAND cmd /c mklink /J C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\j-repo C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\repo\inside EXIT 0
+Junction created for C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\j-repo <<===>> C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\repo\inside
+
+COMMAND cmd /c mklink /J C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\j-runtime C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\runtime EXIT 0
+Junction created for C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\j-runtime <<===>> C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\runtime
+
+CASE junction_allowed PATH_LENGTH 87 EXPECTED LOADED ACTUAL LOADED MATCH True
+CASE junction_repository PATH_LENGTH 84 EXPECTED CREDENTIAL_PERMISSIONS ACTUAL CREDENTIAL_PERMISSIONS MATCH True
+CASE junction_runtime PATH_LENGTH 87 EXPECTED CREDENTIAL_PERMISSIONS ACTUAL CREDENTIAL_PERMISSIONS MATCH True
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key EXIT 0
+C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key NT AUTHORITY\SYSTEM:(I)(F)
+                                                                                      BUILTIN\Administrators:(I)(F)
+                                                                                      OWNER RIGHTS:(I)(F)
+
+Successfully processed 1 files; Failed processing 0 files
+
+W3_INHERITED_OUTCOME CREDENTIAL_PERMISSIONS
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key /inheritance:r /grant:r jack\abbot:F EXIT 0
+processed file: C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key
+Successfully processed 1 files; Failed processing 0 files
+
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key EXIT 0
+C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key JACK\abbot:(F)
+
+Successfully processed 1 files; Failed processing 0 files
+
+CASE private_owner PATH_LENGTH 85 EXPECTED LOADED ACTUAL LOADED MATCH True
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key /grant *S-1-5-32-545:R EXIT 0
+processed file: C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key
+Successfully processed 1 files; Failed processing 0 files
+
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key EXIT 0
+C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key BUILTIN\Users:(R)
+                                                                                      JACK\abbot:(F)
+
+Successfully processed 1 files; Failed processing 0 files
+
+CASE Users_readable PATH_LENGTH 85 EXPECTED CREDENTIAL_PERMISSIONS ACTUAL CREDENTIAL_PERMISSIONS MATCH True
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key /inheritance:r /grant:r jack\abbot:F EXIT 0
+processed file: C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key
+Successfully processed 1 files; Failed processing 0 files
+
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key /remove:g *S-1-5-32-545 EXIT 0
+processed file: C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key
+Successfully processed 1 files; Failed processing 0 files
+
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key /grant *S-1-5-32-544:R EXIT 0
+processed file: C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key
+Successfully processed 1 files; Failed processing 0 files
+
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key EXIT 0
+C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\outside\inherited.key BUILTIN\Administrators:(R)
+                                                                                      JACK\abbot:(F)
+
+Successfully processed 1 files; Failed processing 0 files
+
+CASE Administrators_readable PATH_LENGTH 85 EXPECTED CREDENTIAL_PERMISSIONS ACTUAL CREDENTIAL_PERMISSIONS MATCH True
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt\outside\synthetic.key /inheritance:r /grant:r jack\abbot:F EXIT 0
+processed file: C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt\outside\synthetic.key
+Successfully processed 1 files; Failed processing 0 files
+
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt\repo\synthetic.key /inheritance:r /grant:r jack\abbot:F EXIT 0
+processed file: C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt\repo\synthetic.key
+Successfully processed 1 files; Failed processing 0 files
+
+COMMAND icacls C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt\runtime\synthetic.key /inheritance:r /grant:r jack\abbot:F EXIT 0
+processed file: C:\Users\abbot\AppData\Local\Temp\genesis-r7-cert-ntfs-qcw_96r2\rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr\sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss\ttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt\runtime\synthetic.key
+Successfully processed 1 files; Failed processing 0 files
+
+CASE long_allowed PATH_LENGTH 313 EXPECTED LOADED ACTUAL LOADED MATCH True
+CASE long_repo_refused PATH_LENGTH 310 EXPECTED CREDENTIAL_PERMISSIONS ACTUAL CREDENTIAL_PERMISSIONS MATCH True
+CASE long_runtime_refused PATH_LENGTH 313 EXPECTED CREDENTIAL_PERMISSIONS ACTUAL CREDENTIAL_PERMISSIONS MATCH True
+W1_W2_W3_W8_PROBE_COMPLETE

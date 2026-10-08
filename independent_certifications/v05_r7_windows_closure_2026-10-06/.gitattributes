@@ -1,0 +1,3 @@
+# Byte evidence hashed in SHA256SUMS*.txt: store without end-of-line conversion
+# so Git blob, checkout and recorded SHA-256 values agree.
+* -text whitespace=-trailing-space

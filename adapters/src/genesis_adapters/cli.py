@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import threading
 from pathlib import Path
@@ -249,15 +250,47 @@ def time_sync_attestation() -> dict:
 
     if sys.platform == "win32":
         status = subprocess.run(["w32tm", "/query", "/status"], capture_output=True, text=True, check=False)
-        source = next((line.split(":", 1)[1].strip() for line in status.stdout.splitlines()
-                       if line.strip().lower().startswith("source:")), "")
-        synced = status.returncode == 0 and bool(source) and source.lower() not in (
-            "local cmos clock", "free-running system clock")
-        return {"synchronized": synced, "method": "w32tm", "source": source}
+        return windows_time_sync_attestation(status.returncode, status.stdout)
     status = subprocess.run(["timedatectl", "show", "-p", "NTPSynchronized", "--value"], capture_output=True,
                             text=True, check=False)
     return {"synchronized": status.returncode == 0 and status.stdout.strip() == "yes", "method": "timedatectl",
             "source": status.stdout.strip()}
+
+
+_W32TM_UNSYNCHRONIZED_SOURCES = ("local cmos clock", "free-running system clock")
+
+
+def windows_time_sync_attestation(returncode: int, stdout: str) -> dict:
+    """Design 6.1 Windows rule, ratified for WC7-003. Healthy only when ``w32tm /query /status`` exits 0, Leap
+    Indicator is exactly 0, Stratum is greater than 0, and Source is present and is neither Local CMOS Clock nor
+    Free-running System Clock. A required field that is missing, repeated or unparseable fails closed. The parsed
+    fields are kept as evidence for the decision; Last Successful Sync Time is recorded but not gated, because no
+    maximum age is approved."""
+
+    fields: dict[str, list[str]] = {}
+    for line in stdout.splitlines():
+        label, separator, value = line.partition(":")
+        if separator:
+            fields.setdefault(label.strip().lower(), []).append(value.strip())
+
+    def single(label: str) -> str | None:
+        values = fields.get(label, [])
+        return values[0] if len(values) == 1 else None      # missing or repeated: ambiguous, so unusable
+
+    leap = _w32tm_number(single("leap indicator"))
+    stratum = _w32tm_number(single("stratum"))
+    source = single("source") or ""
+    healthy = (returncode == 0 and leap == 0 and stratum is not None and stratum > 0 and bool(source)
+               and source.lower() not in _W32TM_UNSYNCHRONIZED_SOURCES)
+    return {"synchronized": healthy, "method": "w32tm", "source": source, "leap_indicator": leap,
+            "stratum": stratum, "last_successful_sync": single("last successful sync time")}
+
+
+def _w32tm_number(text: str | None) -> int | None:
+    """The leading integer of a value such as ``0 (unspecified)`` or ``3(not synchronized)``; None if malformed."""
+
+    match = re.match(r"(\d+)(?=\s|\(|$)", text or "")
+    return int(match.group(1)) if match else None
 
 
 def cmd_run(args) -> int:

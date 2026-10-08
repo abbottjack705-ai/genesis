@@ -329,9 +329,14 @@ Frozen observations that shape this design. None of them requires a reopen:
     `occurred_at` in the quota ledger and the last time in `acquisition.jsonl`. It must be
     ≥ both, otherwise `ClockFault`.
 - **Live mode only** (Stage 7+, after G2): at runner start, record an OS time-sync
-  attestation (Linux `timedatectl show -p NTPSynchronized --value` = `yes`; Windows
-  `w32tm /query /status` source ≠ `Local CMOS Clock`). Without it there is no live
-  acquisition.
+  attestation (Linux `timedatectl show -p NTPSynchronized --value` = `yes`; Windows: healthy only
+  when `w32tm /query /status` exits 0, Leap Indicator is exactly `0`, Stratum is greater than `0`,
+  and Source is present and is neither `Local CMOS Clock` nor `Free-running System Clock`).
+  Missing, repeated or unparseable required fields fail closed (`synchronized: false`). The
+  Windows rule was corrected under WC7-003 (ratified by the project owner): the earlier
+  "source ≠ `Local CMOS Clock`" rule admitted an unsynchronized host. Last Successful Sync Time
+  is recorded as evidence and is not gated, because no maximum age is approved. Without a
+  healthy attestation there is no live acquisition.
 - **Independent cross-check per response:** the HTTP `Date` header `Hd` (provider-controlled,
   1 s precision) must satisfy `|Hd − T1| ≤ clock_skew_max_seconds`. Otherwise the whole response is
   quarantined (`CLOCK_SKEW`). In live mode a missing or unparseable `Date` header also

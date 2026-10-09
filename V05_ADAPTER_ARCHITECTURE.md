@@ -333,8 +333,12 @@ Frozen observations that shape this design. None of them requires a reopen:
   when `w32tm /query /status` exits 0, Leap Indicator is exactly `0`, Stratum is 1 through 15 inclusive
   (RFC 5905 primary and secondary strata; 0, 16 and 17-255 fail closed), and Source is present and is
   neither `Local CMOS Clock` nor `Free-running System Clock`).
-  Missing, repeated or unparseable required fields fail closed (`synchronized: false`). The
-  Windows rule was corrected under WC7-003 (ratified by the project owner): the earlier
+  Missing, repeated or unparseable required fields fail closed (`synchronized: false`). A line
+  whose label, ignoring spaces, punctuation, control and non-ASCII characters, begins with a required
+  label is an attempt at it and is valid only when its label is exactly that label with a value;
+  any other attempt fails closed, while lines that merely contain these words are ignored. A
+  Stratum note that says not synchronized, unsynchronized or unspecified fails closed whatever its
+  ASCII spacing and case. The Windows rule was corrected under WC7-003 (ratified by the project owner): the earlier
   "source ≠ `Local CMOS Clock`" rule admitted an unsynchronized host. The owner later narrowed Stratum to 1-15 (RFC 5905 defines 16 as
   unsynchronized and 17-255 as reserved; the parser still reads any 0-255 value). Last Successful Sync Time
   is recorded as evidence and is not gated, because no maximum age is approved. Without a

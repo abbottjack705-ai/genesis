@@ -53,6 +53,9 @@ def w32tm_status(leap="0 (no warning)", stratum="3 (secondary reference - syncd 
     return "\n".join(body + list(extra)) + "\n"
 
 
+# The base status of Codex's R2 reproducers: otherwise healthy, with plain Leap Indicator and Stratum values.
+CODEX_BASE = "Leap Indicator: 0\nStratum: 3\nSource: time.windows.com,0x9\n"
+
 # Every malformed, contradictory or forbidden required-field case, and the captured unsynchronized host output. Each
 # must refuse, and none may reach the transport.
 MALFORMED_STATUS = {
@@ -75,6 +78,31 @@ MALFORMED_STATUS = {
     "stratum: beyond the 8-bit field": w32tm_status(stratum="256"),
     "stratum: contradictory note": w32tm_status(stratum="3 (unsynchronized)"),
     "stratum: contradictory duplicate": w32tm_status(extra=("Stratum: 0",)),
+    "stratum: contradictory note, two spaces (R2-001)": w32tm_status(stratum="3 (not  synchronized)"),
+    "stratum: contradictory note, three spaces": w32tm_status(stratum="3 (not   synchronized)"),
+    "stratum: contradictory note, no space": w32tm_status(stratum="3 (notsynchronized)"),
+    "stratum: contradictory note, space inside the word": w32tm_status(stratum="3 (not synchro nized)"),
+    "stratum: contradictory note, padded with spaces": w32tm_status(stratum="3 ( not  synchronized )"),
+    "stratum: contradictory note, upper case and spaces": w32tm_status(stratum="3 (NOT  SYNCHRONIZED)"),
+    "stratum: contradictory note, British spelling": w32tm_status(stratum="3 (not synchronised)"),
+    "stratum: unsynchronised with a space": w32tm_status(stratum="3 (un synchronised)"),
+    "stratum: unspecified with spaces": w32tm_status(stratum="3 (un  specified)"),
+    "stratum: tab inside a contradictory note": w32tm_status(stratum="3 (not\tsynchronized)"),
+    "stratum: two spaces before the note": w32tm_status(stratum="3  (not synchronized)"),
+    "R2-001 literal reproducer": CODEX_BASE.replace("Stratum: 3", "Stratum: 3 (not  synchronized)"),
+    "label: split Stratum beside a valid one (R2-002)": w32tm_status(extra=("Stra tum: 16",)),
+    "label: split Leap beside a valid one (R2-002)": w32tm_status(extra=("Le ap Indicator: 3",)),
+    "label: NUL inside Source beside a valid one (R2-002)": w32tm_status(extra=("Sou\x00rce: Local CMOS Clock",)),
+    "label: colon inside Stratum": w32tm_status(extra=("Stra:tum: 16",)),
+    "label: Stratum without a separator": w32tm_status(extra=("Stratum 16",)),
+    "label: zero-width space inside Stratum": w32tm_status(extra=("Strat​um: 16",)),
+    "label: no-break space inside Leap Indicator": w32tm_status(extra=("Leap Indicator: 3",)),
+    "label: carriage return inside Stratum": w32tm_status(extra=("Stra\rtum: 16",)),
+    "label: tab before the separator": w32tm_status(extra=("Source\t: Local CMOS Clock",)),
+    "label: Stratum with a trailing letter": w32tm_status(extra=("Stratumx: 16",)),
+    "R2-002 literal reproducer: split Stratum": CODEX_BASE + "Stra tum: 16\n",
+    "R2-002 literal reproducer: NUL inside Source": CODEX_BASE + "Sou\x00rce: Local CMOS Clock\n",
+    "R2-002 literal reproducer: split Leap": CODEX_BASE + "Le ap Indicator: 3\n",
     "source: double space": w32tm_status(source="Local  CMOS Clock"),
     "source: tab": w32tm_status(source="Local\tCMOS Clock"),
     "source: Unicode whitespace": w32tm_status(source="Local\u00a0CMOS\u2009Clock"),
@@ -325,6 +353,61 @@ class WindowsStratumRule(unittest.TestCase):
                 self.assertIs(self.attest(str(value))["synchronized"], 1 <= value <= 15)
 
 
+class WindowsContradictoryAnnotationsAndCorruptedLabels(unittest.TestCase):
+    """Codex R2-001 and R2-002: contradictory Stratum notes and corrupted required labels fail closed whatever their ASCII
+    spacing or case. Unrelated lines that merely contain the same words stay ignored, and benign notes stay healthy."""
+
+    def attest(self, stdout):
+        return cli.windows_time_sync_attestation(0, stdout)
+
+    def test_codex_r2_001_reproducer_is_refused(self):
+        result = self.attest(CODEX_BASE.replace("Stratum: 3", "Stratum: 3 (not  synchronized)"))
+        self.assertIs(result["synchronized"], False)
+        self.assertEqual(result["stratum"], 3)               # parsed as evidence; the health decision is what is refused
+
+    def test_contradictory_notes_are_refused_whatever_the_ascii_spacing_and_case(self):
+        for note in ("not  synchronized", "not   synchronized", "notsynchronized", "not synchro nized",
+                     " not  synchronized ", "NOT  SYNCHRONIZED", "not synchronised", "unsynchronised",
+                     "un synchronized", "un  specified", "UNSPECIFIED", "unspecified"):
+            with self.subTest(note=note):
+                self.assertIs(self.attest(w32tm_status(stratum=f"3 ({note})"))["synchronized"], False)
+
+    def test_malformed_note_spacing_is_refused_by_the_grammar(self):
+        for stratum in ("3 (not\tsynchronized)", "3  (not synchronized)", "3 (not synchronized", "3 (not synchronized))"):
+            with self.subTest(stratum=stratum):
+                self.assertIs(self.attest(w32tm_status(stratum=stratum))["synchronized"], False)
+
+    def test_benign_notes_with_extra_spaces_remain_healthy(self):
+        for stratum in ("1 (primary  reference - syncd by radio clock)", "3 (secondary  reference - syncd by (S)NTP)"):
+            with self.subTest(stratum=stratum):
+                self.assertIs(self.attest(w32tm_status(stratum=stratum))["synchronized"], True)
+
+    def test_corrupted_required_labels_beside_valid_fields_are_refused(self):
+        for extra in ("Stra tum: 16", "Le ap Indicator: 3", "Sou\x00rce: Local CMOS Clock", "Stra:tum: 16",
+                      "Stratum 16", "Leap Indicator 0", "Strat​um: 16", "Leap Indicator: 3",
+                      "Stra\rtum: 16", "Source\t: Local CMOS Clock", "Stratumx: 16", "Sourc e: x", "S\x00tratum: 16"):
+            with self.subTest(extra=extra):
+                self.assertIs(self.attest(w32tm_status(extra=(extra,)))["synchronized"], False)
+
+    def test_a_corrupted_required_label_alone_is_refused(self):
+        self.assertIs(self.attest(w32tm_status(omit=("Stratum",), extra=("Stra tum: 3",)))["synchronized"], False)
+        self.assertIs(self.attest(w32tm_status(omit=("Source",),
+                                               extra=("Sou\x00rce: time.windows.com,0x9",)))["synchronized"], False)
+
+    def test_unrelated_lines_that_merely_contain_the_words_are_ignored(self):
+        extra = ("Time Source: w32time", "Leap second count: 27", "Last sync source: GPS",
+                 "Local source of time: x", "ReferenceId: 0x0A0A0A0A (source IP:  10.10.10.10)")
+        result = self.attest(w32tm_status(extra=extra))
+        self.assertIs(result["synchronized"], True)
+        self.assertEqual(result["source"], "time.windows.com,0x9")
+
+    def test_lines_that_begin_with_a_required_label_word_fail_closed(self):
+        # Deliberate: a line that starts with a required label word is an attempt at that label, so it is never ignored.
+        for extra in ("Stratum limit: 5", "Source IP: 10.10.10.10", "Leap Indicators: 2"):
+            with self.subTest(extra=extra):
+                self.assertIs(self.attest(w32tm_status(extra=(extra,)))["synchronized"], False)
+
+
 class WindowsSourceValidation(unittest.TestCase):
     """Source is printable ASCII; the forbidden names compare after spacing, case and punctuation are removed."""
 
@@ -437,6 +520,17 @@ class MalformedWindowsStatusNeverReachesTheTransport(unittest.TestCase):
                     outcome = rt.runner.acquire(item)
                     self.assertIsNone(outcome.failure)
                     self.assertEqual(len(rt.runner.transport.calls), 1)
+
+
+    def test_unrelated_lines_do_not_block_a_healthy_status_in_either_mode(self):
+        attestation = self.startup_attestation(w32tm_status(extra=("Time Source: w32time", "Leap second count: 27")))
+        self.assertIs(attestation["synchronized"], True)
+        for mode in self.MODES:
+            with self.subTest(mode=mode), scratch_root() as root:
+                rt, item = self.runtime(root, mode, attestation)
+                outcome = rt.runner.acquire(item)
+                self.assertIsNone(outcome.failure)
+                self.assertEqual(len(rt.runner.transport.calls), 1)
 
 
 if __name__ == "__main__":

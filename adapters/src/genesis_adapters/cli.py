@@ -262,8 +262,9 @@ def time_sync_attestation() -> dict:
 # can hide one.
 _W32TM_UNSYNCHRONIZED_SOURCES = ("localcmosclock", "freerunningsystemclock")
 _W32TM_PRINTABLE = re.compile(r"[\x20-\x7e]+")
-# A note that contradicts a stratum above zero: the clock is not, or does not claim to be, synchronized.
-_W32TM_UNSYNCHRONIZED_NOTE = re.compile(r"not synchronized|unsynchronized|unspecified", re.IGNORECASE)
+# Words that say a Stratum is not, or does not claim to be, synchronized. They are searched for after ASCII spaces are
+# removed and case is folded, so spacing and case variants are caught. The note grammar below is unchanged.
+_W32TM_UNSYNCHRONIZED_WORDS = ("notsynchronized", "notsynchronised", "unsynchronized", "unsynchronised", "unspecified")
 # The English w32tm numeric fields, each with its NTP wire-format width: Leap Indicator is a 2-bit field (0-3) and
 # Stratum an 8-bit one (0-255). Each is an unsigned decimal with no sign and no leading zero, then optionally one
 # balanced parenthetical note with one level of nesting, as in ``(secondary reference - syncd by (S)NTP)``. Anything
@@ -271,10 +272,25 @@ _W32TM_UNSYNCHRONIZED_NOTE = re.compile(r"not synchronized|unsynchronized|unspec
 _W32TM_NOTE = r"(?: ?\((?P<note>(?:[\x20-\x27\x2a-\x7e]|\((?:[\x20-\x27\x2a-\x7e])*\))+)\))?"
 _W32TM_LEAP = re.compile(r"(?P<number>[0-3])" + _W32TM_NOTE)
 _W32TM_STRATUM = re.compile(r"(?P<number>0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5])" + _W32TM_NOTE)
-# Required labels, keyed by a stem that marks a line as one of them. A line whose label contains a stem must match its
-# label exactly (case aside); a near miss such as ``Leap\tIndicator`` is malformed and fails closed rather than ignored.
+# Labels keyed by field. A line is an attempt at a label when its letters and digits, with spaces, punctuation, control
+# and other characters removed, begin with that label's letters, so inserted corruption cannot hide it. An attempt is
+# valid only when its label is exactly the canonical label and a value follows; any other attempt is malformed and fails
+# closed. Lines that merely contain these words, such as ``Time Source``, are not attempts. Leap Indicator, Stratum and
+# Source gate the result; Last Successful Sync Time is evidence only.
 _W32TM_LABELS = {"leap": "leap indicator", "stratum": "stratum", "source": "source",
                  "successful sync": "last successful sync time"}
+
+
+def _w32tm_letters(text: str) -> str:
+    """Case-folded ASCII letters and digits only: spaces, punctuation, control and non-ASCII characters are dropped."""
+
+    return re.sub(r"[^a-z0-9]", "", text.casefold())
+
+
+def _claims_unsynchronized(note: str | None) -> bool:
+    """True when a Stratum note says the clock is not, or does not claim to be, synchronized, whatever its ASCII spacing."""
+
+    return any(word in (note or "").replace(" ", "").casefold() for word in _W32TM_UNSYNCHRONIZED_WORDS)
 
 
 def windows_time_sync_attestation(returncode: int, stdout: str) -> dict:
@@ -288,11 +304,13 @@ def windows_time_sync_attestation(returncode: int, stdout: str) -> dict:
 
     seen: dict[str, list[str | None]] = {stem: [] for stem in _W32TM_LABELS}
     for line in stdout.split("\n"):
-        parts = re.split(r"[:=]", line.rstrip("\r"), maxsplit=1)
+        text = line.rstrip("\r")
+        parts = re.split(r"[:=]", text, maxsplit=1)
         label = parts[0].strip(" ").casefold()
         value = parts[1].strip(" ") if len(parts) == 2 else None
+        letters = _w32tm_letters(text)
         for stem, exact in _W32TM_LABELS.items():
-            if stem in label:
+            if letters.startswith(_w32tm_letters(exact)):      # an attempt at this label, however it is corrupted
                 seen[stem].append(value if label == exact else None)
 
     def single(stem: str) -> str | None:
@@ -305,8 +323,7 @@ def windows_time_sync_attestation(returncode: int, stdout: str) -> dict:
     leap_ok = leap is not None and leap[0] == 0 and (leap[1] is None or leap[1].casefold() == "no warning")
     # RFC 5905 strata: 0 unspecified, 1 primary, 2-15 secondary, 16 unsynchronized, 17-255 reserved. Only 1-15 is
     # healthy. The grammar above reads any 8-bit value, so 0, 16 and 17-255 parse and then fail this check.
-    stratum_ok = (stratum is not None and 1 <= stratum[0] <= 15
-                  and not (stratum[1] and _W32TM_UNSYNCHRONIZED_NOTE.search(stratum[1])))
+    stratum_ok = stratum is not None and 1 <= stratum[0] <= 15 and not _claims_unsynchronized(stratum[1])
     source_ok = (bool(source) and _W32TM_PRINTABLE.fullmatch(source) is not None
                  and re.sub(r"[^a-z0-9]", "", source.casefold()) not in _W32TM_UNSYNCHRONIZED_SOURCES)
     healthy = returncode == 0 and leap_ok and stratum_ok and source_ok

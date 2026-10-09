@@ -262,8 +262,8 @@ def time_sync_attestation() -> dict:
 # can hide one.
 _W32TM_UNSYNCHRONIZED_SOURCES = ("localcmosclock", "freerunningsystemclock")
 _W32TM_PRINTABLE = re.compile(r"[\x20-\x7e]+")
-# Words that say a Stratum is not, or does not claim to be, synchronized. They are searched for after ASCII spaces are
-# removed and case is folded, so spacing and case variants are caught. The note grammar below is unchanged.
+# Words that say a Stratum is not, or does not claim to be, synchronized. They are searched for in the comparison form of
+# a note that has passed the strict grammar (see _claims_unsynchronized). The grammar itself is unchanged.
 _W32TM_UNSYNCHRONIZED_WORDS = ("notsynchronized", "notsynchronised", "unsynchronized", "unsynchronised", "unspecified")
 # The English w32tm numeric fields, each with its NTP wire-format width: Leap Indicator is a 2-bit field (0-3) and
 # Stratum an 8-bit one (0-255). Each is an unsigned decimal with no sign and no leading zero, then optionally one
@@ -288,9 +288,12 @@ def _w32tm_letters(text: str) -> str:
 
 
 def _claims_unsynchronized(note: str | None) -> bool:
-    """True when a Stratum note says the clock is not, or does not claim to be, synchronized, whatever its ASCII spacing."""
+    """True when a grammar-valid Stratum note says the clock is not, or does not claim to be, synchronized. The comparison
+    form is _w32tm_letters: ASCII case folded, with every non-alphanumeric character removed, so spacing, hyphens,
+    punctuation and parentheses cannot hide a word."""
 
-    return any(word in (note or "").replace(" ", "").casefold() for word in _W32TM_UNSYNCHRONIZED_WORDS)
+    comparison = _w32tm_letters(note or "")
+    return any(word in comparison for word in _W32TM_UNSYNCHRONIZED_WORDS)
 
 
 def windows_time_sync_attestation(returncode: int, stdout: str) -> dict:

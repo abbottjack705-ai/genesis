@@ -56,6 +56,29 @@ def w32tm_status(leap="0 (no warning)", stratum="3 (secondary reference - syncd 
 # The base status of Codex's R2 reproducers: otherwise healthy, with plain Leap Indicator and Stratum values.
 CODEX_BASE = "Leap Indicator: 0\nStratum: 3\nSource: time.windows.com,0x9\n"
 
+# R3-001: the contradiction phrases, with separators that the Stratum note grammar admits. Every generated note is
+# grammar-valid, so each one reaches the semantic check and must be refused.
+CONTRADICTION_PHRASES = (("not", "synchronized"), ("not", "synchronised"), ("un", "synchronized"),
+                         ("un", "synchronised"), ("un", "specified"))
+PLAIN_SEPARATORS = (" ", "  ", "   ", "-", " - ", ".", "/")
+WRAPPED_FORMS = ("{a} ({b})", "{a}({b})", "{a}/({b})", "({a}) {b}", "({a})({b})", "({a}) ({b})", "({a})-({b})")
+CASE_VARIANTS = ("UNSYNCHRONIZED", "Not Synchronized", "NOT-SYNCHRONISED", "Un-Specified", "un (SYNCHRONIZED)")
+
+
+def contradictory_notes():
+    """Grammar-valid Stratum notes that contain a contradiction phrase: each phrase is cut at every interior position and
+    joined by each representative separator, and also appears in parenthesised forms and case variants."""
+
+    notes = set(CASE_VARIANTS)
+    for first, second in CONTRADICTION_PHRASES:
+        phrase = first + second
+        for cut in range(1, len(phrase)):
+            for separator in PLAIN_SEPARATORS:
+                notes.add(phrase[:cut] + separator + phrase[cut:])
+        for form in WRAPPED_FORMS:
+            notes.add(form.format(a=first, b=second))
+    return sorted(notes)
+
 # Every malformed, contradictory or forbidden required-field case, and the captured unsynchronized host output. Each
 # must refuse, and none may reach the transport.
 MALFORMED_STATUS = {
@@ -103,6 +126,8 @@ MALFORMED_STATUS = {
     "R2-002 literal reproducer: split Stratum": CODEX_BASE + "Stra tum: 16\n",
     "R2-002 literal reproducer: NUL inside Source": CODEX_BASE + "Sou\x00rce: Local CMOS Clock\n",
     "R2-002 literal reproducer: split Leap": CODEX_BASE + "Le ap Indicator: 3\n",
+    "R3-001 literal reproducer: parenthesised": CODEX_BASE.replace("Stratum: 3", "Stratum: 3 (not (synchronized))"),
+    "R3-001 literal reproducer: hyphen": CODEX_BASE.replace("Stratum: 3", "Stratum: 3 (not-synchronized)"),
     "source: double space": w32tm_status(source="Local  CMOS Clock"),
     "source: tab": w32tm_status(source="Local\tCMOS Clock"),
     "source: Unicode whitespace": w32tm_status(source="Local\u00a0CMOS\u2009Clock"),
@@ -408,6 +433,41 @@ class WindowsContradictoryAnnotationsAndCorruptedLabels(unittest.TestCase):
                 self.assertIs(self.attest(w32tm_status(extra=(extra,)))["synchronized"], False)
 
 
+class WindowsStratumNoteComparisonForm(unittest.TestCase):
+    """R3-001: a grammar-valid Stratum note that contains a contradiction phrase is unhealthy, whatever separators,
+    parentheses or case it uses. The grammar is unchanged, so every generated note is accepted by it."""
+
+    def attest(self, stratum):
+        return cli.windows_time_sync_attestation(0, w32tm_status(stratum=stratum))
+
+    def test_every_generated_contradictory_note_is_grammar_valid_and_unhealthy(self):
+        notes = contradictory_notes()
+        self.assertGreater(len(notes), 400)               # a systematic set, not two examples
+        for note in notes:
+            with self.subTest(note=note):
+                result = self.attest(f"3 ({note})")
+                self.assertEqual(result["stratum"], 3)     # accepted by the grammar, so the semantic check decides
+                self.assertIs(result["synchronized"], False)
+
+    def test_r3_001_reproducers_are_unhealthy(self):
+        for note in ("not (synchronized)", "not-synchronized"):
+            with self.subTest(note=note):
+                result = self.attest(f"3 ({note})")
+                self.assertIs(result["synchronized"], False)
+                self.assertEqual(result["stratum"], 3)
+
+    def test_secondary_reference_note_remains_healthy(self):
+        result = self.attest("3 (secondary reference - syncd by (S)NTP)")
+        self.assertIs(result["synchronized"], True)
+        self.assertEqual(result["stratum"], 3)
+
+    def test_notes_that_only_share_words_with_the_phrases_stay_healthy(self):
+        for stratum in ("1 (primary reference - syncd by radio clock)", "3 (not a reference - syncd by (S)NTP)",
+                        "3 (synchronized - syncd by (S)NTP)", "2 (secondary reference - syncd by (S)NTP)"):
+            with self.subTest(stratum=stratum):
+                self.assertIs(self.attest(stratum)["synchronized"], True)
+
+
 class WindowsSourceValidation(unittest.TestCase):
     """Source is printable ASCII; the forbidden names compare after spacing, case and punctuation are removed."""
 
@@ -524,6 +584,35 @@ class MalformedWindowsStatusNeverReachesTheTransport(unittest.TestCase):
 
     def test_unrelated_lines_do_not_block_a_healthy_status_in_either_mode(self):
         attestation = self.startup_attestation(w32tm_status(extra=("Time Source: w32time", "Leap second count: 27")))
+        self.assertIs(attestation["synchronized"], True)
+        for mode in self.MODES:
+            with self.subTest(mode=mode), scratch_root() as root:
+                rt, item = self.runtime(root, mode, attestation)
+                outcome = rt.runner.acquire(item)
+                self.assertIsNone(outcome.failure)
+                self.assertEqual(len(rt.runner.transport.calls), 1)
+
+
+    def test_every_generated_contradictory_note_is_refused_before_any_send_in_each_mode(self):
+        for note in contradictory_notes():
+            attestation = self.startup_attestation(w32tm_status(stratum=f"3 ({note})"))
+            self.assertIs(attestation["synchronized"], False)
+            self.assertEqual(attestation["stratum"], 3)
+            for mode in self.MODES:
+                with self.subTest(note=note, mode=mode), scratch_root() as root:
+                    rt, item = self.runtime(root, mode, attestation)
+                    row = self.helper.refused(rt, item)           # REFUSED at the gate, with zero transport calls
+                    self.assertEqual(row["detail"], "TIME_SYNC_ATTESTATION")
+                if mode == auth.MODE_RECURRING:                   # G2R again through the AdapterRuntime.acquire wrapper
+                    with self.subTest(note=note, path="AdapterRuntime.acquire"), scratch_root() as root:
+                        rt, item = self.runtime(root, mode, attestation)   # a fresh root: a repeat would be DUPLICATE
+                        outcome = rt.acquire(item).outcome
+                        self.assertEqual(outcome.outcome, "REFUSED")
+                        self.assertIn("GATE_MISSING", str(outcome.failure))
+                        self.assertEqual(rt.runner.transport.calls, [])
+
+    def test_secondary_reference_note_sends_exactly_once_in_each_mode(self):
+        attestation = self.startup_attestation(w32tm_status(stratum="3 (secondary reference - syncd by (S)NTP)"))
         self.assertIs(attestation["synchronized"], True)
         for mode in self.MODES:
             with self.subTest(mode=mode), scratch_root() as root:

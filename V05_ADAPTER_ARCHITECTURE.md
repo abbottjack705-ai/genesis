@@ -337,8 +337,10 @@ Frozen observations that shape this design. None of them requires a reopen:
   whose label, ignoring spaces, punctuation, control and non-ASCII characters, begins with a required
   label is an attempt at it and is valid only when its label is exactly that label with a value;
   any other attempt fails closed, while lines that merely contain these words are ignored. A
-  Stratum note that says not synchronized, unsynchronized or unspecified fails closed whatever its
-  ASCII spacing and case. The Windows rule was corrected under WC7-003 (ratified by the project owner): the earlier
+  Stratum note that passes the strict note grammar fails closed if its comparison form (ASCII case
+  folded, every non-alphanumeric character removed) contains `notsynchronized`, `notsynchronised`,
+  `unsynchronized`, `unsynchronised` or `unspecified`, so hyphens, spacing, punctuation and
+  parentheses cannot hide the phrase. The grammar itself is unchanged. The Windows rule was corrected under WC7-003 (ratified by the project owner): the earlier
   "source ≠ `Local CMOS Clock`" rule admitted an unsynchronized host. The owner later narrowed Stratum to 1-15 (RFC 5905 defines 16 as
   unsynchronized and 17-255 as reserved; the parser still reads any 0-255 value). Last Successful Sync Time
   is recorded as evidence and is not gated, because no maximum age is approved. Without a

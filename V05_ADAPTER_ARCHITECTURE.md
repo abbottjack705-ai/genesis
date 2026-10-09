@@ -330,11 +330,13 @@ Frozen observations that shape this design. None of them requires a reopen:
     ≥ both, otherwise `ClockFault`.
 - **Live mode only** (Stage 7+, after G2): at runner start, record an OS time-sync
   attestation (Linux `timedatectl show -p NTPSynchronized --value` = `yes`; Windows: healthy only
-  when `w32tm /query /status` exits 0, Leap Indicator is exactly `0`, Stratum is greater than `0`,
-  and Source is present and is neither `Local CMOS Clock` nor `Free-running System Clock`).
+  when `w32tm /query /status` exits 0, Leap Indicator is exactly `0`, Stratum is 1 through 15 inclusive
+  (RFC 5905 primary and secondary strata; 0, 16 and 17-255 fail closed), and Source is present and is
+  neither `Local CMOS Clock` nor `Free-running System Clock`).
   Missing, repeated or unparseable required fields fail closed (`synchronized: false`). The
   Windows rule was corrected under WC7-003 (ratified by the project owner): the earlier
-  "source ≠ `Local CMOS Clock`" rule admitted an unsynchronized host. Last Successful Sync Time
+  "source ≠ `Local CMOS Clock`" rule admitted an unsynchronized host. The owner later narrowed Stratum to 1-15 (RFC 5905 defines 16 as
+  unsynchronized and 17-255 as reserved; the parser still reads any 0-255 value). Last Successful Sync Time
   is recorded as evidence and is not gated, because no maximum age is approved. Without a
   healthy attestation there is no live acquisition.
 - **Independent cross-check per response:** the HTTP `Date` header `Hd` (provider-controlled,

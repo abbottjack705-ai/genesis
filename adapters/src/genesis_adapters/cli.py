@@ -278,12 +278,13 @@ _W32TM_LABELS = {"leap": "leap indicator", "stratum": "stratum", "source": "sour
 
 
 def windows_time_sync_attestation(returncode: int, stdout: str) -> dict:
-    """Design 6.1 Windows rule, ratified for WC7-003. Healthy only when ``w32tm /query /status`` exits 0, Leap
-    Indicator is exactly 0 with no note or the note ``no warning``, Stratum is greater than 0 with no note that says it
-    is unsynchronized, and Source is printable ASCII and neither Local CMOS Clock nor Free-running System Clock in any
-    case or spacing. A required field that is missing, repeated, malformed or contradictory fails closed. The parsed
-    fields are kept as evidence for the decision; Last Successful Sync Time is recorded but not gated, because no
-    maximum age is approved."""
+    """Design 6.1 Windows rule, ratified for WC7-003 and narrowed by the project owner. Healthy only when
+    ``w32tm /query /status`` exits 0, Leap Indicator is exactly 0 with no note or the note ``no warning``, Stratum is
+    1 through 15 inclusive (RFC 5905 primary and secondary strata) with no note that says it is unsynchronized, and
+    Source is printable ASCII and neither Local CMOS Clock nor Free-running System Clock in any case or spacing. A
+    required field that is missing, repeated, malformed or contradictory fails closed. The parsed fields are kept as
+    evidence for the decision; Last Successful Sync Time is recorded but not gated, because no maximum age is
+    approved."""
 
     seen: dict[str, list[str | None]] = {stem: [] for stem in _W32TM_LABELS}
     for line in stdout.split("\n"):
@@ -302,7 +303,9 @@ def windows_time_sync_attestation(returncode: int, stdout: str) -> dict:
     stratum = _w32tm_numeric(_W32TM_STRATUM, single("stratum"))
     source = single("source")
     leap_ok = leap is not None and leap[0] == 0 and (leap[1] is None or leap[1].casefold() == "no warning")
-    stratum_ok = (stratum is not None and stratum[0] > 0
+    # RFC 5905 strata: 0 unspecified, 1 primary, 2-15 secondary, 16 unsynchronized, 17-255 reserved. Only 1-15 is
+    # healthy. The grammar above reads any 8-bit value, so 0, 16 and 17-255 parse and then fail this check.
+    stratum_ok = (stratum is not None and 1 <= stratum[0] <= 15
                   and not (stratum[1] and _W32TM_UNSYNCHRONIZED_NOTE.search(stratum[1])))
     source_ok = (bool(source) and _W32TM_PRINTABLE.fullmatch(source) is not None
                  and re.sub(r"[^a-z0-9]", "", source.casefold()) not in _W32TM_UNSYNCHRONIZED_SOURCES)

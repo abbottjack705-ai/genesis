@@ -1,6 +1,6 @@
 """WC7-003: the Windows live time-sync attestation follows the ratified design 6.1 rule.
 
-Healthy only when ``w32tm /query /status`` exits 0, Leap Indicator is exactly 0, Stratum is greater than 0, and
+Healthy only when ``w32tm /query /status`` exits 0, Leap Indicator is exactly 0, Stratum is 1 through 15, and
 Source is present and is neither Local CMOS Clock nor Free-running System Clock. Missing, repeated, malformed or
 contradictory required fields fail closed. ``time_sync_attestation`` itself is never mocked: these tests feed synthetic
 or captured ``w32tm`` text through the real code path, and only ``subprocess.run`` and the platform check are patched.
@@ -246,13 +246,13 @@ class WindowsNumericFieldGrammar(unittest.TestCase):
                 self.assertIs(result["synchronized"], True)
                 self.assertEqual(result["leap_indicator"], 0)
 
-    def test_stratum_above_zero_is_healthy_with_any_note_that_does_not_claim_unsynchronized(self):
+    def test_stratum_1_to_15_is_healthy_with_any_note_that_does_not_claim_unsynchronized(self):
         for stratum in ("1", "15", "3", "1 (primary reference - syncd by radio clock)",
                         "3 (secondary reference - syncd by (S)NTP)"):
             with self.subTest(stratum=stratum):
                 result = self.attest(w32tm_status(stratum=stratum))
                 self.assertIs(result["synchronized"], True)
-                self.assertGreater(result["stratum"], 0)
+                self.assertTrue(1 <= result["stratum"] <= 15)
 
     def test_field_width_is_bounded_without_raising(self):
         # Leap is a 2-bit field and Stratum an 8-bit field; longer digit runs are malformed, not converted.
@@ -278,6 +278,51 @@ class WindowsNumericFieldGrammar(unittest.TestCase):
                 self.assertIs(self.attest(w32tm_status(extra=(extra,)))["synchronized"], False)
         with self.subTest(near_miss_beside_a_valid_field=True):      # the valid Stratum is present, so it is a repeat
             self.assertIs(self.attest(w32tm_status(extra=("Stratum\x00: 3",)))["synchronized"], False)
+
+
+class WindowsStratumRule(unittest.TestCase):
+    """RFC 5905 strata, ratified by the project owner for WC7-003: only 1 through 15 is healthy. Parsing still reads any
+    unsigned 8-bit value, so 0, 16, 17 and 255 are recognized and then refused."""
+
+    def attest(self, stratum):
+        return cli.windows_time_sync_attestation(0, w32tm_status(stratum=stratum))
+
+    def test_stratum_1_is_potentially_healthy(self):
+        result = self.attest("1")
+        self.assertIs(result["synchronized"], True)
+        self.assertEqual(result["stratum"], 1)
+
+    def test_stratum_15_is_potentially_healthy(self):
+        result = self.attest("15")
+        self.assertIs(result["synchronized"], True)
+        self.assertEqual(result["stratum"], 15)
+
+    def test_stratum_16_is_refused_as_unsynchronized(self):
+        result = self.attest("16")
+        self.assertIs(result["synchronized"], False)
+        self.assertEqual(result["stratum"], 16)
+
+    def test_stratum_17_is_refused_as_reserved(self):
+        result = self.attest("17")
+        self.assertIs(result["synchronized"], False)
+        self.assertEqual(result["stratum"], 17)
+
+    def test_stratum_255_is_refused_as_reserved(self):
+        result = self.attest("255")
+        self.assertIs(result["synchronized"], False)
+        self.assertEqual(result["stratum"], 255)
+
+    def test_stratum_0_is_refused_as_unspecified(self):
+        for stratum in ("0", "0 (unspecified)"):
+            with self.subTest(stratum=stratum):
+                result = self.attest(stratum)
+                self.assertIs(result["synchronized"], False)
+                self.assertEqual(result["stratum"], 0)
+
+    def test_only_stratum_1_through_15_is_healthy_across_the_whole_8_bit_range(self):
+        for value in range(256):
+            with self.subTest(stratum=value):
+                self.assertIs(self.attest(str(value))["synchronized"], 1 <= value <= 15)
 
 
 class WindowsSourceValidation(unittest.TestCase):
@@ -359,6 +404,39 @@ class MalformedWindowsStatusNeverReachesTheTransport(unittest.TestCase):
                 outcome = rt.runner.acquire(item)
                 self.assertIsNone(outcome.failure)
                 self.assertEqual(len(rt.runner.transport.calls), 1)
+
+    def test_stratum_16_cannot_reach_a_send_in_either_mode(self):
+        """RFC 5905 unsynchronized: an otherwise healthy status is refused at the gate, with no transport call."""
+
+        attestation = self.startup_attestation(w32tm_status(stratum="16"))
+        self.assertIs(attestation["synchronized"], False)
+        self.assertEqual(attestation["stratum"], 16)
+        for mode in self.MODES:
+            with self.subTest(mode=mode), scratch_root() as root:
+                rt, item = self.runtime(root, mode, attestation)
+                row = self.helper.refused(rt, item)           # asserts REFUSED and zero transport calls
+                self.assertEqual(row["detail"], "TIME_SYNC_ATTESTATION")
+
+    def test_stratum_0_17_and_255_cannot_reach_a_send_in_either_mode(self):
+        for stratum in ("0", "17", "255"):
+            attestation = self.startup_attestation(w32tm_status(stratum=stratum))
+            self.assertIs(attestation["synchronized"], False)
+            for mode in self.MODES:
+                with self.subTest(stratum=stratum, mode=mode), scratch_root() as root:
+                    rt, item = self.runtime(root, mode, attestation)
+                    row = self.helper.refused(rt, item)
+                    self.assertEqual(row["detail"], "TIME_SYNC_ATTESTATION")
+
+    def test_stratum_1_and_15_are_admitted_and_send_exactly_once_in_each_mode(self):
+        for stratum in ("1", "15"):
+            attestation = self.startup_attestation(w32tm_status(stratum=stratum))
+            self.assertIs(attestation["synchronized"], True)
+            for mode in self.MODES:
+                with self.subTest(stratum=stratum, mode=mode), scratch_root() as root:
+                    rt, item = self.runtime(root, mode, attestation)
+                    outcome = rt.runner.acquire(item)
+                    self.assertIsNone(outcome.failure)
+                    self.assertEqual(len(rt.runner.transport.calls), 1)
 
 
 if __name__ == "__main__":

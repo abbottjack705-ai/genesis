@@ -257,40 +257,66 @@ def time_sync_attestation() -> dict:
             "source": status.stdout.strip()}
 
 
-_W32TM_UNSYNCHRONIZED_SOURCES = ("local cmos clock", "free-running system clock")
+# Forbidden Source names as keys: letters and digits only, lower case, so spacing, case and punctuation variants
+# compare equal. Only printable ASCII reaches this comparison (_W32TM_PRINTABLE), so no control or Unicode character
+# can hide one.
+_W32TM_UNSYNCHRONIZED_SOURCES = ("localcmosclock", "freerunningsystemclock")
+_W32TM_PRINTABLE = re.compile(r"[\x20-\x7e]+")
+# A note that contradicts a stratum above zero: the clock is not, or does not claim to be, synchronized.
+_W32TM_UNSYNCHRONIZED_NOTE = re.compile(r"not synchronized|unsynchronized|unspecified", re.IGNORECASE)
+# The English w32tm numeric fields, each with its NTP wire-format width: Leap Indicator is a 2-bit field (0-3) and
+# Stratum an 8-bit one (0-255). Each is an unsigned decimal with no sign and no leading zero, then optionally one
+# balanced parenthetical note with one level of nesting, as in ``(secondary reference - syncd by (S)NTP)``. Anything
+# else after the number, an unbalanced or empty note, or a non-ASCII digit makes the field malformed.
+_W32TM_NOTE = r"(?: ?\((?P<note>(?:[\x20-\x27\x2a-\x7e]|\((?:[\x20-\x27\x2a-\x7e])*\))+)\))?"
+_W32TM_LEAP = re.compile(r"(?P<number>[0-3])" + _W32TM_NOTE)
+_W32TM_STRATUM = re.compile(r"(?P<number>0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5])" + _W32TM_NOTE)
+# Required labels, keyed by a stem that marks a line as one of them. A line whose label contains a stem must match its
+# label exactly (case aside); a near miss such as ``Leap\tIndicator`` is malformed and fails closed rather than ignored.
+_W32TM_LABELS = {"leap": "leap indicator", "stratum": "stratum", "source": "source",
+                 "successful sync": "last successful sync time"}
 
 
 def windows_time_sync_attestation(returncode: int, stdout: str) -> dict:
     """Design 6.1 Windows rule, ratified for WC7-003. Healthy only when ``w32tm /query /status`` exits 0, Leap
-    Indicator is exactly 0, Stratum is greater than 0, and Source is present and is neither Local CMOS Clock nor
-    Free-running System Clock. A required field that is missing, repeated or unparseable fails closed. The parsed
+    Indicator is exactly 0 with no note or the note ``no warning``, Stratum is greater than 0 with no note that says it
+    is unsynchronized, and Source is printable ASCII and neither Local CMOS Clock nor Free-running System Clock in any
+    case or spacing. A required field that is missing, repeated, malformed or contradictory fails closed. The parsed
     fields are kept as evidence for the decision; Last Successful Sync Time is recorded but not gated, because no
     maximum age is approved."""
 
-    fields: dict[str, list[str]] = {}
-    for line in stdout.splitlines():
-        label, separator, value = line.partition(":")
-        if separator:
-            fields.setdefault(label.strip().lower(), []).append(value.strip())
+    seen: dict[str, list[str | None]] = {stem: [] for stem in _W32TM_LABELS}
+    for line in stdout.split("\n"):
+        parts = re.split(r"[:=]", line.rstrip("\r"), maxsplit=1)
+        label = parts[0].strip(" ").casefold()
+        value = parts[1].strip(" ") if len(parts) == 2 else None
+        for stem, exact in _W32TM_LABELS.items():
+            if stem in label:
+                seen[stem].append(value if label == exact else None)
 
-    def single(label: str) -> str | None:
-        values = fields.get(label, [])
-        return values[0] if len(values) == 1 else None      # missing or repeated: ambiguous, so unusable
+    def single(stem: str) -> str | None:
+        values = seen[stem]
+        return values[0] if len(values) == 1 else None      # missing, repeated or malformed: ambiguous, so unusable
 
-    leap = _w32tm_number(single("leap indicator"))
-    stratum = _w32tm_number(single("stratum"))
-    source = single("source") or ""
-    healthy = (returncode == 0 and leap == 0 and stratum is not None and stratum > 0 and bool(source)
-               and source.lower() not in _W32TM_UNSYNCHRONIZED_SOURCES)
-    return {"synchronized": healthy, "method": "w32tm", "source": source, "leap_indicator": leap,
-            "stratum": stratum, "last_successful_sync": single("last successful sync time")}
+    leap = _w32tm_numeric(_W32TM_LEAP, single("leap"))
+    stratum = _w32tm_numeric(_W32TM_STRATUM, single("stratum"))
+    source = single("source")
+    leap_ok = leap is not None and leap[0] == 0 and (leap[1] is None or leap[1].casefold() == "no warning")
+    stratum_ok = (stratum is not None and stratum[0] > 0
+                  and not (stratum[1] and _W32TM_UNSYNCHRONIZED_NOTE.search(stratum[1])))
+    source_ok = (bool(source) and _W32TM_PRINTABLE.fullmatch(source) is not None
+                 and re.sub(r"[^a-z0-9]", "", source.casefold()) not in _W32TM_UNSYNCHRONIZED_SOURCES)
+    healthy = returncode == 0 and leap_ok and stratum_ok and source_ok
+    return {"synchronized": healthy, "method": "w32tm", "source": source or "",
+            "leap_indicator": leap[0] if leap else None, "stratum": stratum[0] if stratum else None,
+            "last_successful_sync": single("successful sync")}
 
 
-def _w32tm_number(text: str | None) -> int | None:
-    """The leading integer of a value such as ``0 (unspecified)`` or ``3(not synchronized)``; None if malformed."""
+def _w32tm_numeric(grammar: re.Pattern, text: str | None) -> tuple[int, str | None] | None:
+    """A required numeric field as (number, note), or None when it is malformed or outside the field's width."""
 
-    match = re.match(r"(\d+)(?=\s|\(|$)", text or "")
-    return int(match.group(1)) if match else None
+    match = grammar.fullmatch(text or "")
+    return (int(match["number"]), match["note"]) if match else None
 
 
 def cmd_run(args) -> int:

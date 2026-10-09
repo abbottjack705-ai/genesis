@@ -1,18 +1,25 @@
 """WC7-003: the Windows live time-sync attestation follows the ratified design 6.1 rule.
 
 Healthy only when ``w32tm /query /status`` exits 0, Leap Indicator is exactly 0, Stratum is greater than 0, and
-Source is present and is neither Local CMOS Clock nor Free-running System Clock. Missing, repeated or unparseable
-required fields fail closed. ``time_sync_attestation`` itself is never mocked: these tests feed synthetic or captured
-``w32tm`` text through the real code path, and only ``subprocess.run`` and the platform check are patched. No test
-touches the host clock or the network.
+Source is present and is neither Local CMOS Clock nor Free-running System Clock. Missing, repeated, malformed or
+contradictory required fields fail closed. ``time_sync_attestation`` itself is never mocked: these tests feed synthetic
+or captured ``w32tm`` text through the real code path, and only ``subprocess.run`` and the platform check are patched.
+The transport tests run that output through the real LiveGate and acquisition runner in G2 and G2R, with a fake
+transport. No test touches the host clock or the network.
 """
 
 from __future__ import annotations
 
 import unittest
+from datetime import timedelta
 from unittest import mock
 
 from genesis_adapters import cli
+from genesis_adapters.oddspapi import authority as auth
+
+from . import test_v05_authority as authority_tests
+from .pipeline_support import odds_item, open_rt
+from .support import scratch_root
 
 # Captured on the certified Windows host, 2026-10-08 (cert/v05-r7-windows, W05_post_session_gate_2026-10-08.txt).
 CAPTURED_UNSYNCHRONIZED = (
@@ -44,6 +51,42 @@ def w32tm_status(leap="0 (no warning)", stratum="3 (secondary reference - syncd 
     }
     body = [text for label, text in lines.items() if label not in omit]
     return "\n".join(body + list(extra)) + "\n"
+
+
+# Every malformed, contradictory or forbidden required-field case, and the captured unsynchronized host output. Each
+# must refuse, and none may reach the transport.
+MALFORMED_STATUS = {
+    "leap: trailing garbage": w32tm_status(leap="0 garbage"),
+    "leap: truncated annotation": w32tm_status(leap="0("),
+    "leap: contradictory annotation": w32tm_status(leap="0(not synchronized)"),
+    "leap: stray number": w32tm_status(leap="0 3"),
+    "leap: unbalanced note": w32tm_status(leap="0 (no warn"),
+    "leap: tab, NUL and junk": w32tm_status(leap="0\t\x00junk"),
+    "leap: Arabic-Indic digit": w32tm_status(leap="\u0660"),
+    "leap: 5000 digits": w32tm_status(leap="0" * 5000),
+    "leap: duplicate": w32tm_status(extra=("Leap Indicator: 0",)),
+    "leap: contradictory duplicate": w32tm_status(extra=("Leap Indicator = 3",)),
+    "leap: near-miss label only": w32tm_status(omit=("Leap Indicator",), extra=("Leap\tIndicator: 0",)),
+    "stratum: trailing garbage": w32tm_status(stratum="3 garbage"),
+    "stratum: trailing number": w32tm_status(stratum="3 0"),
+    "stratum: negative": w32tm_status(stratum="-1"),
+    "stratum: empty": w32tm_status(stratum=""),
+    "stratum: 5000 digits": w32tm_status(stratum="9" * 5000),
+    "stratum: beyond the 8-bit field": w32tm_status(stratum="256"),
+    "stratum: contradictory note": w32tm_status(stratum="3 (unsynchronized)"),
+    "stratum: contradictory duplicate": w32tm_status(extra=("Stratum: 0",)),
+    "source: double space": w32tm_status(source="Local  CMOS Clock"),
+    "source: tab": w32tm_status(source="Local\tCMOS Clock"),
+    "source: Unicode whitespace": w32tm_status(source="Local\u00a0CMOS\u2009Clock"),
+    "source: NUL": w32tm_status(source="Local CMOS Clock\x00"),
+    "source: NUL only": w32tm_status(source="\x00"),
+    "source: Free-running double space": w32tm_status(source="Free-running  System Clock"),
+    "source: case and outer tab": w32tm_status(source=" \tLOCAL cmos CLOCK \t"),
+    "source: duplicate with case variant": w32tm_status(extra=(" SOURCE : time.windows.com,0x9",)),
+    "truncated before Source": "Leap Indicator: 0\nStratum: 3\nSour",
+    "captured unsynchronized host output": CAPTURED_UNSYNCHRONIZED,
+    "no output": "",
+}
 
 
 class WindowsAttestationRule(unittest.TestCase):
@@ -164,6 +207,158 @@ class WindowsAttestationThroughTheCli(unittest.TestCase):
 
     def test_non_zero_exit_is_refused(self):
         self.assertIs(self.run_on_windows(w32tm_status(), returncode=1)["synchronized"], False)
+
+
+class WindowsNumericFieldGrammar(unittest.TestCase):
+    """Leap Indicator and Stratum must match the whole w32tm numeric grammar; any other text fails closed."""
+
+    def attest(self, stdout, returncode=0):
+        return cli.windows_time_sync_attestation(returncode, stdout)
+
+    def test_prefix_matches_and_trailing_text_are_refused(self):
+        for leap in ("0 garbage", "0(", "0(not synchronized)", "0 3", "0 (no warn", "0\t\x00junk", "0 (no warning) x"):
+            with self.subTest(leap=leap):
+                self.assertIs(self.attest(w32tm_status(leap=leap))["synchronized"], False)
+        for stratum in ("3 garbage", "3 0", "3(", "3 (secondary", "3 (x))", "3 (x)junk", "3 (()"):
+            with self.subTest(stratum=stratum):
+                self.assertIs(self.attest(w32tm_status(stratum=stratum))["synchronized"], False)
+
+    def test_leading_garbage_signs_and_non_ascii_digits_are_refused(self):
+        for leap in ("garbage 0", "+0", "00", "0x0", "\u0660", "\uff10"):
+            with self.subTest(leap=leap):
+                self.assertIs(self.attest(w32tm_status(leap=leap))["synchronized"], False)
+        for stratum in ("garbage 3", "+3", "03", "-1", "\u0663"):
+            with self.subTest(stratum=stratum):
+                self.assertIs(self.attest(w32tm_status(stratum=stratum))["synchronized"], False)
+
+    def test_contradictory_notes_are_refused(self):
+        for leap in ("0(not synchronized)", "0 (unsynchronized)", "0 (unspecified)"):
+            with self.subTest(leap=leap):
+                self.assertIs(self.attest(w32tm_status(leap=leap))["synchronized"], False)
+        for stratum in ("3(not synchronized)", "3 (unsynchronized)", "3 (unspecified)"):
+            with self.subTest(stratum=stratum):
+                self.assertIs(self.attest(w32tm_status(stratum=stratum))["synchronized"], False)
+
+    def test_healthy_leap_zero_carries_no_note_or_the_no_warning_note(self):
+        for leap in ("0", "0(no warning)", "0 (No Warning)"):
+            with self.subTest(leap=leap):
+                result = self.attest(w32tm_status(leap=leap))
+                self.assertIs(result["synchronized"], True)
+                self.assertEqual(result["leap_indicator"], 0)
+
+    def test_stratum_above_zero_is_healthy_with_any_note_that_does_not_claim_unsynchronized(self):
+        for stratum in ("1", "15", "3", "1 (primary reference - syncd by radio clock)",
+                        "3 (secondary reference - syncd by (S)NTP)"):
+            with self.subTest(stratum=stratum):
+                result = self.attest(w32tm_status(stratum=stratum))
+                self.assertIs(result["synchronized"], True)
+                self.assertGreater(result["stratum"], 0)
+
+    def test_field_width_is_bounded_without_raising(self):
+        # Leap is a 2-bit field and Stratum an 8-bit field; longer digit runs are malformed, not converted.
+        for leap in ("4", "0" * 5000):
+            with self.subTest(leap=leap):
+                result = self.attest(w32tm_status(leap=leap))
+                self.assertIs(result["synchronized"], False)
+                self.assertIsNone(result["leap_indicator"])
+        for stratum in ("256", "9" * 5000):
+            with self.subTest(stratum=stratum):
+                result = self.attest(w32tm_status(stratum=stratum))
+                self.assertIs(result["synchronized"], False)
+                self.assertIsNone(result["stratum"])
+
+    def test_empty_numeric_fields_are_refused(self):
+        self.assertIs(self.attest(w32tm_status(leap="", stratum=""))["synchronized"], False)
+        self.assertIs(self.attest(w32tm_status(stratum=" "))["synchronized"], False)
+
+    def test_duplicate_and_near_miss_required_labels_are_refused(self):
+        for extra in ("Leap Indicator: 0", "Leap Indicator = 3", "Leap\tIndicator: 0", "Leap Indicator 0",
+                      "Stratum: 0", "STRATUM= 3", "stratum: 3 (secondary reference)"):
+            with self.subTest(extra=extra):
+                self.assertIs(self.attest(w32tm_status(extra=(extra,)))["synchronized"], False)
+        with self.subTest(near_miss_beside_a_valid_field=True):      # the valid Stratum is present, so it is a repeat
+            self.assertIs(self.attest(w32tm_status(extra=("Stratum\x00: 3",)))["synchronized"], False)
+
+
+class WindowsSourceValidation(unittest.TestCase):
+    """Source is printable ASCII; the forbidden names compare after spacing, case and punctuation are removed."""
+
+    def attest(self, source):
+        return cli.windows_time_sync_attestation(0, w32tm_status(source=source))
+
+    def test_forbidden_names_are_refused_in_every_spacing_case_and_punctuation_variant(self):
+        for source in ("Local CMOS Clock", "Local  CMOS Clock", "Local   CMOS    Clock", "LOCAL cmos CLOCK",
+                       " Local CMOS Clock ", "Local CMOS Clock\u200b", "Free-running System Clock",
+                       "Free-running  System Clock", "Free running System Clock", "free-running system clock",
+                       "FREE-RUNNING SYSTEM CLOCK", " \tLOCAL cmos CLOCK \t"):
+            with self.subTest(source=source):
+                self.assertIs(self.attest(source)["synchronized"], False)
+
+    def test_malformed_source_text_is_refused_even_when_it_is_not_a_forbidden_name(self):
+        for source in ("time.windows.com\x00", "time\u00a0windows.com", "time.windows.com\t", "time.windows.com\x7f",
+                       "Local\tCMOS Clock", "Local\u00a0CMOS\u2009Clock", "\x00", "   ", ""):
+            with self.subTest(source=source):
+                self.assertIs(self.attest(source)["synchronized"], False)
+
+    def test_genuine_external_sources_are_healthy(self):
+        for source in ("time.windows.com,0x9", "time.windows.com,0x9 ", "ntp.example.org", "VM IC Time Provider"):
+            with self.subTest(source=source):
+                self.assertIs(self.attest(source)["synchronized"], True)
+
+    def test_repeated_source_fields_are_refused(self):
+        for extra in (" SOURCE : time.windows.com,0x9", "Source: time.windows.com,0x9", "Source: ntp.example.org"):
+            with self.subTest(extra=extra):
+                result = cli.windows_time_sync_attestation(0, w32tm_status(extra=(extra,)))
+                self.assertIs(result["synchronized"], False)
+                self.assertEqual(result["source"], "")
+
+
+class MalformedWindowsStatusNeverReachesTheTransport(unittest.TestCase):
+    """Real ``time_sync_attestation`` output through the real LiveGate and acquisition runner, in G2 and G2R, with a
+    fake transport. Each malformed status refuses at the gate before quota or transport. The healthy control sends
+    exactly once in each mode, so the refusals come from the parser, not from a harness that never sends."""
+
+    MODES = (auth.MODE_VERIFICATION, auth.MODE_RECURRING)
+
+    def setUp(self):
+        self.helper = authority_tests.LiveGateTests()
+        self.helper.setUp()                                  # skips inside the day/month boundary guard, as they do
+        self.start = authority_tests.now_utc() - timedelta(hours=1)
+
+    def startup_attestation(self, stdout):
+        """What the live run records at startup: the real ``time_sync_attestation`` on this ``w32tm`` output."""
+
+        completed = mock.Mock(returncode=0, stdout=stdout, stderr="")
+        with mock.patch.object(cli.sys, "platform", "win32"), mock.patch("subprocess.run", return_value=completed):
+            return cli.time_sync_attestation()
+
+    def runtime(self, root, mode, attestation):
+        item = odds_item()
+        if mode == auth.MODE_VERIFICATION:
+            records = [authority_tests.g1(self.start),
+                       authority_tests.g2(self.start, [item.request.provider_request_hash])]
+        else:
+            probe = open_rt(root / "probe")
+            records = [authority_tests.g1(self.start),
+                       authority_tests.g2r(self.start, derivation=probe.config.derivation_version,
+                                           policy=probe.config.policy.digest)]
+        return self.helper.live_runtime(root, records, mode=mode, attestation=attestation), item
+
+    def test_malformed_status_is_refused_before_any_send(self):
+        for label, stdout in MALFORMED_STATUS.items():
+            for mode in self.MODES:
+                with self.subTest(case=label, mode=mode), scratch_root() as root:
+                    rt, item = self.runtime(root, mode, self.startup_attestation(stdout))
+                    row = self.helper.refused(rt, item)
+                    self.assertEqual(row["detail"], "TIME_SYNC_ATTESTATION")
+
+    def test_healthy_status_sends_exactly_once_in_each_mode(self):
+        for mode in self.MODES:
+            with self.subTest(mode=mode), scratch_root() as root:
+                rt, item = self.runtime(root, mode, self.startup_attestation(w32tm_status()))
+                outcome = rt.runner.acquire(item)
+                self.assertIsNone(outcome.failure)
+                self.assertEqual(len(rt.runner.transport.calls), 1)
 
 
 if __name__ == "__main__":

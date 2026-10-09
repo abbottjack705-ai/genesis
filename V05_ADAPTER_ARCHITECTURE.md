@@ -334,8 +334,12 @@ Frozen observations that shape this design. None of them requires a reopen:
   (RFC 5905 primary and secondary strata; 0, 16 and 17-255 fail closed), and Source is present and is
   neither `Local CMOS Clock` nor `Free-running System Clock`).
   Missing, repeated or unparseable required fields fail closed (`synchronized: false`). A line
-  whose label, ignoring spaces, punctuation, control and non-ASCII characters, begins with a required
-  label is an attempt at it and is valid only when its label is exactly that label with a value;
+  with a label containing any non-ASCII character or ASCII control character (including NUL and DEL)
+  makes the entire attestation unhealthy, even for unrelated fields. Labels are checked before any
+  case folding or normalization: the supported live authorization format is the certified English,
+  printable-ASCII `w32tm` label format. For valid ASCII labels, a line whose label, ignoring spaces
+  and punctuation, begins with a required label is an attempt at it and is valid only when its label
+  is exactly that label with a value;
   any other attempt fails closed, while lines that merely contain these words are ignored. A
   Stratum note that passes the strict note grammar fails closed if its comparison form (ASCII case
   folded, every non-alphanumeric character removed) contains `notsynchronized`, `notsynchronised`,

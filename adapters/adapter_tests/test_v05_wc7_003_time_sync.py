@@ -56,6 +56,40 @@ def w32tm_status(leap="0 (no warning)", stratum="3 (secondary reference - syncd 
 # The base status of Codex's R2 reproducers: otherwise healthy, with plain Leap Indicator and Stratum values.
 CODEX_BASE = "Leap Indicator: 0\nStratum: 3\nSource: time.windows.com,0x9\n"
 
+# Human checkpoint: every field label must be printable ASCII before any case folding. These cases sit beside valid
+# required fields, so ignoring the malformed label would incorrectly authorize a send. The rule also applies to
+# unrelated and evidence-only fields, and to surrounding label whitespace.
+INVALID_LABEL_CHARACTERS = {
+    "Kelvin sign": "\u212a", "long s": "\u017f", "zero-width space": "\u200b", "zero-width joiner": "\u200d",
+    "no-break space": "\u00a0", "thin space": "\u2009", "combining mark": "\u0301", "Cyrillic letter": "\u0430",
+    "NUL": "\x00", "tab": "\t", "vertical tab": "\v", "form feed": "\f", "carriage return": "\r",
+    "escape": "\x1b", "DEL": "\x7f",
+}
+MALFORMED_LABEL_STATUS = {}
+for _label, _prefix, _suffix, _value in (("Stratum", "Stra", "tum", "16"),
+                                        ("Source", "Sou", "rce", "Local CMOS Clock"),
+                                        ("Leap Indicator", "Le", "ap Indicator", "3")):
+    for _name, _character in INVALID_LABEL_CHARACTERS.items():
+        MALFORMED_LABEL_STATUS[f"label: {_label} with {_name}"] = w32tm_status(
+            extra=(f"{_prefix}{_character}{_suffix}: {_value}",))
+for _name, _line in {
+    "Stratum homoglyph": "Str\u0430tum: 16", "Source homoglyph": "S\u043eurce: Local CMOS Clock",
+    "Leap homoglyph": "L\u0435ap Indicator: 3", "full-width Stratum": "\uff33tratum: 16",
+    "unrelated Unicode": "Time \u212aSource: w32time", "unrelated NUL": "Precision\x00: -23",
+    "unrelated control": "Poll\tInterval: 10", "unrelated DEL": "Root\x7f Delay: 0.03125s",
+    "evidence-only Unicode": "Last Successful Sync\u200b Time: 01/01/2020 00:00:00",
+    "evidence-only control": "Last Successful Sync\x00 Time: 01/01/2020 00:00:00",
+    "leading tab": "\tStratum: 16", "trailing tab": "Stratum\t: 16",
+    "leading Unicode whitespace": "\u00a0Source: Local CMOS Clock",
+    "invalid unrelated label without a separator": "Prec\u212aision -23",
+    "invalid required label without a separator": "Stra\u212atum 16",
+    "invalid label with equals separator": "Stra\u212atum=16",
+}.items():
+    MALFORMED_LABEL_STATUS["label: " + _name] = w32tm_status(extra=(_line,))
+for _code in (*range(10), *range(11, 32), 127):
+    MALFORMED_LABEL_STATUS[f"label: unrelated ASCII control {_code}"] = w32tm_status(
+        extra=(f"Preci{chr(_code)}sion: -23",))
+
 # R3-001: the contradiction phrases, with separators that the Stratum note grammar admits. Every generated note is
 # grammar-valid, so each one reaches the semantic check and must be refused.
 CONTRADICTION_PHRASES = (("not", "synchronized"), ("not", "synchronised"), ("un", "synchronized"),
@@ -140,6 +174,7 @@ MALFORMED_STATUS = {
     "captured unsynchronized host output": CAPTURED_UNSYNCHRONIZED,
     "no output": "",
 }
+MALFORMED_STATUS.update(MALFORMED_LABEL_STATUS)
 
 
 class WindowsAttestationRule(unittest.TestCase):
@@ -433,6 +468,39 @@ class WindowsContradictoryAnnotationsAndCorruptedLabels(unittest.TestCase):
                 self.assertIs(self.attest(w32tm_status(extra=(extra,)))["synchronized"], False)
 
 
+class WindowsAsciiFieldLabels(unittest.TestCase):
+    """The certified English/ASCII format rejects invalid raw labels before normalization, for every field."""
+
+    def test_every_malformed_label_makes_the_attestation_unhealthy(self):
+        for label, stdout in MALFORMED_LABEL_STATUS.items():
+            with self.subTest(case=label):
+                result = cli.windows_time_sync_attestation(0, stdout)
+                self.assertIs(result["synchronized"], False)
+                self.assertEqual(result["leap_indicator"], 0)
+                self.assertEqual(result["stratum"], 3)
+                self.assertEqual(result["source"], "time.windows.com,0x9")
+
+    def test_all_inline_ascii_controls_and_del_are_refused_on_unrelated_labels(self):
+        # LF separates lines rather than being part of a label; CR inside a label must still be rejected.
+        for code in (*range(10), *range(11, 32), 127):
+            with self.subTest(code=code):
+                stdout = w32tm_status(extra=(f"Preci{chr(code)}sion: -23",))
+                self.assertIs(cli.windows_time_sync_attestation(0, stdout)["synchronized"], False)
+
+    def test_valid_ascii_required_labels_keep_case_and_outer_space_handling(self):
+        for stdout in (CODEX_BASE, " LEAP INDICATOR : 0\n STRATUM : 3\n SOURCE : time.windows.com,0x9\n",
+                       w32tm_status().replace("\n", "\r\n")):
+            with self.subTest(stdout=stdout):
+                self.assertIs(cli.windows_time_sync_attestation(0, stdout)["synchronized"], True)
+
+    def test_unrelated_printable_ascii_labels_and_evidence_values_keep_their_handling(self):
+        stdout = w32tm_status(extra=("Time Source: w32time", "Leap second count: 27", "Unknown field / v2: value"))
+        self.assertIs(cli.windows_time_sync_attestation(0, stdout)["synchronized"], True)
+        # This design decision concerns labels; evidence-only and unrelated values remain outside the health gate.
+        stdout = w32tm_status(last_sync="01/01/2020 00:00:00", extra=("Unknown field: \u212a",))
+        self.assertIs(cli.windows_time_sync_attestation(0, stdout)["synchronized"], True)
+
+
 class WindowsStratumNoteComparisonForm(unittest.TestCase):
     """R3-001: a grammar-valid Stratum note that contains a contradiction phrase is unhealthy, whatever separators,
     parentheses or case it uses. The grammar is unchanged, so every generated note is accepted by it."""
@@ -620,6 +688,19 @@ class MalformedWindowsStatusNeverReachesTheTransport(unittest.TestCase):
                 outcome = rt.runner.acquire(item)
                 self.assertIsNone(outcome.failure)
                 self.assertEqual(len(rt.runner.transport.calls), 1)
+
+
+    def test_invalid_labels_are_also_refused_through_the_g2r_runtime_wrapper(self):
+        # Every case already runs through the G2 and G2R runners in test_malformed_status_is_refused_before_any_send.
+        for label, stdout in MALFORMED_LABEL_STATUS.items():
+            with self.subTest(case=label), scratch_root() as root:
+                attestation = self.startup_attestation(stdout)
+                self.assertIs(attestation["synchronized"], False)
+                rt, item = self.runtime(root, auth.MODE_RECURRING, attestation)
+                outcome = rt.acquire(item).outcome
+                self.assertEqual(outcome.outcome, "REFUSED")
+                self.assertIn("GATE_MISSING", str(outcome.failure))
+                self.assertEqual(rt.runner.transport.calls, [])
 
 
 if __name__ == "__main__":

@@ -272,8 +272,9 @@ _W32TM_UNSYNCHRONIZED_WORDS = ("notsynchronized", "notsynchronised", "unsynchron
 _W32TM_NOTE = r"(?: ?\((?P<note>(?:[\x20-\x27\x2a-\x7e]|\((?:[\x20-\x27\x2a-\x7e])*\))+)\))?"
 _W32TM_LEAP = re.compile(r"(?P<number>[0-3])" + _W32TM_NOTE)
 _W32TM_STRATUM = re.compile(r"(?P<number>0|[1-9][0-9]?|1[0-9][0-9]|2[0-4][0-9]|25[0-5])" + _W32TM_NOTE)
-# Labels keyed by field. A line is an attempt at a label when its letters and digits, with spaces, punctuation, control
-# and other characters removed, begin with that label's letters, so inserted corruption cannot hide it. An attempt is
+# Labels in the supported English w32tm format must be printable ASCII, before any case folding. An invalid label on
+# any field makes the entire attestation unhealthy. For ASCII labels, a line is an attempt at a required label when its
+# letters and digits, with spaces and punctuation removed, begin with that label's letters. An attempt is
 # valid only when its label is exactly the canonical label and a value follows; any other attempt is malformed and fails
 # closed. Lines that merely contain these words, such as ``Time Source``, are not attempts. Leap Indicator, Stratum and
 # Source gate the result; Last Successful Sync Time is evidence only.
@@ -301,14 +302,21 @@ def windows_time_sync_attestation(returncode: int, stdout: str) -> dict:
     ``w32tm /query /status`` exits 0, Leap Indicator is exactly 0 with no note or the note ``no warning``, Stratum is
     1 through 15 inclusive (RFC 5905 primary and secondary strata) with no note that says it is unsynchronized, and
     Source is printable ASCII and neither Local CMOS Clock nor Free-running System Clock in any case or spacing. A
-    required field that is missing, repeated, malformed or contradictory fails closed. The parsed fields are kept as
+    label containing non-ASCII or control characters makes the whole attestation unhealthy. A required field that is
+    missing, repeated, malformed or contradictory fails closed. The parsed fields are kept as
     evidence for the decision; Last Successful Sync Time is recorded but not gated, because no maximum age is
     approved."""
 
     seen: dict[str, list[str | None]] = {stem: [] for stem in _W32TM_LABELS}
+    labels_ok = True
     for line in stdout.split("\n"):
         text = line.rstrip("\r")
         parts = re.split(r"[:=]", text, maxsplit=1)
+        # Check the raw label, including its surrounding whitespace, before case folding or attempt detection.
+        # Empty/blank lines retain their existing handling; CRLF framing was removed above.
+        if any(not 0x20 <= ord(char) <= 0x7e for char in parts[0]):
+            labels_ok = False
+            continue
         label = parts[0].strip(" ").casefold()
         value = parts[1].strip(" ") if len(parts) == 2 else None
         letters = _w32tm_letters(text)
@@ -329,7 +337,7 @@ def windows_time_sync_attestation(returncode: int, stdout: str) -> dict:
     stratum_ok = stratum is not None and 1 <= stratum[0] <= 15 and not _claims_unsynchronized(stratum[1])
     source_ok = (bool(source) and _W32TM_PRINTABLE.fullmatch(source) is not None
                  and re.sub(r"[^a-z0-9]", "", source.casefold()) not in _W32TM_UNSYNCHRONIZED_SOURCES)
-    healthy = returncode == 0 and leap_ok and stratum_ok and source_ok
+    healthy = returncode == 0 and labels_ok and leap_ok and stratum_ok and source_ok
     return {"synchronized": healthy, "method": "w32tm", "source": source or "",
             "leap_indicator": leap[0] if leap else None, "stratum": stratum[0] if stratum else None,
             "last_successful_sync": single("successful sync")}

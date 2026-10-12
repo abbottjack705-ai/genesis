@@ -249,8 +249,10 @@ def time_sync_attestation() -> dict:
     import subprocess
 
     if sys.platform == "win32":
-        status = subprocess.run(["w32tm", "/query", "/status"], capture_output=True, text=True, check=False)
-        return windows_time_sync_attestation(status.returncode, status.stdout)
+        # Raw bytes, decoded without newline translation. Text mode would turn a stray CR into a line break before the
+        # framing rule in windows_time_sync_attestation could see it. Undecodable bytes become U+FFFD and fail closed.
+        status = subprocess.run(["w32tm", "/query", "/status"], capture_output=True, check=False)
+        return windows_time_sync_attestation(status.returncode, status.stdout.decode("utf-8", errors="replace"))
     status = subprocess.run(["timedatectl", "show", "-p", "NTPSynchronized", "--value"], capture_output=True,
                             text=True, check=False)
     return {"synchronized": status.returncode == 0 and status.stdout.strip() == "yes", "method": "timedatectl",
@@ -302,18 +304,22 @@ def windows_time_sync_attestation(returncode: int, stdout: str) -> dict:
     ``w32tm /query /status`` exits 0, Leap Indicator is exactly 0 with no note or the note ``no warning``, Stratum is
     1 through 15 inclusive (RFC 5905 primary and secondary strata) with no note that says it is unsynchronized, and
     Source is printable ASCII and neither Local CMOS Clock nor Free-running System Clock in any case or spacing. A
-    label containing non-ASCII or control characters makes the whole attestation unhealthy. A required field that is
-    missing, repeated, malformed or contradictory fails closed. The parsed fields are kept as
+    label containing non-ASCII or control characters makes the whole attestation unhealthy. Only LF or CRLF line
+    framing is supported; a CR anywhere after removing one trailing framing CR makes the whole attestation unhealthy.
+    A required field that is missing, repeated, malformed or contradictory fails closed. The parsed fields are kept as
     evidence for the decision; Last Successful Sync Time is recorded but not gated, because no maximum age is
     approved."""
 
     seen: dict[str, list[str | None]] = {stem: [] for stem in _W32TM_LABELS}
     labels_ok = True
     for line in stdout.split("\n"):
-        text = line.rstrip("\r")
+        text = line[:-1] if line.endswith("\r") else line
+        if "\r" in text:
+            labels_ok = False
+            continue
         parts = re.split(r"[:=]", text, maxsplit=1)
         # Check the raw label, including its surrounding whitespace, before case folding or attempt detection.
-        # Empty/blank lines retain their existing handling; CRLF framing was removed above.
+        # Empty/blank lines retain their existing handling; exactly one CRLF framing CR was removed above.
         if any(not 0x20 <= ord(char) <= 0x7e for char in parts[0]):
             labels_ok = False
             continue

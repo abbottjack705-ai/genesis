@@ -10,6 +10,8 @@ transport. No test touches the host clock or the network.
 
 from __future__ import annotations
 
+import subprocess
+import sys
 import unittest
 from datetime import timedelta
 from unittest import mock
@@ -55,6 +57,24 @@ def w32tm_status(leap="0 (no warning)", stratum="3 (secondary reference - syncd 
 
 # The base status of Codex's R2 reproducers: otherwise healthy, with plain Leap Indicator and Stratum values.
 CODEX_BASE = "Leap Indicator: 0\nStratum: 3\nSource: time.windows.com,0x9\n"
+
+# Human checkpoint: remove only one CR as CRLF framing, then reject any remaining CR anywhere in the line.
+MALFORMED_FRAMING_STATUS = {
+    "framing: exact Precision CRCRLF reproducer": CODEX_BASE + "Precision\r\r\n",
+    "framing: Leap Indicator CRCRLF": CODEX_BASE.replace("Leap Indicator: 0\n", "Leap Indicator: 0\r\r\n"),
+    "framing: Stratum CRCRLF": CODEX_BASE.replace("Stratum: 3\n", "Stratum: 3\r\r\n"),
+    "framing: Source CRCRLF": CODEX_BASE.replace("Source: time.windows.com,0x9\n",
+                                                "Source: time.windows.com,0x9\r\r\n"),
+    "framing: unrelated field CRCRLF": CODEX_BASE + "Precision: -23\r\r\n",
+    "framing: embedded CR before separator": CODEX_BASE + "Precision\r: -23\n",
+    "framing: embedded CR before value": CODEX_BASE + "Precision:\r -23\n",
+    "framing: embedded CR inside unrelated value": CODEX_BASE + "Precision: -\r23\n",
+    "framing: embedded CR inside evidence-only value": CODEX_BASE + "Last Successful Sync Time: 01/01/2020\r00:00:00\n",
+    "framing: three trailing CRs": CODEX_BASE + "Precision\r\r\r\n",
+    "framing: eight trailing CRs": CODEX_BASE + "Precision: -23" + "\r" * 8 + "\n",
+    "framing: CRCRLF blank line": CODEX_BASE + "\r\r\n",
+    "framing: multiple terminal CRs without LF": CODEX_BASE + "Precision\r\r",
+}
 
 # Human checkpoint: every field label must be printable ASCII before any case folding. These cases sit beside valid
 # required fields, so ignoring the malformed label would incorrectly authorize a send. The rule also applies to
@@ -175,6 +195,7 @@ MALFORMED_STATUS = {
     "no output": "",
 }
 MALFORMED_STATUS.update(MALFORMED_LABEL_STATUS)
+MALFORMED_STATUS.update(MALFORMED_FRAMING_STATUS)
 
 
 class WindowsAttestationRule(unittest.TestCase):
@@ -278,12 +299,26 @@ class WindowsAttestationThroughTheCli(unittest.TestCase):
     """``time_sync_attestation`` runs unmodified; only the platform check and ``subprocess.run`` are patched."""
 
     def run_on_windows(self, stdout, returncode=0):
-        completed = mock.Mock(returncode=returncode, stdout=stdout, stderr="")
+        completed = mock.Mock(returncode=returncode, stdout=stdout.encode("utf-8"), stderr=b"")
         with mock.patch.object(cli.sys, "platform", "win32"), \
                 mock.patch("subprocess.run", return_value=completed) as run:
             result = cli.time_sync_attestation()
         self.assertEqual(run.call_args.args[0], ["w32tm", "/query", "/status"])
+        self.assertNotIn("text", run.call_args.kwargs)     # raw bytes: text mode would translate stray CRs first
         return result
+
+    def run_real_child(self, text):
+        """Not mocked: a real child process writes the raw bytes, so only the production decoding is under test."""
+
+        payload = text.encode("utf-8")
+        real_run = subprocess.run
+
+        def run_child(args, **kwargs):
+            child = [sys.executable, "-B", "-c", f"import sys; sys.stdout.buffer.write({payload!r})"]
+            return real_run(child, **kwargs)
+
+        with mock.patch.object(cli.sys, "platform", "win32"), mock.patch("subprocess.run", side_effect=run_child):
+            return cli.time_sync_attestation()
 
     def test_healthy_host_is_synchronized(self):
         self.assertIs(self.run_on_windows(w32tm_status())["synchronized"], True)
@@ -295,6 +330,16 @@ class WindowsAttestationThroughTheCli(unittest.TestCase):
 
     def test_non_zero_exit_is_refused(self):
         self.assertIs(self.run_on_windows(w32tm_status(), returncode=1)["synchronized"], False)
+
+    def test_a_real_child_process_stray_cr_is_refused_by_the_production_call(self):
+        # Text-mode decoding would have turned this into 'Precision' plus blank lines, which authorizes. Raw bytes must not.
+        self.assertIs(self.run_real_child(CODEX_BASE + "Precision\r\r\n")["synchronized"], False)
+        self.assertIs(self.run_real_child(CODEX_BASE + "Precision\r\r\r\n")["synchronized"], False)
+
+    def test_a_real_child_process_healthy_lf_and_crlf_output_remains_healthy(self):
+        for text in (w32tm_status(), w32tm_status().replace("\n", "\r\n")):
+            with self.subTest(crlf="\r\n" in text):
+                self.assertIs(self.run_real_child(text)["synchronized"], True)
 
 
 class WindowsNumericFieldGrammar(unittest.TestCase):
@@ -501,6 +546,31 @@ class WindowsAsciiFieldLabels(unittest.TestCase):
         self.assertIs(cli.windows_time_sync_attestation(0, stdout)["synchronized"], True)
 
 
+class WindowsLineFraming(unittest.TestCase):
+    """Only LF or one CR before LF is framing; any CR remaining in the physical line fails closed."""
+
+    def test_normal_lf_and_crlf_remain_healthy(self):
+        for stdout in (w32tm_status(), w32tm_status().replace("\n", "\r\n")):
+            with self.subTest(stdout=stdout):
+                self.assertIs(cli.windows_time_sync_attestation(0, stdout)["synchronized"], True)
+
+    def test_all_malformed_framing_cases_are_unhealthy(self):
+        for label, stdout in MALFORMED_FRAMING_STATUS.items():
+            with self.subTest(case=label):
+                self.assertIs(cli.windows_time_sync_attestation(0, stdout)["synchronized"], False)
+
+    def test_remaining_cr_is_rejected_at_every_position_and_in_trailing_runs(self):
+        line = "Review field: evidence"
+        for index in range(len(line)):
+            with self.subTest(index=index):
+                stdout = CODEX_BASE + line[:index] + "\r" + line[index:] + "\r\n"
+                self.assertIs(cli.windows_time_sync_attestation(0, stdout)["synchronized"], False)
+        for count in range(9):
+            with self.subTest(trailing_crs=count):
+                stdout = CODEX_BASE + line + "\r" * count + "\n"
+                self.assertIs(cli.windows_time_sync_attestation(0, stdout)["synchronized"], count <= 1)
+
+
 class WindowsStratumNoteComparisonForm(unittest.TestCase):
     """R3-001: a grammar-valid Stratum note that contains a contradiction phrase is unhealthy, whatever separators,
     parentheses or case it uses. The grammar is unchanged, so every generated note is accepted by it."""
@@ -584,7 +654,7 @@ class MalformedWindowsStatusNeverReachesTheTransport(unittest.TestCase):
     def startup_attestation(self, stdout):
         """What the live run records at startup: the real ``time_sync_attestation`` on this ``w32tm`` output."""
 
-        completed = mock.Mock(returncode=0, stdout=stdout, stderr="")
+        completed = mock.Mock(returncode=0, stdout=stdout.encode("utf-8"), stderr=b"")
         with mock.patch.object(cli.sys, "platform", "win32"), mock.patch("subprocess.run", return_value=completed):
             return cli.time_sync_attestation()
 
@@ -609,12 +679,14 @@ class MalformedWindowsStatusNeverReachesTheTransport(unittest.TestCase):
                     self.assertEqual(row["detail"], "TIME_SYNC_ATTESTATION")
 
     def test_healthy_status_sends_exactly_once_in_each_mode(self):
-        for mode in self.MODES:
-            with self.subTest(mode=mode), scratch_root() as root:
-                rt, item = self.runtime(root, mode, self.startup_attestation(w32tm_status()))
-                outcome = rt.runner.acquire(item)
-                self.assertIsNone(outcome.failure)
-                self.assertEqual(len(rt.runner.transport.calls), 1)
+        for framing in ("\n", "\r\n"):
+            for mode in self.MODES:
+                with self.subTest(mode=mode, framing=framing), scratch_root() as root:
+                    stdout = w32tm_status().replace("\n", framing)
+                    rt, item = self.runtime(root, mode, self.startup_attestation(stdout))
+                    outcome = rt.runner.acquire(item)
+                    self.assertIsNone(outcome.failure)
+                    self.assertEqual(len(rt.runner.transport.calls), 1)
 
     def test_stratum_16_cannot_reach_a_send_in_either_mode(self):
         """RFC 5905 unsynchronized: an otherwise healthy status is refused at the gate, with no transport call."""
@@ -693,6 +765,19 @@ class MalformedWindowsStatusNeverReachesTheTransport(unittest.TestCase):
     def test_invalid_labels_are_also_refused_through_the_g2r_runtime_wrapper(self):
         # Every case already runs through the G2 and G2R runners in test_malformed_status_is_refused_before_any_send.
         for label, stdout in MALFORMED_LABEL_STATUS.items():
+            with self.subTest(case=label), scratch_root() as root:
+                attestation = self.startup_attestation(stdout)
+                self.assertIs(attestation["synchronized"], False)
+                rt, item = self.runtime(root, auth.MODE_RECURRING, attestation)
+                outcome = rt.acquire(item).outcome
+                self.assertEqual(outcome.outcome, "REFUSED")
+                self.assertIn("GATE_MISSING", str(outcome.failure))
+                self.assertEqual(rt.runner.transport.calls, [])
+
+
+    def test_malformed_framing_is_also_refused_through_the_g2r_runtime_wrapper(self):
+        # The table also runs through both G2 and G2R runners in test_malformed_status_is_refused_before_any_send.
+        for label, stdout in MALFORMED_FRAMING_STATUS.items():
             with self.subTest(case=label), scratch_root() as root:
                 attestation = self.startup_attestation(stdout)
                 self.assertIs(attestation["synchronized"], False)

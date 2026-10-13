@@ -337,11 +337,12 @@ Frozen observations that shape this design. None of them requires a reopen:
   with a label containing any non-ASCII character or ASCII control character (including NUL and DEL)
   makes the entire attestation unhealthy, even for unrelated fields. Labels are checked before any
   case folding or normalization: the supported live authorization format is the certified English,
-  printable-ASCII `w32tm` label format. Supported line framing is LF or CRLF: remove at most one
-  trailing CR from each LF-separated physical line, then fail the entire attestation if any CR
-  remains anywhere in that line, including unrelated fields and values. The Windows probe passes the
-  raw output bytes to this parser (UTF-8 with replacement, no newline translation), so the rule sees
-  the CR bytes that `w32tm` wrote. For valid ASCII labels, a line whose label, ignoring spaces and
+  printable-ASCII `w32tm` label format. Supported framing is LF, CRLF, or a final unterminated line
+  with no CR. Every CR must be immediately followed by LF: a lone final CR, a CR followed by anything
+  else (CRCRLF included), or a CR embedded in a line fails the entire attestation, including unrelated
+  fields and values. This is checked on the whole text before any field is parsed. The Windows probe
+  passes the raw output bytes to this parser (UTF-8 with replacement, no newline translation), so the
+  rule sees the CR bytes that `w32tm` wrote. For valid ASCII labels, a line whose label, ignoring spaces and
   punctuation, begins with a required label is an attempt at it and is valid only when its label is
   exactly that label with a value;
   any other attempt fails closed, while lines that merely contain these words are ignored. A

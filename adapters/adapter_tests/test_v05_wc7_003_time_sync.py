@@ -58,7 +58,8 @@ def w32tm_status(leap="0 (no warning)", stratum="3 (secondary reference - syncd 
 # The base status of Codex's R2 reproducers: otherwise healthy, with plain Leap Indicator and Stratum values.
 CODEX_BASE = "Leap Indicator: 0\nStratum: 3\nSource: time.windows.com,0x9\n"
 
-# Human checkpoint: remove only one CR as CRLF framing, then reject any remaining CR anywhere in the line.
+# Human checkpoint: every CR must be immediately followed by LF; a lone final CR, CR followed by anything else (CRCRLF
+# included) and an embedded CR are malformed framing, and the whole attestation is unhealthy.
 MALFORMED_FRAMING_STATUS = {
     "framing: exact Precision CRCRLF reproducer": CODEX_BASE + "Precision\r\r\n",
     "framing: Leap Indicator CRCRLF": CODEX_BASE.replace("Leap Indicator: 0\n", "Leap Indicator: 0\r\r\n"),
@@ -74,6 +75,12 @@ MALFORMED_FRAMING_STATUS = {
     "framing: eight trailing CRs": CODEX_BASE + "Precision: -23" + "\r" * 8 + "\n",
     "framing: CRCRLF blank line": CODEX_BASE + "\r\r\n",
     "framing: multiple terminal CRs without LF": CODEX_BASE + "Precision\r\r",
+    "framing: final lone CR after an unterminated line": CODEX_BASE + "Precision: -23\r",
+    "framing: final lone CR after a required field": "Leap Indicator: 0\nStratum: 3\nSource: time.windows.com,0x9\r",
+    "framing: final lone CR after a CRLF line": CODEX_BASE + "Precision: -23\r\n\r",
+    "framing: CR followed by a letter": CODEX_BASE + "Precision\rX: -23\n",
+    "framing: CR followed by a tab": CODEX_BASE + "Precision: -23\r\t\n",
+    "framing: CR followed by NUL": CODEX_BASE + "Precision: -23\r\x00\n",
 }
 
 # Human checkpoint: every field label must be printable ASCII before any case folding. These cases sit beside valid
@@ -341,6 +348,11 @@ class WindowsAttestationThroughTheCli(unittest.TestCase):
             with self.subTest(crlf="\r\n" in text):
                 self.assertIs(self.run_real_child(text)["synchronized"], True)
 
+    def test_a_real_child_process_final_lone_cr_is_refused_and_unterminated_output_is_healthy(self):
+        self.assertIs(self.run_real_child(CODEX_BASE + "Precision: -23\r")["synchronized"], False)
+        unterminated = "Leap Indicator: 0\nStratum: 3\nSource: time.windows.com,0x9"
+        self.assertIs(self.run_real_child(unterminated)["synchronized"], True)
+
 
 class WindowsNumericFieldGrammar(unittest.TestCase):
     """Leap Indicator and Stratum must match the whole w32tm numeric grammar; any other text fails closed."""
@@ -521,6 +533,11 @@ class WindowsAsciiFieldLabels(unittest.TestCase):
             with self.subTest(case=label):
                 result = cli.windows_time_sync_attestation(0, stdout)
                 self.assertIs(result["synchronized"], False)
+                if "\r" in stdout:                      # framing is checked first: a CR withholds every field
+                    self.assertIsNone(result["leap_indicator"])
+                    self.assertIsNone(result["stratum"])
+                    self.assertEqual(result["source"], "")
+                    continue
                 self.assertEqual(result["leap_indicator"], 0)
                 self.assertEqual(result["stratum"], 3)
                 self.assertEqual(result["source"], "time.windows.com,0x9")
@@ -547,7 +564,7 @@ class WindowsAsciiFieldLabels(unittest.TestCase):
 
 
 class WindowsLineFraming(unittest.TestCase):
-    """Only LF or one CR before LF is framing; any CR remaining in the physical line fails closed."""
+    """Framing is LF, CRLF or a final unterminated line with no CR. Every CR must be followed by LF, or the attestation fails."""
 
     def test_normal_lf_and_crlf_remain_healthy(self):
         for stdout in (w32tm_status(), w32tm_status().replace("\n", "\r\n")):
@@ -569,6 +586,31 @@ class WindowsLineFraming(unittest.TestCase):
             with self.subTest(trailing_crs=count):
                 stdout = CODEX_BASE + line + "\r" * count + "\n"
                 self.assertIs(cli.windows_time_sync_attestation(0, stdout)["synchronized"], count <= 1)
+
+    def test_final_unterminated_line_without_cr_is_healthy(self):
+        healthy = (
+            "Leap Indicator: 0\nStratum: 3\nSource: time.windows.com,0x9",
+            "Leap Indicator: 0\r\nStratum: 3\r\nSource: time.windows.com,0x9",
+            CODEX_BASE + "Precision: -23",
+        )
+        for stdout in healthy:
+            with self.subTest(stdout=stdout):
+                self.assertIs(cli.windows_time_sync_attestation(0, stdout)["synchronized"], True)
+
+    def test_a_cr_not_followed_by_lf_is_unhealthy_wherever_it_appears(self):
+        for follower in ("X", " ", "\t", "\x00", "\x7f", ":", " ", "\r"):
+            with self.subTest(follower=follower):
+                self.assertIs(cli.windows_time_sync_attestation(0, CODEX_BASE + "Precision\r" + follower + "-23\n")
+                              ["synchronized"], False)
+        with self.subTest(final="lone CR"):
+            self.assertIs(cli.windows_time_sync_attestation(0, CODEX_BASE + "Precision: -23\r")["synchronized"], False)
+
+    def test_framing_is_checked_before_any_field_is_parsed(self):
+        # The malformed CRCRLF sits on a required field, so no field is parsed: the evidence is withheld, not guessed.
+        result = cli.windows_time_sync_attestation(0, "Leap Indicator: 0\nStratum: 3\r\r\nSource: time.windows.com,0x9\n")
+        self.assertIs(result["synchronized"], False)
+        self.assertIsNone(result["stratum"])
+        self.assertEqual(result["source"], "")
 
 
 class WindowsStratumNoteComparisonForm(unittest.TestCase):
@@ -679,10 +721,11 @@ class MalformedWindowsStatusNeverReachesTheTransport(unittest.TestCase):
                     self.assertEqual(row["detail"], "TIME_SYNC_ATTESTATION")
 
     def test_healthy_status_sends_exactly_once_in_each_mode(self):
-        for framing in ("\n", "\r\n"):
+        for framing in ("\n", "\r\n", "unterminated"):
             for mode in self.MODES:
                 with self.subTest(mode=mode, framing=framing), scratch_root() as root:
-                    stdout = w32tm_status().replace("\n", framing)
+                    stdout = (w32tm_status().rstrip("\n") if framing == "unterminated"
+                              else w32tm_status().replace("\n", framing))
                     rt, item = self.runtime(root, mode, self.startup_attestation(stdout))
                     outcome = rt.runner.acquire(item)
                     self.assertIsNone(outcome.failure)

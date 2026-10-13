@@ -299,33 +299,39 @@ def _claims_unsynchronized(note: str | None) -> bool:
     return any(word in comparison for word in _W32TM_UNSYNCHRONIZED_WORDS)
 
 
+def _w32tm_framing_ok(text: str) -> bool:
+    """Every CR must be immediately followed by LF. A CR at the very end, a CR followed by anything else (CRCRLF included)
+    and a CR embedded in a physical line are all malformed framing."""
+
+    return all(text[index + 1:index + 2] == "\n" for index, char in enumerate(text) if char == "\r")
+
+
 def windows_time_sync_attestation(returncode: int, stdout: str) -> dict:
     """Design 6.1 Windows rule, ratified for WC7-003 and narrowed by the project owner. Healthy only when
     ``w32tm /query /status`` exits 0, Leap Indicator is exactly 0 with no note or the note ``no warning``, Stratum is
     1 through 15 inclusive (RFC 5905 primary and secondary strata) with no note that says it is unsynchronized, and
     Source is printable ASCII and neither Local CMOS Clock nor Free-running System Clock in any case or spacing. A
-    label containing non-ASCII or control characters makes the whole attestation unhealthy. Only LF or CRLF line
-    framing is supported; a CR anywhere after removing one trailing framing CR makes the whole attestation unhealthy.
-    A required field that is missing, repeated, malformed or contradictory fails closed. The parsed fields are kept as
-    evidence for the decision; Last Successful Sync Time is recorded but not gated, because no maximum age is
-    approved."""
+    label containing non-ASCII or control characters makes the whole attestation unhealthy. Framing is LF, CRLF, or a
+    final unterminated line with no CR: every CR must be immediately followed by LF, and any other CR makes the whole
+    attestation unhealthy. A required field that is missing, repeated, malformed or contradictory fails closed. The
+    parsed fields are kept as evidence for the decision; Last Successful Sync Time is recorded but not gated, because
+    no maximum age is approved."""
 
+    if not _w32tm_framing_ok(stdout):                       # checked on the whole text before any field is parsed
+        return {"synchronized": False, "method": "w32tm", "source": "", "leap_indicator": None, "stratum": None,
+                "last_successful_sync": None}
+    # Every CR now belongs to a CRLF pair, so normalizing the pairs to LF loses no framing information.
     seen: dict[str, list[str | None]] = {stem: [] for stem in _W32TM_LABELS}
     labels_ok = True
-    for line in stdout.split("\n"):
-        text = line[:-1] if line.endswith("\r") else line
-        if "\r" in text:
-            labels_ok = False
-            continue
-        parts = re.split(r"[:=]", text, maxsplit=1)
+    for line in stdout.replace("\r\n", "\n").split("\n"):
+        parts = re.split(r"[:=]", line, maxsplit=1)
         # Check the raw label, including its surrounding whitespace, before case folding or attempt detection.
-        # Empty/blank lines retain their existing handling; exactly one CRLF framing CR was removed above.
         if any(not 0x20 <= ord(char) <= 0x7e for char in parts[0]):
             labels_ok = False
             continue
         label = parts[0].strip(" ").casefold()
         value = parts[1].strip(" ") if len(parts) == 2 else None
-        letters = _w32tm_letters(text)
+        letters = _w32tm_letters(line)
         for stem, exact in _W32TM_LABELS.items():
             if letters.startswith(_w32tm_letters(exact)):      # an attempt at this label, however it is corrupted
                 seen[stem].append(value if label == exact else None)

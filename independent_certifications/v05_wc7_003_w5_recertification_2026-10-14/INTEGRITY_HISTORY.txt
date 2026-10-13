@@ -1,0 +1,7 @@
+Recorded 2026-10-13T23:58:44Z UTC
+cert/v05-r7-windows tip (origin, now): 2285f2492e1ca87c8e6bc863e9a8caa29a151847 (required 2285f2492e1ca87c8e6bc863e9a8caa29a151847)
+Historical certification tree independent_certifications @2285f24: 8113408a01fb0918d64507a50b77991f05b936d3
+Historical certification manifest sha256 @2285f24: 660fc79fd9310d94ef7fa3cc9a98fe02587eb5ef86d3fe59873160d647075d7c
+Historical certification tree now (same ref, unchanged): 8113408a01fb0918d64507a50b77991f05b936d3
+Production/test files changed during recertification: none (subject worktree status empty after probes; blob IDs above unchanged)
+New evidence files: only under independent_certifications/v05_wc7_003_w5_recertification_2026-10-14/ on branch cert/v05-wc7-003-w5-recert

@@ -1,0 +1,27 @@
+=== recorded 2026-10-13T23:58:16Z UTC / 2026-10-14 00:58:16 GMTST local ===
+--- os ---
+Caption     : Microsoft Windows 11 Pro
+Version     : 10.0.26200
+BuildNumber : 26200
+--- python ---
+Python 3.12.10
+--- git ---
+git version 2.55.0.windows.3
+--- repo/worktree paths ---
+subject worktree: /c/Users/abbot/fz/w5rc
+evidence worktree: /c/Users/abbot/fz/w5ev
+--- windows time service ---
+
+SERVICE_NAME: w32time 
+        TYPE               : 30  WIN32  
+        STATE              : 4  RUNNING 
+                                (STOPPABLE, NOT_PAUSABLE, ACCEPTS_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+        START_TYPE         : 2   AUTO_START  (DELAYED)
+        BINARY_PATH_NAME   : C:\WINDOWS\system32\svchost.exe -k LocalService
+--- w32tm /query /source (read-only) ---
+The following error occurred: Access is denied. (0x80070005)
+exit: 5

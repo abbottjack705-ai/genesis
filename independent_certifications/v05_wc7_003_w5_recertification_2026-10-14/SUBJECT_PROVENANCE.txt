@@ -1,0 +1,14 @@
+Exact tested SHA: 2e8290ea7a8a26d4796de893036c12a0d05b7b2b
+Subject checkout: /c/Users/abbot/fz/w5rc (detached HEAD, clean worktree)
+git rev-parse HEAD (subject): 2e8290ea7a8a26d4796de893036c12a0d05b7b2b
+git status --porcelain (subject, before probes): [empty]
+git status --porcelain (subject, after probes): []
+git diff --check deec08ffc66c56d156bc09addf548c62166cea17 HEAD (subject): exit 0
+git diff --check (subject worktree): exit 0
+Parent of tested SHA: 896de47b44c25008059dc9724b3964f50436255a
+Base of WC7-003 branch: deec08ffc66c56d156bc09addf548c62166cea17
+Tracked blobs (git hash-object == tree):
+  adapters/src/genesis_adapters/cli.py                              fce7cc925e4112a7fe23906e03489975bd1b3329
+  adapters/adapter_tests/test_v05_wc7_003_time_sync.py              fe7ae5690ede28e810071e8ef007178263cc0607
+  V05_ADAPTER_ARCHITECTURE.md                                       8f8820b5bc305d1fc4576750b6afbc2879cbc413
+Frozen V0.4 src and tests unchanged vs 4f11606 (exit 0) and vs v0.4-foundation-freeze (exit 0).

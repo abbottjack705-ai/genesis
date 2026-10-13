@@ -1,0 +1,10 @@
+Leap Indicator: 3(not synchronized)
+Stratum: 0 (unspecified)
+Precision: -23 (119.209ns per tick)
+Root Delay: 0.0213609s
+Root Dispersion: 4.2262882s
+ReferenceId: 0x00000000 (unspecified)
+Last Successful Sync Time: 12/10/2026 20:11:30
+Source: time.windows.com,0x9 
+Poll Interval: 10 (1024s)
+

@@ -1,4 +1,5 @@
 ---
+name: genesis-architect
 description: Read-only architecture and research agent for Project Genesis. Designs, checks sources and reasons; never writes files.
 tools: Read, Grep, Glob, WebSearch, WebFetch
 ---

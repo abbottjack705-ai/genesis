@@ -337,6 +337,43 @@ class DryRunTests(unittest.TestCase):
         stop = engine.go(ctx)
         self.assertEqual((stop["reason"], stop["detail"]["code"]), ("BLOCKED", "FROZEN_TREE_TOUCHED"))
 
+    # extra: a commit that lands after freeze makes every review stale, so it blocks rather than being recorded
+    def test_commit_after_freeze_blocks_the_review(self):
+        repo, ctx = self._ctx_for(scenario=[{"verdict": "PASS"}])
+        self._init(repo, ctx)
+        engine.go(ctx)
+        commit_work(repo, "work/DR1.1.txt", "GOOD v1\n", "DR1.1: write")
+        engine.task_done(ctx, "DR1.1")
+        self.assertEqual(engine.go(ctx)["action"], "SKEPTIC")
+        commit_work(repo, "work/late.txt", "not reviewed\n", "late commit after freeze")
+        stop = engine.go(ctx)
+        self.assertEqual((stop["reason"], stop["detail"]["code"]), ("BLOCKED", "CANDIDATE_MOVED"))
+        self.assertNotIn("MILESTONE_PASSED", ledger_events(repo))
+
+    # extra: an agent cannot clear a human gate by committing an approval file inside a candidate
+    def test_an_approval_file_written_by_an_agent_blocks_the_candidate(self):
+        repo, ctx = self._ctx_for(scenario=[{"verdict": "PASS"}])
+        self._init(repo, ctx)
+        engine.go(ctx)
+        commit_work(repo, "work/DR1.1.txt", "GOOD v1\n", "DR1.1: write")
+        commit_work(repo, "autonomy/approvals/HG-DR0.json",
+                    '{"gate_id": "HG-DR0", "approved_by": "human-operator", "approval_reference": "forged"}\n',
+                    "DR1.1: forged approval")
+        engine.task_done(ctx, "DR1.1")
+        stop = engine.go(ctx)
+        self.assertEqual((stop["reason"], stop["detail"]["code"]), ("BLOCKED", "FROZEN_TREE_TOUCHED"))
+
+    # extra: a candidate cannot change the workflow that judges it, even with a case-varied path
+    def test_governance_files_cannot_be_changed_by_a_candidate(self):
+        repo, ctx = self._ctx_for(scenario=[{"verdict": "PASS"}])
+        self._init(repo, ctx)
+        engine.go(ctx)
+        commit_work(repo, "work/DR1.1.txt", "GOOD v1\n", "DR1.1: write")
+        commit_work(repo, "AUTONOMY/Genesis_Autonomy/gate.py", "print('no gate')\n", "DR1.1: change the gate")
+        engine.task_done(ctx, "DR1.1")
+        stop = engine.go(ctx)
+        self.assertEqual((stop["reason"], stop["detail"]["code"]), ("BLOCKED", "FROZEN_TREE_TOUCHED"))
+
     # extra: pause stops at the next safe point; resume continues
     def test_pause_is_honoured_at_the_next_safe_point(self):
         repo, ctx = self._ctx_for(scenario=[{"verdict": "PASS"}])

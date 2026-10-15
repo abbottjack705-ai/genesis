@@ -1,7 +1,7 @@
 ---
 description: Pause the Genesis construction loop at its next safe point, with a reason
 argument-hint: <reason>
-allowed-tools: Bash(python -B autonomy/genesis_workflow.py *)
+allowed-tools: Bash(python -B autonomy/genesis_workflow.py pause*)
 ---
 
 Run `python -B autonomy/genesis_workflow.py pause --reason "$ARGUMENTS"` from the repository root and report the

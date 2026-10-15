@@ -1,0 +1,13 @@
+**Stuck: the engine is BLOCKED on E2E1 with `GIT_FAILED`, so no milestone has run or passed.** I stopped without resuming or changing anything.
+
+- **Code:** `GIT_FAILED`
+- **Message:** `git worktree add --detach ...\scratchpad\e2e\writer-worktrees\E2E1-r1-validate-1 e21d649... exited 128`. Git reported `Filename too long` for tracked files under `independent_certifications/v05_wc7_003_w5_recertification_2026-10-14/evidence/`, for example `W05_environment_and_time_service.txt` and `W05_real_startup_attestation.json`.
+- **Likely cause:** Windows path-length limits. Long paths are not enabled for git, and the scratchpad base path is already long. I could not confirm the current `core.longpaths` value, because the read-only `git config` check required approval and I did not try to get around that.
+
+**Fix for the operator** (I have not applied either):
+1. Enable long paths for git: `git config --global core.longpaths true`. Also check that Windows `LongPathsEnabled` is set to 1 in the registry. A shorter worktree base path would also work.
+2. Clear the block and resume: `python -B autonomy/genesis_workflow.py resume --clear-block`, then re-run `/genesis-go`.
+
+Nothing else was touched. No state, records, envelope, approvals, or validation were run, and no provider or live activation happened.
+SessionEnd hook [node "${CLAUDE_PLUGIN_ROOT}/scripts/session-lifecycle-hook.mjs" SessionEnd] failed: /usr/bin/bash: line 1: node: command not found
+

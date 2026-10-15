@@ -1,4 +1,5 @@
 ---
+name: genesis-evidence
 description: Test and evidence agent for Project Genesis. Checks provenance, manifests and transcripts read-only and reports mismatches to the Lead.
 tools: Read, Grep, Glob
 ---

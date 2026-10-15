@@ -109,7 +109,7 @@ def make_context(repo: Path, scenario: list[dict] | None = None, *, extra_env: d
 def commit_work(repo: Path, relpath: str, text: str, message: str) -> str:
     target = Path(repo) / relpath
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(text, encoding="utf-8")
+    target.write_bytes(text.encode("utf-8"))            # explicit LF: text mode would write CRLF on Windows
     git(repo, "add", "-A")
     git(repo, "commit", "-q", "-m", message)
     return git(repo, "rev-parse", "HEAD")
@@ -146,9 +146,9 @@ def drive(ctx: engine.Context, *, implementer, max_calls: int = 80, stop_when=No
 def write_approval(repo: Path, gate_id: str) -> None:
     approvals = Path(repo) / "autonomy" / "approvals"
     approvals.mkdir(exist_ok=True)
-    (approvals / f"{gate_id}.json").write_text(json.dumps({
+    (approvals / f"{gate_id}.json").write_bytes(json.dumps({
         "gate_id": gate_id, "approved_by": "human-operator",
-        "approval_reference": "fixture approval for the dry run", "scope": "fixture"}), encoding="utf-8")
+        "approval_reference": "fixture approval for the dry run", "scope": "fixture"}).encode("utf-8"))
     git(repo, "add", "-A")
     git(repo, "commit", "-q", "-m", f"fixture approval {gate_id}")
 

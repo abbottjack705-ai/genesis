@@ -1,4 +1,5 @@
 ---
+name: genesis-skeptic
 description: Internal adversarial Claude reviewer for a Genesis candidate, before the independent Codex review. Read-only. Replies with one JSON object.
 tools: Read, Grep, Glob
 ---

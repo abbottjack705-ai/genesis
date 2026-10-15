@@ -1,24 +1,41 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -B autonomy/genesis_workflow.py *)",
-      "Bash(python -B autonomy/shard_tests.py *)",
+      "Bash(python -B autonomy/genesis_workflow.py status*)",
+      "Bash(python -B autonomy/genesis_workflow.py explain-gate*)",
+      "Bash(python -B autonomy/genesis_workflow.py verify*)",
+      "Bash(python -B autonomy/genesis_workflow.py go --select-only*)",
       "Bash(python -B -m unittest *)",
-      "Bash(python -B -c *)",
       "Bash(git status *)",
       "Bash(git log *)",
       "Bash(git show *)",
       "Bash(git diff *)",
       "Bash(git rev-parse *)",
-      "Bash(git branch *)"
+      "Bash(git ls-tree *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(mkdir *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(pwd)"
     ],
     "deny": [
+      "Bash(python -B autonomy/genesis_workflow.py resume*)",
+      "Bash(python -B autonomy/genesis_workflow.py init*)",
       "Bash(git push *)",
-      "Bash(git reset --hard *)",
+      "Bash(git reset *)",
       "Bash(git clean *)",
-      "Bash(git checkout -- *)",
-      "Bash(git worktree remove *)",
-      "Bash(rm -rf *)"
+      "Bash(git checkout *)",
+      "Bash(git restore *)",
+      "Bash(git stash *)",
+      "Bash(git worktree *)",
+      "Bash(git update-ref *)",
+      "Bash(git branch *)",
+      "Bash(git tag *)",
+      "Bash(git config *)",
+      "Bash(rm *)",
+      "Bash(rmdir *)",
+      "Bash(del *)"
     ]
   }
 }

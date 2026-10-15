@@ -8,6 +8,7 @@ never create approval files (see autonomy/README.md, residuals).
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 from .state import WorkflowError
@@ -57,9 +58,20 @@ def validate(doc: dict) -> None:
 
 
 def gate_approved(repo: Path, gate_id: str) -> bool:
-    path = Path(repo) / "autonomy" / "approvals" / f"{gate_id}.json"
+    """True only for an approval that is committed (HEAD holds exactly these bytes) and well formed.
+
+    A present but uncommitted or edited file is refused, not accepted: an approval must be in history.
+    """
+    rel = f"autonomy/approvals/{gate_id}.json"
+    path = Path(repo) / rel
     if not path.exists():
         return False
+    # git's own comparison, so core.autocrlf and line endings are judged the way git judges them
+    in_head = subprocess.run(["git", "cat-file", "-e", f"HEAD:{rel}"], cwd=str(repo), capture_output=True)
+    same = subprocess.run(["git", "diff", "--quiet", "HEAD", "--", rel], cwd=str(repo), capture_output=True)
+    if in_head.returncode != 0 or same.returncode != 0:
+        raise WorkflowError("APPROVAL_UNCOMMITTED", f"{rel} exists but HEAD does not hold this approval; "
+                                                    f"commit the approval before the gate can clear")
     try:
         doc = json.loads(path.read_text(encoding="utf-8"))
     except ValueError as exc:
@@ -97,9 +109,16 @@ def select(doc: dict, statuses: dict, repo: Path):
 
 
 def pending_gates(doc: dict, statuses: dict, repo: Path) -> list[dict]:
+    """Gates still waiting on a human. A broken approval is reported on its gate, never allowed to crash a stop."""
     out = []
     for m in doc["milestones"]:
         gate = m.get("human_gate")
-        if gate and statuses.get(m["id"], {}).get("status") == "PENDING" and not gate_approved(repo, gate["id"]):
+        if not (gate and statuses.get(m["id"], {}).get("status") == "PENDING"):
+            continue
+        try:
+            if gate_approved(repo, gate["id"]):
+                continue
             out.append({"milestone": m["id"], **gate})
+        except WorkflowError as exc:
+            out.append({"milestone": m["id"], **gate, "approval_problem": exc.code, "message": exc.message})
     return out

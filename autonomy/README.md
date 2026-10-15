@@ -93,12 +93,35 @@ the append and the save) is adopted once and counted; two or more are refused.
 - A gated milestone does not stop unrelated paper-only work; it stops the loop only when nothing else can run.
 - Attempt limit: `max_remediation_rounds`. Beyond it the milestone blocks for operator review.
 
+- Governance is not a candidate's to change: the engine, CLI, envelope, roadmap, tests, approvals, Claude commands,
+  agents and settings (`GOVERNANCE_PREFIXES` in `engine.py`). A candidate that touches them is blocked. Changing
+  them is a human-governed commit made between milestones, while the state is IDLE.
+- Frozen-tree checks use `git diff --no-renames`, so moving a frozen file out of its tree cannot hide behind its
+  new name. Path matching is case-folded, because the host filesystem is case-insensitive.
+- Every review step checks that the writer HEAD still equals the frozen candidate. A commit that lands after freeze
+  makes the review stale and blocks the milestone (`CANDIDATE_MOVED`).
+
 ## Human gates
 
 Gates are listed in `ENVELOPE.json` (`human_gate_triggers`) and attached to roadmap milestones (`human_gate`).
 A gate is cleared only by a human committing `autonomy/approvals/<gate_id>.json` with `approved_by:
-"human-operator"` and an `approval_reference`. Agents must never write that file. Shape is checked; authorship is
-not (see residuals).
+"human-operator"` and an `approval_reference`. Agents must never write that file. The engine accepts an approval
+only when HEAD holds it (`git diff --quiet HEAD`, so line endings are judged as git judges them); a present but
+uncommitted approval is refused (`APPROVAL_UNCOMMITTED`). Shape is checked; authorship is not (see residuals).
+
+## Permissions (headless and interactive)
+
+- `.claude/settings.json` allows read-only workflow subcommands and the writer's git add, commit and listing,
+  plus `mkdir`, `ls`, `cat`, `pwd` and unittest. It denies push, reset, clean, checkout, stash, worktree, branch
+  and tag operations, removal, and `resume` and `init`.
+- The Lead-only commands (`go`, `task-done`, `record-skeptic`) are allowed only inside `/genesis-go`'s own
+  `allowed-tools`, so the writer cannot record its own skeptic review. `resume --clear-block` is run by the operator
+  in a terminal, never by Claude.
+- Claude Code permission rules match command text. They reduce the writer's reach but cannot prove which agent
+  made a call. The engine's checks (candidate HEAD, frozen and governance paths, committed approvals, independent
+  review on the exact SHA) are what hold; the permission layer is defence in depth.
+- Writing files needs an edit mode. Run unattended with `claude --permission-mode acceptEdits`; in the default
+  mode the implementer's edits are refused in headless runs (observed in the end-to-end run).
 
 ## Resource policy
 

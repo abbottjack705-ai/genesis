@@ -109,12 +109,31 @@ class RoadmapTests(unittest.TestCase):
         with self.assertRaises(WorkflowError):
             roadmap.validate(doc)
 
+    def _commit_approval(self, body: dict) -> None:
+        from .support import git
+        git(self.repo, "init", "-q", "-b", "main")
+        git(self.repo, "config", "user.name", "Test Harness")
+        git(self.repo, "config", "user.email", "harness@example.invalid")
+        (self.repo / "autonomy" / "approvals" / "HG-X.json").write_text(json.dumps(body), encoding="utf-8")
+        git(self.repo, "add", "-A")
+        git(self.repo, "commit", "-q", "-m", "approval")
+
     def test_approval_with_wrong_approver_is_refused_not_trusted(self):
-        (self.repo / "autonomy" / "approvals" / "HG-X.json").write_text(json.dumps(
-            {"gate_id": "HG-X", "approved_by": "an-agent", "approval_reference": "x"}), encoding="utf-8")
+        self._commit_approval({"gate_id": "HG-X", "approved_by": "an-agent", "approval_reference": "x"})
         with self.assertRaises(WorkflowError) as cm:
             roadmap.gate_approved(self.repo, "HG-X")
         self.assertEqual(cm.exception.code, "APPROVAL_MALFORMED")
+
+    def test_an_approval_present_but_not_committed_is_refused(self):
+        (self.repo / "autonomy" / "approvals" / "HG-X.json").write_text(json.dumps(
+            {"gate_id": "HG-X", "approved_by": "human-operator", "approval_reference": "adr"}), encoding="utf-8")
+        with self.assertRaises(WorkflowError) as cm:
+            roadmap.gate_approved(self.repo, "HG-X")
+        self.assertEqual(cm.exception.code, "APPROVAL_UNCOMMITTED")
+
+    def test_a_committed_human_approval_clears_the_gate(self):
+        self._commit_approval({"gate_id": "HG-X", "approved_by": "human-operator", "approval_reference": "adr-7"})
+        self.assertTrue(roadmap.gate_approved(self.repo, "HG-X"))
 
     def test_gated_milestone_nothing_depends_on_does_not_stop_paper_work(self):
         doc = dryrun_roadmap()
@@ -229,6 +248,27 @@ class HeavyTests(unittest.TestCase):
 
     def test_this_host_reports_a_positive_memory_figure(self):
         self.assertGreater(heavy.available_memory_mib(), 0)
+
+
+class RenameTests(unittest.TestCase):
+    def test_a_rename_out_of_a_frozen_tree_is_still_reported_under_its_old_name(self):
+        from genesis_autonomy import gitops
+        from .support import git
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
+            repo = Path(tmp)
+            git(repo, "init", "-q", "-b", "main")
+            git(repo, "config", "user.name", "Test Harness")
+            git(repo, "config", "user.email", "harness@example.invalid")
+            (repo / "src").mkdir()
+            (repo / "src" / "frozen.py").write_text("x = 1\n", encoding="utf-8")
+            git(repo, "add", "-A")
+            git(repo, "commit", "-q", "-m", "base")
+            base = git(repo, "rev-parse", "HEAD")
+            (repo / "autonomy").mkdir()
+            git(repo, "mv", "src/frozen.py", "autonomy/frozen.py")
+            git(repo, "commit", "-q", "-m", "move a frozen file")
+            changed = gitops.changed_paths(repo, base, gitops.head(repo))
+            self.assertIn("src/frozen.py", changed)
 
 
 class ShardTests(unittest.TestCase):

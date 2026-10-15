@@ -24,6 +24,11 @@ from .state import WorkflowError, digest_of, utc_now
 
 COAUTHOR = "Co-Authored-By: Claude Haiku 5.5 <noreply@anthropic.com>"
 MAX_STEPS = 500
+# Workflow governance: changed between milestones by a human-governed commit, never by a candidate.
+GOVERNANCE_PREFIXES = ["autonomy/approvals/", "autonomy/state/", "autonomy/genesis_autonomy/",
+                       "autonomy/genesis_workflow.py", "autonomy/shard_tests.py", "autonomy/tests/",
+                       "autonomy/ENVELOPE.json", "autonomy/ROADMAP.json", "autonomy/review_schema.json",
+                       ".claude/"]
 DEFERRABLE = {"HEAVY_BUSY", "MEMORY_GATE", "ENGINE_BUSY"}
 SKEPTIC_KEYS = {"verdict", "reviewed_sha", "summary", "findings"}
 SKEPTIC_VERDICTS = ("CLEAR", "FINDINGS")
@@ -55,8 +60,17 @@ class Context:
         raise WorkflowError("ROADMAP_MALFORMED", f"unknown milestone {mid}")
 
     def forbidden(self, path: str) -> bool:
-        prefixes = self.envelope["frozen_prefixes"] + self.envelope["immutable_prefixes"]
-        return any(path == p.rstrip("/") or path.startswith(p) for p in prefixes)
+        """True for any path a candidate may not change.
+
+        Frozen and immutable history; human-only approvals; and the workflow's own governance (engine, CLI,
+        envelope, roadmap, tests, Claude commands, agents and settings). Those change only between milestones,
+        through a human-governed commit, so the engine that judges a candidate is never changed by that candidate.
+        Comparison is case-folded because the host filesystem is case-insensitive.
+        """
+        prefixes = (self.envelope["frozen_prefixes"] + self.envelope["immutable_prefixes"]
+                    + GOVERNANCE_PREFIXES)
+        folded = path.casefold()
+        return any(folded == p.rstrip("/").casefold() or folded.startswith(p.casefold()) for p in prefixes)
 
 
 def _load_json(path: Path, schema: str) -> dict:
@@ -110,6 +124,14 @@ def _assert_writer(ctx: Context, state: dict) -> None:
         raise WorkflowError("WRITER_MISMATCH", f"engine is running in {ctx.repo}, not the writer {base['writer_worktree']}")
     if gitops.branch(ctx.repo) != ctx.envelope["writer_branch"]:
         raise WorkflowError("WRITER_MISMATCH", f"writer must be on {ctx.envelope['writer_branch']}")
+
+
+def _assert_candidate_head(ctx: Context, state: dict) -> None:
+    """Every review step judges the frozen candidate. If the writer HEAD has moved, the review is stale: refuse."""
+    candidate = state["active"]["candidate"]
+    if candidate is None or gitops.head(ctx.repo) != candidate:
+        raise WorkflowError("CANDIDATE_MOVED", f"the writer HEAD is no longer the frozen candidate {candidate}; "
+                                                f"a commit landed after freeze, so this review is stale")
 
 
 def _stop(ctx: Context, state: dict, reason: str, detail=None) -> dict:
@@ -371,6 +393,7 @@ def _writer_retry(ctx: Context, state: dict, reason: str):
 
 def _validate(ctx: Context, state: dict):
     a = state["active"]
+    _assert_candidate_head(ctx, state)
     candidate = a["candidate"]
     a["attempts"] += 1
     run_id = f"{a['milestone']}-r{a['round']}-validate-{a['attempts']}"
@@ -492,6 +515,7 @@ def _write_skeptic_packet(ctx: Context, state: dict) -> Path:
 
 
 def _skeptic_action(ctx: Context, state: dict):
+    _assert_candidate_head(ctx, state)
     a = state["active"]
     packet = ctx.state_root / "packets" / f"{a['milestone']}-r{a['round']}-skeptic.md"
     state["next_action"] = f"skeptic: record its JSON with record-skeptic ({a['candidate'][:12]})"
@@ -509,6 +533,7 @@ def record_skeptic(ctx: Context, reply_path) -> dict:
             raise WorkflowError("NOT_SKEPTIC_STEP", f"phase is {state['phase']}")
         a = state["active"]
         _assert_writer(ctx, state)
+        _assert_candidate_head(ctx, state)
         raw = Path(reply_path).read_bytes()
         try:
             doc = json.loads(raw.decode("utf-8"))
@@ -553,6 +578,7 @@ def _codex(ctx: Context, state: dict):
     a = state["active"]
     cand = a["candidate"]
     _assert_writer(ctx, state)
+    _assert_candidate_head(ctx, state)
     if not gitops.is_clean(ctx.repo):
         raise WorkflowError("WRITER_DIRTY", "the writer changed after validation")
     verify_validation(ctx, a)
@@ -594,7 +620,7 @@ def _codex(ctx: Context, state: dict):
     finally:
         gitops.remove_worktree(ctx.repo, wt)
     a["inflight"] = None
-    (run_dir / "verdict.json").write_text(json.dumps(verdict, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (run_dir / "verdict.json").write_bytes((json.dumps(verdict, indent=2, sort_keys=True) + "\n").encode("utf-8"))
     a["review"] = {"run": run_id, "verdict": verdict["verdict"], "reviewed_sha": cand, "sha256": verdict["sha256"]}
     st.append_event(ctx.repo, state, {"event": "CODEX_VERDICT", "verdict": verdict["verdict"], "candidate": cand})
     if verdict["verdict"] == "PASS":
@@ -662,7 +688,7 @@ def _reject(ctx: Context, state: dict, kind: str, findings: list) -> dict | None
                 shutil.copytree(src, dest / "evidence" / run["run"], ignore=shutil.ignore_patterns("pycache"))
     record = {"milestone": mid, "round": rnd, "candidate": cand, "candidate_parent": a["candidate_parent"],
               "kind": kind, "findings": findings, "utc": utc_now()}
-    (dest / "REJECTION.json").write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (dest / "REJECTION.json").write_bytes((json.dumps(record, indent=2, sort_keys=True) + "\n").encode("utf-8"))
     evidence.write_manifest(dest, f"rejected r{rnd} {cand}")
     record_commit = gitops.commit_paths(ctx.repo, [rel], f"autonomy({mid}): preserve rejected candidate {cand} "
                                                          f"(round {rnd}, {kind})\n\n{COAUTHOR}")
@@ -700,6 +726,7 @@ def _advance(ctx: Context, state: dict):
     a = state["active"]
     mid, cand = a["milestone"], a["candidate"]
     _assert_writer(ctx, state)
+    _assert_candidate_head(ctx, state)
     verify_validation(ctx, a)
     rel = f"autonomy/records/{mid}"
     dest = ctx.repo / rel
@@ -713,7 +740,7 @@ def _advance(ctx: Context, state: dict):
               "rounds": a["round"], "rejected": a["rejected"], "changed": a["changed"],
               "diff_stat": a["diff_stat"], "validation": a["validation"], "skeptic": a["skeptic"],
               "review": a["review"], "utc": utc_now()}
-    (dest / "MILESTONE.json").write_text(json.dumps(record, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    (dest / "MILESTONE.json").write_bytes((json.dumps(record, indent=2, sort_keys=True) + "\n").encode("utf-8"))
     evidence.write_manifest(dest, f"milestone {mid} PASS")
     record_commit = gitops.commit_paths(ctx.repo, [rel], f"autonomy({mid}): record PASS for candidate {cand}\n\n"
                                                          f"{COAUTHOR}")

@@ -1,6 +1,6 @@
 ---
 description: Advance the Genesis autonomous construction loop until a real stop (human gate, pause, block, deferral or completion)
-allowed-tools: Bash(python -B autonomy/genesis_workflow.py *), Bash(python -B -c *), Bash(git status *), Bash(git log *), Bash(git show *), Bash(git diff *), Bash(git rev-parse *), Agent, Read, Write, Grep, Glob
+allowed-tools: Bash(python -B autonomy/genesis_workflow.py go*), Bash(python -B autonomy/genesis_workflow.py task-done*), Bash(python -B autonomy/genesis_workflow.py record-skeptic*), Bash(python -B autonomy/genesis_workflow.py status*), Bash(python -B autonomy/genesis_workflow.py explain-gate*), Bash(sleep *), Bash(git status *), Bash(git log *), Bash(git show *), Bash(git diff *), Bash(git rev-parse *), Agent, Read, Write, Grep, Glob
 ---
 
 You are the **Genesis Lead** for Project Genesis. The operator has said GO. Drive the loop below until the
@@ -37,7 +37,7 @@ returns one of two things: an ACTION for you, or a STOP. Read its JSON; never gu
    - `reason: BLOCKED`: report `detail.code` and `detail.message` and the fix the operator must make.
      Resume only after the cause is fixed, and only with `python -B autonomy/genesis_workflow.py resume --clear-block`.
    - `reason: DEFERRED`: the host is busy or short of memory. Wait with
-     `python -B -c "import time; time.sleep(120)"`, then return to step 1. The engine blocks by itself if the
+     `sleep 120`, then return to step 1. The engine blocks by itself if the
      deferral never clears.
    - `reason: COMPLETE`: report that every milestone has passed, with the last record commit.
 

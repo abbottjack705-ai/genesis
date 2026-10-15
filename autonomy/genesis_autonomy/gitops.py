@@ -10,8 +10,13 @@ from pathlib import Path
 from .state import WorkflowError
 
 
+# core.longpaths: the evidence tree holds paths deeper than MAX_PATH; without it a detached validation
+# checkout under a deep worktree root fails with "Filename too long" (reproduced in the end-to-end run).
+GIT_BASE = ["-c", "core.quotepath=off", "-c", "core.longpaths=true"]
+
+
 def git(cwd, *args: str, check: bool = True) -> str:
-    proc = subprocess.run(["git", "-c", "core.quotepath=off", *args], cwd=str(cwd),
+    proc = subprocess.run(["git", *GIT_BASE, *args], cwd=str(cwd),
                           capture_output=True, text=True, encoding="utf-8", errors="replace")
     if check and proc.returncode != 0:
         raise WorkflowError("GIT_FAILED", f"git {' '.join(args)} exited {proc.returncode}: "
@@ -51,7 +56,9 @@ def is_ancestor(cwd, ancestor: str, descendant: str) -> bool:
 
 
 def changed_paths(cwd, base: str, tip: str) -> list[str]:
-    return [line for line in git(cwd, "diff", "--name-only", base, tip).splitlines() if line]
+    # --no-renames: a rename reports both the old and the new path, so moving a frozen file out of
+    # src/ or tests/ cannot hide behind its new name (found by the end-to-end skeptic review).
+    return [line for line in git(cwd, "diff", "--name-only", "--no-renames", base, tip).splitlines() if line]
 
 
 def diff_stat(cwd, base: str, tip: str) -> str:

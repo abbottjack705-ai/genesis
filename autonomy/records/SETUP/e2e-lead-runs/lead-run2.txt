@@ -1,0 +1,14 @@
+The E2E1 implementer is running in the background. I'll continue the loop when it reports back with its commit SHA.
+
+E2E1 is stuck: the engine refuses to mark task E2E1.1 done because `.claude/settings.json` has an uncommitted change in the writer worktree.
+
+- **Task status:** E2E1.1 is committed as `f5b0e40` on `dryrun-e2e`. I checked the commit and `work/E2E1.txt` contains `GOOD`. The engine's `task-done` returned `WRITER_DIRTY`, so it has not recorded the task. No block is set and nothing else has run.
+- **The dirty file:** `.claude/settings.json` was already modified before this run; it was in the git status at the start of the session. The diff mixes loosening and tightening. It adds allows for `git add`, `git commit`, `git ls-tree`, `mkdir`, `ls`, `cat`, `pwd` and `echo`. It also changes several denies: `git reset --hard` becomes `git reset`, `git checkout --` becomes `git checkout`, and `rm -rf` becomes `rm`. It adds denies for `git stash`, `git worktree`, `git tag`, `git restore`, `git update-ref`, `rmdir` and `del`.
+- **Why I didn't clear it:** The implementer could revert the file, but that would destroy your uncommitted change. It could commit the file, but that would fold an unrelated permission change into the milestone commit. Moving the file aside would work around the refusal. Each option is your decision, so I left the file alone.
+- **Related:** The implementer's run had one Bash call denied, and it switched to the Write tool. I have not confirmed whether the settings change caused that.
+
+To continue, choose one:
+1. Commit the settings change yourself, separately from the milestone, or move it somewhere safe outside the worktree. Then tell me and I will run `task-done --task E2E1.1` and resume the loop.
+2. Tell me to discard the settings change. I will have the implementer revert it, then retry.
+SessionEnd hook [node "${CLAUDE_PLUGIN_ROOT}/scripts/session-lifecycle-hook.mjs" SessionEnd] failed: /usr/bin/bash: line 1: node: command not found
+

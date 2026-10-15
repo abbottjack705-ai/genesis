@@ -1,6 +1,6 @@
 ---
 description: Show the resumable Genesis construction state and the next milestone, without advancing anything
-allowed-tools: Bash(python -B autonomy/genesis_workflow.py *)
+allowed-tools: Bash(python -B autonomy/genesis_workflow.py status*), Bash(python -B autonomy/genesis_workflow.py go --select-only*)
 ---
 
 Run `python -B autonomy/genesis_workflow.py status` and `python -B autonomy/genesis_workflow.py go --select-only`

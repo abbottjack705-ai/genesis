@@ -2,8 +2,12 @@
   "files": {
     "adapter-inventory-summary.json": "da2e27cf88ce45abe45ddcf7880ab18d0200e8e6c0dbf8c78f0846f6d4a59d57",
     "codex-preflight-probe.json": "fc6828dacfada1b993426042bcfcecb5f81ae2cee3bdba3d2d45dbf717aac154",
+    "e2e-lead-runs/lead-run.txt": "3d3f7893d72568e6934a7a7b5a7daf69a7cbcee5d0973b775ef4d08192250a3a",
+    "e2e-lead-runs/lead-run2.txt": "677b4e08376848eaaa2eededc45b0ce862ef9e1395628b96fe5d826145fba69b",
+    "e2e-lead-runs/lead-run3.txt": "9a99ce458f1fd4869ab40d49b5e6a26fc40c68213e03794f658ff165d4ef9a86",
+    "e2e-lead-runs/lead-run4.txt": "d1cf41b4fa87ea2b56bbf2303f3e5bc26808ff278e554f3b72e2219f92f0ffcb",
     "select-only.json": "8015f012a6e8722c4d07283d72b44701d938a197d66e9192d7e3135feb3481c6",
-    "workflow-tests.txt": "694372f7bfe0e560fa7c94a98d6aa1efaeef191d271c8fbfdb2ce65ed75978e7"
+    "workflow-tests.txt": "177ef0b08ac85bb95df41fb2e5ce686b3edc10132cf5c8a3c1634450eeddd295"
   },
-  "label": "workflow setup dry run and preflight evidence"
+  "label": "workflow setup: tests, preflight, inventory, e2e Lead transcripts"
 }

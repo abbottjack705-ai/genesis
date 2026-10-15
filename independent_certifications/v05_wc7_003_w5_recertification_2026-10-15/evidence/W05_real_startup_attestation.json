@@ -1,0 +1,11 @@
+{
+ "genesis_module_file": "C:\\Users\\abbot\\fz\\w5rc-r2\\adapters\\src\\genesis_adapters\\cli.py",
+ "time_sync_attestation": {
+  "last_successful_sync": "15/10/2026 22:08:34",
+  "leap_indicator": 0,
+  "method": "w32tm",
+  "source": "time.windows.com,0x9",
+  "stratum": 5,
+  "synchronized": true
+ }
+}

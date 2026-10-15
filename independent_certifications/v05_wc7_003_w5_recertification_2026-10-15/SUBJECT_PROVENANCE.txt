@@ -1,0 +1,15 @@
+Exact tested SHA: 2e8290ea7a8a26d4796de893036c12a0d05b7b2b
+Subject checkout: C:\Users\abbot\fz\w5rc-r2 (detached HEAD, fresh worktree created for this attempt)
+git rev-parse HEAD (subject): 2e8290ea7a8a26d4796de893036c12a0d05b7b2b
+git status --porcelain (subject, before tests and probes): [empty]
+git status --porcelain (subject, after probes and unittest run): [empty]
+git diff --check deec08ffc66c56d156bc09addf548c62166cea17 HEAD (subject): exit 0
+git diff --check (subject worktree): exit 0
+Parent of tested SHA: 896de47b44c25008059dc9724b3964f50436255a
+Base of WC7-003 branch: deec08ffc66c56d156bc09addf548c62166cea17 (ancestor of tested SHA: yes)
+Tracked blobs (git hash-object == git rev-parse HEAD:<path>, all equal):
+  adapters/src/genesis_adapters/cli.py                              fce7cc925e4112a7fe23906e03489975bd1b3329
+  adapters/adapter_tests/test_v05_wc7_003_time_sync.py              fe7ae5690ede28e810071e8ef007178263cc0607
+  V05_ADAPTER_ARCHITECTURE.md                                       8f8820b5bc305d1fc4576750b6afbc2879cbc413
+Frozen V0.4 src unchanged: git diff --quiet 4f11606 HEAD -- src (exit 0); git diff --quiet v0.4-foundation-freeze HEAD -- src (exit 0).
+Adapter tree differs from 4f11606 by 112 files (expected: V0.5 adapter work after the freeze; not a frozen path).

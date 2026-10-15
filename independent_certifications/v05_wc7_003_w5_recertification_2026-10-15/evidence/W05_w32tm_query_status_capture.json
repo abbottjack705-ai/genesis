@@ -1,0 +1,18 @@
+{
+ "captured_utc": "2026-10-15T21:11:03.654859+00:00",
+ "command": [
+  "w32tm",
+  "/query",
+  "/status"
+ ],
+ "returncode": 0,
+ "stdout_bytes": 324,
+ "stdout_sha256": "148ccffa0accb3fe21204bfa858564a9154f710bef93c91b961d8a69d200443d",
+ "stderr_bytes": 0,
+ "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+ "crlf_pairs": 0,
+ "bare_cr": 0,
+ "bare_lf": 10,
+ "decoded_utf8_replace_sha256": "148ccffa0accb3fe21204bfa858564a9154f710bef93c91b961d8a69d200443d",
+ "decoded_repr": "'Leap Indicator: 0(no warning)\\nStratum: 5 (secondary reference - syncd by (S)NTP)\\nPrecision: -23 (119.209ns per tick)\\nRoot Delay: 0.0200087s\\nRoot Dispersion: 7.9074951s\\nReferenceId: 0x33917B1D (source IP:  51.145.123.29)\\nLast Successful Sync Time: 15/10/2026 22:08:34\\nSource: time.windows.com,0x9 \\nPoll Interval: 10 (1024s)\\n\\n'"
+}

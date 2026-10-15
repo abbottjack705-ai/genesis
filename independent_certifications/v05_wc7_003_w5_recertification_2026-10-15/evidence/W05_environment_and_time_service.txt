@@ -1,0 +1,47 @@
+=== recorded 2026-10-15T21:26:21Z UTC / 2026-10-15 22:26:22 local ===
+--- os ---
+Caption     : Microsoft Windows 11 Pro
+Version     : 10.0.26200
+BuildNumber : 26200
+--- python ---
+Python 3.12.10
+--- git ---
+git version 2.55.0.windows.3
+--- repo/worktree paths ---
+subject worktree (clean detached checkout at 2e8290e): C:\Users\abbot\fz\w5rc-r2
+evidence worktree (cert/v05-wc7-003-w5-recert): C:\Users\abbot\fz\w5ev
+--- windows time service ---
+
+SERVICE_NAME: w32time 
+        TYPE               : 30  WIN32  
+        STATE              : 4  RUNNING 
+                                (STOPPABLE, NOT_PAUSABLE, ACCEPTS_SHUTDOWN)
+        WIN32_EXIT_CODE    : 0  (0x0)
+        SERVICE_EXIT_CODE  : 0  (0x0)
+        CHECKPOINT         : 0x0
+        WAIT_HINT          : 0x0
+
+[SC] QueryServiceConfig SUCCESS
+
+SERVICE_NAME: w32time
+        TYPE               : 20  WIN32_SHARE_PROCESS 
+        START_TYPE         : 3   DEMAND_START
+        ERROR_CONTROL      : 1   NORMAL
+        BINARY_PATH_NAME   : C:\WINDOWS\system32\svchost.exe -k LocalService
+        LOAD_ORDER_GROUP   : 
+        TAG                : 0
+        DISPLAY_NAME       : Windows Time
+        DEPENDENCIES       : 
+        SERVICE_START_NAME : NT AUTHORITY\LocalService
+
+
+
+Name      : w32time
+Status    : Running
+StartType : Manual
+
+
+
+
+--- w32tm /query /source ---
+not run this attempt (read-only; denied with exit 5 in the 2026-10-14 attempt; not needed for the decision)

@@ -1,0 +1,12 @@
+Recorded 2026-10-15T21:30Z UTC (checks run 2026-10-15 after the probes and the unittest run)
+cert/v05-r7-windows tip (origin, now): 2285f2492e1ca87c8e6bc863e9a8caa29a151847 (required 2285f2492e1ca87c8e6bc863e9a8caa29a151847)
+Historical certification tree independent_certifications @2285f24: 8113408a01fb0918d64507a50b77991f05b936d3 (unchanged)
+Historical certification manifest sha256 @2285f24 (git ls-tree -r 2285f24 independent_certifications | sha256sum): 660fc79fd9310d94ef7fa3cc9a98fe02587eb5ef86d3fe59873160d647075d7c (unchanged)
+Prior failed attempt, preserved: independent_certifications/v05_wc7_003_w5_recertification_2026-10-14/ at cert/v05-wc7-003-w5-recert commit 6b3eb43
+  tree of that directory: 46af96e64adb1da60b008d081b7c98a7b370754b
+  all 12 files in that directory, other than its checksum file, re-hashed against its own SHA256SUMS_2026-10-14.txt: all match (not modified by this attempt)
+Prior failed-attempt records are not edited, overwritten or deleted; this attempt adds a new directory only.
+Production/test files changed during this recertification: none (subject worktree status empty before and after probes and unittest; tracked blob IDs unchanged, see SUBJECT_PROVENANCE.txt)
+Subject worktree: C:\Users\abbot\fz\w5rc-r2 (detached, 2e8290e). The earlier subject worktree C:\Users\abbot\fz\w5rc (2e8290e) from the 2026-10-14 attempt was not reused and was not modified.
+New evidence files: only under independent_certifications/v05_wc7_003_w5_recertification_2026-10-15/ on branch cert/v05-wc7-003-w5-recert
+No merge, activation, push to any production or release branch, or change to live/provider/betting authority.

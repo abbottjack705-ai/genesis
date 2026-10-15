@@ -1,0 +1,244 @@
+{
+  "schema": "genesis-autonomy-roadmap/1",
+  "roadmap_id": "genesis-construction-roadmap-v1",
+  "reconciled_from": {
+    "PROJECT_STATE.md": "V0.4 foundation frozen at 4f11606; V0.5 slice-1 fixture-only; WC7-003 W5 PASS at 2e8290e; record 70aa74f",
+    "V04_MIGRATION_PLAN.md": "Stages 1-10 complete as remediated offline foundations; Stage 11 not started",
+    "V05_ADAPTER_ARCHITECTURE.md": "G1, G2, G2R and G3 are human actions; the adapter stops before them",
+    "OPERATIONS_RUNBOOK.md": "current mode OFFLINE_RESEARCH; no credentials in this repository"
+  },
+  "frozen_tree_check": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"],
+  "workflow_check": ["python", "-B", "-m", "unittest", "discover", "-s", "autonomy/tests", "-t", "autonomy"],
+  "milestones": [
+    {
+      "id": "A1",
+      "name": "Read-only acquisition on fixtures (V0.5 slice-1 OddsPapi adapter)",
+      "track": "A",
+      "baseline_status": "PASSED",
+      "baseline_evidence": "2e8290e (WC7-003 closed) with W5 recertification record 70aa74f",
+      "authority": "V05_ADAPTER_ARCHITECTURE.md slices S0-S7; PROJECT_STATE.md safe next step",
+      "depends_on": [],
+      "human_gate": null,
+      "tasks": [
+        {"id": "A1.1", "title": "already built and certified", "acceptance": "recorded in baseline_evidence; not re-audited"}
+      ],
+      "validation": [
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]}
+      ]
+    },
+    {
+      "id": "A2",
+      "name": "First live read-only provider capture (G1 credential, G2, G2R, G3)",
+      "track": "A",
+      "authority": "V05_ADAPTER_ARCHITECTURE.md section 16 (human gates G1-G3)",
+      "depends_on": ["A1"],
+      "human_gate": {
+        "id": "HG-A2-LIVE-PROVIDER",
+        "trigger": "storing a real provider credential, purchasing or activating a provider, and the first live request",
+        "checkpoint": "human checkpoints 1 and 2 (paid provider; new real secrets)"
+      },
+      "tasks": [
+        {"id": "A2.1", "title": "operator-run G1 credential storage, G2 pinned live capture and G2R schedule",
+         "acceptance": "human actions only; the engine never performs them"}
+      ],
+      "validation": [
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]}
+      ]
+    },
+    {
+      "id": "B1",
+      "name": "Canonical sport, market, selection and settlement contracts with synthetic fixtures",
+      "track": "B",
+      "authority": "migration Stages 4 and 11 (contracts before candidate generation); RULES_AND_ACCOUNTING.md; ENVELOPE authorised scope",
+      "depends_on": ["A1"],
+      "human_gate": null,
+      "tasks": [
+        {"id": "B1.1", "title": "sport, event, market, line and selection contract types",
+         "acceptance": "every market and selection is identified without any provider; ids are deterministic and tested"},
+        {"id": "B1.2", "title": "settlement mapping for synthetic results",
+         "acceptance": "win, lose, void and dead-heat follow RULES_AND_ACCOUNTING.md exactly; lay dead heat is rejected"},
+        {"id": "B1.3", "title": "synthetic fixture adapter with deterministic tests",
+         "acceptance": "no network, no credentials; replay of identical fixtures gives identical outputs"}
+      ],
+      "validation": [
+        {"id": "b1-unit", "argv": ["python", "-B", "-m", "unittest", "discover", "-s", "adapters/adapter_tests", "-p", "test_v05_b1_*.py", "-t", "adapters"]},
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]},
+        {"id": "workflow", "argv": ["python", "-B", "-m", "unittest", "discover", "-s", "autonomy/tests", "-t", "autonomy"]}
+      ]
+    },
+    {
+      "id": "B2",
+      "name": "Settlement adapter and ledger integration on synthetic results",
+      "track": "B",
+      "authority": "migration Stage 9 (settlement ledger); Stage 11 settlement adapters",
+      "depends_on": ["B1"],
+      "human_gate": null,
+      "tasks": [
+        {"id": "B2.1", "title": "synthetic results feed into the Stage 9 settlement ledger",
+         "acceptance": "one-head correction and void lineage preserved; replay is deterministic"}
+      ],
+      "validation": [
+        {"id": "b2-unit", "argv": ["python", "-B", "-m", "unittest", "discover", "-s", "adapters/adapter_tests", "-p", "test_v05_b2_*.py", "-t", "adapters"]},
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]}
+      ]
+    },
+    {
+      "id": "C1",
+      "name": "PIT-safe research and evidence engine on synthetic feeds",
+      "track": "C",
+      "authority": "RESEARCH_PROTOCOL.md (registration, attempt budget, PIT, protected labels); migration Stage 3 and 6",
+      "depends_on": ["B1"],
+      "human_gate": null,
+      "tasks": [
+        {"id": "C1.1", "title": "frozen evidence pack builder with readiness-time PIT cut-off",
+         "acceptance": "decision inputs and future labels are physically separated; packs are immutable and hashed"},
+        {"id": "C1.2", "title": "candidate retention and registry budget",
+         "acceptance": "every screened candidate and every attempt, including failed ones, is retained and counted"}
+      ],
+      "validation": [
+        {"id": "c1-unit", "argv": ["python", "-B", "-m", "unittest", "discover", "-s", "adapters/adapter_tests", "-p", "test_v05_c1_*.py", "-t", "adapters"]},
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]}
+      ]
+    },
+    {
+      "id": "D1",
+      "name": "Prediction, calibration, selection, portfolio and risk layer on synthetic data",
+      "track": "D",
+      "authority": "PROJECT_LAWS staking and research rules; migration Stages 5-7; RULES_AND_ACCOUNTING.md",
+      "depends_on": ["C1"],
+      "human_gate": null,
+      "tasks": [
+        {"id": "D1.1", "title": "model probability kept separate from price, uncertainty and evidence state",
+         "acceptance": "no opaque confidence score; an LLM cannot set a live probability"},
+        {"id": "D1.2", "title": "selected-set calibration and deterministic staking",
+         "acceptance": "1u = 2.5% of bankroll; stakes 1-3u; 3u hard maximum; no martingale; liability cap 60% with tighter correlated-cluster caps"}
+      ],
+      "validation": [
+        {"id": "d1-unit", "argv": ["python", "-B", "-m", "unittest", "discover", "-s", "adapters/adapter_tests", "-p", "test_v05_d1_*.py", "-t", "adapters"]},
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]}
+      ]
+    },
+    {
+      "id": "E1",
+      "name": "Daily paper orchestration on replayed synthetic data",
+      "track": "E",
+      "authority": "migration Stage 8 (paper execution); OPERATIONS_RUNBOOK.md future PAPER mode; ENVELOPE authorised scope",
+      "depends_on": ["D1", "B2"],
+      "human_gate": null,
+      "tasks": [
+        {"id": "E1.1", "title": "daily paper orchestrator over replayed synthetic data",
+         "acceptance": "no order credentials, no broker client; every intent is idempotent and risk-checked"}
+      ],
+      "validation": [
+        {"id": "e1-unit", "argv": ["python", "-B", "-m", "unittest", "discover", "-s", "adapters/adapter_tests", "-p", "test_v05_e1_*.py", "-t", "adapters"]},
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]}
+      ]
+    },
+    {
+      "id": "E2",
+      "name": "Protected-evaluation preparation (no hidden outcomes accessed)",
+      "track": "E",
+      "authority": "RESEARCH_PROTOCOL.md items 4 and 8; migration Stage 6",
+      "depends_on": ["E1"],
+      "human_gate": null,
+      "tasks": [
+        {"id": "E2.1", "title": "protected campaign registry and label-owner boundary, preparation only",
+         "acceptance": "no label is read; the start path is absent until the human gate"}
+      ],
+      "validation": [
+        {"id": "e2-unit", "argv": ["python", "-B", "-m", "unittest", "discover", "-s", "adapters/adapter_tests", "-p", "test_v05_e2_*.py", "-t", "adapters"]},
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]}
+      ]
+    },
+    {
+      "id": "E3",
+      "name": "Begin protected evaluation with hidden outcomes",
+      "track": "E",
+      "authority": "RESEARCH_PROTOCOL.md item 8; ENVELOPE human gate 3",
+      "depends_on": ["E2"],
+      "human_gate": {
+        "id": "HG-E3-PROTECTED-EVAL-START",
+        "trigger": "beginning protected evaluation with hidden outcomes",
+        "checkpoint": "human checkpoint 3"
+      },
+      "tasks": [
+        {"id": "E3.1", "title": "operator-authorised protected evaluation run", "acceptance": "human-authorised only"}
+      ],
+      "validation": [
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]}
+      ]
+    },
+    {
+      "id": "E4",
+      "name": "First prospective 7-day paper campaign",
+      "track": "E",
+      "authority": "ENVELOPE human gate 4",
+      "depends_on": ["E1", "E2"],
+      "human_gate": {
+        "id": "HG-E4-PROSPECTIVE-7DAY-PAPER",
+        "trigger": "the first major prospective 7-day paper campaign",
+        "checkpoint": "human checkpoint 4"
+      },
+      "tasks": [
+        {"id": "E4.1", "title": "operator-authorised 7-day paper campaign", "acceptance": "human-authorised only"}
+      ],
+      "validation": [
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]}
+      ]
+    },
+    {
+      "id": "F1",
+      "name": "Recovery, reconciliation and monitoring on paper state",
+      "track": "F",
+      "authority": "migration Stage 8 and 9 replay; OPERATIONS_RUNBOOK.md stop conditions",
+      "depends_on": ["E1"],
+      "human_gate": null,
+      "tasks": [
+        {"id": "F1.1", "title": "restart and recovery replay of paper intents and settlements",
+         "acceptance": "UNKNOWN broker state blocks affected exposure; no duplicate orders after restart"},
+        {"id": "F1.2", "title": "monitoring and stop conditions for stale feeds and accounting integrity",
+         "acceptance": "stale feed, unknown state, duplicate-order risk and accounting failure each stop new placement"}
+      ],
+      "validation": [
+        {"id": "f1-unit", "argv": ["python", "-B", "-m", "unittest", "discover", "-s", "adapters/adapter_tests", "-p", "test_v05_f1_*.py", "-t", "adapters"]},
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]}
+      ]
+    },
+    {
+      "id": "F2",
+      "name": "Cloud deployment of paper orchestration",
+      "track": "F",
+      "authority": "ENVELOPE human gate 1 (paid service); OPERATIONS_RUNBOOK.md",
+      "depends_on": ["F1"],
+      "human_gate": {
+        "id": "HG-F2-CLOUD-SERVICE",
+        "trigger": "purchasing or activating a paid cloud or data service",
+        "checkpoint": "human checkpoint 1"
+      },
+      "tasks": [
+        {"id": "F2.1", "title": "operator-approved cloud deployment of the paper orchestrator", "acceptance": "human-authorised only"}
+      ],
+      "validation": [
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]}
+      ]
+    },
+    {
+      "id": "F3",
+      "name": "30-day liability, restart and reconciliation campaign",
+      "track": "F",
+      "authority": "ENVELOPE human gate 5",
+      "depends_on": ["F1", "E4"],
+      "human_gate": {
+        "id": "HG-F3-30DAY-CAMPAIGN",
+        "trigger": "a major 30-day liability, restart or reconciliation campaign",
+        "checkpoint": "human checkpoint 5"
+      },
+      "tasks": [
+        {"id": "F3.1", "title": "operator-authorised 30-day campaign", "acceptance": "human-authorised only"}
+      ],
+      "validation": [
+        {"id": "frozen-trees", "argv": ["git", "diff", "--quiet", "4f11606", "HEAD", "--", "src", "tests", "config", "tools", "DECISIONS", "v04_pack"]}
+      ]
+    }
+  ]
+}

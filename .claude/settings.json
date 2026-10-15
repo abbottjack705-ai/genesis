@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -B autonomy/genesis_workflow.py *)",
+      "Bash(python -B autonomy/shard_tests.py *)",
+      "Bash(python -B -m unittest *)",
+      "Bash(python -B -c *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(git diff *)",
+      "Bash(git rev-parse *)",
+      "Bash(git branch *)"
+    ],
+    "deny": [
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(git clean *)",
+      "Bash(git checkout -- *)",
+      "Bash(git worktree remove *)",
+      "Bash(rm -rf *)"
+    ]
+  }
+}

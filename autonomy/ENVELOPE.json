@@ -1,0 +1,53 @@
+{
+  "schema": "genesis-autonomy-envelope/1",
+  "envelope_id": "paper-only-construction-v1",
+  "operating_mode": "OFFLINE_RESEARCH",
+  "live_enabled": false,
+  "writer_branch": "autonomous-build",
+  "authorized_scope": [
+    "read-only provider and source adapters, fixture-only until a human gate authorises live capture",
+    "canonical sport, market, selection and settlement adapters",
+    "acquisition and evidence pipelines, PIT-safe research infrastructure, immutable evidence handling",
+    "candidate generation, modelling and prediction infrastructure, calibration",
+    "market comparison, selection, portfolio construction, deterministic staking and risk enforcement",
+    "correlation and exposure controls, paper execution, settlement, ledger and reconciliation",
+    "replay, restart and recovery, monitoring, daily paper orchestration",
+    "protected-evaluation preparation (no hidden outcomes accessed), synthetic and test adapters",
+    "documentation, tests and refactors required for the goals above"
+  ],
+  "human_gate_triggers": [
+    "purchasing or activating a new paid provider or data service",
+    "introducing or using new real secrets or credentials",
+    "beginning protected evaluation with hidden outcomes",
+    "the first major prospective 7-day paper campaign",
+    "a major 30-day liability, restart or reconciliation campaign",
+    "changing bankroll, unit or liability policy",
+    "real exchange-order testing",
+    "supervised live or micro-live operation",
+    "autonomous live operation",
+    "promoting any strategy to live",
+    "placing any real-money wager",
+    "destructive or irreversible production action",
+    "any action the project laws explicitly reserve for a human"
+  ],
+  "frozen_prefixes": ["src/", "tests/", "config/", "tools/", "DECISIONS/", "v04_pack/"],
+  "immutable_prefixes": ["independent_certifications/", "remediation_evidence/", "adapters/evidence/"],
+  "max_remediation_rounds": 3,
+  "max_writer_retries": 3,
+  "heavy": {
+    "min_available_mib": 1536,
+    "wait_seconds": 300,
+    "max_deferrals": 12,
+    "timeout_seconds": 3600,
+    "note": "one heavy validation per host at a time; the adapter monolithic run is not used (see README residuals)"
+  },
+  "codex": {
+    "command": ["codex"],
+    "required_login": "Logged in using ChatGPT",
+    "forbidden_env": ["OPENAI_API_KEY", "CODEX_API_KEY"],
+    "sandbox": "read-only",
+    "timeout_seconds": 1800,
+    "retries": 1,
+    "review_schema": "autonomy/review_schema.json"
+  }
+}

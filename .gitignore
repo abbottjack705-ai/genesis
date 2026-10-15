@@ -10,3 +10,5 @@ runtime/
 *.coordinator.sqlite3
 *.coordinator.sqlite3-shm
 *.coordinator.sqlite3-wal
+# Autonomous construction workflow: live, per-worktree state. Committed evidence lives in autonomy/records/.
+autonomy/state/

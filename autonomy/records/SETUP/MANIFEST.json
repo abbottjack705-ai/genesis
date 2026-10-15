@@ -1,0 +1,9 @@
+{
+  "files": {
+    "adapter-inventory-summary.json": "da2e27cf88ce45abe45ddcf7880ab18d0200e8e6c0dbf8c78f0846f6d4a59d57",
+    "codex-preflight-probe.json": "fc6828dacfada1b993426042bcfcecb5f81ae2cee3bdba3d2d45dbf717aac154",
+    "select-only.json": "8015f012a6e8722c4d07283d72b44701d938a197d66e9192d7e3135feb3481c6",
+    "workflow-tests.txt": "694372f7bfe0e560fa7c94a98d6aa1efaeef191d271c8fbfdb2ce65ed75978e7"
+  },
+  "label": "workflow setup dry run and preflight evidence"
+}

@@ -1,0 +1,45 @@
+test_01_state_reconstructs_from_disk_in_a_fresh_process (tests.test_dryrun.DryRunTests.test_01_state_reconstructs_from_disk_in_a_fresh_process) ... ok
+test_02_go_selects_the_authorised_paper_only_milestone (tests.test_dryrun.DryRunTests.test_02_go_selects_the_authorised_paper_only_milestone) ... ok
+test_03_writer_and_read_only_roles_are_kept_apart (tests.test_dryrun.DryRunTests.test_03_writer_and_read_only_roles_are_kept_apart) ... ok
+test_04_heavy_validation_is_serialised_and_memory_gated (tests.test_dryrun.DryRunTests.test_04_heavy_validation_is_serialised_and_memory_gated) ... ok
+test_05_interrupted_validation_resumes_without_a_stale_lock (tests.test_dryrun.DryRunTests.test_05_interrupted_validation_resumes_without_a_stale_lock) ... ok
+test_06_fake_codex_pass_path_records_the_milestone (tests.test_dryrun.DryRunTests.test_06_fake_codex_pass_path_records_the_milestone) ... ok
+test_07_codex_remediation_preserves_the_rejected_candidate_then_passes (tests.test_dryrun.DryRunTests.test_07_codex_remediation_preserves_the_rejected_candidate_then_passes) ... ok
+test_07b_failing_validation_is_remediated_not_passed (tests.test_dryrun.DryRunTests.test_07b_failing_validation_is_remediated_not_passed) ... ok
+test_08_codex_preflight_checks_login_and_refuses_billing_variables (tests.test_dryrun.DryRunTests.test_08_codex_preflight_checks_login_and_refuses_billing_variables) ... ok
+test_09_human_gate_stops_then_proceeds_after_a_real_approval (tests.test_dryrun.DryRunTests.test_09_human_gate_stops_then_proceeds_after_a_real_approval) ... ok
+test_10_a_normal_pass_advances_without_stopping_the_operator (tests.test_dryrun.DryRunTests.test_10_a_normal_pass_advances_without_stopping_the_operator) ... ok
+test_dirty_writer_at_freeze_becomes_a_fix_task (tests.test_dryrun.DryRunTests.test_dirty_writer_at_freeze_becomes_a_fix_task) ... ok
+test_frozen_tree_change_blocks_instead_of_validating (tests.test_dryrun.DryRunTests.test_frozen_tree_change_blocks_instead_of_validating) ... ok
+test_pause_is_honoured_at_the_next_safe_point (tests.test_dryrun.DryRunTests.test_pause_is_honoured_at_the_next_safe_point) ... ok
+test_a_second_process_cannot_take_the_host_lock (tests.test_units.HeavyTests.test_a_second_process_cannot_take_the_host_lock) ... ok
+test_memory_below_the_gate_refuses_the_run (tests.test_units.HeavyTests.test_memory_below_the_gate_refuses_the_run) ... ok
+test_the_lock_is_released_when_the_holder_dies (tests.test_units.HeavyTests.test_the_lock_is_released_when_the_holder_dies) ... ok
+test_this_host_reports_a_positive_memory_figure (tests.test_units.HeavyTests.test_this_host_reports_a_positive_memory_figure) ... ok
+test_a_pass_on_the_candidate_is_accepted (tests.test_units.ReviewTests.test_a_pass_on_the_candidate_is_accepted) ... ok
+test_api_key_in_the_environment_is_refused_before_any_call (tests.test_units.ReviewTests.test_api_key_in_the_environment_is_refused_before_any_call) ... ok
+test_extra_fields_are_invalid (tests.test_units.ReviewTests.test_extra_fields_are_invalid) ... ok
+test_pass_with_a_high_finding_is_not_a_pass (tests.test_units.ReviewTests.test_pass_with_a_high_finding_is_not_a_pass) ... ok
+test_remediation_without_findings_is_invalid (tests.test_units.ReviewTests.test_remediation_without_findings_is_invalid) ... ok
+test_wrong_sha_is_refused (tests.test_units.ReviewTests.test_wrong_sha_is_refused) ... ok
+test_approval_with_wrong_approver_is_refused_not_trusted (tests.test_units.RoadmapTests.test_approval_with_wrong_approver_is_refused_not_trusted) ... ok
+test_duplicate_ids_and_missing_validation_are_malformed (tests.test_units.RoadmapTests.test_duplicate_ids_and_missing_validation_are_malformed) ... ok
+test_everything_passed_is_complete (tests.test_units.RoadmapTests.test_everything_passed_is_complete) ... ok
+test_gated_milestone_nothing_depends_on_does_not_stop_paper_work (tests.test_units.RoadmapTests.test_gated_milestone_nothing_depends_on_does_not_stop_paper_work) ... ok
+test_only_gated_work_left_is_a_human_gate_stop (tests.test_units.RoadmapTests.test_only_gated_work_left_is_a_human_gate_stop) ... ok
+test_an_unexpected_skip_fails_the_sharded_run (tests.test_units.ShardTests.test_an_unexpected_skip_fails_the_sharded_run) ... ok
+test_plan_puts_every_id_in_exactly_one_shard (tests.test_units.ShardTests.test_plan_puts_every_id_in_exactly_one_shard) ... ok
+test_reconcile_catches_missing_duplicate_failed_and_unexpected_skips (tests.test_units.ShardTests.test_reconcile_catches_missing_duplicate_failed_and_unexpected_skips) ... ok
+test_sharded_run_on_a_fixture_package_is_exact_and_never_called_monolithic (tests.test_units.ShardTests.test_sharded_run_on_a_fixture_package_is_exact_and_never_called_monolithic) ... ok
+test_halt_and_unhalt_restore_the_phase_and_block_needs_clear (tests.test_units.StateTests.test_halt_and_unhalt_restore_the_phase_and_block_needs_clear) ... ok
+test_illegal_phase_move_is_refused (tests.test_units.StateTests.test_illegal_phase_move_is_refused) ... ok
+test_ledger_edit_is_refused (tests.test_units.StateTests.test_ledger_edit_is_refused) ... ok
+test_one_unrecorded_ledger_entry_is_a_torn_write_and_is_adopted (tests.test_units.StateTests.test_one_unrecorded_ledger_entry_is_a_torn_write_and_is_adopted) ... ok
+test_round_trip_loads_clean (tests.test_units.StateTests.test_round_trip_loads_clean) ... ok
+test_state_edited_outside_the_engine_is_refused (tests.test_units.StateTests.test_state_edited_outside_the_engine_is_refused) ... ok
+test_two_unrecorded_entries_are_refused (tests.test_units.StateTests.test_two_unrecorded_entries_are_refused) ... ok
+
+----------------------------------------------------------------------
+Ran 40 tests in 118.216s
+
+OK

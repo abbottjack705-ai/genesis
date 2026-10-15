@@ -1,0 +1,12 @@
+{
+  "authority": "migration Stages 4 and 11 (contracts before candidate generation); RULES_AND_ACCOUNTING.md; ENVELOPE authorised scope",
+  "milestone": "B1",
+  "name": "Canonical sport, market, selection and settlement contracts with synthetic fixtures",
+  "status": "WOULD_START",
+  "tasks": [
+    "B1.1",
+    "B1.2",
+    "B1.3"
+  ],
+  "track": "B"
+}

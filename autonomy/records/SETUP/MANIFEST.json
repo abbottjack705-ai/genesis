@@ -2,12 +2,18 @@
   "files": {
     "adapter-inventory-summary.json": "da2e27cf88ce45abe45ddcf7880ab18d0200e8e6c0dbf8c78f0846f6d4a59d57",
     "codex-preflight-probe.json": "fc6828dacfada1b993426042bcfcecb5f81ae2cee3bdba3d2d45dbf717aac154",
+    "e2e-examples/E2E3-MILESTONE.json": "11c2b6deaf51c02aca6acdc9547e8699ec730bd7c64b586801ad3c9b306f60f1",
+    "e2e-examples/E2E4-MILESTONE.json": "1287852af3383a2457e04becfa598e0ef6ababd0f5761174c4ce2984d942aa51",
     "e2e-lead-runs/lead-run.txt": "3d3f7893d72568e6934a7a7b5a7daf69a7cbcee5d0973b775ef4d08192250a3a",
     "e2e-lead-runs/lead-run2.txt": "677b4e08376848eaaa2eededc45b0ce862ef9e1395628b96fe5d826145fba69b",
     "e2e-lead-runs/lead-run3.txt": "9a99ce458f1fd4869ab40d49b5e6a26fc40c68213e03794f658ff165d4ef9a86",
     "e2e-lead-runs/lead-run4.txt": "d1cf41b4fa87ea2b56bbf2303f3e5bc26808ff278e554f3b72e2219f92f0ffcb",
+    "e2e-lead-runs/lead-run6.txt": "06fbf1eb1f6dac1b05279a844cfa60dae315637756036f38a4829bc2fd16997b",
+    "e2e-lead-runs/lead-run7.txt": "81ce888a6242da7adbb1798a7a7535014a5c4aa699ac289ddd57eaf0d7c80297",
+    "e2e-lead-runs/lead-run8.txt": "bc3afb5de21c9010eae9386d7d771520f4ccd1fe04fce0d0ebeb985c5f8cae68",
+    "e2e-lead-runs/lead-run9.txt": "214672b0ff28a7919046a63a7ce5ce1db3c46d0bfa4f75259304033392dd32f2",
     "select-only.json": "8015f012a6e8722c4d07283d72b44701d938a197d66e9192d7e3135feb3481c6",
-    "workflow-tests.txt": "177ef0b08ac85bb95df41fb2e5ce686b3edc10132cf5c8a3c1634450eeddd295"
+    "workflow-tests.txt": "81611a85692c22a7ff64f08bea5cd4b266aa084768f0e7d433b42058547b35a1"
   },
-  "label": "workflow setup: tests, preflight, inventory, e2e Lead transcripts"
+  "label": "workflow setup: 49 tests, Codex preflight, inventory, four end-to-end Lead runs, two milestone examples"
 }

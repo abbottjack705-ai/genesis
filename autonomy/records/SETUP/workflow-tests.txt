@@ -10,10 +10,12 @@ test_08_codex_preflight_checks_login_and_refuses_billing_variables (tests.test_d
 test_09_human_gate_stops_then_proceeds_after_a_real_approval (tests.test_dryrun.DryRunTests.test_09_human_gate_stops_then_proceeds_after_a_real_approval) ... ok
 test_10_a_normal_pass_advances_without_stopping_the_operator (tests.test_dryrun.DryRunTests.test_10_a_normal_pass_advances_without_stopping_the_operator) ... ok
 test_an_approval_file_written_by_an_agent_blocks_the_candidate (tests.test_dryrun.DryRunTests.test_an_approval_file_written_by_an_agent_blocks_the_candidate) ... ok
+test_an_incomplete_codex_review_blocks_instead_of_sending_work_back (tests.test_dryrun.DryRunTests.test_an_incomplete_codex_review_blocks_instead_of_sending_work_back) ... ok
 test_commit_after_freeze_blocks_the_review (tests.test_dryrun.DryRunTests.test_commit_after_freeze_blocks_the_review) ... ok
 test_dirty_writer_at_freeze_becomes_a_fix_task (tests.test_dryrun.DryRunTests.test_dirty_writer_at_freeze_becomes_a_fix_task) ... ok
 test_frozen_tree_change_blocks_instead_of_validating (tests.test_dryrun.DryRunTests.test_frozen_tree_change_blocks_instead_of_validating) ... ok
 test_governance_files_cannot_be_changed_by_a_candidate (tests.test_dryrun.DryRunTests.test_governance_files_cannot_be_changed_by_a_candidate) ... ok
+test_init_resolves_references_to_full_shas (tests.test_dryrun.DryRunTests.test_init_resolves_references_to_full_shas) ... ok
 test_pause_is_honoured_at_the_next_safe_point (tests.test_dryrun.DryRunTests.test_pause_is_honoured_at_the_next_safe_point) ... ok
 test_a_second_process_cannot_take_the_host_lock (tests.test_units.HeavyTests.test_a_second_process_cannot_take_the_host_lock) ... ok
 test_memory_below_the_gate_refuses_the_run (tests.test_units.HeavyTests.test_memory_below_the_gate_refuses_the_run) ... ok
@@ -21,6 +23,7 @@ test_the_lock_is_released_when_the_holder_dies (tests.test_units.HeavyTests.test
 test_this_host_reports_a_positive_memory_figure (tests.test_units.HeavyTests.test_this_host_reports_a_positive_memory_figure) ... ok
 test_a_rename_out_of_a_frozen_tree_is_still_reported_under_its_old_name (tests.test_units.RenameTests.test_a_rename_out_of_a_frozen_tree_is_still_reported_under_its_old_name) ... ok
 test_a_pass_on_the_candidate_is_accepted (tests.test_units.ReviewTests.test_a_pass_on_the_candidate_is_accepted) ... ok
+test_an_incomplete_review_is_not_a_code_finding (tests.test_units.ReviewTests.test_an_incomplete_review_is_not_a_code_finding) ... ok
 test_api_key_in_the_environment_is_refused_before_any_call (tests.test_units.ReviewTests.test_api_key_in_the_environment_is_refused_before_any_call) ... ok
 test_extra_fields_are_invalid (tests.test_units.ReviewTests.test_extra_fields_are_invalid) ... ok
 test_pass_with_a_high_finding_is_not_a_pass (tests.test_units.ReviewTests.test_pass_with_a_high_finding_is_not_a_pass) ... ok
@@ -46,6 +49,6 @@ test_state_edited_outside_the_engine_is_refused (tests.test_units.StateTests.tes
 test_two_unrecorded_entries_are_refused (tests.test_units.StateTests.test_two_unrecorded_entries_are_refused) ... ok
 
 ----------------------------------------------------------------------
-Ran 46 tests in 64.390s
+Ran 49 tests in 92.800s
 
 OK

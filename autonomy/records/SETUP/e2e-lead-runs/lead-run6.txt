@@ -1,0 +1,23 @@
+Warning: no stdin data received in 3s, proceeding without it. If piping from a slow command, redirect stdin explicitly: < /dev/null to skip, or wait longer.
+E2E2 is stalled in remediation round 2, and I've stopped because no step I'm allowed to take can clear it. The engine has not issued a STOP; it still asks for R2 to be implemented.
+
+**Progress**
+- **E2E2 round 1:** the implementer wrote `work/E2E2.txt` (`GOOD`) but its Bash calls were blocked, so I re-spawned it to commit. Commit `313ad74` is the candidate. The engine recorded it as **task-done**.
+- **Skeptic:** verdict **FINDINGS**, with two findings. I saved the reply byte for byte and recorded it. The engine opened round 2.
+- **Round 2:** the implementer stopped without a commit. I checked its claim against the engine. Both findings need changes to governance paths that the freeze blocks:
+  - **MEDIUM:** `engine.init` stores `HEAD~1` as a moving reference in the baseline. The fix belongs in `autonomy/genesis_autonomy/engine.py` with a test under `autonomy/tests/`. I confirmed the drift is real: `HEAD~1` now resolves to `313ad74`, not the `27c6323` it named at init time. The skeptic says this affects the audit record, not gating.
+  - **LOW:** the `GOOD` check is a substring test. The fix is in `autonomy/ROADMAP.json`, which the findings say to change between milestones only.
+- The engine has no route to accept a residual finding. I found none in `genesis_autonomy`.
+
+**What I did not do**
+- I did not mark R2 done, since there is no new commit.
+- I did not edit any governance file, state, or ledger by hand, and I did not create any approval.
+
+**Operator decision needed**
+1. **Accept both findings as residuals.** The candidate content is correct, and the skeptic reported no defect in it. This needs an engine route for residual acceptance, which doesn't exist yet.
+2. **Fix the MEDIUM as a human-governed change.** This is a real `engine.init` bug that would recur on every future init. Make the change, its test and the baseline correction outside a candidate, then re-run. I recommend this.
+3. **Tighten the LOW between milestones** with a whole-word check, or record it as a substring check.
+
+Current state: branch `dryrun-e2e2`, writer HEAD `213596b` (the engine's preservation commit), clean tree.
+SessionEnd hook [node "${CLAUDE_PLUGIN_ROOT}/scripts/session-lifecycle-hook.mjs" SessionEnd] failed: /usr/bin/bash: line 1: node: command not found
+

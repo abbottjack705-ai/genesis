@@ -1,0 +1,38 @@
+{
+  "candidate": "577d37153aa61e37fac32927065378eb13fef38b",
+  "candidate_parent": "672949f6ced8481d43e3793956fda69eaaf26627",
+  "changed": [
+    "work/E2E4a.txt",
+    "work/E2E4b.txt"
+  ],
+  "diff_stat": " work/E2E4a.txt | 1 +\n work/E2E4b.txt | 1 +\n 2 files changed, 2 insertions(+)\n",
+  "milestone": "E2E4",
+  "milestone_base": "672949f6ced8481d43e3793956fda69eaaf26627",
+  "name": "end-to-end dry run milestone (fourth run, two tasks)",
+  "rejected": [],
+  "result": "PASS",
+  "review": {
+    "reviewed_sha": "577d37153aa61e37fac32927065378eb13fef38b",
+    "run": "E2E4-r1-codex-3",
+    "sha256": "49a8e8bcf6ccf947aab9ed86352dec85058ebee9ccec67f70c30f21c8ca4642a",
+    "verdict": "PASS"
+  },
+  "rounds": 1,
+  "skeptic": {
+    "reviewed_sha": "577d37153aa61e37fac32927065378eb13fef38b",
+    "run": "E2E4-r1-skeptic-2",
+    "sha256": "f51b309f068e51ea38a508c9882ad48601a53a06bfadc6c522df547db30e4aa4",
+    "verdict": "CLEAR"
+  },
+  "utc": "2026-10-15T22:52:13Z",
+  "validation": {
+    "candidate": "577d37153aa61e37fac32927065378eb13fef38b",
+    "checks": [
+      "a",
+      "b"
+    ],
+    "manifest_sha256": "b10332b93c77f9ac1f7f53ef635041ab3bd58cd3bd2a6d23c44312f8be102f14",
+    "result": "PASS",
+    "run": "E2E4-r1-validate-1"
+  }
+}

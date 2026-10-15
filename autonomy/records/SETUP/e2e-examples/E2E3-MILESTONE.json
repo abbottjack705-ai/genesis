@@ -1,0 +1,36 @@
+{
+  "candidate": "307ff65c23287d0d0e11c002220a87a4d73d51e9",
+  "candidate_parent": "74b9df3d0fc763424e0590c95b1502f82c3e3b5d",
+  "changed": [
+    "work/E2E3.txt"
+  ],
+  "diff_stat": " work/E2E3.txt | 1 +\n 1 file changed, 1 insertion(+)\n",
+  "milestone": "E2E3",
+  "milestone_base": "74b9df3d0fc763424e0590c95b1502f82c3e3b5d",
+  "name": "end-to-end dry run milestone (third run)",
+  "rejected": [],
+  "result": "PASS",
+  "review": {
+    "reviewed_sha": "307ff65c23287d0d0e11c002220a87a4d73d51e9",
+    "run": "E2E3-r1-codex-3",
+    "sha256": "f59354642465773a0f740f733bd0415504c416acaa2d3c03ab0f44069a691c0b",
+    "verdict": "PASS"
+  },
+  "rounds": 1,
+  "skeptic": {
+    "reviewed_sha": "307ff65c23287d0d0e11c002220a87a4d73d51e9",
+    "run": "E2E3-r1-skeptic-2",
+    "sha256": "c686078504d6189fefaf37ab8b526005a31b1a795d00e8b59a8005570450aac7",
+    "verdict": "CLEAR"
+  },
+  "utc": "2026-10-15T22:47:41Z",
+  "validation": {
+    "candidate": "307ff65c23287d0d0e11c002220a87a4d73d51e9",
+    "checks": [
+      "work-file"
+    ],
+    "manifest_sha256": "8af213d7d5dbca224ec6a6172f1a0c7d3d5a93ddc6187bd71276030bc88a056b",
+    "result": "PASS",
+    "run": "E2E3-r1-validate-1"
+  }
+}

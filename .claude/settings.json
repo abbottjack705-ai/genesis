@@ -1,11 +1,14 @@
 {
   "permissions": {
     "allow": [
+      "Bash(python -B autonomy/genesis_workflow.py go*)",
+      "Bash(python -B autonomy/genesis_workflow.py task-done*)",
+      "Bash(python -B autonomy/genesis_workflow.py record-skeptic*)",
       "Bash(python -B autonomy/genesis_workflow.py status*)",
       "Bash(python -B autonomy/genesis_workflow.py explain-gate*)",
       "Bash(python -B autonomy/genesis_workflow.py verify*)",
-      "Bash(python -B autonomy/genesis_workflow.py go --select-only*)",
       "Bash(python -B -m unittest *)",
+      "Bash(sleep *)",
       "Bash(git status *)",
       "Bash(git log *)",
       "Bash(git show *)",

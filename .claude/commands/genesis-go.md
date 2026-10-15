@@ -18,13 +18,15 @@ returns one of two things: an ACTION for you, or a STOP. Read its JSON; never gu
    - Exit 0 with `status: ACTION`: go to **Actions** below, then return to step 1.
 
 2. **Actions**
-   - `action: IMPLEMENT`: spawn the `genesis-implementer` agent. Its prompt must say: read the packet at
-     `packet`; the writer worktree is the current directory; do the `tasks` in order; commit each task in its
-     own commit; do not run heavy validation; do not touch frozen trees; do not create anything under
-     `autonomy/approvals/` or edit `autonomy/state/`; reply with the commit SHA and one line per task.
-     When it returns, run `python -B autonomy/genesis_workflow.py task-done --task <id>` once for each task id
-     in `tasks`, in order. If a `task-done` is REFUSED with `WRITER_DIRTY` or `NO_NEW_COMMIT`, spawn the
-     implementer again to commit or revert the work, then retry. Never mark a task done you did not see committed.
+   - `action: IMPLEMENT`: the action carries exactly one task. Spawn the `genesis-implementer` agent. Its prompt
+     must say: read the packet at `packet`; the writer worktree is the current directory; write the files for the
+     one task; do not run git or the engine; do not touch frozen trees or `autonomy/approvals/`. It has no shell.
+     When it returns, YOU commit the work: `git add -A`, then
+     `git commit -m "<task id>: <task title>"` with the trailer
+     `Co-Authored-By: Claude Haiku 5.5 <noreply@anthropic.com>`. Then run
+     `python -B autonomy/genesis_workflow.py task-done --task <task id>`. If the implementer wrote nothing, or
+     `task-done` is REFUSED, read the code and respond: `WRITER_DIRTY` or `NO_NEW_COMMIT` means re-spawn the
+     implementer with the exact problem. Never mark a task done you did not commit.
    - `action: SKEPTIC`: spawn the `genesis-skeptic` agent with the `packet` path. It replies with one JSON
      object and nothing else. Save that reply, byte for byte, to the `reply_file` path using Write. Then run
      `python -B autonomy/genesis_workflow.py record-skeptic --file <reply_file>`. If it is REFUSED, read the

@@ -35,7 +35,7 @@ Exit codes: 0 ok or ACTION, 2 refused (fail closed, nothing changed), 3 STOP.
 | Role | Who | Tools / rights |
 |---|---|---|
 | Genesis Lead | the Claude Code session running `/genesis-go` | drives the loop; spawns the agents below; never certifies |
-| Implementation Agent | `genesis-implementer` subagent | the only writer; one commit per task; no heavy validation |
+| Implementation Agent | `genesis-implementer` subagent | the only writer of content; writes files for one task; **no shell** (it cannot commit, run git or call the engine) |
 | Architecture and Research | `genesis-architect` subagent | read-only reasoning and source checks |
 | Test and Evidence | `genesis-evidence` subagent | read-only provenance and manifest checks |
 | Internal Skeptic | `genesis-skeptic` subagent | read-only adversarial review; replies with one JSON object |
@@ -116,17 +116,20 @@ uncommitted approval is refused (`APPROVAL_UNCOMMITTED`). Shape is checked; auth
 
 ## Permissions (headless and interactive)
 
-- `.claude/settings.json` allows read-only workflow subcommands and the writer's git add, commit and listing,
-  plus `mkdir`, `ls`, `cat`, `pwd` and unittest. It denies push, reset, clean, checkout, stash, worktree, branch
-  and tag operations, removal, and `resume` and `init`.
-- The Lead-only commands (`go`, `task-done`, `record-skeptic`) are allowed only inside `/genesis-go`'s own
-  `allowed-tools`, so the writer cannot record its own skeptic review. `resume --clear-block` is run by the operator
-  in a terminal, never by Claude.
-- Claude Code permission rules match command text. They reduce the writer's reach but cannot prove which agent
-  made a call. The engine's checks (candidate HEAD, frozen and governance paths, committed approvals, independent
-  review on the exact SHA) are what hold; the permission layer is defence in depth.
+- Only the Lead (the session running `/genesis-go`) has a shell that can reach the engine or git commits. The
+  implementer, skeptic, architect and evidence agents have no Bash, so they cannot record their own reviews or
+  commit as the engine. That is the role separation the permission layer enforces.
+- `.claude/settings.json` allows the Lead's engine commands (`go`, `task-done`, `record-skeptic`), read-only
+  status commands, `git add` and `git commit`, and listing. It denies `resume` and `init` (run `resume
+  --clear-block` yourself, in a terminal), push, reset, clean, checkout, stash, worktree, branch, tag and config
+  operations, and removal.
+- Permissions granted by a command's `allowed-tools` were observed to lapse after a subagent returns in headless
+  runs. The project allowlist therefore carries the Lead's commands, and the subagents' missing shell is what
+  keeps them away from those commands.
+- Claude Code permission rules match command text. The engine's checks (candidate HEAD, frozen and governance
+  paths, committed approvals, independent review on the exact SHA) hold regardless of the permission layer.
 - Writing files needs an edit mode. Run unattended with `claude --permission-mode acceptEdits`; in the default
-  mode the implementer's edits are refused in headless runs (observed in the end-to-end run).
+  mode edits from subagents are refused in headless runs.
 
 ## Resource policy
 

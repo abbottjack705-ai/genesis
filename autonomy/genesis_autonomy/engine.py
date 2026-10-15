@@ -344,9 +344,11 @@ def _implementing(ctx: Context, state: dict):
     if not remaining:
         st.set_phase(state, "FREEZING")
         return None
-    packet = _write_implement_packet(ctx, state, remaining)
-    state["next_action"] = f"implementer: {', '.join(remaining)} (round {a['round']})"
-    tasks = [{"id": t, **a["task_titles"][t]} for t in remaining]
+    # one task per action: the Lead commits each task on its own, so every task has exactly one commit
+    current = remaining[:1]
+    packet = _write_implement_packet(ctx, state, current)
+    state["next_action"] = f"implementer: {current[0]} (round {a['round']})"
+    tasks = [{"id": t, **a["task_titles"][t]} for t in current]
     return _action(ctx, state, {"action": "IMPLEMENT", "milestone": a["milestone"], "round": a["round"],
                                 "mode": a["mode"], "tasks": tasks, "writer": str(ctx.repo),
                                 "branch": ctx.envelope["writer_branch"], "packet": _rel(ctx, packet),
@@ -473,7 +475,8 @@ def _write_implement_packet(ctx: Context, state: dict, remaining: list[str]) -> 
         f"Envelope: {ctx.envelope['envelope_id']}; operating mode {ctx.envelope['operating_mode']}; live_enabled=false.",
         "",
         "Rules (fail-closed; the engine checks them):",
-        "- Commit each task in the writer worktree before it is reported done. The Lead then runs task-done.",
+        "- You write files only. You have no shell: the Lead commits your work and runs the engine. Do not try to",
+        "  run git or the engine yourself.",
         "- Do not touch these trees: " + ", ".join(ctx.envelope["frozen_prefixes"] + ctx.envelope["immutable_prefixes"]) + ".",
         "- Do not create anything under autonomy/approvals/ and do not edit autonomy/state/.",
         "- Do not run heavy validation yourself; the engine runs it under the host lock.",

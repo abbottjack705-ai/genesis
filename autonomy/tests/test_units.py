@@ -163,9 +163,16 @@ class ReviewTests(unittest.TestCase):
         return path
 
     def _verdict(self, **overrides):
-        doc = {"verdict": "PASS", "reviewed_sha": self.SHA, "summary": "ok", "findings": []}
+        doc = {"review_complete": True, "verdict": "PASS", "reviewed_sha": self.SHA, "summary": "ok", "findings": []}
         doc.update(overrides)
         return doc
+
+    def test_an_incomplete_review_is_not_a_code_finding(self):
+        doc = self._verdict(review_complete=False, verdict="REMEDIATION_REQUIRED",
+                            summary="sandbox refused the reads")
+        with self.assertRaises(WorkflowError) as cm:
+            review.parse_verdict(self._write(doc), self.SHA)
+        self.assertEqual(cm.exception.code, "REVIEW_INCOMPLETE")
 
     def test_a_pass_on_the_candidate_is_accepted(self):
         self.assertEqual(review.parse_verdict(self._write(self._verdict()), self.SHA)["verdict"], "PASS")

@@ -18,7 +18,7 @@ PROBE_EXPECTED = "GENESIS_CODEX_PREFLIGHT_OK"
 VERDICTS = ("PASS", "REMEDIATION_REQUIRED")
 SEVERITIES = ("BLOCKER", "HIGH", "MEDIUM", "LOW")
 FINDING_KEYS = {"severity", "file", "line", "summary", "required_fix"}
-VERDICT_KEYS = {"verdict", "reviewed_sha", "summary", "findings"}
+VERDICT_KEYS = {"review_complete", "verdict", "reviewed_sha", "summary", "findings"}
 # Flags that keep the reviewer hermetic: no user hooks, MCP servers or rules, and no session files.
 HERMETIC = ["--ephemeral", "--ignore-user-config", "--ignore-rules", "--skip-git-repo-check"]
 
@@ -81,6 +81,10 @@ def parse_verdict(path: Path, candidate_sha: str) -> dict:
         raise WorkflowError("REVIEW_INVALID", f"unknown verdict {doc['verdict']!r}")
     if doc["reviewed_sha"] != candidate_sha:
         raise WorkflowError("REVIEWED_WRONG_SHA", f"reviewed {doc['reviewed_sha']}, candidate is {candidate_sha}")
+    if doc["review_complete"] is not True:
+        # the reviewer could not judge the candidate (for example its sandbox refused the reads). That is an
+        # environment outcome, never a code finding: it blocks the milestone instead of sending it for remediation.
+        raise WorkflowError("REVIEW_INCOMPLETE", f"the reviewer did not complete the review: {doc['summary'][:300]}")
     findings = doc["findings"]
     if not isinstance(findings, list):
         raise WorkflowError("REVIEW_INVALID", "findings must be a list")

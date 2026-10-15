@@ -1,8 +1,9 @@
 {
   "type": "object",
   "additionalProperties": false,
-  "required": ["verdict", "reviewed_sha", "summary", "findings"],
+  "required": ["review_complete", "verdict", "reviewed_sha", "summary", "findings"],
   "properties": {
+    "review_complete": {"type": "boolean"},
     "verdict": {"type": "string", "enum": ["PASS", "REMEDIATION_REQUIRED"]},
     "reviewed_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
     "summary": {"type": "string"},

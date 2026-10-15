@@ -87,6 +87,11 @@ the append and the save) is adopted once and counted; two or more are refused.
 - Codex runs only under the existing ChatGPT subscription login. `OPENAI_API_KEY` or `CODEX_API_KEY` in the
   environment is a refusal (`BILLING_GUARD`). The reviewer runs with `--ignore-user-config --ignore-rules
   --ephemeral --sandbox read-only`.
+- The reviewer's packet carries the full diff inline, so its judgement does not depend on shell reads. A diff over
+  400 KB fails closed (`REVIEW_PACKET_TOO_LARGE`) rather than being cut short.
+- A review that is not complete (`review_complete: false`, for example when the sandbox refuses reads) blocks the
+  milestone (`REVIEW_INCOMPLETE`). It is never recorded as a code finding and never sent back for remediation.
+- `init` stores exact commits: a moving reference such as `HEAD~1` is resolved before it is recorded.
 - Heavy validation: one per host at a time (OS byte-range lock in the shared git directory). Below
   `min_available_mib` free memory it defers; after `max_deferrals` deferrals it blocks. A crashed run's
   checks are killed by their Job Object, so nothing keeps running after its engine is gone.
@@ -155,3 +160,12 @@ one harmless call (`codex-preflight --probe`).
    stated in the brief; the source reference should be supplied by the operator.
 6. **Engine commits carry a co-author trailer** (`Co-Authored-By: Claude Haiku 5.5`) on record and rejection commits.
 7. **Push is manual.** The workflow commits to `autonomous-build` locally and never pushes.
+8. **Codex sandbox on this host (operator decision).** In the end-to-end run the read-only Codex sandbox refused
+   file reads ("execution policy blocked read-only access"). Windows reports the PowerShell execution policy as
+   `Undefined` in every scope (effectively Restricted). The workflow now judges from the inline diff and blocks,
+   rather than guessing, when a review cannot complete. Changing the execution policy is a host security setting;
+   it is the operator's call, not the workflow's. Until it is decided, reviews that need file reads will block.
+9. **Skeptic and review findings have no residual route.** A finding is fixed or the milestone blocks. A route to
+   accept a documented residual needs a human-governed approval design; it does not exist yet.
+10. **Roadmap validations must be exact.** A substring check (for example `'GOOD' in text`) accepts `NOTGOOD`.
+    The roadmap's own checks are authored by humans between milestones; the skeptic flags weak ones.

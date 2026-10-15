@@ -100,6 +100,14 @@ class DryRunTests(unittest.TestCase):
         self.assertEqual(refused.returncode, 2)
         self.assertEqual(json.loads(refused.stdout)["code"], "STATE_DIGEST_MISMATCH")
 
+    # init stores exact commits: a moving reference is resolved, never recorded as written
+    def test_init_resolves_references_to_full_shas(self):
+        repo, ctx = self._ctx_for()
+        head = git(repo, "rev-parse", "HEAD")
+        engine.init(ctx, product_sha="HEAD", evidence_sha="HEAD")
+        baseline = st.load(repo)["baseline"]
+        self.assertEqual((baseline["product_sha"], baseline["evidence_sha"]), (head, head))
+
     # 2. go selects an authorised, paper-only task; a gate it does not depend on does not stop it
     def test_02_go_selects_the_authorised_paper_only_milestone(self):
         repo, ctx = self._ctx_for()
@@ -144,6 +152,7 @@ class DryRunTests(unittest.TestCase):
         self.assertEqual(len(real), 1)
         self.assertEqual(real[0]["sandbox"], "read-only")
         self.assertTrue(real[0]["hermetic"])
+        self.assertTrue(real[0]["stdin_has_diff"], "the reviewer packet must carry the full diff")
         self.assertNotEqual(Path(real[0]["cwd"]).resolve(), repo.resolve())
         self.assertFalse(Path(real[0]["cwd"]).exists(), "the reviewer checkout must be removed afterwards")
 
@@ -282,6 +291,16 @@ class DryRunTests(unittest.TestCase):
         record = json.loads((repo / "autonomy" / "records" / "DR1" / "MILESTONE.json").read_text(encoding="utf-8"))
         self.assertEqual(record["rejected"][0]["kind"], "VALIDATION_FAILED")
         self.assertEqual(record["rounds"], 2)
+
+    # an incomplete review (for example a refused sandbox read) blocks the milestone instead of remediating it
+    def test_an_incomplete_codex_review_blocks_instead_of_sending_work_back(self):
+        repo, ctx = self._ctx_for(scenario=[{"verdict": "REMEDIATION_REQUIRED", "review_complete": False,
+                                             "summary": "sandbox refused the reads", "findings": []}])
+        self._init(repo, ctx)
+        results = drive(ctx, implementer=ok_implementer)
+        stop = results[-1]
+        self.assertEqual((stop["reason"], stop["detail"]["code"]), ("BLOCKED", "REVIEW_INCOMPLETE"))
+        self.assertNotIn("REJECTED", ledger_events(repo))
 
     # 8. the Codex reviewer is reached only through the billing guard and the login check
     def test_08_codex_preflight_checks_login_and_refuses_billing_variables(self):

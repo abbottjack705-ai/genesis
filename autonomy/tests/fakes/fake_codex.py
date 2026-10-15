@@ -36,6 +36,7 @@ def main() -> int:
         with open(log, "a", encoding="utf-8") as fh:
             fh.write(json.dumps({
                 "cwd": cwd, "sandbox": _arg("--sandbox", argv), "stdin_bytes": len(stdin.encode("utf-8")),
+                "stdin_has_diff": "BEGIN DIFF" in stdin,
                 "hermetic": all(flag in argv for flag in ("--ignore-user-config", "--ignore-rules", "--ephemeral")),
                 "argv": argv}) + "\n")
     if "Reply with exactly this single line" in stdin:
@@ -54,8 +55,8 @@ def main() -> int:
         if sha == "HEAD":
             sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=cwd, capture_output=True,
                                  text=True).stdout.strip()
-        text = json.dumps({"verdict": entry["verdict"], "reviewed_sha": sha,
-                           "summary": entry.get("summary", "fake review"),
+        text = json.dumps({"review_complete": entry.get("review_complete", True), "verdict": entry["verdict"],
+                           "reviewed_sha": sha, "summary": entry.get("summary", "fake review"),
                            "findings": entry.get("findings", [])})
     last.write_text(text, encoding="utf-8")
     return 0

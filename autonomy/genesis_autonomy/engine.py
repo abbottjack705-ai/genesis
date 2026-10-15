@@ -170,6 +170,9 @@ def init(ctx: Context, *, product_sha: str, evidence_sha: str) -> dict:
     with _lock(ctx):
         if (ctx.state_root / "state.json").exists():
             raise WorkflowError("ALREADY_INITIALISED", "workflow state exists; refusing to overwrite it")
+        # the baseline is an exact commit, never a moving reference such as HEAD~1 (end-to-end skeptic finding)
+        product_sha = gitops.git(ctx.repo, "rev-parse", "--verify", f"{product_sha}^{{commit}}").strip()
+        evidence_sha = gitops.git(ctx.repo, "rev-parse", "--verify", f"{evidence_sha}^{{commit}}").strip()
         if not gitops.same_path(gitops.toplevel(ctx.repo), ctx.repo):
             raise WorkflowError("WRITER_MISMATCH", "init must run from the writer worktree root")
         if gitops.branch(ctx.repo) != ctx.envelope["writer_branch"]:
@@ -630,24 +633,33 @@ def _codex(ctx: Context, state: dict):
     return _reject(ctx, state, "CODEX_REMEDIATION_REQUIRED", verdict["findings"])
 
 
+REVIEW_PACKET_LIMIT = 400_000   # bytes of diff; a larger candidate fails closed rather than being cut short
+
+
 def _review_packet(ctx: Context, state: dict) -> str:
     a = state["active"]
-    diff_stat = a["diff_stat"]
+    diff = gitops.diff_text(ctx.repo, a["milestone_base"], a["candidate"])
+    if len(diff.encode("utf-8")) > REVIEW_PACKET_LIMIT:
+        raise WorkflowError("REVIEW_PACKET_TOO_LARGE", f"the candidate diff exceeds {REVIEW_PACKET_LIMIT} bytes; "
+                                                       f"split the milestone")
     tasks = "\n".join(f"- {t}: {info['title']} | acceptance: {info['acceptance']}"
                       for t, info in a["task_titles"].items() if t in a["done"] or t in a["tasks"])
     return "\n".join([
         f"# Independent cross-vendor review: {a['milestone']} {a['name']} (round {a['round']})",
         "",
         "You are the independent reviewer for Project Genesis. You run read-only; do not modify any file.",
+        "Everything you need is in this packet, including the full diff. Do not run shell commands to read",
+        "files: the sandbox may refuse them. If you genuinely cannot judge something from this packet, set",
+        "review_complete to false, say what is missing in summary, and use verdict REMEDIATION_REQUIRED with no",
+        "findings. Set review_complete to true only when you have judged the whole diff.",
+        "",
         f"Candidate commit (review exactly this): {a['candidate']}",
         f"Candidate parent: {a['candidate_parent']}",
         f"Milestone base: {a['milestone_base']}",
-        f"Inspect with git: git show --stat {a['candidate'][:12]}; git diff {a['milestone_base'][:12]} {a['candidate'][:12]}",
         "",
-        "Read first: v04_pack/Genesis_v0.4_Implementation_Pack/03_PROJECT_LAWS_v0.4.md, autonomy/ENVELOPE.json,",
-        "PROJECT_STATE.md (safe next step). Judge: correctness, fail-closed behaviour, PIT causality, immutable",
-        "evidence, frozen-tree rules, the paper-only envelope (no live, provider, credential or betting activation),",
-        "and whether the tests prove the claims. Do not re-open findings already closed with evidence.",
+        "Judge: correctness, fail-closed behaviour, PIT causality, immutable evidence, frozen-tree rules, the",
+        "paper-only envelope (no live, provider, credential or betting activation), and whether the tests prove",
+        "the claims. Do not re-open findings already closed with evidence.",
         "",
         "Tasks and acceptance:",
         tasks,
@@ -656,11 +668,16 @@ def _review_packet(ctx: Context, state: dict) -> str:
         f"Skeptic (internal, Claude): {a['skeptic']['verdict']} for this candidate",
         "",
         "Diff stat:",
-        diff_stat,
+        a["diff_stat"],
         "",
-        "Output: the JSON object required by the output schema only. verdict PASS only if there are no BLOCKER",
-        "or HIGH findings; otherwise REMEDIATION_REQUIRED with every finding giving file, line, summary and",
-        f"required_fix. reviewed_sha must be exactly {a['candidate']}.",
+        "Full diff (milestone base to candidate):",
+        "----- BEGIN DIFF -----",
+        diff,
+        "----- END DIFF -----",
+        "",
+        "Output: the JSON object required by the output schema only. verdict PASS only if review_complete is true",
+        "and there are no BLOCKER or HIGH findings; otherwise REMEDIATION_REQUIRED with every finding giving file,",
+        f"line, summary and required_fix. reviewed_sha must be exactly {a['candidate']}.",
     ]) + "\n"
 
 
